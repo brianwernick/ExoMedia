@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                xmlns:tools="http://schemas.android.com/tools"
+                android:layout_width="match_parent"
+                android:layout_height="128dp">
+
+    <ImageView
+        android:id="@+id/exomedia_notification_large_image"
+        android:layout_width="@dimen/exomedia_big_notification_height"
+        android:layout_height="@dimen/exomedia_big_notification_height"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentTop="true"
+        android:scaleType="fitXY"
+        tools:background="#ffffff"/>
+
+    <ImageButton
+        android:id="@+id/exomedia_notification_close"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentTop="true"
+        android:background="?android:selectableItemBackground"
+        android:padding="@dimen/exomedia_default_padding"
+        android:src="@drawable/exomedia_notification_close"/>
+
+    <LinearLayout
+        android:id="@+id/exomedia_notification_text_area"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_gravity="top"
+        android:layout_toLeftOf="@id/exomedia_notification_close"
+        android:layout_toRightOf="@id/exomedia_notification_large_image"
+        android:paddingLeft="@dimen/exomedia_default_padding"
+        android:paddingTop="@dimen/exomedia_big_notification_top_pad"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/exomedia_notification_title"
+            style="@style/exomedia_notification_title"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="left"
+            android:ellipsize="marquee"
+            android:fadingEdge="horizontal"
+            android:focusable="true"
+            android:singleLine="true"
+            tools:text="LOREM IPSUM"/>
+
+        <TextView
+            android:id="@+id/exomedia_notification_content_text"
+            style="@style/exomedia_notification_content"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="left"
+            android:ellipsize="marquee"
+            android:fadingEdge="horizontal"
+            android:focusable="true"
+            android:singleLine="true"
+            android:paddingTop="@dimen/exomedia_big_notification_text_pad"
+            tools:text="dolor sit amet"/>
+    </LinearLayout>
+
+    <ImageView
+        android:id="@+id/exomedia_notification_separator"
+        android:layout_width="wrap_content"
+        android:layout_height="1px"
+        android:layout_above="@+id/exomedia_notification_button_layout"
+        android:layout_alignParentRight="true"
+        android:layout_toRightOf="@id/exomedia_notification_large_image"
+        android:background="?android:dividerHorizontal"/>
+
+    <LinearLayout
+        android:id="@+id/exomedia_notification_button_layout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentRight="true"
+        android:layout_toRightOf="@+id/exomedia_notification_large_image"
+        android:divider="?android:listDivider"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <ImageButton
+            android:id="@+id/exomedia_notification_prev"
+            android:layout_width="0dp"
+            android:layout_height="@dimen/exomedia_notification_button_height"
+            android:layout_weight="1"
+            android:background="?android:selectableItemBackground"
+            android:padding="@dimen/exomedia_default_padding"
+            android:scaleType="fitCenter"
+            android:src="@drawable/exomedia_notification_previous"/>
+
+        <ImageButton
+            android:id="@+id/exomedia_notification_playpause"
+            android:layout_width="0dp"
+            android:layout_height="@dimen/exomedia_notification_button_height"
+            android:layout_weight="1"
+            android:background="?android:selectableItemBackground"
+            android:padding="@dimen/exomedia_default_padding"
+            android:scaleType="fitCenter"
+            android:src="@drawable/exomedia_notification_play"/>
+
+        <ImageButton
+            android:id="@+id/exomedia_notification_next"
+            android:layout_width="0dp"
+            android:layout_height="@dimen/exomedia_notification_button_height"
+            android:layout_weight="1"
+            android:background="?android:selectableItemBackground"
+            android:padding="@dimen/exomedia_default_padding"
+            android:scaleType="fitCenter"
+            android:src="@drawable/exomedia_notification_next"/>
+    </LinearLayout>
+</RelativeLayout>

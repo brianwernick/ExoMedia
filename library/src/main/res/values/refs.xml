@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <drawable name="exomedia_notification_close">@drawable/exomedia_ic_clear_white</drawable>
+    <drawable name="exomedia_notification_previous">@drawable/exomedia_ic_skip_previous_white</drawable>
+    <drawable name="exomedia_notification_next">@drawable/exomedia_ic_skip_next_white</drawable>
+    <drawable name="exomedia_notification_play">@drawable/exomedia_ic_play_arrow_white</drawable>
+    <drawable name="exomedia_notification_pause">@drawable/exomedia_ic_pause_white</drawable>
+
+</resources>

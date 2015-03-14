@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="exomedia_notification_title" parent="@android:style/TextAppearance.Material.Notification.Title" />
+    <style name="exomedia_notification_content" parent="@android:style/TextAppearance.Material.Notification" />
+</resources>

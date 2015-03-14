@@ -1,0 +1,24 @@
+apply plugin: 'com.android.application'
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+}
+
+dependencies {
+    compile project(':library')
+    compile 'com.android.support:appcompat-v7:21.0.3'
+}
+
+android {
+    compileSdkVersion 21
+    buildToolsVersion "21.1.2"
+
+    defaultConfig {
+        applicationId "com.devbrackets.android.exomediademo"
+        minSdkVersion 10
+        targetSdkVersion 21
+        versionCode 1
+        versionName "1.0"
+    }
+}

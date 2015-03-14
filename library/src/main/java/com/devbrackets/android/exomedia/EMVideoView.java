@@ -1,0 +1,979 @@
+/*
+ * Copyright (C) 2015 Brian Wernick
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.devbrackets.android.exomedia;
+
+import android.annotation.TargetApi;
+import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.drawable.Drawable;
+import android.media.MediaPlayer;
+import android.net.Uri;
+import android.os.Build;
+import android.support.annotation.DrawableRes;
+import android.support.annotation.Nullable;
+import android.util.AttributeSet;
+import android.view.SurfaceHolder;
+import android.view.View;
+import android.widget.ImageView;
+import android.widget.RelativeLayout;
+import android.widget.VideoView;
+
+import com.devbrackets.android.exomedia.builder.HlsRenderBuilder;
+import com.devbrackets.android.exomedia.builder.RenderBuilder;
+import com.devbrackets.android.exomedia.event.EMMediaProgressEvent;
+import com.devbrackets.android.exomedia.event.EMVideoViewClickedEvent;
+import com.devbrackets.android.exomedia.exoplayer.EMExoPlayer;
+import com.devbrackets.android.exomedia.listener.EMVideoViewControlsCallback;
+import com.devbrackets.android.exomedia.listener.ExoPlayerListener;
+import com.devbrackets.android.exomedia.util.DeviceUtil;
+import com.devbrackets.android.exomedia.util.Repeater;
+import com.devbrackets.android.exomedia.util.StopWatch;
+import com.google.android.exoplayer.VideoSurfaceView;
+import com.squareup.otto.Bus;
+import com.squareup.otto.Produce;
+
+/**
+ * This is a support VideoView that will use the standard VideoView on devices below
+ * JellyBean.  On devices with JellyBean and up we will use the ExoPlayer in order to
+ * better support HLS streaming and full 1080p video resolutions which the VideoView
+ * struggles with, and in some cases crashes.
+ * <p/>
+ * To an external user this view should have the same APIs used with the standard VideoView
+ * to help with quick implementations.
+ */
+@SuppressWarnings("UnusedDeclaration")
+public class EMVideoView extends RelativeLayout {
+    private static final String TAG = EMVideoView.class.getSimpleName();
+    private static final String USER_AGENT_FORMAT = "EMVideoView %s / Android %s / %s";
+    private static final int CONTROL_HIDE_DELAY = 2000;
+
+    public enum VideoType {
+        HLS,
+        DEFAULT;
+
+        public static VideoType get(Uri uri) {
+            if (uri.toString().matches(".*\\.m3u8.*")) {
+                return VideoType.HLS;
+            }
+
+            return VideoType.DEFAULT;
+        }
+    }
+
+    private View shutterTop;
+    private View shutterBottom;
+    private ImageView previewImageView;
+
+    private VideoView videoView;
+    private VideoSurfaceView exoVideoSurfaceView;
+    private EMExoPlayer emExoPlayer;
+
+    private DefaultControls defaultControls;
+    private Repeater pollRepeater = new Repeater();
+    private StopWatch overriddenPositionStopWatch = new StopWatch();
+
+    private boolean useExo = false;
+    private int overriddenDuration = -1;
+    private int positionOffset = 0;
+    private boolean overridePosition = false;
+
+    private EMListenerMux listenerMux;
+    private boolean playRequested = false;
+    private Bus bus;
+
+    private Uri videoUri;
+    private EMMediaProgressEvent currentMediaProgressEvent = new EMMediaProgressEvent(0, 0, 0);
+
+    public EMVideoView(Context context) {
+        super(context);
+        setup(context);
+    }
+
+    public EMVideoView(Context context, AttributeSet attrs) {
+        super(context, attrs);
+        setup(context);
+    }
+
+    @TargetApi(Build.VERSION_CODES.HONEYCOMB)
+    public EMVideoView(Context context, AttributeSet attrs, int defStyleAttr) {
+        super(context, attrs, defStyleAttr);
+        setup(context);
+    }
+
+    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+    public EMVideoView(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
+        super(context, attrs, defStyleAttr, defStyleRes);
+        setup(context);
+    }
+
+    private void setup(Context context) {
+        useExo = Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN && DeviceUtil.isDeviceCTSCompliant();
+        pollRepeater.setRepeatListener(new Repeater.RepeatListener() {
+            @Override
+            public void onRepeat() {
+                currentMediaProgressEvent = new EMMediaProgressEvent(getCurrentPosition(), getBufferPercentage(), getDuration());
+
+                if (defaultControls != null) {
+                    defaultControls.setProgressEvent(currentMediaProgressEvent);
+                }
+
+                if (bus != null) {
+                    bus.post(currentMediaProgressEvent);
+                }
+            }
+        });
+
+        initView(context);
+    }
+
+    private void initView(Context context) {
+        if (useExo) {
+            View.inflate(context, R.layout.exomedia_exo_view_layout, this);
+        } else {
+            View.inflate(context, R.layout.exomedia_video_view_layout, this);
+        }
+
+        shutterBottom = findViewById(R.id.exomedia_video_shutter_bottom);
+        shutterTop = findViewById(R.id.exomedia_video_shutter_top);
+        previewImageView = (ImageView) findViewById(R.id.exomedia_video_preview_image);
+
+        exoVideoSurfaceView = (VideoSurfaceView) findViewById(R.id.exomedia_exo_video_surface);
+        videoView = (VideoView) findViewById(R.id.exomedia_android_video_view);
+
+        //If we are using the exo player set it up
+        if (exoVideoSurfaceView != null) {
+            setupExoPlayer();
+        } else {
+            setupVideoView();
+        }
+    }
+
+    private void setupExoPlayer() {
+        emExoPlayer = new EMExoPlayer(null);
+
+        //Sets the internal listener
+        listenerMux = new EMListenerMux(new MuxNotifier());
+        emExoPlayer.addListener(listenerMux);
+        emExoPlayer.setMetadataListener(null);
+        emExoPlayer.setSurface(exoVideoSurfaceView.getHolder().getSurface());
+        exoVideoSurfaceView.getHolder().addCallback(new EMExoVideoSurfaceCallback());
+    }
+
+    private void setupVideoView() {
+        listenerMux = new EMListenerMux(new MuxNotifier());
+        videoView.setOnCompletionListener(listenerMux);
+        videoView.setOnPreparedListener(listenerMux);
+        videoView.setOnErrorListener(listenerMux);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+            videoView.setOnInfoListener(listenerMux);
+        }
+    }
+
+    /**
+     * Creates and returns the correct render builder for the specified VideoType and uri.
+     *
+     * @param renderType The RenderType to use for creating the correct RenderBuilder
+     * @param uri The video's Uri
+     * @return The appropriate RenderBuilder
+     */
+    private RenderBuilder getRendererBuilder(VideoType renderType, Uri uri) {
+        switch (renderType) {
+            case HLS:
+                return new HlsRenderBuilder(getUserAgent(), uri.toString(), "uid:hls:applesinglemedia");
+            default:
+                return new RenderBuilder(getContext(), uri.toString());
+        }
+    }
+
+    @Override
+    protected void onDetachedFromWindow() {
+        super.onDetachedFromWindow();
+
+        defaultControls = null;
+        stopPlayback();
+        overriddenPositionStopWatch.stop();
+
+        if (emExoPlayer != null) {
+            emExoPlayer.release();
+        }
+    }
+
+    /**
+     * Retrieves the user agent that the EMVideoView will use when communicating
+     * with media servers
+     *
+     * @return The String user agent for the EMVideoView
+     */
+    public String getUserAgent() {
+        return String.format(USER_AGENT_FORMAT, BuildConfig.VERSION_NAME + " (" + BuildConfig.VERSION_CODE + ")", Build.VERSION.RELEASE, Build.MODEL);
+    }
+
+    /**
+     * Sets an image that will be visible only when the video is loading.
+     *
+     * @param drawable The drawable to use for the preview image
+     */
+    public void setPreviewImage(@Nullable Drawable drawable) {
+        if (previewImageView != null) {
+            previewImageView.setImageDrawable(drawable);
+        }
+    }
+
+    /**
+     * Sets an image that will be visible only when the video is loading.
+     *
+     * @param resourceId The resourceId representing the preview image
+     */
+    public void setPreviewImage(@DrawableRes int resourceId) {
+        if (previewImageView != null) {
+            previewImageView.setImageResource(resourceId);
+        }
+    }
+
+    /**
+     * Sets an image that will be visible only when the video is loading.
+     *
+     * @param bitmap The bitmap to use for the preview image
+     */
+    public void setPreviewImage(@Nullable Bitmap bitmap) {
+        if (previewImageView != null) {
+            previewImageView.setImageBitmap(bitmap);
+        }
+    }
+
+    /**
+     * Sets an image that will be visible only when the video is loading.
+     *
+     * @param uri The Uri pointing to the preview image
+     */
+    public void setPreviewImage(@Nullable Uri uri) {
+        if (previewImageView != null) {
+            previewImageView.setImageURI(uri);
+        }
+    }
+
+    /**
+     * Gets the preview ImageView for use with image loading libraries.
+     *
+     * @return the preview ImageView
+     */
+    public ImageView getPreviewImageView() {
+        return previewImageView;
+    }
+
+    /**
+     * Sets the color for the video shutters (the black bars above and below the video)
+     *
+     * @param color The color
+     */
+    public void setShutterColor(int color) {
+        if (shutterTop != null) {
+            shutterTop.setBackgroundColor(color);
+        }
+
+        if (shutterBottom != null) {
+            shutterBottom.setBackgroundColor(color);
+        }
+    }
+
+    /**
+     * Sets the delay to use when notifying of progress.  The
+     * default is 33 milliseconds, or 30 frames-per-second
+     *
+     * @param milliSeconds The millisecond delay to use
+     */
+    public void setProgressPollDelay(int milliSeconds) {
+        pollRepeater.setRepeaterDelay(milliSeconds);
+    }
+
+    /**
+     * Sets the bus to use for dispatching Events that correspond to the callbacks
+     * listed in {@link com.devbrackets.android.exomedia.listener.EMVideoViewControlsCallback}
+     *
+     * @param bus The Otto bus to dispatch events on
+     */
+    public void setBus(Bus bus) {
+        this.bus = bus;
+        listenerMux.setBus(bus);
+
+        if (defaultControls != null) {
+            defaultControls.setBus(bus);
+        }
+    }
+
+    /**
+     * Starts the progress poll.  If you have already called {@link #setBus(com.squareup.otto.Bus)} then
+     * you should use the {@link #startProgressPoll()} method instead.
+     *
+     * @param bus The Otto Bus event dispatcher that the listener is connected to
+     */
+    public void startProgressPoll(Bus bus) {
+        setBus(bus);
+        startProgressPoll();
+    }
+
+    /**
+     * Starts the progress poll.  This should be called after you have set the bus with {@link #setBus(com.squareup.otto.Bus)}
+     * or previously called {@link #startProgressPoll(com.squareup.otto.Bus)}, otherwise you won't get notified
+     * of progress changes
+     */
+    public void startProgressPoll() {
+        if (!pollRepeater.isRunning() && (bus != null || defaultControls != null)) {
+            pollRepeater.start();
+        }
+    }
+
+    /**
+     * Stops the progress poll
+     * (see {@link #startProgressPoll()})
+     */
+    public void stopProgressPoll() {
+        if (defaultControls == null) {
+            pollRepeater.stop();
+        }
+    }
+
+    @Produce
+    public EMMediaProgressEvent produceMediaProgressEvent() {
+        return currentMediaProgressEvent;
+    }
+
+    /***********************************
+     * Start of the media control APIs *
+     ***********************************/
+
+
+    /**
+     * Enables and disables the media control overlay for the video view
+     *
+     * @param enabled Weather the default video controls are enabled (default: false)
+     */
+    public void setDefaultControlsEnabled(boolean enabled) {
+        if (defaultControls == null && enabled) {
+            defaultControls = new DefaultControls(getContext());
+            defaultControls.setVideoView(this);
+            defaultControls.setBus(bus);
+
+            addView(defaultControls);
+            startProgressPoll(bus);
+        } else if (defaultControls != null && !enabled) {
+            removeView(defaultControls);
+            defaultControls = null;
+
+            if (bus == null) {
+                stopProgressPoll();
+            }
+        }
+
+        //Sets the onClick listener to show the default controls
+        VideoViewClicked listener = new VideoViewClicked();
+
+        if (exoVideoSurfaceView != null) {
+            exoVideoSurfaceView.setOnClickListener(enabled ? listener : null);
+        }
+
+        if (videoView != null) {
+            videoView.setOnClickListener(enabled ? listener : null);
+        }
+    }
+
+    /**
+     * Requests the DefaultControls to become visible.  This should only be called after
+     * {@link #setDefaultControlsEnabled(boolean)}.
+     */
+    public void showDefaultControls() {
+        if (defaultControls != null) {
+            defaultControls.show();
+
+            if (isPlaying()) {
+                defaultControls.hideDelayed(CONTROL_HIDE_DELAY);
+            }
+        }
+    }
+
+    /**
+     * Sets the button state for the Previous button on the default controls; see
+     * {@link #setDefaultControlsEnabled(boolean)}.
+     * {@link #setDefaultControlsEnabled(boolean)} must be called prior to this.
+     * <p/>
+     * This will just change the images specified with {@link #setPreviousImageResource(int)},
+     * or use the defaults if they haven't been set, and block any click events.
+     * </p>
+     * This method will NOT re-add buttons that have previously been removed with
+     * {@link #setPreviousButtonRemoved(boolean)}.
+     *
+     * @param enabled If the Previous button is enabled [default: false]
+     */
+    public void setPreviousButtonEnabled(boolean enabled) {
+        if (defaultControls != null) {
+            defaultControls.setPreviousButtonEnabled(enabled);
+        }
+    }
+
+    /**
+     * Sets the button state for the Next button on the default controls; see
+     * {@link #setDefaultControlsEnabled(boolean)}.
+     * {@link #setDefaultControlsEnabled(boolean)} must be called prior to this.
+     * <p/>
+     * This will just change the images specified with {@link #setNextImageResource(int)},
+     * or use the defaults if they haven't been set, and block any click events.
+     * </p>
+     * This method will NOT re-add buttons that have previously been removed with
+     * {@link #setNextButtonRemoved(boolean)}.
+     *
+     * @param enabled If the Next button is enabled [default: false]
+     */
+    public void setNextButtonEnabled(boolean enabled) {
+        if (defaultControls != null) {
+            defaultControls.setNextButtonEnabled(enabled);
+        }
+    }
+
+    /**
+     * Sets the EMVideoViewControlsCallback to be used.  {@link #setDefaultControlsEnabled(boolean)} must
+     * be called prior to this.
+     *
+     * @param callback The EMVideoViewControlsCallback to use
+     */
+    public void setVideoViewControlsCallback(EMVideoViewControlsCallback callback) {
+        if (defaultControls != null) {
+            defaultControls.setVideoViewControlsCallback(callback);
+        }
+    }
+
+    /**
+     * Sets the resource id's to use for the PlayPause button.
+     * {@link #setDefaultControlsEnabled(boolean)} must
+     * be called prior to this.
+     *
+     * @param playResourceId  The resourceId or 0
+     * @param pauseResourceId The resourceId or 0
+     */
+    public void setPlayPauseImages(@DrawableRes int playResourceId, @DrawableRes int pauseResourceId) {
+        if (defaultControls != null) {
+            defaultControls.setPlayPauseImages(playResourceId, pauseResourceId);
+        }
+    }
+
+    /**
+     * Sets the state list drawable resource id to use for the Previous button.
+     * {@link #setDefaultControlsEnabled(boolean)} must be called prior to this.
+     *
+     * @param resourceId The resourceId or 0
+     */
+    public void setPreviousImageResource(@DrawableRes int resourceId) {
+        if (defaultControls != null) {
+            defaultControls.setPreviousImageResource(resourceId);
+        }
+    }
+
+    /**
+     * Sets the state list drawable resource id to use for the Next button.
+     * {@link #setDefaultControlsEnabled(boolean)} must be called prior to this.
+     *
+     * @param resourceId The resourceId or 0
+     */
+    public void setNextImageResource(@DrawableRes int resourceId) {
+        if (defaultControls != null) {
+            defaultControls.setNextImageResource(resourceId);
+        }
+    }
+
+    /**
+     * Adds or removes the Previous button.  This will change the visibility
+     * of the button, if you want to change the enabled/disabled images see {@link #setPreviousButtonEnabled(boolean)}
+     * {@link #setDefaultControlsEnabled(boolean)} must be called prior to this.
+     *
+     * @param removed If the Previous button should be removed [default: true]
+     */
+    public void setPreviousButtonRemoved(boolean removed) {
+        if (defaultControls != null) {
+            defaultControls.setPreviousButtonRemoved(removed);
+        }
+    }
+
+    /**
+     * Adds or removes the Next button.  This will change the visibility
+     * of the button, if you want to change the enabled/disabled images see {@link #setNextButtonEnabled(boolean)}
+     * {@link #setDefaultControlsEnabled(boolean)} must be called prior to this.
+     *
+     * @param removed If the Next button should be removed [default: true]
+     */
+    public void setNextButtonRemoved(boolean removed) {
+        if (defaultControls != null) {
+            defaultControls.setNextButtonRemoved(removed);
+        }
+    }
+
+    /**
+     * *************************************
+     * Start of the standard VideoView APIs *
+     * **************************************
+     */
+
+    /**
+     * Sets the Uri location for the video to play
+     *
+     * @param uri The video's Uri
+     */
+    public void setVideoURI(Uri uri) {
+        videoUri = uri;
+
+        if (!useExo) {
+            videoView.setVideoURI(uri);
+        } else {
+            if (uri == null) {
+                emExoPlayer.replaceRenderBuilder(null);
+            } else {
+                emExoPlayer.replaceRenderBuilder(getRendererBuilder(VideoType.get(uri), uri));
+                listenerMux.setNotifiedCompleted(false);
+            }
+
+            //Makes sure the listeners get the onPrepared callback
+            listenerMux.setNotifiedPrepared(false);
+            emExoPlayer.seekTo(0);
+        }
+
+        if (defaultControls != null) {
+            defaultControls.restartLoading();
+        }
+    }
+
+    /**
+     * Sets the path to the video.  This path can be a web address (e.g. http://) or
+     * an absolute local path (e.g. file://)
+     *
+     * @param path The path to the video
+     */
+    public void setVideoPath(String path) {
+        setVideoURI(Uri.parse(path));
+    }
+
+    /**
+     * Retrieves the current Video URI.  If this hasn't been set with {@link #setVideoURI(android.net.Uri)}
+     * or {@link #setVideoPath(String)} then null will be returned.
+     *
+     * @return The current video URI or null
+     */
+    @Nullable
+    public Uri getVideoUri() {
+        return videoUri;
+    }
+
+    /**
+     * Sets the volume level for devices that support
+     * the ExoPlayer (JellyBean or greater).
+     *
+     * @param volume The volume range [0.0 - 1.0]
+     * @return True if the volume was set
+     */
+    public boolean setVolume(float volume) {
+        if (useExo) {
+            emExoPlayer.setVolume(volume);
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Stops the current video playback and resets the listener states
+     * so that we receive the callbacks for events like onPrepared
+     */
+    public void reset() {
+        stopPlayback();
+        setVideoURI(null);
+    }
+
+    /**
+     * Moves the current video progress to the specified location.
+     *
+     * @param milliSeconds The time to move the playback to
+     */
+    public void seekTo(int milliSeconds) {
+        if (!useExo) {
+            videoView.seekTo(milliSeconds);
+        } else {
+            emExoPlayer.seekTo(milliSeconds);
+        }
+    }
+
+    /**
+     * Returns if a video is currently in playback
+     *
+     * @return True if a video is playing
+     */
+    public boolean isPlaying() {
+        if (!useExo) {
+            return videoView.isPlaying();
+        }
+
+        return emExoPlayer.getPlayWhenReady();
+    }
+
+    /**
+     * Starts the playback for the video specified in {@link #setVideoURI(android.net.Uri)}
+     * or {@link #setVideoPath(String)}.  This should be called after the VideoView is correctly
+     * prepared (see {@link #setOnPreparedListener(android.media.MediaPlayer.OnPreparedListener)})
+     */
+    public void start() {
+        if (!useExo) {
+            videoView.start();
+        } else {
+            emExoPlayer.setPlayWhenReady(true);
+        }
+
+        if (defaultControls != null) {
+            defaultControls.updatePlayPauseImage(true);
+            defaultControls.hideDelayed(CONTROL_HIDE_DELAY);
+        }
+
+        playRequested = true;
+        startProgressPoll(bus);
+    }
+
+    /**
+     * If a video is currently in playback, it will be paused and the progressPoll
+     * will be stopped (see {@link #startProgressPoll(com.squareup.otto.Bus)})
+     */
+    public void pause() {
+        if (!useExo) {
+            videoView.pause();
+        } else {
+            emExoPlayer.setPlayWhenReady(false);
+        }
+
+        if (defaultControls != null) {
+            defaultControls.updatePlayPauseImage(false);
+            defaultControls.show();
+        }
+
+        playRequested = false;
+        stopProgressPoll();
+    }
+
+    /**
+     * If a video is currently in playback then the playback will be stopped
+     * and the progressPoll will be stopped (see {@link #startProgressPoll(com.squareup.otto.Bus)})
+     */
+    public void stopPlayback() {
+        if (!useExo) {
+            videoView.stopPlayback();
+        } else {
+            emExoPlayer.setPlayWhenReady(false);
+        }
+
+        if (defaultControls != null) {
+            defaultControls.updatePlayPauseImage(false);
+            defaultControls.show();
+        }
+
+        playRequested = false;
+        stopProgressPoll();
+    }
+
+    /**
+     * If a video is currently in playback then the playback will be suspended and
+     * and the progressPoll will be stopped (see {@link #startProgressPoll(com.squareup.otto.Bus)})
+     */
+    public void suspend() {
+        if (!useExo) {
+            videoView.suspend();
+        } else {
+            emExoPlayer.release();
+        }
+
+        if (defaultControls != null) {
+            defaultControls.updatePlayPauseImage(false);
+            defaultControls.show();
+        }
+
+        playRequested = false;
+        stopProgressPoll();
+    }
+
+    /**
+     * Retrieves the duration of the current audio item.  This should only be called after
+     * the item is prepared (see {@link #setOnPreparedListener(android.media.MediaPlayer.OnPreparedListener)}).
+     * If {@link #overrideDuration(int)} is set then that value will be returned.
+     *
+     * @return The millisecond duration of the video
+     */
+    public long getDuration() {
+        if (overriddenDuration >= 0) {
+            return overriddenDuration;
+        }
+
+        if (!listenerMux.isPrepared()) {
+            return 0;
+        }
+
+        if (!useExo) {
+            return videoView.getDuration();
+        }
+
+        return emExoPlayer.getDuration();
+    }
+
+    /**
+     * Setting this will override the duration that the item may actually be.  This method should
+     * only be used when the item doesn't return the correct duration such as with audio streams.
+     * This only overrides the current audio item.
+     *
+     * @param duration The duration for the current media item or < 0 to disable
+     */
+    public void overrideDuration(int duration) {
+        overriddenDuration = duration;
+    }
+
+    /**
+     * Retrieves the current position of the audio playback.  If an audio item is not currently
+     * in playback then the value will be 0.  This should only be called after the item is
+     * prepared (see {@link #setOnPreparedListener(android.media.MediaPlayer.OnPreparedListener)})
+     *
+     * @return The millisecond value for the current position
+     */
+    public long getCurrentPosition() {
+        if (overridePosition) {
+            return positionOffset + overriddenPositionStopWatch.getTime();
+        }
+
+        if (!listenerMux.isPrepared()) {
+            return 0;
+        }
+
+        if (!useExo) {
+            return positionOffset + videoView.getCurrentPosition();
+        }
+
+        return positionOffset + emExoPlayer.getCurrentPosition();
+    }
+
+    /**
+     * Sets the amount of time to change the return value from {@link #getCurrentPosition()}.
+     * This value will be reset when a new audio item is selected.
+     *
+     * @param offset The millisecond value to offset the position
+     */
+    public void setPositionOffset(int offset) {
+        positionOffset = offset;
+    }
+
+    /**
+     * Restarts the audio position to the start if the position is being overridden (see {@link #overridePosition(boolean)}).
+     * This will be the value specified with {@link #setPositionOffset(int)} or 0 if it hasn't been set.
+     */
+    public void restartOverridePosition() {
+        overriddenPositionStopWatch.reset();
+    }
+
+    /**
+     * Sets if the audio position should be overridden, allowing the time to be restarted at will.  This
+     * is useful for streaming audio where the audio doesn't have breaks between songs.
+     *
+     * @param override True if the position should be overridden
+     */
+    public void overridePosition(boolean override) {
+        if (override) {
+            overriddenPositionStopWatch.start();
+        } else {
+            overriddenPositionStopWatch.stop();
+        }
+
+        overridePosition = override;
+    }
+
+    /**
+     * Retrieves the current buffer percent of the video.  If a video is not currently
+     * prepared or buffering the value will be 0.  This should only be called after the video is
+     * prepared (see {@link #setOnPreparedListener(android.media.MediaPlayer.OnPreparedListener)})
+     *
+     * @return The integer percent that is buffered [0, 100] inclusive
+     */
+    public int getBufferPercentage() {
+        if (!useExo) {
+            return videoView.getBufferPercentage();
+        }
+
+        return emExoPlayer.getBufferedPercentage();
+    }
+
+    /**
+     * Sets the listener to inform of any exoPlayer events
+     *
+     * @param listener The listener
+     */
+    public void addExoPlayerListener(ExoPlayerListener listener) {
+        listenerMux.addExoPlayerListener(listener);
+    }
+
+    /**
+     * Removes the specified listener for the ExoPlayer.
+     *
+     * @param listener The listener to remove
+     */
+    public void removeExoPlayerListener(ExoPlayerListener listener) {
+        listenerMux.removeExoPlayerListener(listener);
+    }
+
+
+    /**
+     * Sets the listener to inform of VideoPlayer prepared events.  This can also be
+     * accessed through the Otto event {@link com.devbrackets.android.exomedia.event.EMMediaPreparedEvent}
+     *
+     * @param listener The listener
+     */
+    public void setOnPreparedListener(MediaPlayer.OnPreparedListener listener) {
+        listenerMux.setOnPreparedListener(listener);
+    }
+
+    /**
+     * Sets the listener to inform of VideoPlayer completion events.  This can also be
+     * accessed through the Otto event {@link com.devbrackets.android.exomedia.event.EMMediaCompletionEvent}
+     *
+     * @param listener The listener
+     */
+    public void setOnCompletionListener(MediaPlayer.OnCompletionListener listener) {
+        listenerMux.setOnCompletionListener(listener);
+    }
+
+    /**
+     * Sets the listener to inform of playback errors.  This can also be
+     * accessed through the Otto event {@link com.devbrackets.android.exomedia.event.EMMediaErrorEvent}
+     *
+     * @param listener The listener
+     */
+    public void setOnErrorListener(MediaPlayer.OnErrorListener listener) {
+        listenerMux.setOnErrorListener(listener);
+    }
+
+    /**
+     * Sets the listener to inform of media information events.
+     *
+     * @param listener The listener
+     */
+    public void setOnInfoListener(MediaPlayer.OnInfoListener listener) {
+        listenerMux.setOnInfoListener(listener);
+    }
+
+    /**
+     * Performs the functionality to stop the progress polling, and stop any other
+     * procedures from running that we no longer need.
+     */
+    private void onPlaybackEnded() {
+        stopPlayback();
+        pollRepeater.stop();
+    }
+
+    private class MuxNotifier extends EMListenerMux.EMListenerMuxNotifier {
+        @Override
+        public boolean shouldNotifyCompletion(long endLeeway) {
+            return getCurrentPosition() + endLeeway >= getDuration();
+        }
+
+        @Override
+        public void onExoPlayerError(Exception e) {
+            if (emExoPlayer != null) {
+                emExoPlayer.forcePrepare();
+            }
+        }
+
+        @Override
+        public void onMediaPlaybackEnded() {
+            onPlaybackEnded();
+        }
+
+        @Override
+        public void onVideoSizeChanged(int width, int height, float pixelWidthHeightRatio) {
+            //Makes sure we have the correct aspect ratio
+            exoVideoSurfaceView.setVideoWidthHeightRatio(height == 0 ? 1 : (width * pixelWidthHeightRatio) / height);
+
+            //Sets the shutter (top and bottom) sizes
+            int shutterSize = (getHeight() - height) / 2;
+            if (shutterTop != null) {
+                shutterTop.getLayoutParams().height = shutterSize;
+            }
+
+            if (shutterBottom != null) {
+                shutterBottom.getLayoutParams().height = shutterSize;
+            }
+        }
+
+        @Override
+        public void onPrepared() {
+            if (defaultControls != null) {
+                defaultControls.setDuration(getDuration());
+                defaultControls.loadCompleted();
+            }
+        }
+
+        @Override
+        public void onPreviewImageStateChanged(boolean visible) {
+            if (previewImageView != null) {
+                previewImageView.setVisibility(visible ? View.INVISIBLE : View.GONE);
+            }
+        }
+    }
+
+    /**
+     * Makes sure that the EMExoPlayer has a reference to the surface *after* it is created
+     */
+    private class EMExoVideoSurfaceCallback implements SurfaceHolder.Callback {
+        @Override
+        public void surfaceCreated(SurfaceHolder holder) {
+            if (emExoPlayer != null) {
+                emExoPlayer.setSurface(holder.getSurface());
+                if (playRequested) {
+                    emExoPlayer.setPlayWhenReady(true);
+                }
+            }
+        }
+
+        @Override
+        public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
+            //Purposefully left blank
+        }
+
+        @Override
+        public void surfaceDestroyed(SurfaceHolder holder) {
+            if (emExoPlayer != null) {
+                emExoPlayer.blockingClearSurface();
+            }
+        }
+    }
+
+    /**
+     * Monitors the view click events to show the default controls if they are enabled.
+     */
+    private class VideoViewClicked implements OnClickListener {
+        @Override
+        public void onClick(View v) {
+            if (defaultControls != null) {
+                defaultControls.show();
+
+                if (isPlaying()) {
+                    defaultControls.hideDelayed(CONTROL_HIDE_DELAY);
+                }
+            }
+
+            if (bus != null) {
+                bus.post(new EMVideoViewClickedEvent());
+            }
+        }
+    }
+}

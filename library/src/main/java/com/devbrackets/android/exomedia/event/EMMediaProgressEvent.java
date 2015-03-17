@@ -18,21 +18,56 @@ package com.devbrackets.android.exomedia.event;
 
 /**
  * An event to be used to inform listeners of media (e.g. audio, video) progress
- * changes.
+ * changes.  This event will be re-used internally to avoid over-creating objects,
+ * if you need to store the current values use
  */
 public class EMMediaProgressEvent {
     private static final int MAX_BUFFER_PERCENT = 100;
 
-    private final long position;
-    private final long duration;
-    private final int bufferPercent;
-    private final float bufferPercentFloat;
+    private long position;
+    private long duration;
+    private int bufferPercent;
+    private float bufferPercentFloat;
 
     public EMMediaProgressEvent(long position, int bufferPercent, long duration) {
+        update(position, bufferPercent, duration);
+    }
+
+    public void update(long position, int bufferPercent, long duration) {
+        setPosition(position);
+        setBufferPercent(bufferPercent);
+        setDuration(duration);
+    }
+
+    public long getPosition() {
         if (position < 0) {
             position = 0;
         }
 
+        return position;
+    }
+
+    public void setPosition(long position) {
+        this.position = position;
+    }
+
+    public long getDuration() {
+        return duration;
+    }
+
+    public void setDuration(long duration) {
+        if (duration < 0) {
+            duration = 0;
+        }
+
+        this.duration = duration;
+    }
+
+    public int getBufferPercent() {
+        return bufferPercent;
+    }
+
+    public void setBufferPercent(int bufferPercent) {
         //Makes sure the bufferPercent is between 0 and 100 inclusive
         if (bufferPercent < 0) {
             bufferPercent = 0;
@@ -42,29 +77,21 @@ public class EMMediaProgressEvent {
             bufferPercent = MAX_BUFFER_PERCENT;
         }
 
-        if (duration < 0) {
-            duration = 0;
-        }
-
-        this.position = position;
-        this.duration = duration;
         this.bufferPercent = bufferPercent;
         this.bufferPercentFloat = (float) bufferPercent / (float) MAX_BUFFER_PERCENT;
-    }
-
-    public long getPosition() {
-        return position;
-    }
-
-    public int getBufferPercent() {
-        return bufferPercent;
     }
 
     public float getBufferPercentFloat() {
         return bufferPercentFloat;
     }
 
-    public long getDuration() {
-        return duration;
+    /**
+     * Obtains a copy of the passed EMMediaProgressEvent
+     *
+     * @param event The EMMediaProgressEvent to copy
+     * @return A copy of the event
+     */
+    public static EMMediaProgressEvent obtain(EMMediaProgressEvent event) {
+        return new EMMediaProgressEvent(event.position, event.bufferPercent, event.duration);
     }
 }

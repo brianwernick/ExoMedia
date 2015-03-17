@@ -125,7 +125,7 @@ public class EMVideoView extends RelativeLayout {
         pollRepeater.setRepeatListener(new Repeater.RepeatListener() {
             @Override
             public void onRepeat() {
-                currentMediaProgressEvent = new EMMediaProgressEvent(getCurrentPosition(), getBufferPercentage(), getDuration());
+                currentMediaProgressEvent.update(getCurrentPosition(), getBufferPercentage(), getDuration());
 
                 if (defaultControls != null) {
                     defaultControls.setProgressEvent(currentMediaProgressEvent);

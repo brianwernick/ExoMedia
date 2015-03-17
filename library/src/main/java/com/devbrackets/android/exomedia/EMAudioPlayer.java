@@ -91,7 +91,7 @@ public class EMAudioPlayer {
             @Override
             public void onRepeat() {
                 if (bus != null) {
-                    currentMediaProgressEvent = new EMMediaProgressEvent(getCurrentPosition(), getBufferPercentage(), getDuration());
+                    currentMediaProgressEvent.update(getCurrentPosition(), getBufferPercentage(), getDuration());
                     bus.post(currentMediaProgressEvent);
                 }
             }

@@ -32,13 +32,14 @@ import android.view.View;
 import android.widget.RemoteViews;
 
 /**
- * A class to help simplify notification creation and modification.
+ * A class to help simplify notification creation and modification for
+ * media playback applications.
  */
 public class EMNotification {
-    public static final String ACTION_PLAY_PAUSE = "notification_play_pause";
-    public static final String ACTION_PREVIOUS = "notification_previous";
-    public static final String ACTION_NEXT = "notification_next";
-    public static final String ACTION_CLOSE = "notification_close";
+    public static final String ACTION_PLAY_PAUSE = "exo_media_notification_play_pause";
+    public static final String ACTION_PREVIOUS = "exo_media_notification_previous";
+    public static final String ACTION_NEXT = "exo_media_notification_next";
+    public static final String ACTION_CLOSE = "exo_media_notification_close";
 
     private Context context;
     private NotificationManager notificationManager;

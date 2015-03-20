@@ -9,7 +9,7 @@ fall back to using the Android VideoView.  Similarly the EMAudioPlayer will fall
 back to the MediaPlayer.
 
 This is useful for supporting Http Live Streaming (HLS) and full HD (1080p +) playback
-since the Android VideoView struggles with.
+since the Android VideoView struggles with those.
 
 License
 -------

@@ -39,7 +39,7 @@ import com.devbrackets.android.exomedia.event.EMVideoViewClickedEvent;
 import com.devbrackets.android.exomedia.exoplayer.EMExoPlayer;
 import com.devbrackets.android.exomedia.listener.EMVideoViewControlsCallback;
 import com.devbrackets.android.exomedia.listener.ExoPlayerListener;
-import com.devbrackets.android.exomedia.util.DeviceUtil;
+import com.devbrackets.android.exomedia.util.EMDeviceUtil;
 import com.devbrackets.android.exomedia.util.Repeater;
 import com.devbrackets.android.exomedia.util.StopWatch;
 import com.google.android.exoplayer.VideoSurfaceView;
@@ -121,7 +121,7 @@ public class EMVideoView extends RelativeLayout {
     }
 
     private void setup(Context context) {
-        useExo = Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN && DeviceUtil.isDeviceCTSCompliant();
+        useExo = Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN && EMDeviceUtil.isDeviceCTSCompliant();
         pollRepeater.setRepeatListener(new Repeater.RepeatListener() {
             @Override
             public void onRepeat() {

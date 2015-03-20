@@ -29,11 +29,20 @@ import com.squareup.otto.Bus;
  * A helper to simplify audio focus procedures in to simple callbacks and/or
  * Otto events.
  */
-public class AudioFocusHelper {
+public class EMAudioFocusHelper {
+    public enum Focus {
+        NONE,               // We haven't tried to obtain focus
+        NO_FOCUS_NO_DUCK,   // Don't have focus, and can't duck
+        NO_FOCUS_CAN_DUCK,  // don't have focus but can play at low volume ("Ducking")
+        FOCUSED             // have full audio focus
+    }
+
     private Bus bus;
     private AudioManager audioManager;
     private EMAudioFocusCallback callbacks;
     private AudioFocusListener audioFocusListener = new AudioFocusListener();
+
+    private Focus currentFocus = Focus.NONE;
 
     /**
      * Creates and sets up the basic information for the AudioFocusHelper.  In order to
@@ -42,7 +51,7 @@ public class AudioFocusHelper {
      *
      * @param context The context for the AudioFocus (Generally Application)
      */
-    public AudioFocusHelper(Context context) {
+    public EMAudioFocusHelper(Context context) {
         audioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
     }
 
@@ -66,13 +75,26 @@ public class AudioFocusHelper {
     }
 
     /**
+     * Retrieves the current audio focus
+     *
+     * @return The current Focus value currently held
+     */
+    public Focus getCurrentAudioFocus() {
+        return currentFocus;
+    }
+
+    /**
      * Requests to obtain the audio focus
      *
      * @return True if the focus was granted
      */
     public boolean requestFocus() {
-        return AudioManager.AUDIOFOCUS_REQUEST_GRANTED ==
-                audioManager.requestAudioFocus(audioFocusListener, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN);
+        if (currentFocus == Focus.FOCUSED) {
+            return true;
+        }
+
+        int status = audioManager.requestAudioFocus(audioFocusListener, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN);
+        return AudioManager.AUDIOFOCUS_REQUEST_GRANTED == status;
     }
 
     /**
@@ -81,7 +103,16 @@ public class AudioFocusHelper {
      * @return True if the focus was lost
      */
     public boolean abandonFocus() {
-        return AudioManager.AUDIOFOCUS_REQUEST_GRANTED == audioManager.abandonAudioFocus(audioFocusListener);
+        if (currentFocus == Focus.NONE) {
+            return true;
+        }
+
+        int status = audioManager.abandonAudioFocus(audioFocusListener);
+        if (AudioManager.AUDIOFOCUS_REQUEST_GRANTED == status) {
+            currentFocus = Focus.NONE;
+        }
+
+        return AudioManager.AUDIOFOCUS_REQUEST_GRANTED == status;
     }
 
     private class AudioFocusListener implements AudioManager.OnAudioFocusChangeListener {
@@ -89,13 +120,16 @@ public class AudioFocusHelper {
         public void onAudioFocusChange(int focusChange) {
             switch (focusChange) {
                 case AudioManager.AUDIOFOCUS_GAIN:
+                    currentFocus = Focus.FOCUSED;
                     postAudioFocusGained();
                     break;
                 case AudioManager.AUDIOFOCUS_LOSS:
                 case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT:
+                    currentFocus = Focus.NO_FOCUS_NO_DUCK;
                     postAudioFocusLost(false);
                     break;
                 case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK:
+                    currentFocus = Focus.NO_FOCUS_CAN_DUCK;
                     postAudioFocusLost(true);
                     break;
                 default:

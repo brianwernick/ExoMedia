@@ -22,6 +22,16 @@
             android:name=".VideoPlayerActivity"
             android:label="@string/title_activity_video_player" >
         </activity>
+        <activity
+            android:name=".AudioPlayerActivity"
+            android:label="@string/title_activity_audio_player" >
+        </activity>
+
+        <service
+            android:name=".service.AudioService"
+            android:enabled="true"
+            android:exported="false" >
+        </service>
     </application>
 
 </manifest>

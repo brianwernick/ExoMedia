@@ -14,6 +14,7 @@ import java.util.List;
 
 public class StartupListAdapter extends BaseAdapter {
     public static final int INDEX_VIDEO_PLAYBACK = 0;
+    public static final int INDEX_AUDIO_PLAYBACK = 1;
 
     private List<String> examplePages;
     private LayoutInflater _inflater;
@@ -21,6 +22,7 @@ public class StartupListAdapter extends BaseAdapter {
     public StartupListAdapter(Context context) {
         examplePages = new ArrayList<>();
         examplePages.add(INDEX_VIDEO_PLAYBACK, "Video Playback");
+        examplePages.add(INDEX_AUDIO_PLAYBACK, "Audio Playback");
 
         _inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
     }

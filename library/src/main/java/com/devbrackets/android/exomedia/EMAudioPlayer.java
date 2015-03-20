@@ -27,7 +27,7 @@ import com.devbrackets.android.exomedia.builder.RenderBuilder;
 import com.devbrackets.android.exomedia.event.EMMediaProgressEvent;
 import com.devbrackets.android.exomedia.exoplayer.EMExoPlayer;
 import com.devbrackets.android.exomedia.listener.ExoPlayerListener;
-import com.devbrackets.android.exomedia.util.DeviceUtil;
+import com.devbrackets.android.exomedia.util.EMDeviceUtil;
 import com.devbrackets.android.exomedia.util.Repeater;
 import com.devbrackets.android.exomedia.util.StopWatch;
 import com.squareup.otto.Bus;
@@ -79,7 +79,7 @@ public class EMAudioPlayer {
 
     public EMAudioPlayer(Context context) {
         this.context = context;
-        useExo = Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN  && DeviceUtil.isDeviceCTSCompliant();
+        useExo = Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN  && EMDeviceUtil.isDeviceCTSCompliant();
 
         if (!useExo && mediaPlayer == null) {
             setupMediaPlayer();

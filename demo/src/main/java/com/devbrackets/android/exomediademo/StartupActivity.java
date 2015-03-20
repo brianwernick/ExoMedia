@@ -10,14 +10,13 @@ import android.widget.ListView;
 import com.devbrackets.android.exomediademo.adapter.StartupListAdapter;
 
 public class StartupActivity extends ActionBarActivity implements AdapterView.OnItemClickListener {
-    private ListView exampleList;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.startup_activity);
 
-        exampleList = (ListView)findViewById(R.id.startup_activity_list);
+        ListView exampleList = (ListView) findViewById(R.id.startup_activity_list);
         exampleList.setAdapter(new StartupListAdapter(this));
         exampleList.setOnItemClickListener(this);
     }
@@ -27,6 +26,11 @@ public class StartupActivity extends ActionBarActivity implements AdapterView.On
         switch (position) {
             case StartupListAdapter.INDEX_VIDEO_PLAYBACK:
                 startVideoPlayerActivity();
+                break;
+
+            case StartupListAdapter.INDEX_AUDIO_PLAYBACK:
+                startAudioPlayerActivity();
+                break;
 
             default:
         }
@@ -34,6 +38,11 @@ public class StartupActivity extends ActionBarActivity implements AdapterView.On
 
     private void startVideoPlayerActivity() {
         Intent intent = new Intent(this, VideoPlayerActivity.class);
+        startActivity(intent);
+    }
+
+    private void startAudioPlayerActivity() {
+        Intent intent = new Intent(this, AudioPlayerActivity.class);
         startActivity(intent);
     }
 }

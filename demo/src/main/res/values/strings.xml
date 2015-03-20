@@ -1,4 +1,5 @@
 <resources>
     <string name="app_name">ExoMedia Demo</string>
     <string name="title_activity_video_player">ExoMedia Video Player</string>
+    <string name="title_activity_audio_player">ExoMedia Audio Player</string>
 </resources>

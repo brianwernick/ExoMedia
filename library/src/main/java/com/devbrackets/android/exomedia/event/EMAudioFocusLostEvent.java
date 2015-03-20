@@ -16,10 +16,12 @@
 
 package com.devbrackets.android.exomedia.event;
 
+import com.devbrackets.android.exomedia.util.EMAudioFocusHelper;
+
 /**
  * Used to capture when the audio focus is lost.  This can also be accessed
  * through the callbacks {@link com.devbrackets.android.exomedia.listener.EMAudioFocusCallback} when
- * registered in the {@link com.devbrackets.android.exomedia.util.AudioFocusHelper}.  Additionally, if the callbacks
+ * registered in the {@link EMAudioFocusHelper}.  Additionally, if the callbacks
  * are implemented and consume the event, this will NOT be called.
  */
 public class EMAudioFocusLostEvent {

@@ -21,7 +21,7 @@ import android.os.Build;
 /**
  * A Utility class to help determine characteristics about the device
  */
-public class DeviceUtil {
+public class EMDeviceUtil {
     private static final String[] NON_CTS_COMPLIANT_MANUFACTURERS;
     private static final String[] NON_CTS_COMPLIANT_DEVICES;
 

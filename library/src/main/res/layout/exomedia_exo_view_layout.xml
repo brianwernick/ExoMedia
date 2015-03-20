@@ -11,11 +11,28 @@
         android:layout_above="@+id/exomedia_exo_video_surface"
         android:background="@android:color/black"/>
 
+
+    <View
+        android:id="@+id/exomedia_video_shutter_left"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_toLeftOf="@+id/exomedia_android_video_view"
+        android:layout_alignParentLeft="true"
+        android:background="@android:color/black"/>
+
     <com.google.android.exoplayer.VideoSurfaceView
         android:id="@+id/exomedia_exo_video_surface"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_centerInParent="true"/>
+
+    <View
+        android:id="@+id/exomedia_video_shutter_right"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_toRightOf="@+id/exomedia_android_video_view"
+        android:layout_alignParentRight="true"
+        android:background="@android:color/black"/>
 
     <View
         android:id="@+id/exomedia_video_shutter_bottom"

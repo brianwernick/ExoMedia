@@ -76,6 +76,9 @@ public class EMVideoView extends RelativeLayout {
 
     private View shutterTop;
     private View shutterBottom;
+    private View shutterRight;
+    private View shutterLeft;
+
     private ImageView previewImageView;
 
     private VideoView videoView;
@@ -149,6 +152,9 @@ public class EMVideoView extends RelativeLayout {
 
         shutterBottom = findViewById(R.id.exomedia_video_shutter_bottom);
         shutterTop = findViewById(R.id.exomedia_video_shutter_top);
+        shutterLeft = findViewById(R.id.exomedia_video_shutter_left);
+        shutterRight = findViewById(R.id.exomedia_video_shutter_right);
+
         previewImageView = (ImageView) findViewById(R.id.exomedia_video_preview_image);
 
         exoVideoSurfaceView = (VideoSurfaceView) findViewById(R.id.exomedia_exo_video_surface);
@@ -288,6 +294,14 @@ public class EMVideoView extends RelativeLayout {
 
         if (shutterBottom != null) {
             shutterBottom.setBackgroundColor(color);
+        }
+
+        if (shutterLeft != null) {
+            shutterLeft.setBackgroundColor(color);
+        }
+
+        if (shutterRight != null) {
+            shutterRight.setBackgroundColor(color);
         }
     }
 
@@ -901,16 +915,27 @@ public class EMVideoView extends RelativeLayout {
         @Override
         public void onVideoSizeChanged(int width, int height, float pixelWidthHeightRatio) {
             //Makes sure we have the correct aspect ratio
-            exoVideoSurfaceView.setVideoWidthHeightRatio(height == 0 ? 1 : (width * pixelWidthHeightRatio) / height);
+            float videoAspectRatio = height == 0 ? 1 : (width * pixelWidthHeightRatio) / height;
+            exoVideoSurfaceView.setVideoWidthHeightRatio(videoAspectRatio);
 
-            //Sets the shutter (top and bottom) sizes
-            int shutterSize = (getHeight() - height) / 2;
+            //Sets the horizontal shutter (top and bottom) sizes
+            int shutterHeight = calculateVerticalShutterSize(height);
             if (shutterTop != null) {
-                shutterTop.getLayoutParams().height = shutterSize;
+                shutterTop.getLayoutParams().height = shutterHeight;
             }
 
             if (shutterBottom != null) {
-                shutterBottom.getLayoutParams().height = shutterSize;
+                shutterBottom.getLayoutParams().height = shutterHeight;
+            }
+
+            //Sets the vertical shutter (left and right) sizes
+            int shutterWidth = calculateSideShutterSize(videoAspectRatio);
+            if (shutterLeft != null) {
+                shutterLeft.getLayoutParams().width = shutterWidth;
+            }
+
+            if (shutterRight != null) {
+                shutterRight.getLayoutParams().width = shutterWidth;
             }
         }
 
@@ -927,6 +952,26 @@ public class EMVideoView extends RelativeLayout {
             if (previewImageView != null) {
                 previewImageView.setVisibility(visible ? View.INVISIBLE : View.GONE);
             }
+        }
+
+        private int calculateVerticalShutterSize(int height) {
+            int shutterSize = (getHeight() - height) / 2;
+            return (getHeight() - height) % 2 == 0 ? shutterSize : shutterSize +1;
+        }
+
+        private int calculateSideShutterSize(float videoAspect) {
+            int width = getWidth();
+            int height = getHeight();
+            if(videoAspect != 0.0f) {
+                float viewAspectRatio = (float)width / (float)height;
+                float aspectDeformation = videoAspect / viewAspectRatio - 1.0f;
+                if(aspectDeformation < -0.01f) {
+                    width = (int)((float)height * videoAspect);
+                }
+            }
+
+            int shutterSize = (getWidth() - width) / 2;
+            return (getWidth() - width) % 2 == 0 ? shutterSize : shutterSize +1;
         }
     }
 

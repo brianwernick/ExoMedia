@@ -525,9 +525,8 @@ class DefaultControls extends RelativeLayout {
             if (pausedForSeek) {
                 pausedForSeek = false;
                 videoView.start();
+                hideDelayed(hideDelay);
             }
-
-            hideDelayed(hideDelay);
         }
     }
 }

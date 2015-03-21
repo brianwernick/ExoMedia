@@ -10,11 +10,6 @@ def groupId = 'com.devbrackets.android'
 archivesBaseName = 'exomedia'
 version = "${versionMajor}.${versionMinor}.${versionPatch}" // release version
 
-repositories {
-    mavenLocal()
-    mavenCentral()
-}
-
 dependencies {
     // Android
     compile 'com.android.support:appcompat-v7:22.0.0' // includes support-v4
@@ -60,7 +55,7 @@ uploadArchives {
             repository (url: "file://${System.env.HOME}/.m2/repository/")
             pom.groupId = groupId
             pom.artifactId = archivesBaseName
-            pom.version = version + '-SNAPSHOT'
+            pom.version = version
             pom.packaging = 'aar'
             uniqueVersion = false // don't put in a timestamp on the filename (other project will not be able to depend on it)
         }

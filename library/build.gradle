@@ -1,4 +1,5 @@
 apply plugin: 'com.android.library'
+apply plugin: 'com.github.dcendents.android-maven'
 apply plugin: 'maven'
 
 def versionMajor = 1
@@ -60,4 +61,38 @@ uploadArchives {
             uniqueVersion = false // don't put in a timestamp on the filename (other project will not be able to depend on it)
         }
     }
+}
+
+// Use ./gradlew aRel install to build the javadoc and source jars
+// The idea was pulled from https://www.virag.si/2015/01/publishing-gradle-android-library-to-jcenter/, eventually this will be the only
+// mechanism to publish (vs uploadArchives above)
+install {
+    repositories.mavenInstaller {
+        // This generates POM.xml with proper parameters
+        pom {
+            project {
+                packaging 'aar'
+            }
+        }
+    }
+}
+
+task sourcesJar(type: Jar) {
+    from android.sourceSets.main.java.srcDirs
+    classifier = 'sources'
+}
+
+task javadoc(type: Javadoc) {
+    source = android.sourceSets.main.java.srcDirs
+    classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
+}
+
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    classifier = 'javadoc'
+    from javadoc.getDestinationDir()
+}
+
+artifacts {
+    archives javadocJar
+    archives sourcesJar
 }

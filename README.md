@@ -11,6 +11,62 @@ back to the MediaPlayer.
 This is useful for supporting Http Live Streaming (HLS) and full HD (1080p +) playback
 since the Android VideoView struggles with those.
 
+
+Website And Documentation
+-------
+The ExoMedia website can be found [here][4]
+
+The ExoMedia documentation website can be found on the website linked above or [here][5]
+
+
+Use
+-------
+The latest AAR (Android Archive) files can be downloaded from JCenter [ExoMedia][3]
+
+Or included in your gradle dependencies
+
+```groovy
+compile 'com.devbrackets.android:exomedia:1.0.0'
+```
+
+
+Example
+-------
+The EMVideoView (EM for ExoMedia) can be added in your layout files like any other Android view.
+
+```xml
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+				   android:layout_width="match_parent"
+				   android:layout_height="match_parent">
+
+	<com.devbrackets.android.exomedia.EMVideoView
+			android:id="@+id/video_play_activity_video_view"
+			android:layout_width="match_parent"
+			android:layout_height="match_parent"/>
+</RelativeLayout>
+```
+
+While in your Activity or Fragment you treat it like a standard Android VideoView
+
+```java
+private void setupVideoView() {
+	EMVideoView emVideoView = (EMVideoView)findViewById(R.id.video_play_activity_video_view);
+	emVideoView.setDefaultControlsEnabled(true);
+	emVideoView.setOnPreparedListener(this);
+
+	//For now we just picked an arbitrary item to play.  More can be found at
+	//https://github.com/google/ExoPlayer/blob/master/demo/src/main/java/com/google/android/exoplayer/demo/Samples.java
+	emVideoView.setVideoURI(Uri.parse("https://devimages.apple.com.edgekey.net/streaming/examples/bipbop_4x3/bipbop_4x3_variant.m3u8"));
+}
+
+@Override
+public void onPrepared(MediaPlayer mp) {
+	//Starts the video playback as soon as it is ready
+	emVideoView.start();
+}
+```
+
+
 License
 -------
 
@@ -29,13 +85,15 @@ License
     limitations under the License.
 
 
-
-    Additionally, the media playback icons are from the google Material
-    design icons without any changes.  The full set of icons can be found
-    at [https://github.com/google/material-design-icons][1] which are licensed
-    under [Attribution 4.0 International][2]
+Additionally, the media playback icons are from the google Material
+design icons without any changes.  The full set of icons can be found
+at [https://github.com/google/material-design-icons][1] which are licensed
+under [Attribution 4.0 International][2]
 
 
 
  [1]: https://github.com/google/material-design-icons
  [2]: http://creativecommons.org/licenses/by/4.0/
+ [3]: https://bintray.com/brianwernick/maven/ExoMedia/view#files
+ [4]: http://devbrackets.com/dev/libs/exomedia.html
+ [5]: http://devbrackets.com/dev/libs/docs/exomedia/1.0.0/index.html

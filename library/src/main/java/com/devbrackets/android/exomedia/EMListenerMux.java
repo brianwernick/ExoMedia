@@ -39,7 +39,7 @@ class EMListenerMux implements ExoPlayerListener, MediaPlayer.OnPreparedListener
         MediaPlayer.OnInfoListener, MediaPlayer.OnBufferingUpdateListener {
 
     //The amount of time the current position can be off the duration to call the onCompletion listener
-    private static final long COMPLETED_DURATION_LEEWAY = 150;
+    private static final long COMPLETED_DURATION_LEEWAY = 1000;
     private boolean notifiedPrepared = false;
     private boolean notifiedCompleted = false;
 
@@ -283,7 +283,7 @@ class EMListenerMux implements ExoPlayerListener, MediaPlayer.OnPreparedListener
     }
 
     private void notifyCompletionListener() {
-        if (completionListener == null || !muxNotifier.shouldNotifyCompletion(COMPLETED_DURATION_LEEWAY)) {
+        if (!muxNotifier.shouldNotifyCompletion(COMPLETED_DURATION_LEEWAY)) {
             return;
         }
 
@@ -292,7 +292,9 @@ class EMListenerMux implements ExoPlayerListener, MediaPlayer.OnPreparedListener
         delayedHandler.post(new Runnable() {
             @Override
             public void run() {
-                completionListener.onCompletion(null);
+                if (completionListener != null) {
+                    completionListener.onCompletion(null);
+                }
 
                 if (bus != null) {
                     bus.post(new EMMediaCompletionEvent());

@@ -1,15 +1,15 @@
 apply plugin: 'com.android.library'
-apply plugin: 'com.github.dcendents.android-maven'
 apply plugin: 'maven'
+apply plugin: 'bintray-release'
 
 def versionMajor = 1
 def versionMinor = 0
 def versionPatch = 1
 
 // Maven GAV
-def groupId = 'com.devbrackets.android'
-archivesBaseName = 'exomedia'
-version = "${versionMajor}.${versionMinor}.${versionPatch}" // release version
+def libraryGroupId = 'com.devbrackets.android'
+def libraryBaseName = 'exomedia'
+def libraryVersion = "${versionMajor}.${versionMinor}.${versionPatch}" // release version
 
 dependencies {
     // Android
@@ -54,45 +54,20 @@ uploadArchives {
         // deploy to local
         mavenDeployer {
             repository (url: "file://${System.env.HOME}/.m2/repository/")
-            pom.groupId = groupId
-            pom.artifactId = archivesBaseName
-            pom.version = version
+            pom.groupId = libraryGroupId
+            pom.artifactId = libraryBaseName
+            pom.version = libraryVersion
             pom.packaging = 'aar'
             uniqueVersion = false // don't put in a timestamp on the filename (other project will not be able to depend on it)
         }
     }
 }
 
-// Use ./gradlew aRel install to build the javadoc and source jars
-// The idea was pulled from https://www.virag.si/2015/01/publishing-gradle-android-library-to-jcenter/, eventually this will be the only
-// mechanism to publish (vs uploadArchives above)
-install {
-    repositories.mavenInstaller {
-        // This generates POM.xml with proper parameters
-        pom {
-            project {
-                packaging 'aar'
-            }
-        }
-    }
-}
-
-task sourcesJar(type: Jar) {
-    from android.sourceSets.main.java.srcDirs
-    classifier = 'sources'
-}
-
-task javadoc(type: Javadoc) {
-    source = android.sourceSets.main.java.srcDirs
-    classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
-}
-
-task javadocJar(type: Jar, dependsOn: javadoc) {
-    classifier = 'javadoc'
-    from javadoc.getDestinationDir()
-}
-
-artifacts {
-    archives javadocJar
-    archives sourcesJar
+publish {
+    groupId = libraryGroupId
+    artifactId = libraryBaseName
+    uploadName = 'ExoMedia'
+    version = libraryVersion
+    autoPublish = false
+    dryRun = false
 }

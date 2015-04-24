@@ -9,7 +9,7 @@ import com.devbrackets.android.exomedia.EMVideoView;
 
 
 public class VideoPlayerActivity extends ActionBarActivity implements MediaPlayer.OnPreparedListener {
-    private EMVideoView emVideoView;
+    protected EMVideoView emVideoView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

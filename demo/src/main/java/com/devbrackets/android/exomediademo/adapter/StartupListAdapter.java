@@ -14,17 +14,19 @@ import java.util.List;
 
 public class StartupListAdapter extends BaseAdapter {
     public static final int INDEX_VIDEO_PLAYBACK = 0;
-    public static final int INDEX_AUDIO_PLAYBACK = 1;
+    public static final int INDEX_VIDEO_PLAYBACK_FULLSCREEN = 1;
+    public static final int INDEX_AUDIO_PLAYBACK = 2;
 
     private List<String> examplePages;
-    private LayoutInflater _inflater;
+    private LayoutInflater inflater;
 
     public StartupListAdapter(Context context) {
         examplePages = new ArrayList<>();
         examplePages.add(INDEX_VIDEO_PLAYBACK, "Video Playback");
+        examplePages.add(INDEX_VIDEO_PLAYBACK_FULLSCREEN, "Fullscreen Video Playback");
         examplePages.add(INDEX_AUDIO_PLAYBACK, "Audio Playback");
 
-        _inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
     }
 
     @Override
@@ -47,7 +49,7 @@ public class StartupListAdapter extends BaseAdapter {
         ViewHolder holder;
 
         if (convertView == null) {
-            convertView = _inflater.inflate(R.layout.simple_text_item, null);
+            convertView = inflater.inflate(R.layout.simple_text_item, null);
 
             holder = new ViewHolder();
             holder.text = (TextView) convertView.findViewById(R.id.simple_text_text_view);

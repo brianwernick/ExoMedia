@@ -28,6 +28,10 @@ public class StartupActivity extends ActionBarActivity implements AdapterView.On
                 startVideoPlayerActivity();
                 break;
 
+            case StartupListAdapter.INDEX_VIDEO_PLAYBACK_FULLSCREEN:
+                startFullscreenVideoPlayerActivity();
+                break;
+
             case StartupListAdapter.INDEX_AUDIO_PLAYBACK:
                 startAudioPlayerActivity();
                 break;
@@ -38,6 +42,11 @@ public class StartupActivity extends ActionBarActivity implements AdapterView.On
 
     private void startVideoPlayerActivity() {
         Intent intent = new Intent(this, VideoPlayerActivity.class);
+        startActivity(intent);
+    }
+
+    private void startFullscreenVideoPlayerActivity() {
+        Intent intent = new Intent(this, FullScreenVideoPlayerActivity.class);
         startActivity(intent);
     }
 

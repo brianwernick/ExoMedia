@@ -14,6 +14,7 @@ import android.os.PowerManager;
 
 import com.devbrackets.android.exomedia.EMAudioPlayer;
 import com.devbrackets.android.exomedia.EMNotification;
+import com.devbrackets.android.exomedia.EMRemoteActions;
 import com.devbrackets.android.exomedia.listener.EMAudioFocusCallback;
 import com.devbrackets.android.exomedia.util.EMAudioFocusHelper;
 import com.devbrackets.android.exomediademo.R;
@@ -150,18 +151,22 @@ public class AudioService extends Service implements EMAudioFocusCallback, Media
         }
 
         switch (action) {
-            case EMNotification.ACTION_PLAY_PAUSE:
+            case EMRemoteActions.ACTION_PLAY_PAUSE:
                 performPlayPause();
                 break;
-            case EMNotification.ACTION_NEXT:
+
+            case EMRemoteActions.ACTION_NEXT:
                 performNext();
                 break;
-            case EMNotification.ACTION_PREVIOUS:
+
+            case EMRemoteActions.ACTION_PREVIOUS:
                 performPrevious();
                 break;
-            case EMNotification.ACTION_CLOSE:
+
+            case EMRemoteActions.ACTION_STOP:
                 performStop();
                 break;
+
             default:
                 break;
         }

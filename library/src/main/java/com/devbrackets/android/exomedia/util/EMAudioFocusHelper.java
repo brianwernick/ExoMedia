@@ -123,15 +123,18 @@ public class EMAudioFocusHelper {
                     currentFocus = Focus.FOCUSED;
                     postAudioFocusGained();
                     break;
+
                 case AudioManager.AUDIOFOCUS_LOSS:
                 case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT:
                     currentFocus = Focus.NO_FOCUS_NO_DUCK;
                     postAudioFocusLost(false);
                     break;
+
                 case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK:
                     currentFocus = Focus.NO_FOCUS_CAN_DUCK;
                     postAudioFocusLost(true);
                     break;
+
                 default:
                     break;
             }

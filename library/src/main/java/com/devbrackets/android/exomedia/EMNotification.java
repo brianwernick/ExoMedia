@@ -36,16 +36,11 @@ import android.widget.RemoteViews;
  * media playback applications.
  */
 public class EMNotification {
-    public static final String ACTION_PLAY_PAUSE = "exo_media_notification_play_pause";
-    public static final String ACTION_PREVIOUS = "exo_media_notification_previous";
-    public static final String ACTION_NEXT = "exo_media_notification_next";
-    public static final String ACTION_CLOSE = "exo_media_notification_close";
-
     private Context context;
     private NotificationManager notificationManager;
     private NotificationInfo notificationInfo = new NotificationInfo();
 
-    private Class<? extends Service> audioServiceClass;
+    private Class<? extends Service> mediaServiceClass;
     private RemoteViews bigContent;
 
     public EMNotification(Context context) {
@@ -88,23 +83,23 @@ public class EMNotification {
 
     /**
      * Sets the basic information for the notification that doesn't need to be updated.  Additionally, when
-     * the audioServiceClass is set the big notification will send intents to that service to notify of
+     * the mediaServiceClass is set the big notification will send intents to that service to notify of
      * button clicks.  These intents will have an action from
      * <ul>
-     *     <li>{@link #ACTION_CLOSE}</li>
-     *     <li>{@link #ACTION_PLAY_PAUSE}</li>
-     *     <li>{@link #ACTION_PREVIOUS}</li>
-     *     <li>{@link #ACTION_NEXT}</li>
+     *     <li>{@link EMRemoteActions#ACTION_STOP}</li>
+     *     <li>{@link EMRemoteActions#ACTION_PLAY_PAUSE}</li>
+     *     <li>{@link EMRemoteActions#ACTION_PREVIOUS}</li>
+     *     <li>{@link EMRemoteActions#ACTION_NEXT}</li>
      * </ul>
      *
      * @param notificationId The ID to specify this notification
      * @param appIcon The applications icon resource
-     * @param audioServiceClass The class for the service to notify of big notification actions
+     * @param mediaServiceClass The class for the service to notify of big notification actions
      */
-    public void setNotificationBaseInformation(int notificationId, @DrawableRes int appIcon, @Nullable Class<? extends Service> audioServiceClass) {
+    public void setNotificationBaseInformation(int notificationId, @DrawableRes int appIcon, @Nullable Class<? extends Service> mediaServiceClass) {
         notificationInfo.setNotificationId(notificationId);
         notificationInfo.setAppIcon(appIcon);
-        this.audioServiceClass = audioServiceClass;
+        this.mediaServiceClass = mediaServiceClass;
     }
 
     /**
@@ -171,7 +166,7 @@ public class EMNotification {
 
         //Build the notification and set the expanded content view if there is a service to inform of clicks
         Notification notification = builder.build();
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN && audioServiceClass != null) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN && mediaServiceClass != null) {
             notification.bigContentView = getBigNotification();
         }
 
@@ -187,10 +182,10 @@ public class EMNotification {
         if (bigContent == null) {
             bigContent = new RemoteViews(context.getPackageName(), R.layout.exomedia_big_notification_content);
 
-            bigContent.setOnClickPendingIntent(R.id.exomedia_notification_close, createPendingIntent(ACTION_CLOSE, audioServiceClass));
-            bigContent.setOnClickPendingIntent(R.id.exomedia_notification_playpause, createPendingIntent(ACTION_PLAY_PAUSE, audioServiceClass));
-            bigContent.setOnClickPendingIntent(R.id.exomedia_notification_next, createPendingIntent(ACTION_NEXT, audioServiceClass));
-            bigContent.setOnClickPendingIntent(R.id.exomedia_notification_prev, createPendingIntent(ACTION_PREVIOUS, audioServiceClass));
+            bigContent.setOnClickPendingIntent(R.id.exomedia_notification_close, createPendingIntent(EMRemoteActions.ACTION_STOP, mediaServiceClass));
+            bigContent.setOnClickPendingIntent(R.id.exomedia_notification_playpause, createPendingIntent(EMRemoteActions.ACTION_PLAY_PAUSE, mediaServiceClass));
+            bigContent.setOnClickPendingIntent(R.id.exomedia_notification_next, createPendingIntent(EMRemoteActions.ACTION_NEXT, mediaServiceClass));
+            bigContent.setOnClickPendingIntent(R.id.exomedia_notification_prev, createPendingIntent(EMRemoteActions.ACTION_PREVIOUS, mediaServiceClass));
         }
 
         bigContent.setTextViewText(R.id.exomedia_notification_title, notificationInfo.getTitle());

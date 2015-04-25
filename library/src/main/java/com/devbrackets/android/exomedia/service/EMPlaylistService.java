@@ -35,6 +35,7 @@ import com.devbrackets.android.exomedia.event.EMMediaSeekStartedEvent;
 import com.devbrackets.android.exomedia.event.EMMediaStateEvent;
 import com.devbrackets.android.exomedia.event.EMMediaStopEvent;
 import com.devbrackets.android.exomedia.event.EMPlaylistItemChangedEvent;
+import com.devbrackets.android.exomedia.listener.EMAudioFocusCallback;
 import com.devbrackets.android.exomedia.manager.EMPlaylistManager;
 import com.devbrackets.android.exomedia.util.EMAudioFocusHelper;
 import com.squareup.otto.Bus;
@@ -42,13 +43,11 @@ import com.squareup.otto.Produce;
 import com.squareup.otto.Subscribe;
 
 /**
- * A service to monitor the current media playlist, and perform any
- * functionality between the two media types.
- *
  * TODO: make sure we have full control without bus events
  */
 @SuppressWarnings("unused")
-public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem, M extends EMPlaylistManager<I>> extends Service {
+public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem, M extends EMPlaylistManager<I>> extends Service implements
+        EMAudioFocusCallback {
     private static final String TAG = "EMPlaylistService";
 
     public enum MediaState {
@@ -68,8 +67,8 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
     protected EMNotification notificationHelper;
     protected EMLockScreen lockScreenHelper;
 
+    private boolean pausedForFocusLoss = false;
     protected MediaState currentState = MediaState.PREPARING;
-    protected EMAudioFocusHelper.Focus currentAudioFocus;
 
     protected I currentPlaylistItem;
     protected M.MediaType currentMediaType = M.MediaType.NONE;
@@ -86,28 +85,30 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
     protected EventSubscriptionProvider subscriptionProvider;
 
     protected abstract String getAppName();
-    protected abstract Bus getBus();
     protected abstract int getNotificationId();
     protected abstract float getAudioDuckVolume();
     protected abstract M getMediaPlaylistManager();
-    protected abstract boolean isNetworkAvailable();
-    protected abstract boolean isDownloaded(I playlistItem);
     protected abstract PendingIntent getNotificationClickPendingIntent();
     protected abstract Bitmap getDefaultLargeNotificationImage();
-
-    @Nullable
-    protected abstract Bitmap getLargeNotificationImage();
-    protected abstract void updateLargeNotificationImage(int size, I playlistItem);
 
     @DrawableRes
     protected abstract int getNotificationIconRes();
 
-    @Nullable
-    protected abstract Bitmap getLockScreenArtwork();
-    protected abstract void updateLockScreenArtwork(I playlistItem);
-
     @DrawableRes
     protected abstract int getLockScreenIconRes();
+
+    @Nullable
+    protected Bus getBus() {
+        return null;
+    }
+
+    protected boolean isNetworkAvailable() {
+        return true;
+    }
+
+    protected boolean isDownloaded(I playlistItem) {
+        return false;
+    }
 
     protected void onMediaPlayerResetting() {
         //Purposefully left blank
@@ -133,6 +134,23 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
         //Purposefully left blank
     }
 
+    @Nullable
+    protected Bitmap getLargeNotificationImage() {
+        return null;
+    }
+
+    protected void updateLargeNotificationImage(int size, I playlistItem) {
+        //Purposefully left blank
+    }
+
+    @Nullable
+    protected Bitmap getLockScreenArtwork() {
+        return null;
+    }
+
+    protected void updateLockScreenArtwork(I playlistItem) {
+        //Purposefully left blank
+    }
 
 
     @Override
@@ -170,8 +188,9 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
         setMediaState(MediaState.STOPPED);
 
         relaxResources(true);
-        releaseAudioFocus();
+        audioFocusHelper.abandonFocus();
 
+        audioFocusHelper = null;
         notificationHelper = null;
         lockScreenHelper = null;
 
@@ -213,9 +232,35 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
         onDestroy();
     }
 
+    @Override
+    public boolean onAudioFocusGained() {
+        if (!audioPlayer.isPlaying() && pausedForFocusLoss) {
+            audioPlayer.start();
+        } else {
+            audioPlayer.setVolume(1.0f, 1.0f); //reset the audio volume
+        }
+
+        return true;
+    }
+
+    @Override
+    public boolean onAudioFocusLost(boolean canDuckAudio) {
+        if (audioFocusHelper.getCurrentAudioFocus() == EMAudioFocusHelper.Focus.NO_FOCUS_NO_DUCK) {
+            if (audioPlayer.isPlaying()) {
+                pausedForFocusLoss = true;
+                audioPlayer.pause();
+            }
+        } else {
+            audioPlayer.setVolume(getAudioDuckVolume(), getAudioDuckVolume());
+        }
+
+        return true;
+    }
+
     protected void onPlayPauseClickEvent(EMMediaPlayPauseEvent event) {
         if (currentItemIsAudio()) {
-            if (audioPlayer.isPlaying()) {
+            if (audioPlayer.isPlaying() || pausedForFocusLoss) {
+                pausedForFocusLoss = false;
                 performPause();
             } else {
                 performPlay();
@@ -265,32 +310,11 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
     }
 
     protected void onAudioFocusLostEvent(EMAudioFocusLostEvent event) {
-        boolean canDuck = event.canDuck();
-        Log.d(TAG, "Lost audio focus: " + (canDuck ? "Can duck" : "No duck"));
-        currentAudioFocus = canDuck ? EMAudioFocusHelper.Focus.NO_FOCUS_CAN_DUCK : EMAudioFocusHelper.Focus.NO_FOCUS_NO_DUCK;
-
-        // If we don't have audio focus and can't duck we have to pause, even if state is playing
-        // however we stay in the playing state so we know we have to resume playback once the focus returns.
-        if (currentAudioFocus == EMAudioFocusHelper.Focus.NO_FOCUS_NO_DUCK) {
-            if (audioPlayer.isPlaying()) {
-                audioPlayer.pause();
-            }
-        } else {
-            audioPlayer.setVolume(getAudioDuckVolume(), getAudioDuckVolume());
-        }
+        onAudioFocusLost(event.canDuck());
     }
 
     protected void onAudioFocusGainedEvent(EMAudioFocusGainedEvent event) {
-        Log.d(TAG, "Gained audio focus");
-        currentAudioFocus = EMAudioFocusHelper.Focus.FOCUSED;
-
-        //If we aren't currently playing but the state is playing, we need to start the player again
-        // otherwise return to the pre-duck volume
-        if (!audioPlayer.isPlaying() && currentState == MediaState.PLAYING) {
-            audioPlayer.start();
-        } else {
-            audioPlayer.setVolume(1.0f, 1.0f); // can be loud
-        }
+        onAudioFocusGained();
     }
 
     protected void onAllowedMediaTypeChangeEvent(EMAllowedMediaTypeChangedEvent event) {
@@ -396,7 +420,11 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
 
         I currentItem = currentPlaylistItem;
         seekToNextPlayableItem();
-        getBus().post(getMediaItemChangedEvent(currentItem));
+
+        Bus bus = getBus();
+        if (bus != null) {
+            bus.post(getMediaItemChangedEvent(currentItem));
+        }
 
         if (currentItemIsAudio()) {
             audioListener.resetRetryCount();
@@ -415,7 +443,7 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
     private void playAudioItem() {
         stopVideoPlayback();
         initializeAudioPlayer();
-        obtainAudioFocus();
+        audioFocusHelper.requestFocus();
 
         audioPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
         audioPlayer.setDataSource(this, Uri.parse(currentPlaylistItem.getMediaUrl()));
@@ -444,7 +472,7 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
      * Stops the AudioPlayer from playing.
      */
     private void stopAudioPlayback() {
-        releaseAudioFocus();
+        audioFocusHelper.abandonFocus();
 
         if (audioPlayer != null) {
             audioPlayer.stopPlayback();
@@ -495,7 +523,7 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
 
         // let go of all resources
         relaxResources(true);
-        releaseAudioFocus();
+        audioFocusHelper.abandonFocus();
 
         //Cleans out the avPlayListManager
         getMediaPlaylistManager().setParameters(null, 0);
@@ -517,24 +545,6 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
     }
 
     /**
-     * Attempts to obtain the audio focus so that we can start/resume playback
-     */
-    private void obtainAudioFocus() {
-        if (currentAudioFocus != EMAudioFocusHelper.Focus.FOCUSED && audioFocusHelper != null && audioFocusHelper.requestFocus()) {
-            currentAudioFocus = EMAudioFocusHelper.Focus.FOCUSED;
-        }
-    }
-
-    /**
-     * If we currently have the audio focus, then release it.
-     */
-    private void releaseAudioFocus() {
-        if (currentAudioFocus == EMAudioFocusHelper.Focus.FOCUSED && audioFocusHelper != null && audioFocusHelper.abandonFocus()) {
-            currentAudioFocus = EMAudioFocusHelper.Focus.NO_FOCUS_NO_DUCK;
-        }
-    }
-
-    /**
      * Reconfigures audioPlayer according to audio focus settings and starts/restarts it. This
      * method starts/restarts the audioPlayer respecting the current audio focus state. So if
      * we have focus, it will play normally; if we don't have focus, it will either leave the
@@ -546,7 +556,7 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
             return;
         }
 
-        if (currentAudioFocus == EMAudioFocusHelper.Focus.NO_FOCUS_NO_DUCK) {
+        if (audioFocusHelper.getCurrentAudioFocus() == EMAudioFocusHelper.Focus.NO_FOCUS_NO_DUCK) {
             // If we don't have audio focus and can't duck we have to pause, even if state is playing
             // Be we stay in the playing state so we know we have to resume playback once we get the focus back.
             if (audioPlayer.isPlaying()) {
@@ -555,7 +565,7 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
             }
 
             return;
-        } else if (currentAudioFocus == EMAudioFocusHelper.Focus.NO_FOCUS_CAN_DUCK) {
+        } else if (audioFocusHelper.getCurrentAudioFocus() == EMAudioFocusHelper.Focus.NO_FOCUS_CAN_DUCK) {
             audioPlayer.setVolume(getAudioDuckVolume(), getAudioDuckVolume());
         } else {
             audioPlayer.setVolume(1.0f, 1.0f); // can be loud
@@ -594,7 +604,11 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
 
     private void setMediaState(MediaState state) {
         currentState = state;
-        getBus().post(new EMMediaStateEvent(currentState));
+
+        Bus bus = getBus();
+        if (bus != null) {
+            bus.post(new EMMediaStateEvent(currentState));
+        }
     }
 
     /**
@@ -742,7 +756,7 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
 
             setMediaState(MediaState.ERROR);
             relaxResources(true);
-            releaseAudioFocus();
+            audioFocusHelper.abandonFocus();
             return false;
         }
 

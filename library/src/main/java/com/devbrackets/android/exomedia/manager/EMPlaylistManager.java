@@ -56,10 +56,13 @@ public abstract class EMPlaylistManager<T extends EMPlaylistManager.PlaylistItem
     private MediaType allowedType = MediaType.AUDIO;
     private WeakReference<EMVideoView> videoPlayer = new WeakReference<>(null);
 
+    protected abstract Application getApplication();
+    protected abstract Class<? extends Service> getMediaServiceClass();
+
     @Nullable
-    public abstract Bus getBus();
-    public abstract Application getApplication();
-    public abstract Class<? extends Service> getMediaServiceClass();
+    protected Bus getBus() {
+        return null;
+    }
 
     @Nullable
     private PendingIntent playPausePendingIntent, nextPendingIntent, previousPendingIntent, stopPendingIntent;

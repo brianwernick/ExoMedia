@@ -78,7 +78,6 @@ public class EMLockScreen {
      * @param appIcon The applications icon resource
      */
     public void setLockScreenBaseInformation(@DrawableRes int appIcon) {
-
         metaDataBuilder = new MediaMetadataCompat.Builder();
 
         Bitmap bitmapAppIcon = BitmapFactory.decodeResource(context.getResources(), appIcon);

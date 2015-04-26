@@ -221,6 +221,25 @@ public class EMVideoView extends RelativeLayout {
         }
     }
 
+    @Override
+    public void setOnTouchListener(OnTouchListener listener) {
+        if (exoVideoSurfaceView != null) {
+            exoVideoSurfaceView.setOnTouchListener(listener);
+        }
+
+        if (videoView != null) {
+            videoView.setOnTouchListener(listener);
+        }
+
+        //Sets the onTouch listener for the shutters
+        shutterLeft.setOnTouchListener(listener);
+        shutterRight.setOnTouchListener(listener);
+        shutterTop.setOnTouchListener(listener);
+        shutterBottom.setOnTouchListener(listener);
+
+        super.setOnTouchListener(listener);
+    }
+
     /**
      * Retrieves the user agent that the EMVideoView will use when communicating
      * with media servers
@@ -396,16 +415,9 @@ public class EMVideoView extends RelativeLayout {
             }
         }
 
-        //Sets the onClick listener to show the default controls
-        VideoViewTouched listener = new VideoViewTouched(getContext());
-
-        if (exoVideoSurfaceView != null) {
-            exoVideoSurfaceView.setOnTouchListener(enabled ? listener : null);
-        }
-
-        if (videoView != null) {
-            videoView.setOnTouchListener(enabled ? listener : null);
-        }
+        //Sets the onTouch listener to show the default controls
+        TouchListener listener = new TouchListener(getContext());
+        setOnTouchListener(enabled ? listener : null);
     }
 
     /**
@@ -1007,10 +1019,10 @@ public class EMVideoView extends RelativeLayout {
     /**
      * Monitors the view click events to show the default controls if they are enabled.
      */
-    private class VideoViewTouched extends GestureDetector.SimpleOnGestureListener implements OnTouchListener {
+    private class TouchListener extends GestureDetector.SimpleOnGestureListener implements OnTouchListener {
         private GestureDetector gestureDetector;
 
-        public VideoViewTouched(Context context) {
+        public TouchListener(Context context) {
             gestureDetector = new GestureDetector(context, this);
         }
 

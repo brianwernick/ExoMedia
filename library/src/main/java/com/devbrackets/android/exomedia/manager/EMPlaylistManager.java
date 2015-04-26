@@ -9,7 +9,7 @@ import android.util.Log;
 
 import com.devbrackets.android.exomedia.EMRemoteActions;
 import com.devbrackets.android.exomedia.EMVideoView;
-import com.devbrackets.android.exomedia.event.EMAllowedMediaTypeChangedEvent;
+import com.devbrackets.android.exomedia.event.EMMediaAllowedTypeChangedEvent;
 import com.devbrackets.android.exomedia.event.EMMediaNextEvent;
 import com.devbrackets.android.exomedia.event.EMMediaPlayPauseEvent;
 import com.devbrackets.android.exomedia.event.EMMediaPreviousEvent;
@@ -163,7 +163,7 @@ public abstract class EMPlaylistManager<T extends EMPlaylistManager.PlaylistItem
 
         Bus bus = getBus();
         if (bus != null) {
-            bus.post(new EMAllowedMediaTypeChangedEvent(allowedType));
+            bus.post(new EMMediaAllowedTypeChangedEvent(allowedType));
         }
     }
 

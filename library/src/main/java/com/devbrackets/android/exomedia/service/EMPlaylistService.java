@@ -23,7 +23,7 @@ import com.devbrackets.android.exomedia.EMNotification;
 import com.devbrackets.android.exomedia.EMRemoteActions;
 import com.devbrackets.android.exomedia.EMVideoView;
 import com.devbrackets.android.exomedia.R;
-import com.devbrackets.android.exomedia.event.EMAllowedMediaTypeChangedEvent;
+import com.devbrackets.android.exomedia.event.EMMediaAllowedTypeChangedEvent;
 import com.devbrackets.android.exomedia.event.EMAudioFocusGainedEvent;
 import com.devbrackets.android.exomedia.event.EMAudioFocusLostEvent;
 import com.devbrackets.android.exomedia.event.EMMediaCompletionEvent;
@@ -321,7 +321,7 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
         onAudioFocusGained();
     }
 
-    protected void onAllowedMediaTypeChangeEvent(EMAllowedMediaTypeChangedEvent event) {
+    protected void onAllowedMediaTypeChangeEvent(EMMediaAllowedTypeChangedEvent event) {
         //We seek through the items until an allowed one is reached, or none is reached and the service is stopped.
         if (event.allowedType != M.MediaType.AUDIO_AND_VIDEO && event.allowedType != currentMediaType) {
             onNextButtonClickEvent(null);
@@ -875,7 +875,7 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
         }
 
         @Subscribe
-        public void onAllowedMediaTypeChangeEvent(EMAllowedMediaTypeChangedEvent event) {
+        public void onAllowedMediaTypeChangeEvent(EMMediaAllowedTypeChangedEvent event) {
             playlistService.onAllowedMediaTypeChangeEvent(event);
         }
 

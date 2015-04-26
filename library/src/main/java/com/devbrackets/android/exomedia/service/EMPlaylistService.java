@@ -44,6 +44,10 @@ import com.squareup.otto.Subscribe;
 
 /**
  * TODO: make sure we have full control without bus events
+ *
+ * <b>NOTE:</b> This service will request a wifi wakelock if the item
+ * being played isn't downloaded (see {@link #isDownloaded(EMPlaylistManager.PlaylistItem)}).
+ * This requires the manifest permission &lt;uses-permission android:name="android.permission.WAKE_LOCK" /&gt;
  */
 @SuppressWarnings("unused")
 public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem, M extends EMPlaylistManager<I>> extends Service implements
@@ -527,7 +531,7 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
 
         //Cleans out the avPlayListManager
         getMediaPlaylistManager().setParameters(null, 0);
-        getMediaPlaylistManager().setPlayListInfo(-1, false);
+        getMediaPlaylistManager().setPlaylistId(-1);
 
         stopSelf();
     }

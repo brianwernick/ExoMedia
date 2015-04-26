@@ -2,14 +2,14 @@ package com.devbrackets.android.exomediademo;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.v7.app.ActionBarActivity;
+import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
 
 import com.devbrackets.android.exomediademo.adapter.StartupListAdapter;
 
-public class StartupActivity extends ActionBarActivity implements AdapterView.OnItemClickListener {
+public class StartupActivity extends AppCompatActivity implements AdapterView.OnItemClickListener {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,7 +51,7 @@ public class StartupActivity extends ActionBarActivity implements AdapterView.On
     }
 
     private void startAudioPlayerActivity() {
-        Intent intent = new Intent(this, AudioPlayerActivity.class);
+        Intent intent = new Intent(this, AudioSelectionActivity.class);
         startActivity(intent);
     }
 }

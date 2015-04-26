@@ -1,0 +1,38 @@
+package com.devbrackets.android.exomediademo;
+
+import android.content.Intent;
+import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
+import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ListView;
+
+import com.devbrackets.android.exomediademo.adapter.AudioSelectionListAdapter;
+
+public class AudioSelectionActivity extends AppCompatActivity implements AdapterView.OnItemClickListener {
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.audio_selection_activity);
+
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setTitle(getResources().getString(R.string.title_audio_selection_activity));
+        }
+
+        ListView exampleList = (ListView) findViewById(R.id.audio_selection_activity_list);
+        exampleList.setAdapter(new AudioSelectionListAdapter(this));
+        exampleList.setOnItemClickListener(this);
+    }
+
+    @Override
+    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+        startAudioPlayerActivity(position);
+    }
+
+    private void startAudioPlayerActivity(int selectedIndex) {
+        Intent intent = new Intent(this, AudioPlayerActivity.class);
+        intent.putExtra(AudioPlayerActivity.EXTRA_INDEX, selectedIndex);
+        startActivity(intent);
+    }
+}

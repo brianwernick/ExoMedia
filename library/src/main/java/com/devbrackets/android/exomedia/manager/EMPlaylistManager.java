@@ -51,7 +51,6 @@ public abstract class EMPlaylistManager<T extends EMPlaylistManager.PlaylistItem
     private List<T> playList;
     private int currentPosition = 0;
     private long playListId = -1;
-    private boolean isUserDefined;
 
     private MediaType allowedType = MediaType.AUDIO;
     private WeakReference<EMVideoView> videoPlayer = new WeakReference<>(null);
@@ -98,25 +97,22 @@ public abstract class EMPlaylistManager<T extends EMPlaylistManager.PlaylistItem
      * and video items.
      *
      * @param playListItems The List of items to play
-     * @param startIndex    The index in the list to start playback with
+     * @param startIndex The index in the list to start playback with
      */
     public void setParameters(List<T> playListItems, int startIndex) {
         playList = playListItems;
 
         setCurrentIndex(startIndex);
-        setPlayListInfo(-1, false);
+        setPlaylistId(-1);
     }
 
     /**
-     * Sets the information for the current playlist.  This will only last until the
-     * playListItems are swapped out.
+     * Sets the ID associated with the current playlist.
      *
-     * @param playListId    The id for the playlist (or collection)
-     * @param isUserDefined True if this is a user defined playlist (false for collections)
+     * @param playListId The id for the playlist
      */
-    public void setPlayListInfo(long playListId, boolean isUserDefined) {
+    public void setPlaylistId(long playListId) {
         this.playListId = playListId;
-        this.isUserDefined = isUserDefined;
     }
 
     /**
@@ -279,16 +275,6 @@ public abstract class EMPlaylistManager<T extends EMPlaylistManager.PlaylistItem
      */
     public long getPlayListId() {
         return playListId;
-    }
-
-    /**
-     * Determines if the current playlist is a user defined playlist or a
-     * collection.
-     *
-     * @return True if the current playlist is user defined [default: false]
-     */
-    public boolean isUserDefined() {
-        return isUserDefined;
     }
 
     /**

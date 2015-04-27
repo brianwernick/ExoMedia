@@ -26,6 +26,8 @@ import android.os.Build;
 import android.support.annotation.DrawableRes;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
+import android.view.GestureDetector;
+import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.View;
 import android.widget.ImageView;
@@ -81,7 +83,7 @@ public class EMVideoView extends RelativeLayout {
 
     private ImageView previewImageView;
 
-    private VideoView videoView;
+    private TouchVideoView videoView;
     private VideoSurfaceView exoVideoSurfaceView;
     private EMExoPlayer emExoPlayer;
 
@@ -158,7 +160,7 @@ public class EMVideoView extends RelativeLayout {
         previewImageView = (ImageView) findViewById(R.id.exomedia_video_preview_image);
 
         exoVideoSurfaceView = (VideoSurfaceView) findViewById(R.id.exomedia_exo_video_surface);
-        videoView = (VideoView) findViewById(R.id.exomedia_android_video_view);
+        videoView = (TouchVideoView) findViewById(R.id.exomedia_android_video_view);
 
         //If we are using the exo player set it up
         if (exoVideoSurfaceView != null) {
@@ -217,6 +219,25 @@ public class EMVideoView extends RelativeLayout {
         if (emExoPlayer != null) {
             emExoPlayer.release();
         }
+    }
+
+    @Override
+    public void setOnTouchListener(OnTouchListener listener) {
+        if (exoVideoSurfaceView != null) {
+            exoVideoSurfaceView.setOnTouchListener(listener);
+        }
+
+        if (videoView != null) {
+            videoView.setOnTouchListener(listener);
+        }
+
+        //Sets the onTouch listener for the shutters
+        shutterLeft.setOnTouchListener(listener);
+        shutterRight.setOnTouchListener(listener);
+        shutterTop.setOnTouchListener(listener);
+        shutterBottom.setOnTouchListener(listener);
+
+        super.setOnTouchListener(listener);
     }
 
     /**
@@ -394,16 +415,9 @@ public class EMVideoView extends RelativeLayout {
             }
         }
 
-        //Sets the onClick listener to show the default controls
-        VideoViewClicked listener = new VideoViewClicked();
-
-        if (exoVideoSurfaceView != null) {
-            exoVideoSurfaceView.setOnClickListener(enabled ? listener : null);
-        }
-
-        if (videoView != null) {
-            videoView.setOnClickListener(enabled ? listener : null);
-        }
+        //Sets the onTouch listener to show the default controls
+        TouchListener listener = new TouchListener(getContext());
+        setOnTouchListener(enabled ? listener : null);
     }
 
     /**
@@ -1005,9 +1019,21 @@ public class EMVideoView extends RelativeLayout {
     /**
      * Monitors the view click events to show the default controls if they are enabled.
      */
-    private class VideoViewClicked implements OnClickListener {
+    private class TouchListener extends GestureDetector.SimpleOnGestureListener implements OnTouchListener {
+        private GestureDetector gestureDetector;
+
+        public TouchListener(Context context) {
+            gestureDetector = new GestureDetector(context, this);
+        }
+
         @Override
-        public void onClick(View v) {
+        public boolean onTouch(View v, MotionEvent event) {
+            gestureDetector.onTouchEvent(event);
+            return true;
+        }
+
+        @Override
+        public boolean onSingleTapConfirmed(MotionEvent e) {
             if (defaultControls != null) {
                 defaultControls.show();
 
@@ -1019,6 +1045,49 @@ public class EMVideoView extends RelativeLayout {
             if (bus != null) {
                 bus.post(new EMVideoViewClickedEvent());
             }
+
+            return true;
+        }
+    }
+
+    /**
+     * Since the default Android VideoView will consume the touch events
+     * without calling super
+     */
+    public static class TouchVideoView extends VideoView {
+        private OnTouchListener touchListener;
+
+        public TouchVideoView(Context context) {
+            super(context);
+        }
+
+        public TouchVideoView(Context context, AttributeSet attrs) {
+            super(context, attrs);
+        }
+
+        public TouchVideoView(Context context, AttributeSet attrs, int defStyleAttr) {
+            super(context, attrs, defStyleAttr);
+        }
+
+        @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+        public TouchVideoView(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
+            super(context, attrs, defStyleAttr, defStyleRes);
+        }
+
+        @Override
+        public boolean onTouchEvent(MotionEvent ev) {
+            boolean flag = false;
+            if (touchListener != null) {
+                flag = touchListener.onTouch(this, ev);
+            }
+
+            return flag || super.onTouchEvent(ev);
+        }
+
+        @Override
+        public void setOnTouchListener(OnTouchListener listener) {
+            touchListener = listener;
+            super.setOnTouchListener(listener);
         }
     }
 }

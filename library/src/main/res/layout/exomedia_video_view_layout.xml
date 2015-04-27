@@ -19,7 +19,7 @@
         android:layout_alignParentLeft="true"
         android:background="@android:color/black"/>
 
-    <VideoView
+    <view class="com.devbrackets.android.exomedia.EMVideoView$TouchVideoView"
         android:id="@+id/exomedia_android_video_view"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

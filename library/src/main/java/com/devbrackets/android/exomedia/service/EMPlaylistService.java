@@ -193,6 +193,7 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
 
         relaxResources(true);
         audioFocusHelper.abandonFocus();
+        lockScreenHelper.release();
 
         audioFocusHelper = null;
         notificationHelper = null;
@@ -271,6 +272,7 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
             }
 
             updateNotification();
+            updateLockScreen();
         }
     }
 
@@ -425,6 +427,7 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
         I currentItem = currentPlaylistItem;
         seekToNextPlayableItem();
 
+        mediaChanged(currentItem);
         Bus bus = getBus();
         if (bus != null) {
             bus.post(getMediaItemChangedEvent(currentItem));
@@ -646,15 +649,17 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
         //Sets up the Lock Screen playback controls
         lockScreenHelper.setLockScreenEnabled(true);
         lockScreenHelper.setLockScreenBaseInformation(getLockScreenIconRes());
-        updateLockScreen();
 
         //Sets up the Notifications
         notificationHelper.setNotificationsEnabled(true);
         notificationHelper.setNotificationBaseInformation(getNotificationId(), getNotificationIconRes(), getClass());
-        updateNotification();
 
+        //Starts the service as the foreground audio player
         startForeground(getNotificationId(), notificationHelper.getNotification(getNotificationClickPendingIntent()));
         foregroundSetup = true;
+
+        updateLockScreen();
+        updateNotification();
     }
 
     private void updateNotification() {
@@ -699,10 +704,8 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
         lockScreenHelper.updateLockScreenInformation(title, subTitle, getLockScreenArtwork(), mediaState);
     }
 
-    private EMPlaylistItemChangedEvent<I> getMediaItemChangedEvent(I currentItem) {
+    private void mediaChanged(I currentItem) {
         currentMediaType = getMediaPlaylistManager().getCurrentItemType();
-        boolean hasNext = getMediaPlaylistManager().isNextAvailable();
-        boolean hasPrevious = getMediaPlaylistManager().isPreviousAvailable();
 
         //Validates that the currentPlaylistItem is for the currentItem
         if (!getMediaPlaylistManager().isPlayingItem(currentPlaylistItem)) {
@@ -720,6 +723,11 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
         if (currentPlaylistItem != null && (currentItem == null || !currentItem.getArtworkUrl().equalsIgnoreCase(currentPlaylistItem.getArtworkUrl()))) {
             updateLockScreenArtwork(currentPlaylistItem);
         }
+    }
+
+    private EMPlaylistItemChangedEvent<I> getMediaItemChangedEvent(I currentItem) {
+        boolean hasNext = getMediaPlaylistManager().isNextAvailable();
+        boolean hasPrevious = getMediaPlaylistManager().isPreviousAvailable();
 
         return new EMPlaylistItemChangedEvent<>(currentPlaylistItem, currentMediaType, hasNext, hasPrevious);
     }
@@ -741,6 +749,7 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
 
         @Override
         public void onCompletion(MediaPlayer mp) {
+            //If the bus is registered then it will call the onMediaCompletionEvent itself
             if (getBus() == null) {
                 onMediaCompletionEvent(null);
             }

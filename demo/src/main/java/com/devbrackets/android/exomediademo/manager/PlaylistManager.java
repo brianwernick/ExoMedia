@@ -62,7 +62,7 @@ public class PlaylistManager extends EMPlaylistManager<PlaylistManager.MediaItem
 
         @Override
         public String getThumbnailUrl() {
-            return null;
+            return audioItem.getArtworkUrl();
         }
 
         @Override

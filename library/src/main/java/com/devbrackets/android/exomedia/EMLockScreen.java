@@ -7,30 +7,34 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.os.Build;
 import android.support.annotation.DrawableRes;
 import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 import android.util.Log;
 
+import com.devbrackets.android.exomedia.receiver.MediaControlsReceiver;
+
 /**
  * A class to help simplify lock screen artwork and playback
  * controls similar to how the {@link EMNotification} simplifies notifications
  */
 public class EMLockScreen {
-    private static final String TAG = "LDSLockScreen";
-    public static final String SESSION_TAG = "LDSLockScreen.Session";
+    private static final String TAG = "EMLockScreen";
+    public static final String SESSION_TAG = "EMLockScreen.Session";
+    public static final String RECEIVER_EXTRA_CLASS = "RECEIVER_EXTRA_CLASS";
 
     private Context context;
     private Class<? extends Service> mediaServiceClass;
 
     private boolean showLockScreen = true;
 
+    private Bitmap appIconBitmap;
     private MediaSessionCompat mediaSession;
-    private MediaMetadataCompat.Builder metaDataBuilder;
 
     /**
-     * Creates a new LDSLockScreen object
+     * Creates a new EMLockScreen object
      *
      * @param context The context to use for holding a MediaSession and sending action intents
      * @param mediaServiceClass The class for the service that owns the backing MediaService and to notify of playback actions
@@ -39,9 +43,13 @@ public class EMLockScreen {
         this.context = context;
         this.mediaServiceClass = mediaServiceClass;
 
-        ComponentName componentName = new ComponentName(mediaServiceClass.getPackage().toString(), mediaServiceClass.getName());
+        ComponentName componentName = new ComponentName(context, MediaControlsReceiver.class);
         mediaSession = new MediaSessionCompat(context, SESSION_TAG, componentName, null);
         setupMediaSession(mediaSession);
+    }
+
+    public void release() {
+        mediaSession.release();
     }
 
     /**
@@ -78,10 +86,7 @@ public class EMLockScreen {
      * @param appIcon The applications icon resource
      */
     public void setLockScreenBaseInformation(@DrawableRes int appIcon) {
-        metaDataBuilder = new MediaMetadataCompat.Builder();
-
-        Bitmap bitmapAppIcon = BitmapFactory.decodeResource(context.getResources(), appIcon);
-        metaDataBuilder.putBitmap(MediaMetadataCompat.METADATA_KEY_DISPLAY_ICON, bitmapAppIcon);
+        appIconBitmap = BitmapFactory.decodeResource(context.getResources(), appIcon);
     }
 
     /**
@@ -93,19 +98,27 @@ public class EMLockScreen {
      * @param notificationMediaState The current media state for the expanded (big) notification
      */
     public void updateLockScreenInformation(String title, String subTitle, Bitmap mediaArtwork, EMNotification.NotificationMediaState notificationMediaState) {
+        //Updates the current media MetaData
+        MediaMetadataCompat.Builder metaDataBuilder = new MediaMetadataCompat.Builder();
+        metaDataBuilder.putBitmap(MediaMetadataCompat.METADATA_KEY_DISPLAY_ICON, appIconBitmap);
         metaDataBuilder.putString(MediaMetadataCompat.METADATA_KEY_TITLE, title);
         metaDataBuilder.putString(MediaMetadataCompat.METADATA_KEY_ALBUM_ARTIST, subTitle);
-        metaDataBuilder.putBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART, mediaArtwork);
+
+        if (mediaArtwork != null) {
+            metaDataBuilder.putBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART, mediaArtwork);
+        }
 
         mediaSession.setMetadata(metaDataBuilder.build());
 
+
+        //Updates the available playback controls
         PlaybackStateCompat.Builder playbackStateBuilder = new PlaybackStateCompat.Builder();
         playbackStateBuilder.setActions(getPlaybackOptions(notificationMediaState));
         playbackStateBuilder.setState(getPlaybackState(notificationMediaState.isPlaying()), PlaybackStateCompat.PLAYBACK_POSITION_UNKNOWN, 1.0f);
 
         mediaSession.setPlaybackState(playbackStateBuilder.build());
 
-        if (showLockScreen) {
+        if (showLockScreen && !mediaSession.isActive()) {
             mediaSession.setActive(true);
         }
     }
@@ -113,6 +126,17 @@ public class EMLockScreen {
     private void setupMediaSession(MediaSessionCompat mediaSession) {
         mediaSession.setCallback(new SessionCallback());
         mediaSession.setFlags(MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS | MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS);
+
+        //Registers the receiver to handle the media buttons
+        Intent mediaButtonIntent = new Intent(Intent.ACTION_MEDIA_BUTTON);
+        mediaButtonIntent.putExtra(RECEIVER_EXTRA_CLASS, mediaServiceClass);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+            mediaButtonIntent.addFlags(Intent.FLAG_RECEIVER_FOREGROUND);
+        }
+
+        mediaButtonIntent.setComponent(new ComponentName(context, MediaControlsReceiver.class));
+        mediaSession.setMediaButtonReceiver(PendingIntent.getBroadcast(context, 0, mediaButtonIntent, 0));
     }
 
     private int getPlaybackState(boolean isPlaying) {
@@ -126,7 +150,7 @@ public class EMLockScreen {
      * @return The available playback options
      */
     private long getPlaybackOptions(EMNotification.NotificationMediaState mediaState) {
-        long availableActions = PlaybackStateCompat.ACTION_PLAY | PlaybackStateCompat.ACTION_PAUSE;
+        long availableActions = PlaybackStateCompat.ACTION_PLAY | PlaybackStateCompat.ACTION_PAUSE | PlaybackStateCompat.ACTION_PLAY_PAUSE;
 
         if (mediaState.isNextEnabled()) {
             availableActions |= PlaybackStateCompat.ACTION_SKIP_TO_NEXT;
@@ -161,6 +185,8 @@ public class EMLockScreen {
         private PendingIntent playPausePendingIntent, nextPendingIntent, previousPendingIntent;
 
         public SessionCallback() {
+            super();
+
             playPausePendingIntent = createPendingIntent(EMRemoteActions.ACTION_PLAY_PAUSE, mediaServiceClass);
             nextPendingIntent = createPendingIntent(EMRemoteActions.ACTION_NEXT, mediaServiceClass);
             previousPendingIntent = createPendingIntent(EMRemoteActions.ACTION_PREVIOUS, mediaServiceClass);

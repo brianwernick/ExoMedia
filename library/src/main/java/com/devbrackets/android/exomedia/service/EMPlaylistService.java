@@ -1,3 +1,19 @@
+/*
+ * Copyright (C) 2015 Brian Wernick
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.devbrackets.android.exomedia.service;
 
 import android.app.PendingIntent;
@@ -24,35 +40,40 @@ import com.devbrackets.android.exomedia.EMRemoteActions;
 import com.devbrackets.android.exomedia.EMVideoView;
 import com.devbrackets.android.exomedia.R;
 import com.devbrackets.android.exomedia.event.EMMediaAllowedTypeChangedEvent;
-import com.devbrackets.android.exomedia.event.EMAudioFocusGainedEvent;
-import com.devbrackets.android.exomedia.event.EMAudioFocusLostEvent;
-import com.devbrackets.android.exomedia.event.EMMediaCompletionEvent;
 import com.devbrackets.android.exomedia.event.EMMediaNextEvent;
 import com.devbrackets.android.exomedia.event.EMMediaPlayPauseEvent;
 import com.devbrackets.android.exomedia.event.EMMediaPreviousEvent;
+import com.devbrackets.android.exomedia.event.EMMediaProgressEvent;
 import com.devbrackets.android.exomedia.event.EMMediaSeekEndedEvent;
 import com.devbrackets.android.exomedia.event.EMMediaSeekStartedEvent;
 import com.devbrackets.android.exomedia.event.EMMediaStateEvent;
 import com.devbrackets.android.exomedia.event.EMMediaStopEvent;
 import com.devbrackets.android.exomedia.event.EMPlaylistItemChangedEvent;
 import com.devbrackets.android.exomedia.listener.EMAudioFocusCallback;
+import com.devbrackets.android.exomedia.listener.EMPlaylistServiceCallback;
+import com.devbrackets.android.exomedia.listener.EMProgressCallback;
 import com.devbrackets.android.exomedia.manager.EMPlaylistManager;
 import com.devbrackets.android.exomedia.util.EMAudioFocusHelper;
 import com.squareup.otto.Bus;
 import com.squareup.otto.Produce;
 import com.squareup.otto.Subscribe;
 
+import java.util.LinkedList;
+import java.util.List;
+
 /**
- * TODO: make sure we have full control without bus events
+ * TODO: add comments
  *
  * <b>NOTE:</b> This service will request a wifi wakelock if the item
  * being played isn't downloaded (see {@link #isDownloaded(EMPlaylistManager.PlaylistItem)}).
+ * </p>
  * This requires the manifest permission &lt;uses-permission android:name="android.permission.WAKE_LOCK" /&gt;
  */
 @SuppressWarnings("unused")
 public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem, M extends EMPlaylistManager<I>> extends Service implements
-        EMAudioFocusCallback {
+        EMAudioFocusCallback, EMProgressCallback {
     private static final String TAG = "EMPlaylistService";
+    public static final String START_SERVICE = "EMPlaylistService.start";
 
     public enum MediaState {
         RETRIEVING,    // the MediaRetriever is retrieving music
@@ -67,6 +88,7 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
     protected EMAudioFocusHelper audioFocusHelper;
 
     protected EMAudioPlayer audioPlayer;
+    protected EMMediaProgressEvent currentMediaProgress;
 
     protected EMNotification notificationHelper;
     protected EMLockScreen lockScreenHelper;
@@ -87,6 +109,7 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
     protected Intent workaroundIntent = null;
 
     protected EventSubscriptionProvider subscriptionProvider;
+    protected List<EMPlaylistServiceCallback> callbackList = new LinkedList<>();
 
     protected abstract String getAppName();
     protected abstract int getNotificationId();
@@ -101,15 +124,48 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
     @DrawableRes
     protected abstract int getLockScreenIconRes();
 
+    /**
+     * Retrieves the bus that will be used for posting events.  This can be used in
+     * conjunction with the {@link EMPlaylistServiceCallback} specified with {@link #registerCallback(EMPlaylistServiceCallback)}
+     * or it can be used in place of the callbacks.
+     *
+     * @return The bus to post events to or null
+     */
     @Nullable
     protected Bus getBus() {
         return null;
     }
 
+    /**
+     * Retrieves the continuity bits associated with the service.  These
+     * are the bits returned by {@link #onStartCommand(Intent, int, int)} and can be
+     * one of the {@link #START_CONTINUATION_MASK} values.
+     *
+     * @return The continuity bits for the service [default: {@link #START_NOT_STICKY}]
+     */
+    public int getServiceFlag() {
+        return START_NOT_STICKY;
+    }
+
+    /**
+     * Used to determine if the device is connected to a network that has
+     * internet access.  This is used in conjunction with {@link #isDownloaded(EMPlaylistManager.PlaylistItem)}
+     * to determine what items in the playlist manager, specified with {@link #getMediaPlaylistManager()}, can be
+     * played.
+     *
+     * @return True if the device currently has internet connectivity
+     */
     protected boolean isNetworkAvailable() {
         return true;
     }
 
+    /**
+     * Used to determine if the specified playlistItem has been downloaded.  If this is true
+     * then the downloaded copy will be used instead, and no network wakelock will be acquired.
+     *
+     * @param playlistItem The playlist item to determine if it is downloaded.
+     * @return True if the specified playlistItem is downloaded. [default: false]
+     */
     protected boolean isDownloaded(I playlistItem) {
         return false;
     }
@@ -156,7 +212,6 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
         //Purposefully left blank
     }
 
-
     @Override
     public IBinder onBind(Intent intent) {
         return null;
@@ -164,6 +219,7 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
 
     @Override
     public void onCreate() {
+        //Part of a workaround for some Samsung devices (see onStartCommand)
         if (onCreateCalled) {
             return;
         }
@@ -178,6 +234,7 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
         notificationHelper = new EMNotification(getApplicationContext());
         lockScreenHelper = new EMLockScreen(getApplicationContext(), getClass());
 
+        //Another part of the workaround for some Samsung devices
         if (workaroundIntent != null) {
             startService(workaroundIntent);
             workaroundIntent = null;
@@ -205,31 +262,32 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         if (intent == null || intent.getAction() == null) {
-            return START_NOT_STICKY;
+            return getServiceFlag();
         }
 
         //This is a workaround for an issue on the Samsung Galaxy S3 (4.4.2) where the onStartCommand will occasionally get called before onCreate
         if (!onCreateCalled) {
-            Log.d(TAG, "Service Starting SG 3 4.4.2 Workaround");
+            Log.d(TAG, "Starting Samsung workaround");
             workaroundIntent = intent;
             onCreate();
-            return START_NOT_STICKY;
+            return getServiceFlag();
         }
 
-        if (M.ACTION_PLAY.equals(intent.getAction())) {
+        if (EMRemoteActions.ACTION_START_SERVICE.equals(intent.getAction())) {
             startItemPlayback();
 
-            seekToPosition = intent.getIntExtra(M.EXTRA_SEEK_POSITION, -1);
-            immediatelyPause = intent.getBooleanExtra(M.EXTRA_START_PAUSED, false);
+            seekToPosition = intent.getIntExtra(EMRemoteActions.ACTION_EXTRA_SEEK_POSITION, -1);
+            immediatelyPause = intent.getBooleanExtra(EMRemoteActions.ACTION_EXTRA_START_PAUSED, false);
         } else {
-            handleNotificationIntent(intent.getAction(), intent.getExtras());
+            handleRemoteAction(intent.getAction(), intent.getExtras());
         }
 
-        return START_NOT_STICKY;
+        return getServiceFlag();
     }
 
     @Override
     public void onTaskRemoved(Intent rootIntent) {
+        //onTaskRemoved was added in API 14 (ICS)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
             super.onTaskRemoved(rootIntent);
         }
@@ -262,85 +320,51 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
         return true;
     }
 
-    protected void onPlayPauseClickEvent(EMMediaPlayPauseEvent event) {
-        if (currentItemIsAudio()) {
-            if (audioPlayer.isPlaying() || pausedForFocusLoss) {
-                pausedForFocusLoss = false;
-                performPause();
-            } else {
-                performPlay();
-            }
+    @Override
+    public boolean onProgressUpdated(EMMediaProgressEvent progressEvent) {
+        currentMediaProgress = progressEvent;
 
-            updateNotification();
-            updateLockScreen();
-        }
-    }
-
-    protected void onStopEvent(EMMediaStopEvent event) {
-        performStop(false);
-    }
-
-    protected void onPreviousButtonClickEvent(EMMediaPreviousEvent event) {
-        getMediaPlaylistManager().previous();
-        startItemPlayback();
-        seekToPosition = 0;
-    }
-
-    protected void onNextButtonClickEvent(EMMediaNextEvent event) {
-        getMediaPlaylistManager().next();
-        startItemPlayback();
-        seekToPosition = 0;
-    }
-
-    protected void onMediaCompletionEvent(EMMediaCompletionEvent event) {
-        onNextButtonClickEvent(null);
-    }
-
-    protected void onSeekStartedEvent(EMMediaSeekStartedEvent event) {
-        if (currentItemIsAudio() && audioPlayer.isPlaying()) {
-            pausedForSeek = true;
-            audioPlayer.pause();
-        }
-    }
-
-    protected void onSeekEndedEvent(EMMediaSeekEndedEvent event) {
-        if (currentItemIsAudio()) {
-            audioPlayer.seekTo(seekToPosition);
-            seekToPosition = 0;
-
-            if (pausedForSeek) {
-                audioPlayer.start();
-                pausedForSeek = false;
+        for (EMPlaylistServiceCallback callback : callbackList) {
+            if (callback.onProgressUpdated(progressEvent)) {
+                return true;
             }
         }
+
+        return false;
     }
 
-    protected void onAudioFocusLostEvent(EMAudioFocusLostEvent event) {
-        onAudioFocusLost(event.canDuck());
-    }
-
-    protected void onAudioFocusGainedEvent(EMAudioFocusGainedEvent event) {
-        onAudioFocusGained();
-    }
-
-    protected void onAllowedMediaTypeChangeEvent(EMMediaAllowedTypeChangedEvent event) {
-        //We seek through the items until an allowed one is reached, or none is reached and the service is stopped.
-        if (event.allowedType != M.MediaType.AUDIO_AND_VIDEO && event.allowedType != currentMediaType) {
-            onNextButtonClickEvent(null);
+    public void registerCallback(EMPlaylistServiceCallback callback) {
+        if (callback != null) {
+            callbackList.add(callback);
         }
     }
 
-    protected EMPlaylistItemChangedEvent produceEMPlaylistItemChangedEvent() {
-        return getMediaItemChangedEvent(null);
+    public void unRegisterCallback(EMPlaylistServiceCallback callback) {
+        if (callback != null) {
+            callbackList.remove(callback);
+        }
     }
 
-    protected EMMediaStateEvent produceMediaStateEvent() {
-        return new EMMediaStateEvent(currentState);
+    public MediaState getCurrentMediaState() {
+        return currentState;
+    }
+
+    @Nullable
+    public EMMediaProgressEvent getCurrentMediaProgress() {
+        return currentMediaProgress;
+    }
+
+    public EMPlaylistItemChangedEvent<I> getCurrentItemChangedEvent() {
+        boolean hasNext = getMediaPlaylistManager().isNextAvailable();
+        boolean hasPrevious = getMediaPlaylistManager().isPreviousAvailable();
+
+        return new EMPlaylistItemChangedEvent<>(currentPlaylistItem, currentMediaType, hasPrevious, hasNext);
     }
 
     /**
      * Registers an internal {@link com.devbrackets.android.exomedia.service.EMPlaylistService.EventSubscriptionProvider}
-     * that will listen to Bus Events and Provide Bus Event related to the {@link EMPlaylistService}.
+     * that will listen to Bus Events and Provide Bus Event related to the {@link EMPlaylistService}.  The bus will NOT
+     *  be used for posting events, in order to enable that a bus needs to be provided with {@link #getBus()}
      *
      * @param bus The bus to register
      */
@@ -350,7 +374,7 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
         }
 
         if (bus != null) {
-            bus.register(subscriptionProvider);
+            subscriptionProvider.registerBus(bus);
         }
     }
 
@@ -364,36 +388,186 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
         }
     }
 
+    protected void performPlayPause() {
+        if (currentItemIsAudio()) {
+            if (audioPlayer.isPlaying() || pausedForFocusLoss) {
+                pausedForFocusLoss = false;
+                performPause();
+            } else {
+                performPlay();
+            }
+
+            updateNotification();
+            updateLockScreen();
+        }
+    }
+
+    protected void performPrevious() {
+        getMediaPlaylistManager().previous();
+        startItemPlayback();
+        seekToPosition = 0;
+    }
+
+    protected void performNext() {
+        getMediaPlaylistManager().next();
+        startItemPlayback();
+        seekToPosition = 0;
+    }
+
+    protected void performMediaCompletion() {
+        performNext();
+    }
+
+    protected void performSeekStarted() {
+        if (currentItemIsAudio() && audioPlayer.isPlaying()) {
+            pausedForSeek = true;
+            audioPlayer.pause();
+        }
+    }
+
+    protected void performSeekEnded(int newPosition) {
+        if (currentItemIsAudio()) {
+            audioPlayer.seekTo(newPosition);
+
+            if (pausedForSeek) {
+                audioPlayer.start();
+                pausedForSeek = false;
+            }
+        }
+    }
+
+    protected void updateAllowedMediaType(EMPlaylistManager.MediaType newType) {
+        //We seek through the items until an allowed one is reached, or none is reached and the service is stopped.
+        if (newType != M.MediaType.AUDIO_AND_VIDEO && newType != currentMediaType) {
+            performNext();
+        }
+    }
+
+    protected void postPlaylistItemChanged() {
+        boolean hasNext = getMediaPlaylistManager().isNextAvailable();
+        boolean hasPrevious = getMediaPlaylistManager().isPreviousAvailable();
+
+        for (EMPlaylistServiceCallback callback : callbackList) {
+            if (callback.onPlaylistItemChanged(currentPlaylistItem, currentMediaType, hasNext, hasPrevious)) {
+                return;
+            }
+        }
+
+        Bus bus = getBus();
+        if (bus != null) {
+            bus.post(new EMPlaylistItemChangedEvent<>(currentPlaylistItem, currentMediaType, hasPrevious, hasNext));
+        }
+    }
+
+    protected void postMediaStateChanged() {
+        for (EMPlaylistServiceCallback callback : callbackList) {
+            if (callback.onMediaStateChanged(currentState)) {
+                return;
+            }
+        }
+
+        Bus bus = getBus();
+        if (bus != null) {
+            bus.post(new EMMediaStateEvent(currentState));
+        }
+    }
+
+    protected void performStop(boolean force) {
+        if (currentState != MediaState.PLAYING && currentState != MediaState.PAUSED && !force) {
+            return;
+        }
+
+        setMediaState(MediaState.STOPPED);
+        if (currentPlaylistItem != null) {
+            onMediaStopped(currentPlaylistItem);
+        }
+
+        // let go of all resources
+        relaxResources(true);
+        audioFocusHelper.abandonFocus();
+
+        //Cleans out the avPlayListManager
+        getMediaPlaylistManager().setParameters(null, 0);
+        getMediaPlaylistManager().setPlaylistId(-1);
+
+        stopSelf();
+    }
+
+    protected void performSeek(int position) {
+        if (currentItemIsAudio() && (currentState == MediaState.PLAYING || currentState == MediaState.PAUSED)) {
+            audioPlayer.seekTo(position);
+        }
+    }
+
+    protected void performPause() {
+        if (currentItemIsAudio()) {
+            audioPlayer.pause();
+            setMediaState(MediaState.PAUSED);
+        }
+    }
+
+    protected void performPlay() {
+        if (currentItemIsAudio()) {
+            audioPlayer.start();
+            setMediaState(MediaState.PLAYING);
+        }
+    }
+
+    protected boolean currentItemIsAudio() {
+        return currentPlaylistItem != null && currentPlaylistItem.isAudio();
+    }
+
+    protected boolean currentItemIsVideo() {
+        return currentPlaylistItem != null && currentPlaylistItem.isVideo();
+    }
+
+    protected void onLargeNotificationImageUpdated() {
+        updateNotification();
+    }
+
+    protected void onLockScreenArtworkUpdated() {
+        updateLockScreen();
+    }
+
     /**
-     * Handles intents from the big notification to control playback
+     * Handles the remote actions from the big notification and lock screen to control
+     * the audio playback
      *
      * @param action The intents action
      * @param extras The intent extras
      */
-    private void handleNotificationIntent(String action, Bundle extras) {
+    private void handleRemoteAction(String action, Bundle extras) {
         if (action == null || action.isEmpty()) {
             return;
         }
 
         switch (action) {
             case EMRemoteActions.ACTION_PLAY_PAUSE:
-                onPlayPauseClickEvent(null);
+                performPlayPause();
                 break;
 
             case EMRemoteActions.ACTION_NEXT:
-                onNextButtonClickEvent(null);
+                performNext();
                 break;
 
             case EMRemoteActions.ACTION_PREVIOUS:
-                onPreviousButtonClickEvent(null);
+                performPrevious();
                 break;
 
             case EMRemoteActions.ACTION_STOP:
-                onStopEvent(null);
+                performStop(false);
                 break;
 
-            case EMRemoteActions.ACTION_SEEK:
-                onSeekEndedEvent(new EMMediaSeekEndedEvent(extras.getInt(EMRemoteActions.ACTION_EXTRA_SEEK_POSITION, 0)));
+            case EMRemoteActions.ACTION_SEEK_STARTED:
+                performSeekStarted();
+                break;
+
+            case EMRemoteActions.ACTION_SEEK_ENDED:
+                performSeekEnded(extras.getInt(EMRemoteActions.ACTION_EXTRA_SEEK_POSITION, 0));
+                break;
+
+            case EMRemoteActions.ACTION_ALLOWED_TYPE_CHANGED:
+                updateAllowedMediaType((EMPlaylistManager.MediaType) extras.getSerializable(EMRemoteActions.ACTION_EXTRA_ALLOWED_TYPE));
                 break;
 
             default:
@@ -408,7 +582,7 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
         }
 
         audioPlayer = new EMAudioPlayer(getApplicationContext());
-        audioPlayer.startProgressPoll(getBus());
+        audioPlayer.startProgressPoll(this);
         audioPlayer.setWakeMode(getApplicationContext(), PowerManager.PARTIAL_WAKE_LOCK);
 
         //Sets the listeners
@@ -427,11 +601,7 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
         I currentItem = currentPlaylistItem;
         seekToNextPlayableItem();
 
-        mediaChanged(currentItem);
-        Bus bus = getBus();
-        if (bus != null) {
-            bus.post(getMediaItemChangedEvent(currentItem));
-        }
+        mediaItemChanged(currentItem);
 
         if (currentItemIsAudio()) {
             audioListener.resetRetryCount();
@@ -440,7 +610,7 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
             playVideoItem();
         } else if (getMediaPlaylistManager().isNextAvailable()) {
             //We get here if there was an error retrieving the currentPlaylistItem
-            onNextButtonClickEvent(null);
+            performNext();
         } else {
             //At this point there is nothing for us to play, so we stop the service
             performStop(true);
@@ -496,59 +666,6 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
             videoView.stopPlayback();
             videoView.reset();
         }
-    }
-
-    private void performSeek(int position) {
-        if (currentItemIsAudio() && (currentState == MediaState.PLAYING || currentState == MediaState.PAUSED)) {
-            audioPlayer.seekTo(position);
-        }
-    }
-
-    private void performPause() {
-        if (currentItemIsAudio()) {
-            audioPlayer.pause();
-            setMediaState(MediaState.PAUSED);
-        }
-    }
-
-    private void performPlay() {
-        if (currentItemIsAudio()) {
-            audioPlayer.start();
-            setMediaState(MediaState.PLAYING);
-        }
-    }
-
-    private void performStop(boolean force) {
-        if (currentState != MediaState.PLAYING && currentState != MediaState.PAUSED && !force) {
-            return;
-        }
-
-        setMediaState(MediaState.STOPPED);
-        if (currentPlaylistItem != null) {
-            onMediaStopped(currentPlaylistItem);
-        }
-
-        // let go of all resources
-        relaxResources(true);
-        audioFocusHelper.abandonFocus();
-
-        //Cleans out the avPlayListManager
-        getMediaPlaylistManager().setParameters(null, 0);
-        getMediaPlaylistManager().setPlaylistId(-1);
-
-        stopSelf();
-    }
-
-    protected boolean currentItemIsAudio() {
-        return currentPlaylistItem != null && currentPlaylistItem.isAudio();
-    }
-
-    protected boolean currentItemIsVideo() {
-        return currentPlaylistItem != null && currentPlaylistItem.isVideo();
-    }
-
-    private void updateCurrentPlaybackItem() {
-        currentPlaylistItem = getMediaPlaylistManager().getCurrentItem();
     }
 
     /**
@@ -609,13 +726,14 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
         }
     }
 
+    /**
+     * Updates the current MediaState and informs any listening classes.
+     *
+     * @param state The new MediaState
+     */
     private void setMediaState(MediaState state) {
         currentState = state;
-
-        Bus bus = getBus();
-        if (bus != null) {
-            bus.post(new EMMediaStateEvent(currentState));
-        }
+        postMediaStateChanged();
     }
 
     /**
@@ -642,9 +760,13 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
             onNoNonNetworkItemsAvailable();
         }
 
-        updateCurrentPlaybackItem();
+        currentPlaylistItem = getMediaPlaylistManager().getCurrentItem();
     }
 
+    /**
+     * Requests the service be transferred to the foreground, initializing the
+     * LockScreen and Notification helpers for playback control.
+     */
     private void setupAsForeground() {
         //Sets up the Lock Screen playback controls
         lockScreenHelper.setLockScreenEnabled(true);
@@ -662,6 +784,10 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
         updateNotification();
     }
 
+    /**
+     * Performs the process to update the playback controls and images in the notification
+     * associated with the current playlist item.
+     */
     private void updateNotification() {
         if (currentPlaylistItem == null || audioPlayer == null || !foregroundSetup) {
             return;
@@ -687,6 +813,10 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
         notificationHelper.updateNotificationInformation(getAppName(), title, bitmap, mediaState);
     }
 
+    /**
+     * Performs the process to update the playback controls and the background
+     * (artwork) image displayed on the lock screen.
+     */
     private void updateLockScreen() {
         if (currentPlaylistItem == null || audioPlayer == null || !foregroundSetup) {
             return;
@@ -704,13 +834,13 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
         lockScreenHelper.updateLockScreenInformation(title, subTitle, getLockScreenArtwork(), mediaState);
     }
 
-    private void mediaChanged(I currentItem) {
+    private void mediaItemChanged(I currentItem) {
         currentMediaType = getMediaPlaylistManager().getCurrentItemType();
 
         //Validates that the currentPlaylistItem is for the currentItem
         if (!getMediaPlaylistManager().isPlayingItem(currentPlaylistItem)) {
             Log.d(TAG, "forcing currentPlaylistItem update");
-            updateCurrentPlaybackItem();
+            currentPlaylistItem = getMediaPlaylistManager().getCurrentItem();
         }
 
         //Starts the notification loading
@@ -723,21 +853,8 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
         if (currentPlaylistItem != null && (currentItem == null || !currentItem.getArtworkUrl().equalsIgnoreCase(currentPlaylistItem.getArtworkUrl()))) {
             updateLockScreenArtwork(currentPlaylistItem);
         }
-    }
 
-    private EMPlaylistItemChangedEvent<I> getMediaItemChangedEvent(I currentItem) {
-        boolean hasNext = getMediaPlaylistManager().isNextAvailable();
-        boolean hasPrevious = getMediaPlaylistManager().isPreviousAvailable();
-
-        return new EMPlaylistItemChangedEvent<>(currentPlaylistItem, currentMediaType, hasNext, hasPrevious);
-    }
-
-    protected void onLargeNotificationImageUpdated() {
-        updateNotification();
-    }
-
-    protected void onLockScreenArtworkUpdated() {
-        updateLockScreen();
+        postPlaylistItemChanged();
     }
 
     /**
@@ -749,10 +866,7 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
 
         @Override
         public void onCompletion(MediaPlayer mp) {
-            //If the bus is registered then it will call the onMediaCompletionEvent itself
-            if (getBus() == null) {
-                onMediaCompletionEvent(null);
-            }
+            performMediaCompletion();
         }
 
         @Override
@@ -840,62 +954,52 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
 
         @Subscribe
         public void onPlayPauseClickEvent(EMMediaPlayPauseEvent event) {
-            playlistService.onPlayPauseClickEvent(event);
+            playlistService.performPlayPause();
         }
 
         @Subscribe
         public void onStopEvent(EMMediaStopEvent event) {
-            playlistService.onStopEvent(event);
+            playlistService.performStop(false);
         }
 
         @Subscribe
         public void onPreviousButtonClickEvent(EMMediaPreviousEvent event) {
-            playlistService.onPreviousButtonClickEvent(event);
+            playlistService.performPrevious();
         }
 
         @Subscribe
         public void onNextButtonClickEvent(EMMediaNextEvent event) {
-            playlistService.onNextButtonClickEvent(event);
-        }
-
-        @Subscribe
-        public void onMediaCompletionEvent(EMMediaCompletionEvent event) {
-            playlistService.onMediaCompletionEvent(event);
+            playlistService.performNext();
         }
 
         @Subscribe
         public void onSeekStartedEvent(EMMediaSeekStartedEvent event) {
-            playlistService.onSeekStartedEvent(event);
+            playlistService.performSeekStarted();
         }
 
         @Subscribe
         public void onSeekEndedEvent(EMMediaSeekEndedEvent event) {
-            playlistService.onSeekEndedEvent(event);
-        }
-
-        @Subscribe
-        public void onAudioFocusLostEvent(EMAudioFocusLostEvent event) {
-            playlistService.onAudioFocusLostEvent(event);
-        }
-
-        @Subscribe
-        public void onAudioFocusGainedEvent(EMAudioFocusGainedEvent event) {
-            playlistService.onAudioFocusGainedEvent(event);
+            playlistService.performSeekEnded((int) event.getSeekPosition());
         }
 
         @Subscribe
         public void onAllowedMediaTypeChangeEvent(EMMediaAllowedTypeChangedEvent event) {
-            playlistService.onAllowedMediaTypeChangeEvent(event);
+            playlistService.updateAllowedMediaType(event.allowedType);
         }
 
         @Produce
         public EMPlaylistItemChangedEvent produceEMPlaylistItemChangedEvent() {
-            return playlistService.produceEMPlaylistItemChangedEvent();
+            return playlistService.getCurrentItemChangedEvent();
         }
 
         @Produce
         public EMMediaStateEvent produceMediaStateEvent() {
-            return playlistService.produceMediaStateEvent();
+            return new EMMediaStateEvent(playlistService.getCurrentMediaState());
+        }
+
+        @Produce
+        public EMMediaProgressEvent produceMediaProgressEvent() {
+            return playlistService.getCurrentMediaProgress();
         }
     }
 }

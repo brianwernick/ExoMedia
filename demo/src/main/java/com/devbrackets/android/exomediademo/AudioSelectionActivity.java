@@ -9,6 +9,11 @@ import android.widget.ListView;
 
 import com.devbrackets.android.exomediademo.adapter.AudioSelectionListAdapter;
 
+/**
+ * A simple activity that allows the user to select a
+ * chapter form "The Count of Monte Cristo" to play
+ * (limited to chapters 1 - 4).
+ */
 public class AudioSelectionActivity extends AppCompatActivity implements AdapterView.OnItemClickListener {
 
     @Override

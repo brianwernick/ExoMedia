@@ -32,6 +32,8 @@
         android:layout_alignParentBottom="true"
         android:orientation="vertical"
         android:paddingTop="10dp"
+        android:elevation="4dp"
+        android:translationZ="2dp"
         tools:background="@color/background_material_light">
 
         <RelativeLayout

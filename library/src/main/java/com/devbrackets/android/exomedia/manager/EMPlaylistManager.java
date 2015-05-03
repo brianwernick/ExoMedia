@@ -1,3 +1,19 @@
+/*
+ * Copyright (C) 2015 Brian Wernick
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.devbrackets.android.exomedia.manager;
 
 import android.app.Application;
@@ -9,7 +25,6 @@ import android.util.Log;
 
 import com.devbrackets.android.exomedia.EMRemoteActions;
 import com.devbrackets.android.exomedia.EMVideoView;
-import com.devbrackets.android.exomedia.event.EMMediaAllowedTypeChangedEvent;
 import com.devbrackets.android.exomedia.event.EMMediaNextEvent;
 import com.devbrackets.android.exomedia.event.EMMediaPlayPauseEvent;
 import com.devbrackets.android.exomedia.event.EMMediaPreviousEvent;
@@ -21,14 +36,18 @@ import java.lang.ref.WeakReference;
 import java.util.List;
 
 /**
- * A Manager to keep track of play lists that can contain audio or video items
+ * A manager to keep track of a playlist of items that a service can use for playback.
+ * Additionally, this manager provides methods for interacting with the specified service
+ * to simplify and standardize implementations in the service itself.  This manager can be
+ * used as standalone with a custom service, or in conjunction with
+ * {@link com.devbrackets.android.exomedia.service.EMPlaylistService}
  */
 @SuppressWarnings("unused")
 public abstract class EMPlaylistManager<T extends EMPlaylistManager.PlaylistItem> {
     private static final String TAG = "EMPlaylistManager";
-    public static final String ACTION_PLAY = "com.devbrackets.android.exomedia.action.PLAY";
-    public static final String EXTRA_SEEK_POSITION = "EXTRA_SEEK_POSITION";
-    public static final String EXTRA_START_PAUSED = "EXTRA_START_PAUSED";
+
+    public static final int INVALID_PLAYLIST_ID = -1;
+    public static final int INVALID_PLAYLIST_INDEX = -1;
 
     public enum MediaType {
         AUDIO,
@@ -43,6 +62,7 @@ public abstract class EMPlaylistManager<T extends EMPlaylistManager.PlaylistItem
         boolean isAudio();
         boolean isVideo();
         String getMediaUrl();
+        String getDownloadedMediaUri();
         String getTitle();
         String getThumbnailUrl();
         String getArtworkUrl();
@@ -50,7 +70,7 @@ public abstract class EMPlaylistManager<T extends EMPlaylistManager.PlaylistItem
 
     private List<T> playList;
     private int currentPosition = 0;
-    private long playListId = -1;
+    private long playListId = INVALID_PLAYLIST_ID;
 
     private MediaType allowedType = MediaType.AUDIO;
     private WeakReference<EMVideoView> videoPlayer = new WeakReference<>(null);
@@ -58,15 +78,24 @@ public abstract class EMPlaylistManager<T extends EMPlaylistManager.PlaylistItem
     protected abstract Application getApplication();
     protected abstract Class<? extends Service> getMediaServiceClass();
 
+    /**
+     * Specifies the bus to use for posting any events such as
+     * {@link #invokeNext()}.  If the specified bus is not null then
+     * the Bus will be used to inform any class of the invokes rather
+     * than using intents.
+     *
+     * <b><em>NOTE:</em></b> You will have to provide your own bus subscription in the EMPlaylistService
+     * @return The Bus to use for informing any listeners of events
+     */
     @Nullable
     protected Bus getBus() {
         return null;
     }
 
     @Nullable
-    private PendingIntent playPausePendingIntent, nextPendingIntent, previousPendingIntent, stopPendingIntent;
+    private PendingIntent playPausePendingIntent, nextPendingIntent, previousPendingIntent, stopPendingIntent, seekStartedPendingIntent;
     @Nullable
-    private Intent seekIntent;
+    private Intent seekEndedIntent, allowedTypeChangedIntent;
 
     public void play(List<T> playListItems, int startIndex, int seekPosition, boolean startPaused) {
         setParameters(playListItems, startIndex);
@@ -86,9 +115,9 @@ public abstract class EMPlaylistManager<T extends EMPlaylistManager.PlaylistItem
 
         //Starts the playlist service
         Intent intent = new Intent(getApplication(), getMediaServiceClass());
-        intent.setAction(ACTION_PLAY);
-        intent.putExtra(EXTRA_SEEK_POSITION, seekPosition);
-        intent.putExtra(EXTRA_START_PAUSED, startPaused);
+        intent.setAction(EMRemoteActions.ACTION_START_SERVICE);
+        intent.putExtra(EMRemoteActions.ACTION_EXTRA_SEEK_POSITION, seekPosition);
+        intent.putExtra(EMRemoteActions.ACTION_EXTRA_START_PAUSED, startPaused);
         getApplication().startService(intent);
     }
 
@@ -103,7 +132,7 @@ public abstract class EMPlaylistManager<T extends EMPlaylistManager.PlaylistItem
         playList = playListItems;
 
         setCurrentIndex(startIndex);
-        setPlaylistId(-1);
+        setPlaylistId(INVALID_PLAYLIST_ID);
     }
 
     /**
@@ -123,7 +152,7 @@ public abstract class EMPlaylistManager<T extends EMPlaylistManager.PlaylistItem
      * <li>{@link EMRemoteActions#ACTION_PLAY_PAUSE}</li>
      * <li>{@link EMRemoteActions#ACTION_PREVIOUS}</li>
      * <li>{@link EMRemoteActions#ACTION_NEXT}</li>
-     * <li>{@link EMRemoteActions#ACTION_SEEK}</li>
+     * <li>{@link EMRemoteActions#ACTION_SEEK_ENDED}</li>
      * </ul>
      * <p/>
      * <b><em>NOTE:</em></b> if you have specified a Bus with {@link #getBus()} then you don't
@@ -137,7 +166,9 @@ public abstract class EMPlaylistManager<T extends EMPlaylistManager.PlaylistItem
             previousPendingIntent = null;
             playPausePendingIntent = null;
             stopPendingIntent = null;
-            seekIntent = null;
+            seekStartedPendingIntent = null;
+            seekEndedIntent = null;
+            allowedTypeChangedIntent = null;
             return;
         }
 
@@ -147,8 +178,13 @@ public abstract class EMPlaylistManager<T extends EMPlaylistManager.PlaylistItem
         playPausePendingIntent = createPendingIntent(EMRemoteActions.ACTION_PLAY_PAUSE, mediaServiceClass);
 
         stopPendingIntent = createPendingIntent(EMRemoteActions.ACTION_STOP, mediaServiceClass);
+        seekStartedPendingIntent = createPendingIntent(EMRemoteActions.ACTION_SEEK_STARTED, mediaServiceClass);
 
-        seekIntent = new Intent(getApplication(), mediaServiceClass);
+        seekEndedIntent = new Intent(getApplication(), mediaServiceClass);
+        seekEndedIntent.setAction(EMRemoteActions.ACTION_SEEK_ENDED);
+
+        allowedTypeChangedIntent = new Intent(getApplication(), mediaServiceClass);
+        allowedTypeChangedIntent.setAction(EMRemoteActions.ACTION_ALLOWED_TYPE_CHANGED);
     }
 
     /**
@@ -161,9 +197,10 @@ public abstract class EMPlaylistManager<T extends EMPlaylistManager.PlaylistItem
     public void setAllowedMediaType(MediaType allowedType) {
         this.allowedType = allowedType;
 
-        Bus bus = getBus();
-        if (bus != null) {
-            bus.post(new EMMediaAllowedTypeChangedEvent(allowedType));
+        //Tries to start the intent
+        if (allowedTypeChangedIntent != null) {
+            allowedTypeChangedIntent.putExtra(EMRemoteActions.ACTION_EXTRA_ALLOWED_TYPE, allowedType);
+            getApplication().startService(allowedTypeChangedIntent);
         }
     }
 
@@ -205,7 +242,7 @@ public abstract class EMPlaylistManager<T extends EMPlaylistManager.PlaylistItem
         }
 
         int index = getIndexForItem(itemId);
-        if (index != -1) {
+        if (index != INVALID_PLAYLIST_INDEX) {
             setCurrentIndex(index);
         }
     }
@@ -214,11 +251,11 @@ public abstract class EMPlaylistManager<T extends EMPlaylistManager.PlaylistItem
      * Determines the index for the item with the passed id.
      *
      * @param itemId The items id to use for finding the index
-     * @return The items index or -1
+     * @return The items index or {@link #INVALID_PLAYLIST_INDEX}
      */
     public int getIndexForItem(long itemId) {
         if (playList == null) {
-            return -1;
+            return INVALID_PLAYLIST_INDEX;
         }
 
         int index = 0;
@@ -230,7 +267,7 @@ public abstract class EMPlaylistManager<T extends EMPlaylistManager.PlaylistItem
             index++;
         }
 
-        return -1;
+        return INVALID_PLAYLIST_INDEX;
     }
 
     /**
@@ -271,7 +308,7 @@ public abstract class EMPlaylistManager<T extends EMPlaylistManager.PlaylistItem
     /**
      * Returns the current playListId for this playlist.
      *
-     * @return The playlist id [default: -1]
+     * @return The playlist id [default: {@link #INVALID_PLAYLIST_ID}]
      */
     public long getPlayListId() {
         return playListId;
@@ -426,15 +463,25 @@ public abstract class EMPlaylistManager<T extends EMPlaylistManager.PlaylistItem
     }
 
     /**
+     * Informs the Media service that we have started seeking
+     * the playback.  The service specified with
+     * {@link #setMediaServiceClass(Class)} will be informed using the action
+     * {@link EMRemoteActions#ACTION_SEEK_STARTED}
+     */
+    public void invokeSeekStarted() {
+        sendPendingIntent(seekStartedPendingIntent);
+    }
+
+    /**
      * Informs the Media service that we need to seek
      * the current item. If {@link #getBus()} doesn't return
      * a null value then the service will be informed though the bus event
      * {@link EMMediaSeekEndedEvent}.  Otherwise the service specified with
      * {@link #setMediaServiceClass(Class)} will be informed using the action
-     * {@link EMRemoteActions#ACTION_SEEK} and have an intent extra with the
+     * {@link EMRemoteActions#ACTION_SEEK_ENDED} and have an intent extra with the
      * key {@link EMRemoteActions#ACTION_EXTRA_SEEK_POSITION} (integer)
      */
-    public void invokeSeek(int seekPosition) {
+    public void invokeSeekEnded(int seekPosition) {
         Bus bus = getBus();
         if (bus != null) {
             bus.post(new EMMediaSeekEndedEvent(seekPosition));
@@ -442,9 +489,9 @@ public abstract class EMPlaylistManager<T extends EMPlaylistManager.PlaylistItem
         }
 
         //Tries to start the intent
-        if (seekIntent != null) {
-            seekIntent.putExtra(EMRemoteActions.ACTION_EXTRA_SEEK_POSITION, seekPosition);
-            getApplication().startService(seekIntent);
+        if (seekEndedIntent != null) {
+            seekEndedIntent.putExtra(EMRemoteActions.ACTION_EXTRA_SEEK_POSITION, seekPosition);
+            getApplication().startService(seekEndedIntent);
         }
     }
 
@@ -497,6 +544,12 @@ public abstract class EMPlaylistManager<T extends EMPlaylistManager.PlaylistItem
         return index >= 0 ? index : getPlayListSize();
     }
 
+    /**
+     * Retrieves the item at the given index in the playlist.
+     *
+     * @param index The index in the playlist to grab the item for
+     * @return The retrieved item or null
+     */
     @Nullable
     private T getItem(int index) {
         if (playList == null) {

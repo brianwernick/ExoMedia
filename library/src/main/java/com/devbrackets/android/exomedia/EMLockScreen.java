@@ -1,3 +1,19 @@
+/*
+ * Copyright (C) 2015 Brian Wernick
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.devbrackets.android.exomedia;
 
 import android.app.PendingIntent;
@@ -43,9 +59,9 @@ public class EMLockScreen {
         this.context = context;
         this.mediaServiceClass = mediaServiceClass;
 
-        ComponentName componentName = new ComponentName(context, MediaControlsReceiver.class);
+        ComponentName componentName = new ComponentName(MediaControlsReceiver.class.getPackage().getName(), MediaControlsReceiver.class.getName());
         mediaSession = new MediaSessionCompat(context, SESSION_TAG, componentName, null);
-        setupMediaSession(mediaSession);
+        setupMediaSession(mediaSession, componentName);
     }
 
     public void release() {
@@ -123,7 +139,7 @@ public class EMLockScreen {
         }
     }
 
-    private void setupMediaSession(MediaSessionCompat mediaSession) {
+    private void setupMediaSession(MediaSessionCompat mediaSession, ComponentName componentName) {
         mediaSession.setCallback(new SessionCallback());
         mediaSession.setFlags(MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS | MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS);
 
@@ -135,7 +151,7 @@ public class EMLockScreen {
             mediaButtonIntent.addFlags(Intent.FLAG_RECEIVER_FOREGROUND);
         }
 
-        mediaButtonIntent.setComponent(new ComponentName(context, MediaControlsReceiver.class));
+        mediaButtonIntent.setComponent(componentName);
         mediaSession.setMediaButtonReceiver(PendingIntent.getBroadcast(context, 0, mediaButtonIntent, 0));
     }
 

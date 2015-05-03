@@ -12,11 +12,16 @@ import com.devbrackets.android.exomedia.service.EMPlaylistService;
 import com.devbrackets.android.exomediademo.App;
 import com.devbrackets.android.exomediademo.R;
 import com.devbrackets.android.exomediademo.StartupActivity;
+import com.devbrackets.android.exomediademo.data.MediaItem;
 import com.devbrackets.android.exomediademo.manager.PlaylistManager;
 import com.squareup.picasso.Picasso;
 import com.squareup.picasso.Target;
 
-public class AudioService extends EMPlaylistService<PlaylistManager.MediaItem, PlaylistManager> implements EMAudioFocusCallback {
+/**
+ * A simple service that extends {@link EMPlaylistService} in order to provide
+ * the application specific information required.
+ */
+public class AudioService extends EMPlaylistService<MediaItem, PlaylistManager> implements EMAudioFocusCallback {
     private static final int NOTIFICATION_ID = 1564; //Arbitrary
     private static final int FOREGROUND_REQUEST_CODE = 332; //Arbitrary
     private static final float AUDIO_DUCK_VOLUME = 0.1f;
@@ -28,6 +33,7 @@ public class AudioService extends EMPlaylistService<PlaylistManager.MediaItem, P
     private NotificationTarget notificationImageTarget = new NotificationTarget();
     private LockScreenTarget lockScreenImageTarget = new LockScreenTarget();
 
+    //Picasso is an image loading library
     private Picasso picasso;
 
     @Override
@@ -35,6 +41,13 @@ public class AudioService extends EMPlaylistService<PlaylistManager.MediaItem, P
         super.onCreate();
 
         picasso = Picasso.with(getApplicationContext());
+        App.getPlaylistManager().registerService(this);
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        App.getPlaylistManager().unRegisterService();
     }
 
     @Override
@@ -83,12 +96,12 @@ public class AudioService extends EMPlaylistService<PlaylistManager.MediaItem, P
     }
 
     @Override
-    protected void updateLargeNotificationImage(int size, PlaylistManager.MediaItem playlistItem) {
+    protected void updateLargeNotificationImage(int size, MediaItem playlistItem) {
         picasso.load(playlistItem.getThumbnailUrl()).into(notificationImageTarget);
     }
 
     @Override
-    protected void updateLockScreenArtwork(PlaylistManager.MediaItem playlistItem) {
+    protected void updateLockScreenArtwork(MediaItem playlistItem) {
         picasso.load(playlistItem.getArtworkUrl()).into(lockScreenImageTarget);
     }
 

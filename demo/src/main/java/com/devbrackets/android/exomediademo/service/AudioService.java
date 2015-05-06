@@ -39,15 +39,12 @@ public class AudioService extends EMPlaylistService<MediaItem, PlaylistManager> 
     @Override
     public void onCreate() {
         super.onCreate();
-
         picasso = Picasso.with(getApplicationContext());
-        App.getPlaylistManager().registerService(this);
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
-        App.getPlaylistManager().unRegisterService();
     }
 
     @Override

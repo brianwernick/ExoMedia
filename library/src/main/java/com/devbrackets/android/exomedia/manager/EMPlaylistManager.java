@@ -28,11 +28,16 @@ import com.devbrackets.android.exomedia.EMVideoView;
 import com.devbrackets.android.exomedia.event.EMMediaNextEvent;
 import com.devbrackets.android.exomedia.event.EMMediaPlayPauseEvent;
 import com.devbrackets.android.exomedia.event.EMMediaPreviousEvent;
+import com.devbrackets.android.exomedia.event.EMMediaProgressEvent;
 import com.devbrackets.android.exomedia.event.EMMediaSeekEndedEvent;
 import com.devbrackets.android.exomedia.event.EMMediaStopEvent;
+import com.devbrackets.android.exomedia.event.EMPlaylistItemChangedEvent;
+import com.devbrackets.android.exomedia.listener.EMPlaylistServiceCallback;
+import com.devbrackets.android.exomedia.service.EMPlaylistService;
 import com.squareup.otto.Bus;
 
 import java.lang.ref.WeakReference;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -43,7 +48,7 @@ import java.util.List;
  * {@link com.devbrackets.android.exomedia.service.EMPlaylistService}
  */
 @SuppressWarnings("unused")
-public abstract class EMPlaylistManager<T extends EMPlaylistManager.PlaylistItem> {
+public abstract class EMPlaylistManager<I extends EMPlaylistManager.PlaylistItem> implements EMPlaylistServiceCallback {
     private static final String TAG = "EMPlaylistManager";
 
     public static final int INVALID_PLAYLIST_ID = -1;
@@ -68,12 +73,20 @@ public abstract class EMPlaylistManager<T extends EMPlaylistManager.PlaylistItem
         String getArtworkUrl();
     }
 
-    private List<T> playList;
+    private List<I> playList;
     private int currentPosition = 0;
     private long playListId = INVALID_PLAYLIST_ID;
 
     private MediaType allowedType = MediaType.AUDIO;
     private WeakReference<EMVideoView> videoPlayer = new WeakReference<>(null);
+
+    private EMPlaylistService service;
+    private List<EMPlaylistServiceCallback> callbackList = new ArrayList<>();
+
+    @Nullable
+    private PendingIntent playPausePendingIntent, nextPendingIntent, previousPendingIntent, stopPendingIntent, seekStartedPendingIntent;
+    @Nullable
+    private Intent seekEndedIntent, allowedTypeChangedIntent;
 
     protected abstract Application getApplication();
     protected abstract Class<? extends Service> getMediaServiceClass();
@@ -92,12 +105,116 @@ public abstract class EMPlaylistManager<T extends EMPlaylistManager.PlaylistItem
         return null;
     }
 
-    @Nullable
-    private PendingIntent playPausePendingIntent, nextPendingIntent, previousPendingIntent, stopPendingIntent, seekStartedPendingIntent;
-    @Nullable
-    private Intent seekEndedIntent, allowedTypeChangedIntent;
+    @Override
+    public boolean onPlaylistItemChanged(PlaylistItem currentItem, MediaType mediaType, boolean hasNext, boolean hasPrevious) {
+        for (EMPlaylistServiceCallback callback : callbackList) {
+            if (callback.onPlaylistItemChanged(currentItem, mediaType, hasNext, hasPrevious)) {
+                return true;
+            }
+        }
 
-    public void play(List<T> playListItems, int startIndex, int seekPosition, boolean startPaused) {
+        return false;
+    }
+
+    @Override
+    public boolean onMediaStateChanged(EMPlaylistService.MediaState mediaState) {
+        for (EMPlaylistServiceCallback callback : callbackList) {
+            if (callback.onMediaStateChanged(mediaState)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    @Override
+    public boolean onProgressUpdated(EMMediaProgressEvent event) {
+        for (EMPlaylistServiceCallback callback : callbackList) {
+            if (callback.onProgressUpdated(event)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Retrieves the most recent media playback state.
+     *
+     * @return The most recent MediaState
+     */
+    public EMPlaylistService.MediaState getCurrentMediaState() {
+        if (service != null) {
+            return service.getCurrentMediaState();
+        }
+
+        return EMPlaylistService.MediaState.STOPPED;
+    }
+
+    /**
+     * Retrieves the current progress for the media playback
+     *
+     * @return The most recent progress event
+     */
+    @Nullable
+    public EMMediaProgressEvent getCurrentProgress() {
+        return service != null ? service.getCurrentMediaProgress() : null;
+    }
+
+    /**
+     * Retrieves the most recent {@link EMPlaylistItemChangedEvent}
+     *
+     * @return The most recent Item Changed information
+     */
+    @Nullable
+    public EMPlaylistItemChangedEvent getCurrentItemChangedEvent() {
+        return service != null ? service.getCurrentItemChangedEvent() : null;
+    }
+
+    /**
+     * Links the {@link EMPlaylistService} so that we can correctly manage the
+     * {@link EMPlaylistServiceCallback}
+     *
+     * @param service The AudioService to link to this manager
+     */
+    public void registerService(EMPlaylistService service) {
+        this.service = service;
+        service.registerCallback(this);
+    }
+
+    /**
+     * UnLinks the {@link EMPlaylistService} from this manager. (see {@link #registerService(EMPlaylistService)}
+     */
+    public void unRegisterService() {
+        service.unRegisterCallback(this);
+        service = null;
+    }
+
+    /**
+     * Registers the callback to this service.  These callbacks will only be
+     * called if {@link #registerService(EMPlaylistService)} has been called.
+     *
+     * @param callback The callback to register
+     */
+    public void registerServiceCallbacks(EMPlaylistServiceCallback callback) {
+        if (callback != null) {
+            callbackList.add(callback);
+        }
+    }
+
+    /**
+     * UnRegisters the specified callback.  This should be called when the callback
+     * class losses focus, or should be destroyed.
+     *
+     * @param callback The callback to remove
+     */
+    public void unRegisterServiceCallbacks(EMPlaylistServiceCallback callback) {
+        if (callback != null) {
+            callbackList.remove(callback);
+        }
+    }
+
+    public void play(List<I> playListItems, int startIndex, int seekPosition, boolean startPaused) {
         setParameters(playListItems, startIndex);
         play(seekPosition, startPaused);
     }
@@ -107,7 +224,7 @@ public abstract class EMPlaylistManager<T extends EMPlaylistManager.PlaylistItem
      * Alternatively you can call {@link #play(java.util.List, int, int, boolean)}
      */
     public void play(int seekPosition, boolean startPaused) {
-        T currentItem = getCurrentItem();
+        I currentItem = getCurrentItem();
 
         if (currentItem == null) {
             return;
@@ -128,7 +245,7 @@ public abstract class EMPlaylistManager<T extends EMPlaylistManager.PlaylistItem
      * @param playListItems The List of items to play
      * @param startIndex The index in the list to start playback with
      */
-    public void setParameters(List<T> playListItems, int startIndex) {
+    public void setParameters(List<I> playListItems, int startIndex) {
         playList = playListItems;
 
         setCurrentIndex(startIndex);
@@ -259,7 +376,7 @@ public abstract class EMPlaylistManager<T extends EMPlaylistManager.PlaylistItem
         }
 
         int index = 0;
-        for (T item : playList) {
+        for (I item : playList) {
             if (item.getId() == itemId) {
                 return index;
             }
@@ -276,8 +393,8 @@ public abstract class EMPlaylistManager<T extends EMPlaylistManager.PlaylistItem
      * @param item The ItemQuery to compare to the current item
      * @return True if the current item matches the passed item
      */
-    public boolean isPlayingItem(T item) {
-        T currentItem = getCurrentItem();
+    public boolean isPlayingItem(I item) {
+        I currentItem = getCurrentItem();
 
         //noinspection SimplifiableIfStatement
         if (item == null || currentItem == null) {
@@ -321,7 +438,7 @@ public abstract class EMPlaylistManager<T extends EMPlaylistManager.PlaylistItem
      * @return A {@link MediaType} representing the current items type
      */
     public MediaType getCurrentItemType() {
-        T item = getCurrentItem();
+        I item = getCurrentItem();
 
         if (item != null) {
             if (item.isAudio()) {
@@ -342,7 +459,7 @@ public abstract class EMPlaylistManager<T extends EMPlaylistManager.PlaylistItem
      * @return The current Item or null
      */
     @Nullable
-    public T getCurrentItem() {
+    public I getCurrentItem() {
         if (currentPosition < getPlayListSize()) {
             return getItem(currentPosition);
         }
@@ -358,7 +475,7 @@ public abstract class EMPlaylistManager<T extends EMPlaylistManager.PlaylistItem
      * @return The next Item or null
      */
     @Nullable
-    public T next() {
+    public I next() {
         currentPosition = findNextAllowedIndex(currentPosition + 1);
         return getCurrentItem();
     }
@@ -371,7 +488,7 @@ public abstract class EMPlaylistManager<T extends EMPlaylistManager.PlaylistItem
      * @return The previous Item or null
      */
     @Nullable
-    public T previous() {
+    public I previous() {
         currentPosition = findPreviousAllowedIndex(currentPosition - 1);
         return getCurrentItem();
     }
@@ -551,7 +668,7 @@ public abstract class EMPlaylistManager<T extends EMPlaylistManager.PlaylistItem
      * @return The retrieved item or null
      */
     @Nullable
-    private T getItem(int index) {
+    private I getItem(int index) {
         if (playList == null) {
             return null;
         }
@@ -565,7 +682,7 @@ public abstract class EMPlaylistManager<T extends EMPlaylistManager.PlaylistItem
      * @param item The item to determine if it is allowed
      * @return True if the item is null or is allowed
      */
-    private boolean isAllowedType(T item) {
+    private boolean isAllowedType(I item) {
         if (item == null) {
             return true;
         }

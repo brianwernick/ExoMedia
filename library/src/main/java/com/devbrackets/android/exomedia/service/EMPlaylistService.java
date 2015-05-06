@@ -584,6 +584,7 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
         }
 
         audioPlayer = new EMAudioPlayer(getApplicationContext());
+        audioPlayer.setBus(getBus());
         audioPlayer.startProgressPoll(this);
         audioPlayer.setWakeMode(getApplicationContext(), PowerManager.PARTIAL_WAKE_LOCK);
 
@@ -938,6 +939,7 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
             }
 
             this.bus = bus;
+            isRegistered = true;
             bus.register(this);
         }
 

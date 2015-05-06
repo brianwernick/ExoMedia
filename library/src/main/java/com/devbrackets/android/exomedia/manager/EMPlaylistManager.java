@@ -214,6 +214,15 @@ public abstract class EMPlaylistManager<I extends EMPlaylistManager.PlaylistItem
         }
     }
 
+    /**
+     * A utility method to allow for single line implementations to start playing the media
+     * item as specified by the passed parameters.
+     *
+     * @param playListItems The list of items to play
+     * @param startIndex The index in the playlistItems to start playback
+     * @param seekPosition The position in the startIndex item to start at (in milliseconds)
+     * @param startPaused True if the media item should start paused instead of playing
+     */
     public void play(List<I> playListItems, int startIndex, int seekPosition, boolean startPaused) {
         setParameters(playListItems, startIndex);
         play(seekPosition, startPaused);

@@ -108,7 +108,7 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
     protected boolean onCreateCalled = false;
     protected Intent workaroundIntent = null;
 
-    protected EventSubscriptionProvider subscriptionProvider;
+    protected EventSubscriptionProvider subscriptionProvider = new EventSubscriptionProvider();
     protected List<EMPlaylistServiceCallback> callbackList = new LinkedList<>();
 
     protected abstract String getAppName();
@@ -371,10 +371,6 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
      * @param bus The bus to register
      */
     protected void registerBus(Bus bus) {
-        if (subscriptionProvider == null) {
-            subscriptionProvider = new EventSubscriptionProvider<>(this);
-        }
-
         if (bus != null) {
             subscriptionProvider.registerBus(bus);
         }
@@ -385,9 +381,7 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
      * Events and Provides. (see {@link #registerBus(Bus)}
      */
     protected void unRegisterBus() {
-        if (subscriptionProvider != null) {
-            subscriptionProvider.unRegisterBus();
-        }
+        subscriptionProvider.unRegisterBus();
     }
 
     protected void performPlayPause() {
@@ -921,17 +915,10 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
     /**
      * A container that allows us to easily register the appropriate subscribe and produce
      * methods for the {@link EMPlaylistService}.
-     *
-     * @param <T> The {@link EMPlaylistService} to subscribe with
      */
-    private static class EventSubscriptionProvider<T extends EMPlaylistService> {
-        private T playlistService;
+    private class EventSubscriptionProvider {
         private Bus bus;
         private boolean isRegistered;
-
-        public EventSubscriptionProvider(T playlistService) {
-            this.playlistService = playlistService;
-        }
 
         public void registerBus(Bus bus) {
             if (isRegistered) {
@@ -952,58 +939,54 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
             bus = null;
         }
 
-        public boolean isRegistered() {
-            return isRegistered;
-        }
-
         @Subscribe
         public void onPlayPauseClickEvent(EMMediaPlayPauseEvent event) {
-            playlistService.performPlayPause();
+            performPlayPause();
         }
 
         @Subscribe
         public void onStopEvent(EMMediaStopEvent event) {
-            playlistService.performStop(false);
+            performStop(false);
         }
 
         @Subscribe
         public void onPreviousButtonClickEvent(EMMediaPreviousEvent event) {
-            playlistService.performPrevious();
+            performPrevious();
         }
 
         @Subscribe
         public void onNextButtonClickEvent(EMMediaNextEvent event) {
-            playlistService.performNext();
+            performNext();
         }
 
         @Subscribe
         public void onSeekStartedEvent(EMMediaSeekStartedEvent event) {
-            playlistService.performSeekStarted();
+            performSeekStarted();
         }
 
         @Subscribe
         public void onSeekEndedEvent(EMMediaSeekEndedEvent event) {
-            playlistService.performSeekEnded((int) event.getSeekPosition());
+            performSeekEnded((int) event.getSeekPosition());
         }
 
         @Subscribe
         public void onAllowedMediaTypeChangeEvent(EMMediaAllowedTypeChangedEvent event) {
-            playlistService.updateAllowedMediaType(event.allowedType);
+            updateAllowedMediaType(event.allowedType);
         }
 
         @Produce
         public EMPlaylistItemChangedEvent produceEMPlaylistItemChangedEvent() {
-            return playlistService.getCurrentItemChangedEvent();
+            return getCurrentItemChangedEvent();
         }
 
         @Produce
         public EMMediaStateEvent produceMediaStateEvent() {
-            return new EMMediaStateEvent(playlistService.getCurrentMediaState());
+            return new EMMediaStateEvent(getCurrentMediaState());
         }
 
         @Produce
         public EMMediaProgressEvent produceMediaProgressEvent() {
-            return playlistService.getCurrentMediaProgress();
+            return getCurrentMediaProgress();
         }
     }
 }

@@ -29,6 +29,11 @@ Or included in your gradle dependencies
 compile 'com.devbrackets.android:exomedia:1.0.1'
 ```
 
+Additionally, if you use ProGuard you will need to add the following rule
+```proguard
+# ExoMedia
+-keep class com.devbrackets.android.exomedia.** {*;}
+```
 
 Example
 -------

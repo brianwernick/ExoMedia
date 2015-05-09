@@ -234,6 +234,7 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
         notificationHelper = new EMNotification(getApplicationContext());
         lockScreenHelper = new EMLockScreen(getApplicationContext(), getClass());
         getMediaPlaylistManager().registerService(this);
+        registerBus(getBus());
 
         //Another part of the workaround for some Samsung devices
         if (workaroundIntent != null) {
@@ -250,6 +251,7 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
         setMediaState(MediaState.STOPPED);
 
         relaxResources(true);
+        unRegisterBus();
         getMediaPlaylistManager().unRegisterService();
         audioFocusHelper.abandonFocus();
         lockScreenHelper.release();

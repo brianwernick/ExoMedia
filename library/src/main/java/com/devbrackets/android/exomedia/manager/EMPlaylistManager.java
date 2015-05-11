@@ -30,6 +30,7 @@ import com.devbrackets.android.exomedia.event.EMMediaPlayPauseEvent;
 import com.devbrackets.android.exomedia.event.EMMediaPreviousEvent;
 import com.devbrackets.android.exomedia.event.EMMediaProgressEvent;
 import com.devbrackets.android.exomedia.event.EMMediaSeekEndedEvent;
+import com.devbrackets.android.exomedia.event.EMMediaSeekStartedEvent;
 import com.devbrackets.android.exomedia.event.EMMediaStopEvent;
 import com.devbrackets.android.exomedia.event.EMPlaylistItemChangedEvent;
 import com.devbrackets.android.exomedia.listener.EMPlaylistServiceCallback;
@@ -41,6 +42,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
+ * TODO: convert to allow a database cursor instead of a list
+ *
  * A manager to keep track of a playlist of items that a service can use for playback.
  * Additionally, this manager provides methods for interacting with the specified service
  * to simplify and standardize implementations in the service itself.  This manager can be
@@ -595,6 +598,12 @@ public abstract class EMPlaylistManager<I extends EMPlaylistManager.PlaylistItem
      * {@link EMRemoteActions#ACTION_SEEK_STARTED}
      */
     public void invokeSeekStarted() {
+        Bus bus = getBus();
+        if (bus != null) {
+            bus.post(new EMMediaSeekStartedEvent());
+            return;
+        }
+
         sendPendingIntent(seekStartedPendingIntent);
     }
 

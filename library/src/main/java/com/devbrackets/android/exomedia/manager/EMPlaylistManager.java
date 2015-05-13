@@ -42,8 +42,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * TODO: convert to allow a database cursor instead of a list
- *
  * A manager to keep track of a playlist of items that a service can use for playback.
  * Additionally, this manager provides methods for interacting with the specified service
  * to simplify and standardize implementations in the service itself.  This manager can be

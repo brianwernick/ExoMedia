@@ -1,346 +1,164 @@
 package com.devbrackets.android.exomediademo.service;
 
 import android.app.PendingIntent;
-import android.app.Service;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.media.AudioManager;
-import android.media.MediaPlayer;
-import android.net.Uri;
-import android.os.Build;
-import android.os.IBinder;
-import android.os.PowerManager;
+import android.graphics.drawable.Drawable;
+import android.support.annotation.Nullable;
 
-import com.devbrackets.android.exomedia.EMAudioPlayer;
-import com.devbrackets.android.exomedia.EMNotification;
 import com.devbrackets.android.exomedia.listener.EMAudioFocusCallback;
-import com.devbrackets.android.exomedia.util.EMAudioFocusHelper;
+import com.devbrackets.android.exomedia.service.EMPlaylistService;
+import com.devbrackets.android.exomediademo.App;
 import com.devbrackets.android.exomediademo.R;
 import com.devbrackets.android.exomediademo.StartupActivity;
-import com.devbrackets.android.exomediademo.helper.PlayListManager;
+import com.devbrackets.android.exomediademo.data.MediaItem;
+import com.devbrackets.android.exomediademo.manager.PlaylistManager;
+import com.squareup.picasso.Picasso;
+import com.squareup.picasso.Target;
 
-public class AudioService extends Service implements EMAudioFocusCallback, MediaPlayer.OnPreparedListener, MediaPlayer.OnCompletionListener,
-        MediaPlayer.OnErrorListener {
-    public static final String ACTION_PLAY = "AudioService.Play";
-
-    private static final int FOREGROUND_REQUEST_CODE = 0;
+/**
+ * A simple service that extends {@link EMPlaylistService} in order to provide
+ * the application specific information required.
+ */
+public class AudioService extends EMPlaylistService<MediaItem, PlaylistManager> implements EMAudioFocusCallback {
     private static final int NOTIFICATION_ID = 1564; //Arbitrary
+    private static final int FOREGROUND_REQUEST_CODE = 332; //Arbitrary
     private static final float AUDIO_DUCK_VOLUME = 0.1f;
 
-    private boolean pausedForFocusLoss = false;
-    private PlayListManager playListManager = new PlayListManager();
+    private Bitmap defaultLargeNotificationImage;
+    private Bitmap largeNotificationImage;
+    private Bitmap lockScreenArtwork;
 
-    private EMAudioPlayer audioPlayer;
-    private EMNotification notificationHelper;
-    private EMAudioFocusHelper audioFocusHelper;
-    private EMNotification.NotificationMediaState notificationMediaState = new EMNotification.NotificationMediaState();
+    private NotificationTarget notificationImageTarget = new NotificationTarget();
+    private LockScreenTarget lockScreenImageTarget = new LockScreenTarget();
 
-    @Override
-    public IBinder onBind(Intent intent) {
-        return null;
-    }
+    //Picasso is an image loading library
+    private Picasso picasso;
 
     @Override
     public void onCreate() {
         super.onCreate();
-
-        notificationHelper = new EMNotification(getApplicationContext());
-        audioFocusHelper = new EMAudioFocusHelper(getApplicationContext());
+        picasso = Picasso.with(getApplicationContext());
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
-
-        relaxResources(true);
-        releaseAudioFocus();
-        notificationHelper = null;
     }
 
     @Override
-    public int onStartCommand(Intent intent, int flags, int startId) {
-        if (intent == null || intent.getAction() == null) {
-            return START_NOT_STICKY;
+    protected String getAppName() {
+        return getResources().getString(R.string.app_name);
+    }
+
+    @Override
+    protected int getNotificationId() {
+        return NOTIFICATION_ID;
+    }
+
+    @Override
+    protected float getAudioDuckVolume() {
+        return AUDIO_DUCK_VOLUME;
+    }
+
+    @Override
+    protected PlaylistManager getMediaPlaylistManager() {
+        return App.getPlaylistManager();
+    }
+
+    @Override
+    protected PendingIntent getNotificationClickPendingIntent() {
+        Intent intent = new Intent(getApplicationContext(), StartupActivity.class);
+        return PendingIntent.getActivity(getApplicationContext(), FOREGROUND_REQUEST_CODE, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+    }
+
+    @Override
+    protected Bitmap getDefaultLargeNotificationImage() {
+        if (defaultLargeNotificationImage == null) {
+            defaultLargeNotificationImage  = BitmapFactory.decodeResource(getResources(), R.mipmap.ic_launcher);
         }
 
-        if (ACTION_PLAY.equals(intent.getAction())) {
-            startItemPlayback();
-        } else {
-            handleNotificationIntent(intent.getAction());
-        }
-
-        return START_NOT_STICKY;
+        return defaultLargeNotificationImage;
     }
 
     @Override
-    public void onTaskRemoved(Intent rootIntent) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
-            super.onTaskRemoved(rootIntent);
-        }
-
-        onDestroy();
+    protected int getNotificationIconRes() {
+        return R.mipmap.ic_launcher;
     }
 
-    /**
-     * When we get the audio focus make sure to resume the audio, or return the volume to normal
-     */
     @Override
-    public boolean onAudioFocusGained() {
-        if (!audioPlayer.isPlaying() && pausedForFocusLoss) {
-            audioPlayer.start();
-        } else {
-            audioPlayer.setVolume(1.0f, 1.0f); //reset the audio volume
-        }
-
-        return true;
+    protected int getLockScreenIconRes() {
+        return R.mipmap.ic_launcher;
     }
 
-    /**
-     * When we loose audio focus make sure to either turn the volume down, or pause the playback
-     */
     @Override
-    public boolean onAudioFocusLost(boolean canDuckAudio) {
-        if (audioFocusHelper.getCurrentAudioFocus() == EMAudioFocusHelper.Focus.NO_FOCUS_NO_DUCK) {
-            if (audioPlayer.isPlaying()) {
-                pausedForFocusLoss = true;
-                audioPlayer.pause();
-            }
-        } else {
-            audioPlayer.setVolume(AUDIO_DUCK_VOLUME, AUDIO_DUCK_VOLUME);
-        }
-
-        return true;
+    protected void updateLargeNotificationImage(int size, MediaItem playlistItem) {
+        picasso.load(playlistItem.getThumbnailUrl()).into(notificationImageTarget);
     }
 
-    /**
-     * Once an audio item completes, move to the next audio item.
-     */
     @Override
-    public void onCompletion(MediaPlayer mp) {
-        performNext();
+    protected void updateLockScreenArtwork(MediaItem playlistItem) {
+        picasso.load(playlistItem.getArtworkUrl()).into(lockScreenImageTarget);
     }
 
-    /**
-     * If there was an error playing an audio item then stop the service
-     */
+    @Nullable
     @Override
-    public boolean onError(MediaPlayer mp, int what, int extra) {
-        performStop();
-        return false;
+    protected Bitmap getLockScreenArtwork() {
+        return lockScreenArtwork;
     }
 
-    /**
-     * Once the audioPlayer is ready start the audio and update the notification
-     */
+    @Nullable
     @Override
-    public void onPrepared(MediaPlayer mp) {
-        startAudioPlayer();
-        updateNotification();
+    protected Bitmap getLargeNotificationImage() {
+        return largeNotificationImage;
     }
 
     /**
-     * Handles intents from the big notification to control playback
+     * A class used to listen to the loading of the large notification images and perform
+     * the correct functionality to update the notification once it is loaded.
      *
-     * @param action The intents action
+     * <b>NOTE:</b> This is a Picasso Image loader class
      */
-    private void handleNotificationIntent(String action) {
-        if (action == null || action.isEmpty()) {
-            return;
+    private class NotificationTarget implements Target {
+        @Override
+        public void onBitmapLoaded(Bitmap bitmap, Picasso.LoadedFrom from) {
+            largeNotificationImage = bitmap;
+            onLargeNotificationImageUpdated();
         }
 
-        switch (action) {
-            case EMNotification.ACTION_PLAY_PAUSE:
-                performPlayPause();
-                break;
-            case EMNotification.ACTION_NEXT:
-                performNext();
-                break;
-            case EMNotification.ACTION_PREVIOUS:
-                performPrevious();
-                break;
-            case EMNotification.ACTION_CLOSE:
-                performStop();
-                break;
-            default:
-                break;
+        @Override
+        public void onBitmapFailed(Drawable errorDrawable) {
+            largeNotificationImage = null;
+        }
+
+        @Override
+        public void onPrepareLoad(Drawable placeHolderDrawable) {
+            //Purposefully left blank
         }
     }
 
     /**
-     * From the notification, we want to update the visual state of the notification and change
-     * the current playback.
-     */
-    private void performPlayPause() {
-        if (audioPlayer.isPlaying() || pausedForFocusLoss) {
-            pausedForFocusLoss = false;
-            audioPlayer.pause();
-        } else {
-            audioPlayer.start();
-        }
-
-        updateNotification();
-    }
-
-    /**
-     * From the notification, we want to go to the next audio item
-     */
-    private void performNext() {
-        playListManager.getNextAudioUrl();
-        startItemPlayback();
-    }
-
-    /**
-     * From the notification, we want to go to the previous audio item
-     */
-    private void performPrevious() {
-        playListManager.getPreviousAudioUrl();
-        startItemPlayback();
-    }
-
-    /**
-     * Performs the EMAudioPlayer setup
-     */
-    private void initializeAudioPlayer() {
-        if (audioPlayer != null) {
-            audioPlayer.reset();
-            return;
-        }
-
-        audioPlayer = new EMAudioPlayer(getApplicationContext());
-        audioPlayer.setWakeMode(getApplicationContext(), PowerManager.PARTIAL_WAKE_LOCK);
-
-        audioPlayer.setOnPreparedListener(this);
-        audioPlayer.setOnErrorListener(this);
-        audioPlayer.setOnCompletionListener(this);
-    }
-
-    /**
-     * If possible we will play the current item, otherwise stop the service
-     */
-    private void startItemPlayback() {
-        if (playListManager.getCurrentAudioUrl() != null) {
-            playAudioItem();
-        } else {
-            //At this point there is nothing for us to play, so we stop the service
-            performStop();
-        }
-    }
-
-    /**
-     * Plays the current item in teh playListManager.
-     */
-    private void playAudioItem() {
-        initializeAudioPlayer();
-        obtainAudioFocus();
-
-        audioPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
-        audioPlayer.setDataSource(this, Uri.parse(playListManager.getCurrentAudioUrl()));
-
-        setupAsForeground();
-        audioPlayer.prepareAsync();
-    }
-
-    /**
-     * Stops the AudioService, cleaning up any objects that need to be removed
-     */
-    private void performStop() {
-        // let go of all resources
-        relaxResources(true);
-        releaseAudioFocus();
-
-        stopSelf();
-    }
-
-    /**
-     * Attempts to obtain the audio focus so that we can start/resume playback
-     */
-    private void obtainAudioFocus() {
-        audioFocusHelper.requestFocus();
-    }
-
-    /**
-     * If we currently have the audio focus, then release it.
-     */
-    private void releaseAudioFocus() {
-        audioFocusHelper.abandonFocus();
-    }
-
-    /**
-     * Reconfigures audioPlayer according to audio focus settings and starts/restarts it. This
-     * method starts/restarts the audioPlayer respecting the current audio focus state. So if
-     * we have focus, it will play normally; if we don't have focus, it will either leave the
-     * audioPlayer paused or set it to a low volume, depending on what is allowed by the
-     * current focus settings.
-     */
-    private void startAudioPlayer() {
-        if (audioPlayer == null) {
-            return;
-        }
-
-        if (audioFocusHelper.getCurrentAudioFocus() == EMAudioFocusHelper.Focus.NO_FOCUS_NO_DUCK) {
-            if (audioPlayer.isPlaying()) {
-                audioPlayer.pause();
-            }
-
-            return;
-        } else if (audioFocusHelper.getCurrentAudioFocus() == EMAudioFocusHelper.Focus.NO_FOCUS_CAN_DUCK) {
-            audioPlayer.setVolume(AUDIO_DUCK_VOLUME, AUDIO_DUCK_VOLUME);
-        } else {
-            audioPlayer.setVolume(1.0f, 1.0f); //Full volume
-        }
-
-        if (!audioPlayer.isPlaying()) {
-            audioPlayer.start();
-        }
-    }
-
-    /**
-     * Releases resources used by the service for playback. This includes the "foreground service"
-     * status and notification, the wake locks, and the audioPlayer if requested
+     * A class used to listen to the loading of the large lock screen images and perform
+     * the correct functionality to update the artwork once it is loaded.
      *
-     * @param releaseAudioPlayer True if the audioPlayer should be released
+     * <b>NOTE:</b> This is a Picasso Image loader class
      */
-    private void relaxResources(boolean releaseAudioPlayer) {
-        stopForeground(true);
-
-        if (releaseAudioPlayer && audioPlayer != null) {
-            audioPlayer.reset();
-            audioPlayer.release();
-            audioPlayer = null;
-        }
-    }
-
-    /**
-     * Performs the initial procedures to activate the foreground notification
-     */
-    private void setupAsForeground() {
-        notificationHelper.setNotificationsEnabled(true);
-        notificationHelper.setNotificationBaseInformation(NOTIFICATION_ID, R.drawable.ic_notification_icon, AudioService.class);
-        updateNotification();
-
-        //The PendingIntent is what will be opened when the notification is clicked (any area other than the playback controls)
-        PendingIntent pi = PendingIntent.getActivity(getApplicationContext(), FOREGROUND_REQUEST_CODE,
-                new Intent(getApplicationContext(), StartupActivity.class), PendingIntent.FLAG_UPDATE_CURRENT);
-
-        startForeground(NOTIFICATION_ID, notificationHelper.getNotification(pi));
-    }
-
-    /**
-     * Updates the notification information, setting the image, title, the playback control states
-     */
-    private void updateNotification() {
-        if (audioPlayer == null) {
-            return;
+    private class LockScreenTarget implements Target {
+        @Override
+        public void onBitmapLoaded(Bitmap bitmap, Picasso.LoadedFrom from) {
+            lockScreenArtwork = bitmap;
+            onLockScreenArtworkUpdated();
         }
 
-        String title = "EMAudioPlayer Demo";
+        @Override
+        public void onBitmapFailed(Drawable errorDrawable) {
+            lockScreenArtwork = null;
+        }
 
-        notificationMediaState.setNextEnabled(playListManager.isNextAvailable());
-        notificationMediaState.setPreviousEnabled(playListManager.isPreviousAvailable());
-        notificationMediaState.setPlaying(audioPlayer.isPlaying());
-
-        Bitmap bitmap = BitmapFactory.decodeResource(getResources(), R.mipmap.ic_launcher);
-        notificationHelper.updateNotificationInformation(getString(R.string.app_name), title, bitmap, notificationMediaState);
+        @Override
+        public void onPrepareLoad(Drawable placeHolderDrawable) {
+            //Purposefully left blank
+        }
     }
 }

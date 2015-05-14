@@ -2,9 +2,9 @@ apply plugin: 'com.android.library'
 apply plugin: 'maven'
 apply plugin: 'bintray-release'
 
-def versionMajor = 1
+def versionMajor = 2
 def versionMinor = 0
-def versionPatch = 1
+def versionPatch = 0
 
 // Maven GAV
 def libraryGroupId = 'com.devbrackets.android'
@@ -13,10 +13,10 @@ def libraryVersion = "${versionMajor}.${versionMinor}.${versionPatch}" // releas
 
 dependencies {
     // Android
-    compile 'com.android.support:appcompat-v7:22.0.0' // includes support-v4
+    compile 'com.android.support:appcompat-v7:22.1.1' // includes support-v4
 
     // Event Bus
-    compile 'com.squareup:otto:1.3.6'
+    compile 'com.squareup:otto:1.3.7'
 
     // ExoPlayer
     compile 'com.google.android.exoplayer:exoplayer:r1.2.4'
@@ -32,6 +32,13 @@ android {
 
         versionCode versionMajor * 10000 + versionMinor * 1000 + versionPatch * 100
         versionName "${versionMajor}.${versionMinor}.${versionPatch}"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            shrinkResources false
+        }
     }
 
     compileOptions {
@@ -56,13 +63,14 @@ uploadArchives {
             repository (url: "file://${System.env.HOME}/.m2/repository/")
             pom.groupId = libraryGroupId
             pom.artifactId = libraryBaseName
-            pom.version = libraryVersion
+            pom.version = libraryVersion + "-SNAPSHOT"
             pom.packaging = 'aar'
             uniqueVersion = false // don't put in a timestamp on the filename (other project will not be able to depend on it)
         }
     }
 }
 
+// ======= BINTRAY DEPLOY (command: $ ./gradlew clean build bintrayUpload -PbintrayUser=BINTRAY_USERNAME -PbintrayKey=BINTRAY_KEY -PdryRun=false) ====
 publish {
     groupId = libraryGroupId
     artifactId = libraryBaseName

@@ -2,13 +2,13 @@ package com.devbrackets.android.exomediademo;
 
 import android.media.MediaPlayer;
 import android.net.Uri;
-import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 
 import com.devbrackets.android.exomedia.EMVideoView;
 
 
-public class VideoPlayerActivity extends ActionBarActivity implements MediaPlayer.OnPreparedListener {
+public class VideoPlayerActivity extends AppCompatActivity implements MediaPlayer.OnPreparedListener {
     protected EMVideoView emVideoView;
 
     @Override

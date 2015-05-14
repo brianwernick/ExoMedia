@@ -26,6 +26,7 @@ import com.devbrackets.android.exomedia.builder.HlsRenderBuilder;
 import com.devbrackets.android.exomedia.builder.RenderBuilder;
 import com.devbrackets.android.exomedia.event.EMMediaProgressEvent;
 import com.devbrackets.android.exomedia.exoplayer.EMExoPlayer;
+import com.devbrackets.android.exomedia.listener.EMProgressCallback;
 import com.devbrackets.android.exomedia.listener.ExoPlayerListener;
 import com.devbrackets.android.exomedia.util.EMDeviceUtil;
 import com.devbrackets.android.exomedia.util.Repeater;
@@ -72,6 +73,8 @@ public class EMAudioPlayer {
     private boolean overridePosition = false;
 
     private Bus bus;
+    private EMProgressCallback progressCallback;
+
     private Repeater pollRepeater = new Repeater();
     private StopWatch overriddenPositionStopWatch = new StopWatch();
 
@@ -90,8 +93,13 @@ public class EMAudioPlayer {
         pollRepeater.setRepeatListener(new Repeater.RepeatListener() {
             @Override
             public void onRepeat() {
+                currentMediaProgressEvent.update(getCurrentPosition(), getBufferPercentage(), getDuration());
+
+                if (progressCallback != null && progressCallback.onProgressUpdated(currentMediaProgressEvent)) {
+                    return;
+                }
+
                 if (bus != null) {
-                    currentMediaProgressEvent.update(getCurrentPosition(), getBufferPercentage(), getDuration());
                     bus.post(currentMediaProgressEvent);
                 }
             }
@@ -158,6 +166,20 @@ public class EMAudioPlayer {
         setBus(bus);
 
         if (bus != null) {
+            pollRepeater.start();
+        }
+    }
+
+    /**
+     * Starts the progress poll with the callback to be informed of the progress
+     * events.
+     *
+     * @param callback The Callback to inform of progress events
+     */
+    public void startProgressPoll(EMProgressCallback callback) {
+        progressCallback = callback;
+
+        if (progressCallback != null) {
             pollRepeater.start();
         }
     }
@@ -351,6 +373,7 @@ public class EMAudioPlayer {
         }
 
         startProgressPoll(bus);
+        startProgressPoll(progressCallback);
     }
 
     /**

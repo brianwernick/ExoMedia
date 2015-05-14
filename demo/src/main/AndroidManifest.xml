@@ -1,39 +1,46 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.devbrackets.android.exomediademo" >
+<manifest package="com.devbrackets.android.exomediademo"
+          xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
 
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
-        android:theme="@style/AppTheme" >
+        android:theme="@style/AppTheme"
+        android:name=".App">
         <activity
             android:name=".StartupActivity"
-            android:label="@string/app_name" >
+            android:label="@string/app_name">
             <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
         <activity
             android:name=".VideoPlayerActivity"
-            android:label="@string/title_activity_video_player" >
-        </activity>
-        <activity
-            android:name=".AudioPlayerActivity"
-            android:label="@string/title_activity_audio_player" >
+            android:label="@string/title_activity_video_player">
         </activity>
         <activity
             android:name=".FullScreenVideoPlayerActivity"
-            android:label="@string/title_activity_audio_player" >
+            android:label="@string/title_activity_video_player">
         </activity>
+        <activity
+            android:name=".AudioSelectionActivity"
+            android:label="@string/title_activity_audio_player">
+        </activity>
+        <activity
+            android:name=".AudioPlayerActivity"
+            android:label="@string/title_activity_audio_player">
+        </activity>
+
 
         <service
             android:name=".service.AudioService"
             android:enabled="true"
-            android:exported="false" >
+            android:exported="false">
         </service>
     </application>
 

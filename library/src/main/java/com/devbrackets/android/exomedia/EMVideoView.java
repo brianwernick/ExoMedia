@@ -39,6 +39,7 @@ import com.devbrackets.android.exomedia.builder.RenderBuilder;
 import com.devbrackets.android.exomedia.event.EMMediaProgressEvent;
 import com.devbrackets.android.exomedia.event.EMVideoViewClickedEvent;
 import com.devbrackets.android.exomedia.exoplayer.EMExoPlayer;
+import com.devbrackets.android.exomedia.listener.EMProgressCallback;
 import com.devbrackets.android.exomedia.listener.EMVideoViewControlsCallback;
 import com.devbrackets.android.exomedia.listener.ExoPlayerListener;
 import com.devbrackets.android.exomedia.util.EMDeviceUtil;
@@ -88,6 +89,7 @@ public class EMVideoView extends RelativeLayout {
     private EMExoPlayer emExoPlayer;
 
     private DefaultControls defaultControls;
+    private EMProgressCallback progressCallback;
     private Repeater pollRepeater = new Repeater();
     private StopWatch overriddenPositionStopWatch = new StopWatch();
 
@@ -134,6 +136,10 @@ public class EMVideoView extends RelativeLayout {
 
                 if (defaultControls != null) {
                     defaultControls.setProgressEvent(currentMediaProgressEvent);
+                }
+
+                if (progressCallback != null && progressCallback.onProgressUpdated(currentMediaProgressEvent)) {
+                    return;
                 }
 
                 if (bus != null) {
@@ -363,12 +369,23 @@ public class EMVideoView extends RelativeLayout {
     }
 
     /**
+     * Starts the progress poll with the callback to be informed of the progress
+     * events.
+     *
+     * @param callback The Callback to inform of progress events
+     */
+    public void startProgressPoll(EMProgressCallback callback) {
+        progressCallback = callback;
+        startProgressPoll();
+    }
+
+    /**
      * Starts the progress poll.  This should be called after you have set the bus with {@link #setBus(com.squareup.otto.Bus)}
      * or previously called {@link #startProgressPoll(com.squareup.otto.Bus)}, otherwise you won't get notified
      * of progress changes
      */
     public void startProgressPoll() {
-        if (!pollRepeater.isRunning() && (bus != null || defaultControls != null)) {
+        if (bus != null || defaultControls != null || progressCallback != null) {
             pollRepeater.start();
         }
     }
@@ -405,7 +422,7 @@ public class EMVideoView extends RelativeLayout {
             defaultControls.setBus(bus);
 
             addView(defaultControls);
-            startProgressPoll(bus);
+            startProgressPoll();
         } else if (defaultControls != null && !enabled) {
             removeView(defaultControls);
             defaultControls = null;
@@ -672,7 +689,7 @@ public class EMVideoView extends RelativeLayout {
         }
 
         playRequested = true;
-        startProgressPoll(bus);
+        startProgressPoll();
     }
 
     /**
@@ -697,7 +714,7 @@ public class EMVideoView extends RelativeLayout {
 
     /**
      * If a video is currently in playback then the playback will be stopped
-     * and the progressPoll will be stopped (see {@link #startProgressPoll(com.squareup.otto.Bus)})
+     * and the progressPoll will be stopped (see {@link #startProgressPoll()})
      */
     public void stopPlayback() {
         if (!useExo) {
@@ -717,7 +734,7 @@ public class EMVideoView extends RelativeLayout {
 
     /**
      * If a video is currently in playback then the playback will be suspended and
-     * and the progressPoll will be stopped (see {@link #startProgressPoll(com.squareup.otto.Bus)})
+     * and the progressPoll will be stopped (see {@link #startProgressPoll()})
      */
     public void suspend() {
         if (!useExo) {

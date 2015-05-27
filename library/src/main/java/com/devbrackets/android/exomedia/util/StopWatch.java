@@ -18,6 +18,7 @@
 package com.devbrackets.android.exomedia.util;
 
 import android.os.Handler;
+import android.os.HandlerThread;
 import android.support.annotation.Nullable;
 
 /**
@@ -25,17 +26,44 @@ import android.support.annotation.Nullable;
  * of processes.
  */
 public class StopWatch {
+    private static final String HANDLER_THREAD_NAME = "ExoMedia_StopWatch_HandlerThread";
     private static final int DEFAULT_TICK_DELAY = 33; // ~30 fps
 
     private volatile boolean isRunning = false;
     private int tickDelay = DEFAULT_TICK_DELAY;
-    private Handler delayedHandler = new Handler();
+
+    private Handler delayedHandler;
+    private HandlerThread handlerThread;
+    private boolean useHandlerThread = false;
 
     private TickListener listener;
     private TickRunnable tickRunnable = new TickRunnable();
 
     private long startTime = 0;
     private long time = 0;
+
+    public StopWatch() {
+        this(true);
+    }
+
+    /**
+     * @param processOnStartingThread True if the repeating process should be handled on the same thread that created the Repeater
+     */
+    public StopWatch(boolean processOnStartingThread) {
+        if (processOnStartingThread) {
+            delayedHandler = new Handler();
+            return;
+        }
+
+        useHandlerThread = true;
+    }
+
+    /**
+     * @param handler The Handler to use for the repeating process
+     */
+    public StopWatch(Handler handler) {
+        delayedHandler = handler;
+    }
 
     /**
      * Sets the approximate duration between time updates.
@@ -61,6 +89,13 @@ public class StopWatch {
     public void start() {
         if (!isRunning) {
             isRunning = true;
+
+            if (useHandlerThread) {
+                handlerThread = new HandlerThread(HANDLER_THREAD_NAME);
+                handlerThread.start();
+                delayedHandler = new Handler(handlerThread.getLooper());
+            }
+
             reset();
             tickRunnable.performTick();
         }
@@ -82,6 +117,10 @@ public class StopWatch {
      * Stops the stopwatch, capturing the ending time
      */
     public void stop() {
+        if (handlerThread != null) {
+            handlerThread.quit();
+        }
+
         isRunning = false;
         time = System.currentTimeMillis() - startTime;
     }

@@ -17,6 +17,7 @@
 package com.devbrackets.android.exomedia.util;
 
 import android.os.Handler;
+import android.os.HandlerThread;
 import android.support.annotation.Nullable;
 
 /**
@@ -25,14 +26,41 @@ import android.support.annotation.Nullable;
  * amount of elapsed time use the {@link StopWatch} instead.
  */
 public class Repeater {
+    private static final String HANDLER_THREAD_NAME = "ExoMedia_Repeater_HandlerThread";
     private static final int DEFAULT_REPEAT_DELAY = 33; // ~30 fps
 
     private volatile boolean repeaterRunning = false;
     private int repeatDelay = DEFAULT_REPEAT_DELAY;
-    private Handler delayedHandler = new Handler();
+
+    private Handler delayedHandler;
+    private HandlerThread handlerThread;
+    private boolean useHandlerThread = false;
 
     private RepeatListener listener;
     private PollRunnable pollRunnable = new PollRunnable();
+
+    public Repeater() {
+        this(true);
+    }
+
+    /**
+     * @param processOnStartingThread True if the repeating process should be handled on the same thread that created the Repeater
+     */
+    public Repeater(boolean processOnStartingThread) {
+        if (processOnStartingThread) {
+            delayedHandler = new Handler();
+            return;
+        }
+
+        useHandlerThread = true;
+    }
+
+    /**
+     * @param handler The Handler to use for the repeating process
+     */
+    public Repeater(Handler handler) {
+        delayedHandler = handler;
+    }
 
     /**
      * Sets the amount of time between method invocation.
@@ -58,6 +86,13 @@ public class Repeater {
     public void start() {
         if (!repeaterRunning) {
             repeaterRunning = true;
+
+            if (useHandlerThread) {
+                handlerThread = new HandlerThread(HANDLER_THREAD_NAME);
+                handlerThread.start();
+                delayedHandler = new Handler(handlerThread.getLooper());
+            }
+
             pollRunnable.performPoll();
         }
     }
@@ -66,6 +101,10 @@ public class Repeater {
      * Stops the repeater
      */
     public void stop() {
+        if (handlerThread != null) {
+            handlerThread.quit();
+        }
+
         repeaterRunning = false;
     }
 
@@ -94,12 +133,12 @@ public class Repeater {
     private class PollRunnable implements Runnable {
         @Override
         public void run() {
-            if (repeaterRunning) {
-                performPoll();
-            }
-
             if (listener != null) {
                 listener.onRepeat();
+            }
+
+            if (repeaterRunning) {
+                performPoll();
             }
         }
 

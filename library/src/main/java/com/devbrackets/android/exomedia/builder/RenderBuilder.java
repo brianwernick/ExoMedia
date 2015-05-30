@@ -1,5 +1,6 @@
 /*
- * Copyright (C) 2014 The Android Open Source Project
+ * Copyright (C) 2015 Brian Wernick
+ * Copyright (C) 2015 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +21,7 @@ import android.content.Context;
 import android.media.MediaCodec;
 import android.net.Uri;
 import android.os.Build;
+import android.util.Log;
 
 import com.devbrackets.android.exomedia.exoplayer.EMExoPlayer;
 import com.devbrackets.android.exomedia.listener.RendererBuilderCallback;
@@ -27,35 +29,48 @@ import com.devbrackets.android.exomedia.renderer.EMMediaCodecAudioTrackRenderer;
 import com.devbrackets.android.exomedia.util.MediaUtil;
 import com.google.android.exoplayer.MediaCodecVideoTrackRenderer;
 import com.google.android.exoplayer.TrackRenderer;
-import com.google.android.exoplayer.source.DefaultSampleSource;
-import com.google.android.exoplayer.source.FrameworkSampleExtractor;
+import com.google.android.exoplayer.extractor.Extractor;
+import com.google.android.exoplayer.extractor.ExtractorSampleSource;
+import com.google.android.exoplayer.extractor.mp3.Mp3Extractor;
+import com.google.android.exoplayer.extractor.mp4.Mp4Extractor;
+import com.google.android.exoplayer.extractor.ts.AdtsExtractor;
+import com.google.android.exoplayer.extractor.ts.TsExtractor;
+import com.google.android.exoplayer.extractor.webm.WebmExtractor;
+import com.google.android.exoplayer.upstream.DataSource;
+import com.google.android.exoplayer.upstream.DefaultUriDataSource;
+
 
 /**
  * A default RenderBuilder that can process Http:// URIs and file:// URI's
  */
 @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
 public class RenderBuilder {
-    public static final int DROPPED_FRAME_NOTIFICATION_AMOUNT = 50;
+    private static final String TAG = RenderBuilder.class.getSimpleName();
+    private static final int DEFAULT_DOWNSTREAM_RENDER_COUNT = 2;
+    protected static final int DROPPED_FRAME_NOTIFICATION_AMOUNT = 50;
 
-    private final Context context;
-    private final Uri uri;
+    protected static final long MAX_JOIN_TIME = 5000;
+    protected static final int REQUESTED_BUFFER_SIZE = 18 * 1024 * 1024; //18 MB
 
-    public RenderBuilder() {
-        uri = null;
-        context = null;
-    }
+    protected final Context context;
+    protected final String userAgent;
+    protected final String uri;
 
-    public RenderBuilder(Context context, String uri) {
-        this.uri = Uri.parse(MediaUtil.getUriWithProtocol(uri));
+    public RenderBuilder(Context context, String userAgent, String uri) {
+        this.uri = uri;
+        this.userAgent = userAgent;
         this.context = context;
     }
 
     public void buildRenderers(EMExoPlayer player, RendererBuilderCallback callback) {
-        DefaultSampleSource sampleSource = new DefaultSampleSource(new FrameworkSampleExtractor(context, uri, null), 2);
+        //Create the Sample Source to be used by the renderers
+        DataSource dataSource = new DefaultUriDataSource(context, userAgent);
+        ExtractorSampleSource sampleSource = new ExtractorSampleSource(Uri.parse(MediaUtil.getUriWithProtocol(uri)), dataSource, getExtractor(uri),
+                DEFAULT_DOWNSTREAM_RENDER_COUNT, REQUESTED_BUFFER_SIZE);
 
-        //Create the renderers
+        //Create the Renderers
         MediaCodecVideoTrackRenderer videoRenderer = new MediaCodecVideoTrackRenderer(sampleSource, null, true, MediaCodec.VIDEO_SCALING_MODE_SCALE_TO_FIT,
-                0, null, player.getMainHandler(), player, DROPPED_FRAME_NOTIFICATION_AMOUNT);
+                MAX_JOIN_TIME, null, player.getMainHandler(), player, DROPPED_FRAME_NOTIFICATION_AMOUNT);
 
         EMMediaCodecAudioTrackRenderer audioRenderer = new EMMediaCodecAudioTrackRenderer(sampleSource, null, true, player.getMainHandler(), player);
 
@@ -64,5 +79,38 @@ public class RenderBuilder {
         renderers[EMExoPlayer.RENDER_VIDEO_INDEX] = videoRenderer;
         renderers[EMExoPlayer.RENDER_AUDIO_INDEX] = audioRenderer;
         callback.onRenderers(null, null, renderers);
+    }
+
+    /**
+     * Retrieves the extractor to use with the specified mediaUri
+     *
+     * @param mediaUri The uri to get the extractor for
+     * @return The Extractor for the specified mediaUri
+     */
+    protected Extractor getExtractor(String mediaUri) {
+        // NOTE: this is based on the demo project for the ExoPlayer, found at
+        // https://github.com/google/ExoPlayer/blob/888d9db3e92bf4605c7be5cf61da52db0c75bdee/demo/src/main/java/com/google/android/exoplayer/demo/PlayerActivity.java#L222
+        switch (MediaUtil.getMediaType(mediaUri)) {
+            case AAC:
+                return new AdtsExtractor();
+
+            case M4A:
+            case MP4:
+                return new Mp4Extractor();
+
+            case MP3:
+                return new Mp3Extractor();
+
+            case TS:
+                return new TsExtractor(0, null);
+
+            case WEBM:
+                return new WebmExtractor();
+
+            default:
+            case UNKNOWN:
+                Log.d(TAG, "Unable to determine extractor for the uri \"" + uri + "\", assuming MP4");
+                return new Mp4Extractor();
+        }
     }
 }

@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2015 Brian Wernick,
- * Copyright (C) 2014 The Android Open Source Project
+ * Copyright (C) 2015 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,17 +17,20 @@
 package com.devbrackets.android.exomedia.builder;
 
 import android.annotation.TargetApi;
+import android.content.Context;
 import android.media.MediaCodec;
 import android.os.Build;
-import android.util.Log;
 
 import com.devbrackets.android.exomedia.exoplayer.EMExoPlayer;
 import com.devbrackets.android.exomedia.listener.RendererBuilderCallback;
-import com.devbrackets.android.exomedia.renderer.EMMediaCodecAudioTrackRenderer;
+import com.google.android.exoplayer.MediaCodecAudioTrackRenderer;
 import com.google.android.exoplayer.MediaCodecUtil;
 import com.google.android.exoplayer.MediaCodecVideoTrackRenderer;
 import com.google.android.exoplayer.TrackRenderer;
+import com.google.android.exoplayer.audio.AudioCapabilities;
+import com.google.android.exoplayer.chunk.VideoFormatSelectorUtil;
 import com.google.android.exoplayer.hls.HlsChunkSource;
+import com.google.android.exoplayer.hls.HlsMasterPlaylist;
 import com.google.android.exoplayer.hls.HlsPlaylist;
 import com.google.android.exoplayer.hls.HlsPlaylistParser;
 import com.google.android.exoplayer.hls.HlsSampleSource;
@@ -35,10 +38,9 @@ import com.google.android.exoplayer.metadata.Id3Parser;
 import com.google.android.exoplayer.metadata.MetadataTrackRenderer;
 import com.google.android.exoplayer.upstream.DataSource;
 import com.google.android.exoplayer.upstream.DefaultBandwidthMeter;
-import com.google.android.exoplayer.upstream.UriDataSource;
+import com.google.android.exoplayer.upstream.DefaultUriDataSource;
 import com.google.android.exoplayer.util.ManifestFetcher;
 import com.google.android.exoplayer.util.ManifestFetcher.ManifestCallback;
-import com.google.android.exoplayer.util.MimeTypes;
 
 import java.io.IOException;
 import java.util.Map;
@@ -49,65 +51,67 @@ import java.util.Map;
  */
 @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
 public class HlsRenderBuilder extends RenderBuilder implements ManifestCallback<HlsPlaylist> {
-    private static final String TAG = HlsRenderBuilder.class.getSimpleName();
     private static final int DOWNSTREAM_RENDER_COUNT = 3;
+    private static final long REQUESTED_BUFFER_DURATION_MS = 40000;
 
-    private final String userAgent;
-    private final String url;
-    private final String contentId;
+    private final AudioCapabilities audioCapabilities;
 
     private EMExoPlayer player;
     private RendererBuilderCallback callback;
 
-    public HlsRenderBuilder(String userAgent, String url, String contentId) {
-        super();
-        this.userAgent = userAgent;
-        this.url = url;
-        this.contentId = contentId;
+    public HlsRenderBuilder(Context context, String userAgent, String url, AudioCapabilities audioCapabilities) {
+        super(context, userAgent, url);
+        this.audioCapabilities = audioCapabilities;
     }
 
     @Override
     public void buildRenderers(EMExoPlayer player, RendererBuilderCallback callback) {
         this.player = player;
         this.callback = callback;
-
         HlsPlaylistParser parser = new HlsPlaylistParser();
-        ManifestFetcher<HlsPlaylist> playlistFetcher = new ManifestFetcher<>(parser, contentId, url, userAgent);
+        ManifestFetcher<HlsPlaylist> playlistFetcher = new ManifestFetcher<>(uri, new DefaultUriDataSource(context, userAgent), parser);
         playlistFetcher.singleLoad(player.getMainHandler().getLooper(), this);
     }
 
     @Override
-    public void onManifestError(String contentId, IOException e) {
+    public void onSingleManifestError(IOException e) {
         callback.onRenderersError(e);
     }
 
     @Override
-    public void onManifest(String contentId, HlsPlaylist manifest) {
+    public void onSingleManifest(HlsPlaylist playlist) {
         DefaultBandwidthMeter bandwidthMeter = new DefaultBandwidthMeter();
 
-        //Create the Sample Source to be used by the renderers
-        DataSource dataSource = new UriDataSource(userAgent, bandwidthMeter);
-        boolean adaptiveDecoder = false;
+        //Calculates the Chunk variant indices
+        int[] variantIndices = null;
+        if (playlist instanceof HlsMasterPlaylist) {
+            HlsMasterPlaylist masterPlaylist = (HlsMasterPlaylist) playlist;
 
-        try {
-            adaptiveDecoder = MediaCodecUtil.getDecoderInfo(MimeTypes.VIDEO_H264, false).adaptive;
-        } catch (MediaCodecUtil.DecoderQueryException dqe) {
-            Log.d(TAG, "Unable to determine adaptive availability.  Defaulting to false", dqe);
+            try {
+                variantIndices = VideoFormatSelectorUtil.selectVideoFormatsForDefaultDisplay(context, masterPlaylist.variants, null, false);
+            } catch (MediaCodecUtil.DecoderQueryException e) {
+                callback.onRenderersError(e);
+                return;
+            }
         }
 
-        HlsChunkSource chunkSource = new HlsChunkSource(dataSource, url, manifest, bandwidthMeter, null,
-                adaptiveDecoder ? HlsChunkSource.ADAPTIVE_MODE_SPLICE : HlsChunkSource.ADAPTIVE_MODE_NONE);
+        //Create the Sample Source to be used by the renders
+        DataSource dataSource = new DefaultUriDataSource(context, bandwidthMeter, userAgent);
+        HlsChunkSource chunkSource = new HlsChunkSource(dataSource, uri, playlist, bandwidthMeter,
+                variantIndices, HlsChunkSource.ADAPTIVE_MODE_SPLICE, audioCapabilities);
 
-        HlsSampleSource sampleSource = new HlsSampleSource(chunkSource, true, DOWNSTREAM_RENDER_COUNT);
+        HlsSampleSource sampleSource = new HlsSampleSource(chunkSource, true, DOWNSTREAM_RENDER_COUNT, REQUESTED_BUFFER_SIZE,
+                REQUESTED_BUFFER_DURATION_MS, player.getMainHandler(), player, EMExoPlayer.RENDER_VIDEO_INDEX);
+
 
         //Create the renderers
         MediaCodecVideoTrackRenderer videoRenderer = new MediaCodecVideoTrackRenderer(sampleSource,
-                MediaCodec.VIDEO_SCALING_MODE_SCALE_TO_FIT, 0, player.getMainHandler(), player, DROPPED_FRAME_NOTIFICATION_AMOUNT);
+                MediaCodec.VIDEO_SCALING_MODE_SCALE_TO_FIT, MAX_JOIN_TIME, player.getMainHandler(), player, DROPPED_FRAME_NOTIFICATION_AMOUNT);
 
-        EMMediaCodecAudioTrackRenderer audioRenderer = new EMMediaCodecAudioTrackRenderer(sampleSource);
+        MediaCodecAudioTrackRenderer audioRenderer = new MediaCodecAudioTrackRenderer(sampleSource);
 
-        MetadataTrackRenderer<Map<String, Object>> id3Renderer =
-                new MetadataTrackRenderer<>(sampleSource, new Id3Parser(), player.getId3MetadataRenderer(), player.getMainHandler().getLooper());
+        MetadataTrackRenderer<Map<String, Object>> id3Renderer = new MetadataTrackRenderer<>(sampleSource, new Id3Parser(),
+                        player.getId3MetadataRenderer(), player.getMainHandler().getLooper());
 
 
         //Populate the Render list to pass back to the callback
@@ -117,4 +121,5 @@ public class HlsRenderBuilder extends RenderBuilder implements ManifestCallback<
         renderers[EMExoPlayer.RENDER_TIMED_METADATA_INDEX] = id3Renderer;
         callback.onRenderers(null, null, renderers);
     }
+
 }

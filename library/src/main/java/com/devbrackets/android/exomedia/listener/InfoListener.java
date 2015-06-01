@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2015 Brian Wernick,
- * Copyright (C) 2014 The Android Open Source Project
+ * Copyright (C) 2015 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,19 +17,23 @@
 
 package com.devbrackets.android.exomedia.listener;
 
+import com.google.android.exoplayer.chunk.Format;
+
 /**
  * A listener for debugging EMExoPlayer information.
  */
 public interface InfoListener {
-    void onVideoFormatEnabled(String formatId, int trigger, int mediaTimeMs);
+    void onVideoFormatEnabled(Format format, int trigger, int mediaTimeMs);
 
-    void onAudioFormatEnabled(String formatId, int trigger, int mediaTimeMs);
+    void onAudioFormatEnabled(Format format, int trigger, int mediaTimeMs);
 
     void onDroppedFrames(int count, long elapsed);
 
     void onBandwidthSample(int elapsedMs, long bytes, long bitrateEstimate);
 
-    void onLoadStarted(int sourceId, String formatId, int trigger, boolean isInitialization, int mediaStartTimeMs, int mediaEndTimeMs, long length);
+    void onLoadStarted(int sourceId, long length, int type, int trigger, Format format, int mediaStartTimeMs, int mediaEndTimeMs);
 
-    void onLoadCompleted(int sourceId, long bytesLoaded);
+    void onLoadCompleted(int sourceId, long bytesLoaded, int type, int trigger, Format format, int mediaStartTimeMs, int mediaEndTimeMs, long elapsedRealtimeMs, long loadDurationMs);
+
+    void onDecoderInitialized(String decoderName, long elapsedRealtimeMs, long initializationDurationMs);
 }

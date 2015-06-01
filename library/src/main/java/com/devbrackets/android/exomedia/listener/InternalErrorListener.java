@@ -42,9 +42,7 @@ public interface InternalErrorListener {
 
     void onCryptoError(MediaCodec.CryptoException e);
 
-    void onUpstreamError(int sourceId, IOException e);
-
-    void onConsumptionError(int sourceId, IOException e);
+    void onLoadError(int sourceId, IOException e);
 
     void onDrmSessionManagerError(Exception e);
 }

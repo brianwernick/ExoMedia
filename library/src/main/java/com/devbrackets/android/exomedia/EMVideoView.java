@@ -46,6 +46,8 @@ import com.devbrackets.android.exomedia.util.EMDeviceUtil;
 import com.devbrackets.android.exomedia.util.Repeater;
 import com.devbrackets.android.exomedia.util.StopWatch;
 import com.google.android.exoplayer.VideoSurfaceView;
+import com.google.android.exoplayer.audio.AudioCapabilities;
+import com.google.android.exoplayer.audio.AudioCapabilitiesReceiver;
 import com.squareup.otto.Bus;
 import com.squareup.otto.Produce;
 
@@ -59,7 +61,7 @@ import com.squareup.otto.Produce;
  * to help with quick implementations.
  */
 @SuppressWarnings("UnusedDeclaration")
-public class EMVideoView extends RelativeLayout {
+public class EMVideoView extends RelativeLayout implements AudioCapabilitiesReceiver.Listener {
     private static final String TAG = EMVideoView.class.getSimpleName();
     private static final String USER_AGENT_FORMAT = "EMVideoView %s / Android %s / %s";
     private static final int CONTROL_HIDE_DELAY = 2000;
@@ -92,6 +94,9 @@ public class EMVideoView extends RelativeLayout {
     private EMProgressCallback progressCallback;
     private Repeater pollRepeater = new Repeater();
     private StopWatch overriddenPositionStopWatch = new StopWatch();
+
+    private AudioCapabilities audioCapabilities;
+    private AudioCapabilitiesReceiver audioCapabilitiesReceiver;
 
     private boolean useExo = false;
     private int overriddenDuration = -1;
@@ -177,6 +182,8 @@ public class EMVideoView extends RelativeLayout {
     }
 
     private void setupExoPlayer() {
+        audioCapabilitiesReceiver = new AudioCapabilitiesReceiver(getContext().getApplicationContext(), this);
+        audioCapabilitiesReceiver.register();
         emExoPlayer = new EMExoPlayer(null);
 
         //Sets the internal listener
@@ -208,9 +215,9 @@ public class EMVideoView extends RelativeLayout {
     private RenderBuilder getRendererBuilder(VideoType renderType, Uri uri) {
         switch (renderType) {
             case HLS:
-                return new HlsRenderBuilder(getUserAgent(), uri.toString(), "uid:hls:applesinglemedia");
+                return new HlsRenderBuilder(getContext(), getUserAgent(), uri.toString(), audioCapabilities);
             default:
-                return new RenderBuilder(getContext(), uri.toString());
+                return new RenderBuilder(getContext(), getUserAgent(), uri.toString());
         }
     }
 
@@ -224,6 +231,11 @@ public class EMVideoView extends RelativeLayout {
 
         if (emExoPlayer != null) {
             emExoPlayer.release();
+        }
+
+        if (audioCapabilitiesReceiver != null) {
+            audioCapabilitiesReceiver.unregister();
+            audioCapabilitiesReceiver = null;
         }
     }
 
@@ -244,6 +256,13 @@ public class EMVideoView extends RelativeLayout {
         shutterBottom.setOnTouchListener(listener);
 
         super.setOnTouchListener(listener);
+    }
+
+    @Override
+    public void onAudioCapabilitiesChanged(AudioCapabilities audioCapabilities) {
+        if (!audioCapabilities.equals(this.audioCapabilities)) {
+            this.audioCapabilities = audioCapabilities;
+        }
     }
 
     /**

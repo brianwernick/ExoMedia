@@ -42,6 +42,7 @@ import com.google.android.exoplayer.MediaCodecVideoTrackRenderer;
 import com.google.android.exoplayer.TrackRenderer;
 import com.google.android.exoplayer.audio.AudioTrack;
 import com.google.android.exoplayer.chunk.ChunkSampleSource;
+import com.google.android.exoplayer.chunk.Format;
 import com.google.android.exoplayer.chunk.MultiTrackChunkSource;
 import com.google.android.exoplayer.drm.StreamingDrmSessionManager;
 import com.google.android.exoplayer.hls.HlsSampleSource;
@@ -49,7 +50,6 @@ import com.google.android.exoplayer.metadata.MetadataTrackRenderer;
 import com.google.android.exoplayer.text.TextRenderer;
 import com.google.android.exoplayer.upstream.DefaultBandwidthMeter;
 import com.google.android.exoplayer.util.PlayerControl;
-import com.google.android.exoplayer.chunk.Format;
 
 import java.io.IOException;
 import java.util.Map;
@@ -229,7 +229,6 @@ public class EMExoPlayer implements ExoPlayer.Listener, ChunkSampleSource.EventL
         prepared = true;
     }
 
-    @SuppressWarnings("all") //Sonar complains about the security of storing the arrays directly.  We understand the risks
     public void onRenderers(String[][] trackNames, MultiTrackChunkSource[] multiTrackSources, TrackRenderer[] renderers) {
         builderCallback = null;
         // Normalize the results.
@@ -409,11 +408,11 @@ public class EMExoPlayer implements ExoPlayer.Listener, ChunkSampleSource.EventL
             return;
         }
 
-//        if (sourceId == RENDER_VIDEO_INDEX) {
-//            infoListener.onVideoFormatEnabled(formatId, trigger, mediaTimeMs);
-//        } else if (sourceId == RENDER_AUDIO_INDEX) {
-//            infoListener.onAudioFormatEnabled(formatId, trigger, mediaTimeMs);
-//        }
+        if (sourceId == RENDER_VIDEO_INDEX) {
+            infoListener.onVideoFormatEnabled(format, trigger, mediaTimeMs);
+        } else if (sourceId == RENDER_AUDIO_INDEX) {
+            infoListener.onAudioFormatEnabled(format, trigger, mediaTimeMs);
+        }
     }
 
     @Override
@@ -431,8 +430,10 @@ public class EMExoPlayer implements ExoPlayer.Listener, ChunkSampleSource.EventL
     }
 
     @Override
-    public void onDecoderInitialized(String docoderName, long elapsedRealtimeMs, long initializationDurationMs) {
-        //TODO
+    public void onDecoderInitialized(String decoderName, long elapsedRealtimeMs, long initializationDurationMs) {
+        if (infoListener != null) {
+            infoListener.onDecoderInitialized(decoderName, elapsedRealtimeMs, initializationDurationMs);
+        }
     }
 
     @Override
@@ -458,9 +459,9 @@ public class EMExoPlayer implements ExoPlayer.Listener, ChunkSampleSource.EventL
 
     @Override
     public void onLoadError(int sourceId, IOException e) {
-//        if (internalErrorListener != null) {
-//            internalErrorListener.onUpstreamError(sourceId, e);
-//        }
+        if (internalErrorListener != null) {
+            internalErrorListener.onLoadError(sourceId, e);
+        }
     }
 
     @Override
@@ -491,15 +492,15 @@ public class EMExoPlayer implements ExoPlayer.Listener, ChunkSampleSource.EventL
 
     @Override
     public void onLoadStarted(int sourceId, long length, int type, int trigger, Format format, int mediaStartTimeMs, int mediaEndTimeMs) {
-//        if (infoListener != null) {
-//            infoListener.onLoadStarted(sourceId, formatId, trigger, isInitialization, mediaStartTimeMs, mediaEndTimeMs, length);
-//        }
+        if (infoListener != null) {
+            infoListener.onLoadStarted(sourceId, length, type, trigger, format, mediaStartTimeMs, mediaEndTimeMs);
+        }
     }
 
     @Override
     public void onLoadCompleted(int sourceId, long bytesLoaded, int type, int trigger, Format format, int mediaStartTimeMs, int mediaEndTimeMs, long elapsedRealtimeMs, long loadDurationMs) {
         if (infoListener != null) {
-            infoListener.onLoadCompleted(sourceId, bytesLoaded);
+            infoListener.onLoadCompleted(sourceId, bytesLoaded, type, trigger, format, mediaStartTimeMs, mediaEndTimeMs, elapsedRealtimeMs, loadDurationMs);
         }
     }
 

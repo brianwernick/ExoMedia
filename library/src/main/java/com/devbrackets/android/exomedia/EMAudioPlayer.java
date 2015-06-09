@@ -29,8 +29,11 @@ import com.devbrackets.android.exomedia.exoplayer.EMExoPlayer;
 import com.devbrackets.android.exomedia.listener.EMProgressCallback;
 import com.devbrackets.android.exomedia.listener.ExoPlayerListener;
 import com.devbrackets.android.exomedia.util.EMDeviceUtil;
+import com.devbrackets.android.exomedia.util.MediaUtil;
 import com.devbrackets.android.exomedia.util.Repeater;
 import com.devbrackets.android.exomedia.util.StopWatch;
+import com.google.android.exoplayer.audio.AudioCapabilities;
+import com.google.android.exoplayer.audio.AudioCapabilitiesReceiver;
 import com.squareup.otto.Bus;
 import com.squareup.otto.Produce;
 
@@ -43,7 +46,7 @@ import com.squareup.otto.Produce;
  * the MediaPlayer provides.
  */
 @SuppressWarnings("UnusedDeclaration")
-public class EMAudioPlayer {
+public class EMAudioPlayer implements AudioCapabilitiesReceiver.Listener {
     private static final String TAG = EMAudioPlayer.class.getSimpleName();
     private static final String USER_AGENT_FORMAT = "EMAudioPlayer %s / Android %s / %s";
 
@@ -78,6 +81,9 @@ public class EMAudioPlayer {
     private Repeater pollRepeater = new Repeater();
     private StopWatch overriddenPositionStopWatch = new StopWatch();
 
+    private AudioCapabilities audioCapabilities;
+    private AudioCapabilitiesReceiver audioCapabilitiesReceiver;
+
     private EMMediaProgressEvent currentMediaProgressEvent = new EMMediaProgressEvent(0, 0, 0);
 
     public EMAudioPlayer(Context context) {
@@ -110,6 +116,11 @@ public class EMAudioPlayer {
      * Creates the ExoPlayer and sets the listeners
      */
     private void setupEMExoPlayer() {
+        if (audioCapabilitiesReceiver == null) {
+            audioCapabilitiesReceiver = new AudioCapabilitiesReceiver(context.getApplicationContext(), this);
+            audioCapabilitiesReceiver.register();
+        }
+
         if (emExoPlayer == null) {
             emExoPlayer = new EMExoPlayer();
 
@@ -134,6 +145,13 @@ public class EMAudioPlayer {
         mediaPlayer.setOnBufferingUpdateListener(listenerMux);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
             mediaPlayer.setOnInfoListener(listenerMux);
+        }
+    }
+
+    @Override
+    public void onAudioCapabilitiesChanged(AudioCapabilities audioCapabilities) {
+        if (!audioCapabilities.equals(this.audioCapabilities)) {
+            this.audioCapabilities = audioCapabilities;
         }
     }
 
@@ -202,9 +220,9 @@ public class EMAudioPlayer {
     private RenderBuilder getRendererBuilder(AudioType renderType, Uri uri) {
         switch (renderType) {
             case HLS:
-                return new HlsRenderBuilder(getUserAgent(), uri.toString(), "uid:hls:applesinglemedia");
+                return new HlsRenderBuilder(context, getUserAgent(), uri.toString(), audioCapabilities);
             default:
-                return new RenderBuilder(context, uri.toString());
+                return new RenderBuilder(context, getUserAgent(), uri.toString(), MediaUtil.MediaType.MP3);
         }
     }
 
@@ -413,6 +431,11 @@ public class EMAudioPlayer {
 
         stopProgressPoll();
         overriddenPositionStopWatch.stop();
+
+        if (audioCapabilitiesReceiver != null) {
+            audioCapabilitiesReceiver.unregister();
+            audioCapabilitiesReceiver = null;
+        }
     }
 
     /**

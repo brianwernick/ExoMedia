@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2015 Brian Wernick,
- * Copyright (C) 2014 The Android Open Source Project
+ * Copyright (C) 2015 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,8 +42,10 @@ import com.google.android.exoplayer.MediaCodecVideoTrackRenderer;
 import com.google.android.exoplayer.TrackRenderer;
 import com.google.android.exoplayer.audio.AudioTrack;
 import com.google.android.exoplayer.chunk.ChunkSampleSource;
+import com.google.android.exoplayer.chunk.Format;
 import com.google.android.exoplayer.chunk.MultiTrackChunkSource;
 import com.google.android.exoplayer.drm.StreamingDrmSessionManager;
+import com.google.android.exoplayer.hls.HlsSampleSource;
 import com.google.android.exoplayer.metadata.MetadataTrackRenderer;
 import com.google.android.exoplayer.text.TextRenderer;
 import com.google.android.exoplayer.upstream.DefaultBandwidthMeter;
@@ -53,11 +55,8 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-/**
- *
- */
-public class EMExoPlayer implements ExoPlayer.Listener, ChunkSampleSource.EventListener, DefaultBandwidthMeter.EventListener,
-        MediaCodecVideoTrackRenderer.EventListener, TextRenderer, MediaCodecAudioTrackRenderer.EventListener, StreamingDrmSessionManager.EventListener{
+public class EMExoPlayer implements ExoPlayer.Listener, ChunkSampleSource.EventListener, DefaultBandwidthMeter.EventListener, HlsSampleSource.EventListener,
+        MediaCodecVideoTrackRenderer.EventListener, TextRenderer, MediaCodecAudioTrackRenderer.EventListener, StreamingDrmSessionManager.EventListener {
 
     public static final int DISABLED_TRACK = -1;
     public static final int PRIMARY_TRACK = 0;
@@ -230,7 +229,6 @@ public class EMExoPlayer implements ExoPlayer.Listener, ChunkSampleSource.EventL
         prepared = true;
     }
 
-    @SuppressWarnings("all") //Sonar complains about the security of storing the arrays directly.  We understand the risks
     public void onRenderers(String[][] trackNames, MultiTrackChunkSource[] multiTrackSources, TrackRenderer[] renderers) {
         builderCallback = null;
         // Normalize the results.
@@ -405,15 +403,15 @@ public class EMExoPlayer implements ExoPlayer.Listener, ChunkSampleSource.EventL
     }
 
     @Override
-    public void onDownstreamFormatChanged(int sourceId, String formatId, int trigger, int mediaTimeMs) {
+    public void onDownstreamFormatChanged(int sourceId, Format format, int trigger, int mediaTimeMs) {
         if (infoListener == null) {
             return;
         }
 
         if (sourceId == RENDER_VIDEO_INDEX) {
-            infoListener.onVideoFormatEnabled(formatId, trigger, mediaTimeMs);
+            infoListener.onVideoFormatEnabled(format, trigger, mediaTimeMs);
         } else if (sourceId == RENDER_AUDIO_INDEX) {
-            infoListener.onAudioFormatEnabled(formatId, trigger, mediaTimeMs);
+            infoListener.onAudioFormatEnabled(format, trigger, mediaTimeMs);
         }
     }
 
@@ -428,6 +426,13 @@ public class EMExoPlayer implements ExoPlayer.Listener, ChunkSampleSource.EventL
     public void onDecoderInitializationError(MediaCodecTrackRenderer.DecoderInitializationException e) {
         if (internalErrorListener != null) {
             internalErrorListener.onDecoderInitializationError(e);
+        }
+    }
+
+    @Override
+    public void onDecoderInitialized(String decoderName, long elapsedRealtimeMs, long initializationDurationMs) {
+        if (infoListener != null) {
+            infoListener.onDecoderInitialized(decoderName, elapsedRealtimeMs, initializationDurationMs);
         }
     }
 
@@ -453,16 +458,9 @@ public class EMExoPlayer implements ExoPlayer.Listener, ChunkSampleSource.EventL
     }
 
     @Override
-    public void onUpstreamError(int sourceId, IOException e) {
+    public void onLoadError(int sourceId, IOException e) {
         if (internalErrorListener != null) {
-            internalErrorListener.onUpstreamError(sourceId, e);
-        }
-    }
-
-    @Override
-    public void onConsumptionError(int sourceId, IOException e) {
-        if (internalErrorListener != null) {
-            internalErrorListener.onConsumptionError(sourceId, e);
+            internalErrorListener.onLoadError(sourceId, e);
         }
     }
 
@@ -493,17 +491,16 @@ public class EMExoPlayer implements ExoPlayer.Listener, ChunkSampleSource.EventL
     }
 
     @Override
-    public void onLoadStarted(int sourceId, String formatId, int trigger, boolean isInitialization, int mediaStartTimeMs, int mediaEndTimeMs, long length) {
+    public void onLoadStarted(int sourceId, long length, int type, int trigger, Format format, int mediaStartTimeMs, int mediaEndTimeMs) {
         if (infoListener != null) {
-            infoListener.onLoadStarted(sourceId, formatId, trigger, isInitialization, mediaStartTimeMs,
-                    mediaEndTimeMs, length);
+            infoListener.onLoadStarted(sourceId, length, type, trigger, format, mediaStartTimeMs, mediaEndTimeMs);
         }
     }
 
     @Override
-    public void onLoadCompleted(int sourceId, long bytesLoaded) {
+    public void onLoadCompleted(int sourceId, long bytesLoaded, int type, int trigger, Format format, int mediaStartTimeMs, int mediaEndTimeMs, long elapsedRealtimeMs, long loadDurationMs) {
         if (infoListener != null) {
-            infoListener.onLoadCompleted(sourceId, bytesLoaded);
+            infoListener.onLoadCompleted(sourceId, bytesLoaded, type, trigger, format, mediaStartTimeMs, mediaEndTimeMs, elapsedRealtimeMs, loadDurationMs);
         }
     }
 
@@ -513,12 +510,7 @@ public class EMExoPlayer implements ExoPlayer.Listener, ChunkSampleSource.EventL
     }
 
     @Override
-    public void onUpstreamDiscarded(int sourceId, int mediaStartTimeMs, int mediaEndTimeMs, long bytesDiscarded) {
-        //Purposefully left blank
-    }
-
-    @Override
-    public void onDownstreamDiscarded(int sourceId, int mediaStartTimeMs, int mediaEndTimeMs, long bytesDiscarded) {
+    public void onUpstreamDiscarded(int sourceId, int mediaStartTimeMs, int mediaEndTimeMs) {
         //Purposefully left blank
     }
 

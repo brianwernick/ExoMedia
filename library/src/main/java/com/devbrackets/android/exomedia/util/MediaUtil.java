@@ -17,12 +17,34 @@
 package com.devbrackets.android.exomedia.util;
 
 import android.net.Uri;
+import android.support.annotation.Nullable;
 
 /**
  * A Utility class to help with determining information about media
- *
  */
 public class MediaUtil {
+    public enum MediaType {
+        SMOOTH_STREAM,
+        DASH,
+        HLS,
+        MP4,
+        M4A,
+        MP3,
+        TS,
+        AAC,
+        WEBM,
+        UNKNOWN
+    }
+
+    private interface Extensions {
+        String AAC = ".aac";
+        String M4A = ".m4a";
+        String MP4 = ".mp4";
+        String MP3 = ".mp3";
+        String TS = ".ts";
+        String WEBM = ".webm";
+    }
+
     private MediaUtil() {
         //Purposefully left blank
     }
@@ -52,5 +74,56 @@ public class MediaUtil {
         }
 
         return uri;
+    }
+
+    /**
+     * Determines the media type based on the mediaUri
+     *
+     * @param mediaUri The uri for the media to determine the MediaType for
+     * @return The resulting MediaType
+     */
+    public static MediaType getMediaType(String mediaUri) {
+        String extension = getExtension(mediaUri);
+        if (extension == null) {
+            return MediaType.UNKNOWN;
+        }
+
+        switch (extension) {
+            case Extensions.AAC:
+                return MediaType.AAC;
+
+            case Extensions.M4A:
+                return MediaType.M4A;
+
+            case Extensions.MP3:
+                return MediaType.MP3;
+
+            case Extensions.MP4:
+                return MediaType.MP4;
+
+            case Extensions.TS:
+                return MediaType.TS;
+
+            case Extensions.WEBM:
+                return MediaType.WEBM;
+
+            default:
+                return MediaType.UNKNOWN;
+        }
+    }
+
+    @Nullable
+    private static String getExtension(String mediaUri) {
+        if (mediaUri == null || mediaUri.trim().isEmpty()) {
+            return null;
+        }
+
+        int periodIndex = mediaUri.lastIndexOf('.');
+        if (periodIndex == -1 || periodIndex >= mediaUri.length()) {
+            return null;
+        }
+
+        String rawExtension = mediaUri.substring(periodIndex);
+        return rawExtension.toLowerCase();
     }
 }

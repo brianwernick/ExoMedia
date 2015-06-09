@@ -839,8 +839,9 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
         initializeAudioPlayer();
         audioFocusHelper.requestFocus();
 
+        boolean isItemDownloaded = isDownloaded(currentPlaylistItem);
         audioPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
-        audioPlayer.setDataSource(this, Uri.parse(currentPlaylistItem.getMediaUrl()));
+        audioPlayer.setDataSource(this, Uri.parse(isItemDownloaded ? currentPlaylistItem.getDownloadedMediaUri() : currentPlaylistItem.getMediaUrl()));
 
         setMediaState(MediaState.PREPARING);
         setupAsForeground();
@@ -850,7 +851,7 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
         // If we are streaming from the internet, we want to hold a Wifi lock, which prevents
         // the Wifi radio from going to sleep while the song is playing. If, on the other hand,
         // we are NOT streaming, we want to release the lock.
-        if (!isDownloaded(currentPlaylistItem)) {
+        if (!isItemDownloaded) {
             wifiLock.acquire();
         } else if (wifiLock.isHeld()) {
             wifiLock.release();

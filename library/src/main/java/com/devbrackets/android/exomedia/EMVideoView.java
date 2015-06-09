@@ -43,6 +43,7 @@ import com.devbrackets.android.exomedia.listener.EMProgressCallback;
 import com.devbrackets.android.exomedia.listener.EMVideoViewControlsCallback;
 import com.devbrackets.android.exomedia.listener.ExoPlayerListener;
 import com.devbrackets.android.exomedia.util.EMDeviceUtil;
+import com.devbrackets.android.exomedia.util.MediaUtil;
 import com.devbrackets.android.exomedia.util.Repeater;
 import com.devbrackets.android.exomedia.util.StopWatch;
 import com.google.android.exoplayer.VideoSurfaceView;
@@ -217,7 +218,7 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
             case HLS:
                 return new HlsRenderBuilder(getContext(), getUserAgent(), uri.toString(), audioCapabilities);
             default:
-                return new RenderBuilder(getContext(), getUserAgent(), uri.toString());
+                return new RenderBuilder(getContext(), getUserAgent(), uri.toString(), MediaUtil.MediaType.MP4);
         }
     }
 

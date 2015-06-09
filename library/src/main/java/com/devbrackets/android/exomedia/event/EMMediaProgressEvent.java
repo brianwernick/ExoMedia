@@ -78,7 +78,7 @@ public class EMMediaProgressEvent {
         }
 
         this.bufferPercent = bufferPercent;
-        this.bufferPercentFloat = (float) bufferPercent / (float) MAX_BUFFER_PERCENT;
+        this.bufferPercentFloat = bufferPercent == MAX_BUFFER_PERCENT ? (float)bufferPercent : (float) bufferPercent / (float) MAX_BUFFER_PERCENT;
     }
 
     public float getBufferPercentFloat() {

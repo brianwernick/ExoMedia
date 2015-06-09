@@ -55,6 +55,7 @@ public class RenderBuilder {
     protected final Context context;
     protected final String userAgent;
     protected final String uri;
+    protected MediaUtil.MediaType requestedDefaultType;
 
     public RenderBuilder(Context context, String userAgent, String uri) {
         this.uri = uri;
@@ -62,11 +63,16 @@ public class RenderBuilder {
         this.context = context;
     }
 
+    public RenderBuilder(Context context, String userAgent, String uri, MediaUtil.MediaType defaultType) {
+        this(context, userAgent, uri);
+        this.requestedDefaultType = defaultType;
+    }
+
     public void buildRenderers(EMExoPlayer player, RendererBuilderCallback callback) {
         //Create the Sample Source to be used by the renderers
         DataSource dataSource = new DefaultUriDataSource(context, userAgent);
-        ExtractorSampleSource sampleSource = new ExtractorSampleSource(Uri.parse(MediaUtil.getUriWithProtocol(uri)), dataSource, getExtractor(uri),
-                DEFAULT_DOWNSTREAM_RENDER_COUNT, REQUESTED_BUFFER_SIZE);
+        ExtractorSampleSource sampleSource = new ExtractorSampleSource(Uri.parse(MediaUtil.getUriWithProtocol(uri)), dataSource,
+                getExtractor(uri, requestedDefaultType), DEFAULT_DOWNSTREAM_RENDER_COUNT, REQUESTED_BUFFER_SIZE);
 
         //Create the Renderers
         MediaCodecVideoTrackRenderer videoRenderer = new MediaCodecVideoTrackRenderer(sampleSource, null, true, MediaCodec.VIDEO_SCALING_MODE_SCALE_TO_FIT,
@@ -88,9 +94,45 @@ public class RenderBuilder {
      * @return The Extractor for the specified mediaUri
      */
     protected Extractor getExtractor(String mediaUri) {
+        return getExtractor(mediaUri, MediaUtil.MediaType.UNKNOWN);
+    }
+
+    /**
+     * Retrieves the extractor to use with the specified mediaUri
+     *
+     * @param mediaUri The uri to get the extractor for
+     * @param defaultType The media type to use if we can't determine the type
+     * @return The Extractor for the specified mediaUri
+     */
+    protected Extractor getExtractor(String mediaUri, MediaUtil.MediaType defaultType) {
+        return getExtractor(MediaUtil.getMediaType(mediaUri), defaultType);
+    }
+
+    /**
+     * Retrieves the extractor for the requested type.  If the extractor
+     * is unavailable then the default extractor will be returned.
+     *
+     * @param mediaType The media type to get the extractor for
+     * @return The extractor for the <code>mediaType</code>
+     */
+    protected Extractor getExtractor(MediaUtil.MediaType mediaType) {
+        return getExtractor(mediaType, MediaUtil.MediaType.UNKNOWN);
+    }
+
+    /**
+     * Retrieves the extractor for the requested type.  If the extractor
+     * is unavailable then the extractor for <code>defaultType</code> will be returned.
+     *
+     * @param mediaType The media type to get the extractor for
+     * @param defaultType The media type to use if the requested type is unavailable
+     * @return The extractor for the <code>mediaType</code>
+     */
+    protected Extractor getExtractor(MediaUtil.MediaType mediaType, MediaUtil.MediaType defaultType) {
+        boolean canUseRequestedType = defaultType != null && defaultType != MediaUtil.MediaType.UNKNOWN;
+
         // NOTE: this is based on the demo project for the ExoPlayer, found at
         // https://github.com/google/ExoPlayer/blob/888d9db3e92bf4605c7be5cf61da52db0c75bdee/demo/src/main/java/com/google/android/exoplayer/demo/PlayerActivity.java#L222
-        switch (MediaUtil.getMediaType(mediaUri)) {
+        switch (mediaType) {
             case AAC:
                 return new AdtsExtractor();
 
@@ -109,8 +151,8 @@ public class RenderBuilder {
 
             default:
             case UNKNOWN:
-                Log.d(TAG, "Unable to determine extractor for the uri \"" + uri + "\", assuming MP4");
-                return new Mp4Extractor();
+                Log.d(TAG, "Unable to determine extractor for the uri \"" + uri + "\", assuming " + (canUseRequestedType ? requestedDefaultType : "MP4"));
+                return canUseRequestedType ? getExtractor(defaultType) : new Mp4Extractor();
         }
     }
 }

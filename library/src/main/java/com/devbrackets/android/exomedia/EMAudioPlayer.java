@@ -29,6 +29,7 @@ import com.devbrackets.android.exomedia.exoplayer.EMExoPlayer;
 import com.devbrackets.android.exomedia.listener.EMProgressCallback;
 import com.devbrackets.android.exomedia.listener.ExoPlayerListener;
 import com.devbrackets.android.exomedia.util.EMDeviceUtil;
+import com.devbrackets.android.exomedia.util.MediaUtil;
 import com.devbrackets.android.exomedia.util.Repeater;
 import com.devbrackets.android.exomedia.util.StopWatch;
 import com.google.android.exoplayer.audio.AudioCapabilities;
@@ -221,7 +222,7 @@ public class EMAudioPlayer implements AudioCapabilitiesReceiver.Listener {
             case HLS:
                 return new HlsRenderBuilder(context, getUserAgent(), uri.toString(), audioCapabilities);
             default:
-                return new RenderBuilder(context, getUserAgent(), uri.toString());
+                return new RenderBuilder(context, getUserAgent(), uri.toString(), MediaUtil.MediaType.MP3);
         }
     }
 

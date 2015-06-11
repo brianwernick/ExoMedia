@@ -8,20 +8,25 @@
         android:id="@+id/exomedia_notification_large_image"
         android:layout_width="@dimen/exomedia_big_notification_height"
         android:layout_height="@dimen/exomedia_big_notification_height"
+        android:layout_marginRight="@dimen/exomedia_default_padding"
         android:layout_alignParentLeft="true"
         android:layout_alignParentTop="true"
         android:scaleType="fitXY"
-        tools:background="#ffffff"/>
+        tools:background="#ffffff"
+        tools:ignore="ContentDescription"/>
 
     <ImageButton
         android:id="@+id/exomedia_notification_close"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:minWidth="@dimen/exomedia_min_button_height"
+        android:minHeight="@dimen/exomedia_min_button_height"
         android:layout_alignParentRight="true"
         android:layout_alignParentTop="true"
         android:background="?android:selectableItemBackground"
-        android:padding="@dimen/exomedia_default_padding"
-        android:src="@drawable/exomedia_notification_close"/>
+        android:layout_margin="@dimen/exomedia_default_padding"
+        android:src="@drawable/exomedia_notification_close"
+        tools:ignore="ContentDescription"/>
 
     <LinearLayout
         android:id="@+id/exomedia_notification_text_area"
@@ -61,54 +66,50 @@
             tools:text="dolor sit amet"/>
     </LinearLayout>
 
-    <ImageView
-        android:id="@+id/exomedia_notification_separator"
-        android:layout_width="wrap_content"
-        android:layout_height="1px"
-        android:layout_above="@+id/exomedia_notification_button_layout"
-        android:layout_alignParentRight="true"
-        android:layout_toRightOf="@id/exomedia_notification_large_image"
-        android:background="?android:dividerHorizontal"/>
-
     <LinearLayout
         android:id="@+id/exomedia_notification_button_layout"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:layout_alignParentRight="true"
         android:layout_toRightOf="@+id/exomedia_notification_large_image"
         android:divider="?android:listDivider"
-        android:gravity="center_vertical"
+        android:gravity="center_horizontal"
         android:orientation="horizontal">
 
         <ImageButton
             android:id="@+id/exomedia_notification_prev"
-            android:layout_width="0dp"
-            android:layout_height="@dimen/exomedia_notification_button_height"
-            android:layout_weight="1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:minWidth="@dimen/exomedia_min_button_height"
+            android:minHeight="@dimen/exomedia_min_button_height"
+            android:layout_marginRight="@dimen/exomedia_min_button_height"
             android:background="?android:selectableItemBackground"
-            android:padding="@dimen/exomedia_default_padding"
             android:scaleType="fitCenter"
-            android:src="@drawable/exomedia_notification_previous"/>
+            android:src="@drawable/exomedia_notification_previous"
+            tools:ignore="ContentDescription"/>
 
         <ImageButton
             android:id="@+id/exomedia_notification_playpause"
-            android:layout_width="0dp"
-            android:layout_height="@dimen/exomedia_notification_button_height"
-            android:layout_weight="1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:minWidth="@dimen/exomedia_min_button_height"
+            android:minHeight="@dimen/exomedia_min_button_height"
             android:background="?android:selectableItemBackground"
-            android:padding="@dimen/exomedia_default_padding"
             android:scaleType="fitCenter"
-            android:src="@drawable/exomedia_notification_play"/>
+            android:src="@drawable/exomedia_notification_play"
+            tools:ignore="ContentDescription"/>
 
         <ImageButton
             android:id="@+id/exomedia_notification_next"
-            android:layout_width="0dp"
-            android:layout_height="@dimen/exomedia_notification_button_height"
-            android:layout_weight="1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:minWidth="@dimen/exomedia_min_button_height"
+            android:minHeight="@dimen/exomedia_min_button_height"
+            android:layout_marginLeft="@dimen/exomedia_min_button_height"
             android:background="?android:selectableItemBackground"
-            android:padding="@dimen/exomedia_default_padding"
             android:scaleType="fitCenter"
-            android:src="@drawable/exomedia_notification_next"/>
+            android:src="@drawable/exomedia_notification_next"
+            tools:ignore="ContentDescription"/>
     </LinearLayout>
 </RelativeLayout>

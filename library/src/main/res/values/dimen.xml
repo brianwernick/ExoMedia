@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <dimen name="exomedia_min_button_height">44dp</dimen>
+
     <dimen name="exomedia_default_padding">5dp</dimen>
     <dimen name="exomedia_notification_button_height">44dp</dimen>
 

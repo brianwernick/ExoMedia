@@ -13,37 +13,57 @@
         android:layout_height="wrap_content"
         android:layout_centerInParent="true"/>
 
-    <ImageButton
-        android:id="@+id/exomedia_controls_previous_btn"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_centerVertical="true"
-        android:layout_toLeftOf="@+id/exomedia_controls_play_pause_btn"
-        android:visibility="invisible"
-        tools:visibility="visible"
-        android:background="@android:color/transparent"
-        android:src="@drawable/exomedia_video_previous" />
-
-    <ImageButton
-        android:id="@+id/exomedia_controls_play_pause_btn"
+    <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerInParent="true"
-        android:visibility="invisible"
-        tools:visibility="visible"
-        android:background="@android:color/transparent"
-        android:src="@drawable/exomedia_ic_play_arrow_white" />
+        android:gravity="center_horizontal"
+        android:orientation="horizontal">
 
-    <ImageButton
-        android:id="@+id/exomedia_controls_next_btn"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_centerVertical="true"
-        android:layout_toRightOf="@+id/exomedia_controls_play_pause_btn"
-        android:visibility="invisible"
-        tools:visibility="visible"
-        android:background="@android:color/transparent"
-        android:src="@drawable/exomedia_video_next" />
+        <ImageButton
+            android:id="@+id/exomedia_controls_previous_btn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:minWidth="@dimen/exomedia_min_button_height"
+            android:minHeight="@dimen/exomedia_min_button_height"
+            android:visibility="invisible"
+            android:background="@android:color/transparent"
+            android:src="@drawable/exomedia_video_previous"
+            tools:visibility="visible"
+            tools:ignore="ContentDescription"/>
+
+        <View
+            android:layout_width="@dimen/exomedia_min_button_height"
+            android:layout_height="@dimen/exomedia_min_button_height" />
+
+        <ImageButton
+            android:id="@+id/exomedia_controls_play_pause_btn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:minWidth="@dimen/exomedia_min_button_height"
+            android:minHeight="@dimen/exomedia_min_button_height"
+            android:visibility="invisible"
+            android:background="@android:color/transparent"
+            android:src="@drawable/exomedia_ic_play_arrow_white"
+            tools:visibility="visible"
+            tools:ignore="ContentDescription"/>
+
+        <View
+            android:layout_width="@dimen/exomedia_min_button_height"
+            android:layout_height="@dimen/exomedia_min_button_height" />
+
+        <ImageButton
+            android:id="@+id/exomedia_controls_next_btn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:minWidth="@dimen/exomedia_min_button_height"
+            android:minHeight="@dimen/exomedia_min_button_height"
+            android:visibility="invisible"
+            android:background="@android:color/transparent"
+            android:src="@drawable/exomedia_video_next"
+            tools:visibility="visible"
+            tools:ignore="ContentDescription"/>
+    </LinearLayout>
 
 
     <RelativeLayout

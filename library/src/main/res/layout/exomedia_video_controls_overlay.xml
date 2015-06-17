@@ -6,13 +6,6 @@
     android:layout_height="match_parent"
     android:fitsSystemWindows="true">
 
-    <ProgressBar
-        android:id="@+id/exomedia_controls_video_loading"
-        style="?android:progressBarStyleLarge"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_centerInParent="true"/>
-
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -65,6 +58,12 @@
             tools:ignore="ContentDescription"/>
     </LinearLayout>
 
+    <ProgressBar
+        android:id="@+id/exomedia_controls_video_loading"
+        style="?android:progressBarStyleLarge"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"/>
 
     <RelativeLayout
         android:layout_width="match_parent"

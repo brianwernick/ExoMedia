@@ -806,8 +806,6 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
      * VideoView with {@link EMPlaylistManager#setVideoView(EMVideoView)}
      */
     private void startItemPlayback() {
-        relaxResources(false);
-
         if (currentPlaylistItem != null && currentPlaylistItem.isAudio()) {
             onAudioPlaybackEnded();
         }

@@ -40,7 +40,8 @@ public class StopWatch {
     private TickRunnable tickRunnable = new TickRunnable();
 
     private long startTime = 0;
-    private long time = 0;
+    private long currentTime = 0;
+    private long storedTime = 0;
 
     public StopWatch() {
         this(true);
@@ -84,45 +85,52 @@ public class StopWatch {
     }
 
     /**
-     * Starts the stopwatch.  This will reset the time to 0
+     * Starts the stopwatch.  This will continue from where we last left off,
+     * if you need to start from 0 call {@link #reset()} first.
      */
     public void start() {
-        if (!isRunning) {
-            isRunning = true;
-
-            if (useHandlerThread) {
-                handlerThread = new HandlerThread(HANDLER_THREAD_NAME);
-                handlerThread.start();
-                delayedHandler = new Handler(handlerThread.getLooper());
-            }
-
-            reset();
-            tickRunnable.performTick();
-        }
-    }
-
-    /**
-     * If the stopwatch is currently running then the time will be reset to 0.
-     */
-    public void reset() {
-        if (!isRunning) {
+        if (isRunning()) {
             return;
         }
 
-        time = 0;
+        isRunning = true;
         startTime = System.currentTimeMillis();
+
+        if (useHandlerThread) {
+            handlerThread = new HandlerThread(HANDLER_THREAD_NAME);
+            handlerThread.start();
+            delayedHandler = new Handler(handlerThread.getLooper());
+        }
+
+        tickRunnable.performTick();
+
     }
 
     /**
      * Stops the stopwatch, capturing the ending time
      */
     public void stop() {
+        if (!isRunning()) {
+            return;
+        }
+
+        delayedHandler.removeCallbacksAndMessages(null);
         if (handlerThread != null) {
             handlerThread.quit();
         }
 
         isRunning = false;
-        time = System.currentTimeMillis() - startTime;
+        currentTime = 0;
+        storedTime += System.currentTimeMillis() - startTime;
+    }
+
+    /**
+     * Resets the current time for the stopWatch
+     */
+    public void reset() {
+        currentTime = 0;
+        storedTime = 0;
+        startTime = System.currentTimeMillis();
     }
 
     /**
@@ -141,7 +149,7 @@ public class StopWatch {
      * @return The time in milliseconds
      */
     public long getTime() {
-        return time;
+        return currentTime + storedTime;
     }
 
     /**
@@ -160,14 +168,14 @@ public class StopWatch {
     private class TickRunnable implements Runnable {
         @Override
         public void run() {
-            time = System.currentTimeMillis() - startTime;
+            currentTime = System.currentTimeMillis() - startTime;
 
             if (isRunning) {
                 performTick();
             }
 
             if (listener != null) {
-                listener.onStopWatchTick(time);
+                listener.onStopWatchTick(currentTime + storedTime);
             }
         }
 

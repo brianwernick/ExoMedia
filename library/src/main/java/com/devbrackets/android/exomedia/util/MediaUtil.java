@@ -24,25 +24,32 @@ import android.support.annotation.Nullable;
  */
 public class MediaUtil {
     public enum MediaType {
-        SMOOTH_STREAM,
-        DASH,
-        HLS,
-        MP4,
-        M4A,
-        MP3,
-        TS,
-        AAC,
-        WEBM,
-        UNKNOWN
-    }
+        SMOOTH_STREAM(".ism", "application/vnd.ms-sstr+xml"),
+        DASH(".mpd", "application/dash+xml"),
+        HLS(".m3u8", "application/x-mpegurl"),
+        MP4(".mp4", "video/mp4"),
+        M4A(".m4a", "video/m4a"),
+        MP3(".mp3", "audio/mp3"),
+        TS(".ts", "video/mp2t"),
+        AAC(".aac", "audio/aac"),
+        WEBM(".webm", "video/webm"),
+        UNKNOWN("", "");
 
-    private interface Extensions {
-        String AAC = ".aac";
-        String M4A = ".m4a";
-        String MP4 = ".mp4";
-        String MP3 = ".mp3";
-        String TS = ".ts";
-        String WEBM = ".webm";
+        private String extension;
+        private String mimeType;
+
+        MediaType(String extension, String mimeType) {
+            this.extension = extension;
+            this.mimeType = mimeType;
+        }
+
+        public String getExtension() {
+            return extension;
+        }
+
+        public String getMimeType() {
+            return mimeType;
+        }
     }
 
     private MediaUtil() {
@@ -88,28 +95,14 @@ public class MediaUtil {
             return MediaType.UNKNOWN;
         }
 
-        switch (extension) {
-            case Extensions.AAC:
-                return MediaType.AAC;
-
-            case Extensions.M4A:
-                return MediaType.M4A;
-
-            case Extensions.MP3:
-                return MediaType.MP3;
-
-            case Extensions.MP4:
-                return MediaType.MP4;
-
-            case Extensions.TS:
-                return MediaType.TS;
-
-            case Extensions.WEBM:
-                return MediaType.WEBM;
-
-            default:
-                return MediaType.UNKNOWN;
+        //Finds the MediaType with the same extension
+        for (MediaType type : MediaType.values()) {
+            if (type.getExtension().equals(extension)) {
+                return type;
+            }
         }
+
+        return MediaType.UNKNOWN;
     }
 
     @Nullable

@@ -106,7 +106,7 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
     protected boolean onCreateCalled = false;
     protected Intent workaroundIntent = null;
 
-    protected EventSubscriptionProvider subscriptionProvider = new EventSubscriptionProvider();
+    protected EventBusMethods busMethods = new EventBusMethods();
     protected List<EMPlaylistServiceCallback> callbackList = new LinkedList<>();
 
     protected abstract String getAppName();
@@ -291,19 +291,7 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
         super.onCreate();
         Log.d(TAG, "Service Created");
 
-        audioFocusHelper = new EMAudioFocusHelper(getApplicationContext());
-        wifiLock = ((WifiManager) getSystemService(Context.WIFI_SERVICE)).createWifiLock(WifiManager.WIFI_MODE_FULL, "mcLock");
-
-        notificationHelper = new EMNotification(getApplicationContext());
-        lockScreenHelper = new EMLockScreen(getApplicationContext(), getClass());
-        getMediaPlaylistManager().registerService(this);
-        registerBus(getBus());
-
-        //Another part of the workaround for some Samsung devices
-        if (workaroundIntent != null) {
-            startService(workaroundIntent);
-            workaroundIntent = null;
-        }
+        onServiceCreate();
     }
 
     @Override
@@ -470,7 +458,28 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
     }
 
     /**
-     * Registers an internal {@link com.devbrackets.android.exomedia.service.EMPlaylistService.EventSubscriptionProvider}
+     * Used to perform the onCreate functionality when the service is actually created.  This
+     * should be overridden instead of {@link #onCreate()} due to a bug in some Samsung devices
+     * where {@link #onStartCommand(Intent, int, int)} will get called before {@link #onCreate()}.
+     */
+    protected void onServiceCreate() {
+        audioFocusHelper = new EMAudioFocusHelper(getApplicationContext());
+        wifiLock = ((WifiManager) getSystemService(Context.WIFI_SERVICE)).createWifiLock(WifiManager.WIFI_MODE_FULL, "mcLock");
+
+        notificationHelper = new EMNotification(getApplicationContext());
+        lockScreenHelper = new EMLockScreen(getApplicationContext(), getClass());
+        getMediaPlaylistManager().registerService(this);
+        registerBus(getBus());
+
+        //Another part of the workaround for some Samsung devices
+        if (workaroundIntent != null) {
+            startService(workaroundIntent);
+            workaroundIntent = null;
+        }
+    }
+
+    /**
+     * Registers an internal {@link EventBusMethods}
      * that will listen to Bus Events and Provide Bus Event related to the {@link EMPlaylistService}.  The bus will NOT
      *  be used for posting events, in order to enable that a bus needs to be provided with {@link #getBus()}
      *
@@ -478,7 +487,7 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
      */
     protected void registerBus(Bus bus) {
         if (bus != null) {
-            subscriptionProvider.registerBus(bus);
+            busMethods.registerBus(bus);
         }
     }
 
@@ -487,7 +496,7 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
      * Events and Provides. (see {@link #registerBus(Bus)}
      */
     protected void unRegisterBus() {
-        subscriptionProvider.unRegisterBus();
+        busMethods.unRegisterBus();
     }
 
     /**
@@ -731,6 +740,296 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
     }
 
     /**
+     * Starts the actual item playback, correctly determining if the
+     * item is a video or an audio item.
+     *
+     * <em><b>NOTE:</b></em> In order to play videos you will need to specify the
+     * VideoView with {@link EMPlaylistManager#setVideoView(EMVideoView)}
+     */
+    protected void startItemPlayback() {
+        if (currentPlaylistItem != null && currentPlaylistItem.isAudio()) {
+            onAudioPlaybackEnded();
+        }
+
+        I currentItem = currentPlaylistItem;
+        seekToNextPlayableItem();
+
+        mediaItemChanged(currentItem);
+
+        if (currentItemIsAudio()) {
+            audioListener.resetRetryCount();
+            playAudioItem();
+        } else if (currentItemIsVideo()) {
+            playVideoItem();
+        } else if (getMediaPlaylistManager().isNextAvailable()) {
+            //We get here if there was an error retrieving the currentPlaylistItem
+            performNext();
+        } else {
+            //At this point there is nothing for us to play, so we stop the service
+            performStop(true);
+        }
+    }
+
+    /**
+     * Starts the actual playback of the specified audio item
+     */
+    protected void playAudioItem() {
+        stopVideoPlayback();
+        initializeAudioPlayer();
+        audioFocusHelper.requestFocus();
+
+        boolean isItemDownloaded = isDownloaded(currentPlaylistItem);
+        audioPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+        audioPlayer.setDataSource(this, Uri.parse(isItemDownloaded ? currentPlaylistItem.getDownloadedMediaUri() : currentPlaylistItem.getMediaUrl()));
+
+        setMediaState(MediaState.PREPARING);
+        setupAsForeground();
+
+        audioPlayer.prepareAsync();
+
+        // If we are streaming from the internet, we want to hold a Wifi lock, which prevents
+        // the Wifi radio from going to sleep while the song is playing. If, on the other hand,
+        // we are NOT streaming, we want to release the lock.
+        if (!isItemDownloaded) {
+            wifiLock.acquire();
+        } else if (wifiLock.isHeld()) {
+            wifiLock.release();
+        }
+    }
+
+    /**
+     * Starts the actual playback of the specified video item.
+     */
+    protected void playVideoItem() {
+        stopAudioPlayback();
+        setupAsForeground();
+
+        EMVideoView videoView = getMediaPlaylistManager().getVideoView();
+        if (videoView != null) {
+            videoView.stopPlayback();
+            videoView.setVideoURI(Uri.parse(currentPlaylistItem.getMediaUrl()));
+        }
+    }
+
+    /**
+     * Stops the AudioPlayer from playing.
+     */
+    protected void stopAudioPlayback() {
+        audioFocusHelper.abandonFocus();
+
+        if (audioPlayer != null) {
+            audioPlayer.stopPlayback();
+            audioPlayer.reset();
+        }
+    }
+
+    /**
+     * Stops the VideoView from playing if we have access to it.
+     */
+    protected void stopVideoPlayback() {
+        EMVideoView videoView = getMediaPlaylistManager().getVideoView();
+        if (videoView != null) {
+            videoView.stopPlayback();
+            videoView.reset();
+        }
+    }
+
+    /**
+     * Reconfigures audioPlayer according to audio focus settings and starts/restarts it. This
+     * method starts/restarts the audioPlayer respecting the current audio focus state. So if
+     * we have focus, it will play normally; if we don't have focus, it will either leave the
+     * audioPlayer paused or set it to a low volume, depending on what is allowed by the
+     * current focus settings.
+     */
+    protected void startAudioPlayer() {
+        if (audioPlayer == null) {
+            return;
+        }
+
+        if (audioFocusHelper.getCurrentAudioFocus() == EMAudioFocusHelper.Focus.NO_FOCUS_NO_DUCK) {
+            // If we don't have audio focus and can't duck we have to pause, even if state is playing
+            // Be we stay in the playing state so we know we have to resume playback once we get the focus back.
+            if (audioPlayer.isPlaying()) {
+                audioPlayer.pause();
+                onAudioPlaybackEnded(currentPlaylistItem, audioPlayer.getCurrentPosition(), audioPlayer.getDuration());
+            }
+
+            return;
+        } else if (audioFocusHelper.getCurrentAudioFocus() == EMAudioFocusHelper.Focus.NO_FOCUS_CAN_DUCK) {
+            audioPlayer.setVolume(getAudioDuckVolume(), getAudioDuckVolume());
+        } else {
+            audioPlayer.setVolume(1.0f, 1.0f); // can be loud
+        }
+
+        if (!audioPlayer.isPlaying()) {
+            audioPlayer.start();
+            onAudioPlaybackStarted(currentPlaylistItem, audioPlayer.getCurrentPosition(), audioPlayer.getDuration());
+        }
+    }
+
+    /**
+     * Releases resources used by the service for playback. This includes the "foreground service"
+     * status and notification, the wake locks, and the audioPlayer if requested
+     *
+     * @param releaseAudioPlayer True if the audioPlayer should be released
+     */
+    protected void relaxResources(boolean releaseAudioPlayer) {
+        foregroundSetup = false;
+        stopForeground(true);
+
+        if (releaseAudioPlayer) {
+            if (audioPlayer != null) {
+                audioPlayer.reset();
+                audioPlayer.release();
+                audioPlayer = null;
+            }
+
+            getMediaPlaylistManager().setCurrentIndex(Integer.MAX_VALUE);
+        }
+
+        if (wifiLock.isHeld()) {
+            wifiLock.release();
+        }
+    }
+
+    /**
+     * Updates the current MediaState and informs any listening classes.
+     *
+     * @param state The new MediaState
+     */
+    protected void setMediaState(MediaState state) {
+        currentState = state;
+        postMediaStateChanged();
+    }
+
+    /**
+     * Iterates through the playList, starting with the current item, until we reach an item we can play.
+     * Normally this will be the current item, however if they don't have network then
+     * it will be the next downloaded item.
+     */
+    protected void seekToNextPlayableItem() {
+        I currentItem = getMediaPlaylistManager().getCurrentItem();
+        if (currentItem == null) {
+            currentPlaylistItem = null;
+            return;
+        }
+
+        //Only iterate through the list if we aren't connected to the internet
+        if(!isNetworkAvailable()) {
+            while(currentItem != null && !isDownloaded(currentItem)) {
+                currentItem = getMediaPlaylistManager().next();
+            }
+        }
+
+        //If we are unable to get a next playable item, post a network error
+        if(currentItem == null) {
+            onNoNonNetworkItemsAvailable();
+        }
+
+        currentPlaylistItem = getMediaPlaylistManager().getCurrentItem();
+    }
+
+    /**
+     * Requests the service be transferred to the foreground, initializing the
+     * LockScreen and Notification helpers for playback control.
+     */
+    protected void setupAsForeground() {
+        //Sets up the Lock Screen playback controls
+        lockScreenHelper.setLockScreenEnabled(true);
+        lockScreenHelper.setLockScreenBaseInformation(getLockScreenIconRes());
+
+        //Sets up the Notifications
+        notificationHelper.setNotificationsEnabled(true);
+        notificationHelper.setNotificationBaseInformation(getNotificationId(), getNotificationIconRes(), getClass());
+
+        //Starts the service as the foreground audio player
+        startForeground(getNotificationId(), notificationHelper.getNotification(getNotificationClickPendingIntent()));
+        foregroundSetup = true;
+
+        updateLockScreen();
+        updateNotification();
+    }
+
+    /**
+     * Performs the process to update the playback controls and images in the notification
+     * associated with the current playlist item.
+     */
+    protected void updateNotification() {
+        if (currentPlaylistItem == null || audioPlayer == null || !foregroundSetup) {
+            return;
+        }
+
+        String title = currentPlaylistItem.getTitle();
+
+        EMNotification.NotificationMediaState mediaState = null;
+
+        //We only want the expanded notification for audio
+        if (currentItemIsAudio()) {
+            mediaState = new EMNotification.NotificationMediaState();
+            mediaState.setNextEnabled(getMediaPlaylistManager().isNextAvailable());
+            mediaState.setPreviousEnabled(getMediaPlaylistManager().isPreviousAvailable());
+            mediaState.setPlaying(audioPlayer.isPlaying());
+        }
+
+        Bitmap bitmap = getLargeNotificationImage();
+        if (bitmap == null) {
+            bitmap = getDefaultLargeNotificationImage();
+        }
+
+        notificationHelper.updateNotificationInformation(getAppName(), title, bitmap, mediaState);
+    }
+
+    /**
+     * Performs the process to update the playback controls and the background
+     * (artwork) image displayed on the lock screen.
+     */
+    protected void updateLockScreen() {
+        if (currentPlaylistItem == null || audioPlayer == null || !foregroundSetup) {
+            return;
+        }
+
+        String title = getAppName();
+        String subTitle = currentPlaylistItem.getTitle();
+
+
+        EMNotification.NotificationMediaState mediaState = new EMNotification.NotificationMediaState();
+        mediaState.setNextEnabled(getMediaPlaylistManager().isNextAvailable());
+        mediaState.setPreviousEnabled(getMediaPlaylistManager().isPreviousAvailable());
+        mediaState.setPlaying(audioPlayer.isPlaying());
+
+        lockScreenHelper.updateLockScreenInformation(title, subTitle, getLockScreenArtwork(), mediaState);
+    }
+
+    /**
+     * Called when the current media item has changed, this will update the notification and
+     * lock screen values.
+     *
+     * @param currentItem The new media item
+     */
+    protected void mediaItemChanged(I currentItem) {
+        currentMediaType = getMediaPlaylistManager().getCurrentItemType();
+
+        //Validates that the currentPlaylistItem is for the currentItem
+        if (!getMediaPlaylistManager().isPlayingItem(currentPlaylistItem)) {
+            Log.d(TAG, "forcing currentPlaylistItem update");
+            currentPlaylistItem = getMediaPlaylistManager().getCurrentItem();
+        }
+
+        //Starts the notification loading
+        if (currentPlaylistItem != null && (currentItem == null || !currentItem.getThumbnailUrl().equals(currentPlaylistItem.getThumbnailUrl()))) {
+            int size = getResources().getDimensionPixelSize(R.dimen.exomedia_big_notification_height);
+            updateLargeNotificationImage(size, currentPlaylistItem);
+        }
+
+        //Starts the lock screen loading
+        if (currentPlaylistItem != null && (currentItem == null || !currentItem.getArtworkUrl().equalsIgnoreCase(currentPlaylistItem.getArtworkUrl()))) {
+            updateLockScreenArtwork(currentPlaylistItem);
+        }
+
+        postPlaylistItemChanged();
+    }
+
+    /**
      * Handles the remote actions from the big notification and lock screen to control
      * the audio playback
      *
@@ -799,296 +1098,6 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
     }
 
     /**
-     * Starts the actual item playback, correctly determining if the
-     * item is a video or an audio item.
-     *
-     * <em><b>NOTE:</b></em> In order to play videos you will need to specify the
-     * VideoView with {@link EMPlaylistManager#setVideoView(EMVideoView)}
-     */
-    private void startItemPlayback() {
-        if (currentPlaylistItem != null && currentPlaylistItem.isAudio()) {
-            onAudioPlaybackEnded();
-        }
-
-        I currentItem = currentPlaylistItem;
-        seekToNextPlayableItem();
-
-        mediaItemChanged(currentItem);
-
-        if (currentItemIsAudio()) {
-            audioListener.resetRetryCount();
-            playAudioItem();
-        } else if (currentItemIsVideo()) {
-            playVideoItem();
-        } else if (getMediaPlaylistManager().isNextAvailable()) {
-            //We get here if there was an error retrieving the currentPlaylistItem
-            performNext();
-        } else {
-            //At this point there is nothing for us to play, so we stop the service
-            performStop(true);
-        }
-    }
-
-    /**
-     * Starts the actual playback of the specified audio item
-     */
-    private void playAudioItem() {
-        stopVideoPlayback();
-        initializeAudioPlayer();
-        audioFocusHelper.requestFocus();
-
-        boolean isItemDownloaded = isDownloaded(currentPlaylistItem);
-        audioPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
-        audioPlayer.setDataSource(this, Uri.parse(isItemDownloaded ? currentPlaylistItem.getDownloadedMediaUri() : currentPlaylistItem.getMediaUrl()));
-
-        setMediaState(MediaState.PREPARING);
-        setupAsForeground();
-
-        audioPlayer.prepareAsync();
-
-        // If we are streaming from the internet, we want to hold a Wifi lock, which prevents
-        // the Wifi radio from going to sleep while the song is playing. If, on the other hand,
-        // we are NOT streaming, we want to release the lock.
-        if (!isItemDownloaded) {
-            wifiLock.acquire();
-        } else if (wifiLock.isHeld()) {
-            wifiLock.release();
-        }
-    }
-
-    /**
-     * Starts the actual playback of the specified video item.
-     */
-    private void playVideoItem() {
-        stopAudioPlayback();
-        setupAsForeground();
-
-        EMVideoView videoView = getMediaPlaylistManager().getVideoView();
-        if (videoView != null) {
-            videoView.stopPlayback();
-            videoView.setVideoURI(Uri.parse(currentPlaylistItem.getMediaUrl()));
-        }
-    }
-
-    /**
-     * Stops the AudioPlayer from playing.
-     */
-    private void stopAudioPlayback() {
-        audioFocusHelper.abandonFocus();
-
-        if (audioPlayer != null) {
-            audioPlayer.stopPlayback();
-            audioPlayer.reset();
-        }
-    }
-
-    /**
-     * Stops the VideoView from playing if we have access to it.
-     */
-    private void stopVideoPlayback() {
-        EMVideoView videoView = getMediaPlaylistManager().getVideoView();
-        if (videoView != null) {
-            videoView.stopPlayback();
-            videoView.reset();
-        }
-    }
-
-    /**
-     * Reconfigures audioPlayer according to audio focus settings and starts/restarts it. This
-     * method starts/restarts the audioPlayer respecting the current audio focus state. So if
-     * we have focus, it will play normally; if we don't have focus, it will either leave the
-     * audioPlayer paused or set it to a low volume, depending on what is allowed by the
-     * current focus settings.
-     */
-    private void startAudioPlayer() {
-        if (audioPlayer == null) {
-            return;
-        }
-
-        if (audioFocusHelper.getCurrentAudioFocus() == EMAudioFocusHelper.Focus.NO_FOCUS_NO_DUCK) {
-            // If we don't have audio focus and can't duck we have to pause, even if state is playing
-            // Be we stay in the playing state so we know we have to resume playback once we get the focus back.
-            if (audioPlayer.isPlaying()) {
-                audioPlayer.pause();
-                onAudioPlaybackEnded(currentPlaylistItem, audioPlayer.getCurrentPosition(), audioPlayer.getDuration());
-            }
-
-            return;
-        } else if (audioFocusHelper.getCurrentAudioFocus() == EMAudioFocusHelper.Focus.NO_FOCUS_CAN_DUCK) {
-            audioPlayer.setVolume(getAudioDuckVolume(), getAudioDuckVolume());
-        } else {
-            audioPlayer.setVolume(1.0f, 1.0f); // can be loud
-        }
-
-        if (!audioPlayer.isPlaying()) {
-            audioPlayer.start();
-            onAudioPlaybackStarted(currentPlaylistItem, audioPlayer.getCurrentPosition(), audioPlayer.getDuration());
-        }
-    }
-
-    /**
-     * Releases resources used by the service for playback. This includes the "foreground service"
-     * status and notification, the wake locks, and the audioPlayer if requested
-     *
-     * @param releaseAudioPlayer True if the audioPlayer should be released
-     */
-    private void relaxResources(boolean releaseAudioPlayer) {
-        foregroundSetup = false;
-        stopForeground(true);
-
-        if (releaseAudioPlayer) {
-            if (audioPlayer != null) {
-                audioPlayer.reset();
-                audioPlayer.release();
-                audioPlayer = null;
-            }
-
-            getMediaPlaylistManager().setCurrentIndex(Integer.MAX_VALUE);
-        }
-
-        if (wifiLock.isHeld()) {
-            wifiLock.release();
-        }
-    }
-
-    /**
-     * Updates the current MediaState and informs any listening classes.
-     *
-     * @param state The new MediaState
-     */
-    private void setMediaState(MediaState state) {
-        currentState = state;
-        postMediaStateChanged();
-    }
-
-    /**
-     * Iterates through the playList, starting with the current item, until we reach an item we can play.
-     * Normally this will be the current item, however if they don't have network then
-     * it will be the next downloaded item.
-     */
-    private void seekToNextPlayableItem() {
-        I currentItem = getMediaPlaylistManager().getCurrentItem();
-        if (currentItem == null) {
-            currentPlaylistItem = null;
-            return;
-        }
-
-        //Only iterate through the list if we aren't connected to the internet
-        if(!isNetworkAvailable()) {
-            while(currentItem != null && !isDownloaded(currentItem)) {
-                currentItem = getMediaPlaylistManager().next();
-            }
-        }
-
-        //If we are unable to get a next playable item, post a network error
-        if(currentItem == null) {
-            onNoNonNetworkItemsAvailable();
-        }
-
-        currentPlaylistItem = getMediaPlaylistManager().getCurrentItem();
-    }
-
-    /**
-     * Requests the service be transferred to the foreground, initializing the
-     * LockScreen and Notification helpers for playback control.
-     */
-    private void setupAsForeground() {
-        //Sets up the Lock Screen playback controls
-        lockScreenHelper.setLockScreenEnabled(true);
-        lockScreenHelper.setLockScreenBaseInformation(getLockScreenIconRes());
-
-        //Sets up the Notifications
-        notificationHelper.setNotificationsEnabled(true);
-        notificationHelper.setNotificationBaseInformation(getNotificationId(), getNotificationIconRes(), getClass());
-
-        //Starts the service as the foreground audio player
-        startForeground(getNotificationId(), notificationHelper.getNotification(getNotificationClickPendingIntent()));
-        foregroundSetup = true;
-
-        updateLockScreen();
-        updateNotification();
-    }
-
-    /**
-     * Performs the process to update the playback controls and images in the notification
-     * associated with the current playlist item.
-     */
-    private void updateNotification() {
-        if (currentPlaylistItem == null || audioPlayer == null || !foregroundSetup) {
-            return;
-        }
-
-        String title = currentPlaylistItem.getTitle();
-
-        EMNotification.NotificationMediaState mediaState = null;
-
-        //We only want the expanded notification for audio
-        if (currentItemIsAudio()) {
-            mediaState = new EMNotification.NotificationMediaState();
-            mediaState.setNextEnabled(getMediaPlaylistManager().isNextAvailable());
-            mediaState.setPreviousEnabled(getMediaPlaylistManager().isPreviousAvailable());
-            mediaState.setPlaying(audioPlayer.isPlaying());
-        }
-
-        Bitmap bitmap = getLargeNotificationImage();
-        if (bitmap == null) {
-            bitmap = getDefaultLargeNotificationImage();
-        }
-
-        notificationHelper.updateNotificationInformation(getAppName(), title, bitmap, mediaState);
-    }
-
-    /**
-     * Performs the process to update the playback controls and the background
-     * (artwork) image displayed on the lock screen.
-     */
-    private void updateLockScreen() {
-        if (currentPlaylistItem == null || audioPlayer == null || !foregroundSetup) {
-            return;
-        }
-
-        String title = getAppName();
-        String subTitle = currentPlaylistItem.getTitle();
-
-
-        EMNotification.NotificationMediaState mediaState = new EMNotification.NotificationMediaState();
-        mediaState.setNextEnabled(getMediaPlaylistManager().isNextAvailable());
-        mediaState.setPreviousEnabled(getMediaPlaylistManager().isPreviousAvailable());
-        mediaState.setPlaying(audioPlayer.isPlaying());
-
-        lockScreenHelper.updateLockScreenInformation(title, subTitle, getLockScreenArtwork(), mediaState);
-    }
-
-    /**
-     * Called when the current media item has changed, this will update the notification and
-     * lock screen values.
-     *
-     * @param currentItem The new media item
-     */
-    private void mediaItemChanged(I currentItem) {
-        currentMediaType = getMediaPlaylistManager().getCurrentItemType();
-
-        //Validates that the currentPlaylistItem is for the currentItem
-        if (!getMediaPlaylistManager().isPlayingItem(currentPlaylistItem)) {
-            Log.d(TAG, "forcing currentPlaylistItem update");
-            currentPlaylistItem = getMediaPlaylistManager().getCurrentItem();
-        }
-
-        //Starts the notification loading
-        if (currentPlaylistItem != null && (currentItem == null || !currentItem.getThumbnailUrl().equals(currentPlaylistItem.getThumbnailUrl()))) {
-            int size = getResources().getDimensionPixelSize(R.dimen.exomedia_big_notification_height);
-            updateLargeNotificationImage(size, currentPlaylistItem);
-        }
-
-        //Starts the lock screen loading
-        if (currentPlaylistItem != null && (currentItem == null || !currentItem.getArtworkUrl().equalsIgnoreCase(currentPlaylistItem.getArtworkUrl()))) {
-            updateLockScreenArtwork(currentPlaylistItem);
-        }
-
-        postPlaylistItemChanged();
-    }
-
-    /**
      * A class to listen to the EMAudioPlayer events
      */
     private class AudioListener implements MediaPlayer.OnPreparedListener, MediaPlayer.OnCompletionListener, MediaPlayer.OnErrorListener {
@@ -1150,7 +1159,7 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
      * A container that allows us to easily register the appropriate subscribe and produce
      * methods for the {@link EMPlaylistService}.
      */
-    private class EventSubscriptionProvider {
+    private class EventBusMethods {
         private Bus bus;
         private boolean isRegistered;
 

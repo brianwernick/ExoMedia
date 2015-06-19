@@ -6,13 +6,23 @@
 
     <ImageView
         android:id="@+id/exomedia_notification_large_image"
-        android:layout_width="@dimen/exomedia_big_notification_height"
-        android:layout_height="@dimen/exomedia_big_notification_height"
-        android:layout_marginRight="@dimen/exomedia_default_padding"
+        android:layout_width="@dimen/exomedia_big_notification_image_size"
+        android:layout_height="@dimen/exomedia_big_notification_image_size"
+        android:layout_margin="@dimen/exomedia_default_padding"
         android:layout_alignParentLeft="true"
         android:layout_alignParentTop="true"
-        android:scaleType="fitXY"
+        android:scaleType="centerInside"
         tools:background="#ffffff"
+        tools:ignore="ContentDescription"/>
+
+    <ImageView
+        android:layout_width="@dimen/exomedia_big_notification_secondary_image_size"
+        android:layout_height="@dimen/exomedia_big_notification_secondary_image_size"
+        android:layout_margin="@dimen/exomedia_default_padding"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentBottom="true"
+        android:scaleType="centerInside"
+        tools:background="#000000"
         tools:ignore="ContentDescription"/>
 
     <ImageButton
@@ -37,7 +47,7 @@
         android:layout_toLeftOf="@id/exomedia_notification_close"
         android:layout_toRightOf="@id/exomedia_notification_large_image"
         android:paddingLeft="@dimen/exomedia_default_padding"
-        android:paddingTop="@dimen/exomedia_big_notification_top_pad"
+        android:paddingTop="@dimen/exomedia_default_padding"
         android:orientation="vertical">
 
         <TextView

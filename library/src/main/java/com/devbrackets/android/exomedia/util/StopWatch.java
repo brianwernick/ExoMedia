@@ -134,6 +134,17 @@ public class StopWatch {
     }
 
     /**
+     * Forcefully sets the current time for the stopwatch.
+     *
+     * @param time The new stopwatch time in milliseconds
+     */
+    public void overrideCurrentTime(long time) {
+        startTime = System.currentTimeMillis();
+        currentTime = 0;
+        storedTime = time;
+    }
+
+    /**
      * Determines if the stopwatch is currently running
      *
      * @return True if the stopwatch is currently running

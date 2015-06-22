@@ -4,5 +4,5 @@
     <!-- NOTE: the standard notification height is 64dp, and we are limited to 256dp-->
     <dimen name="exomedia_big_notification_image_margin">5dp</dimen>
     <dimen name="exomedia_big_notification_image_size">118dp</dimen>
-    <dimen name="exomedia_big_notification_secondary_image_size">59dp</dimen> <!-- fill a quarter of the image -->
+    <dimen name="exomedia_big_notification_secondary_image_size">39dp</dimen> <!-- fill a ninth of the image -->
 </resources>

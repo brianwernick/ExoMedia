@@ -290,6 +290,22 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
         //Purposefully left blank
     }
 
+    /**
+     * A generic method to determine if media is currently playing.  This is
+     * used to determine the playback state for the notification.
+     *
+     * @return True if media is currently playing
+     */
+    protected boolean isPlaying() {
+        if (currentItemIsAudio()) {
+            return audioPlayer != null && audioPlayer.isPlaying();
+        } else if (currentItemIsVideo()) {
+            return getMediaPlaylistManager().getVideoView() != null && getMediaPlaylistManager().getVideoView().isPlaying();
+        }
+
+        return false;
+    }
+
     @Override
     public IBinder onBind(Intent intent) {
         return null;
@@ -970,7 +986,7 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
      * associated with the current playlist item.
      */
     protected void updateNotification() {
-        if (currentPlaylistItem == null || audioPlayer == null || !foregroundSetup) {
+        if (currentPlaylistItem == null || !foregroundSetup) {
             return;
         }
 
@@ -983,7 +999,7 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
             mediaState = new EMNotification.NotificationMediaState();
             mediaState.setNextEnabled(getMediaPlaylistManager().isNextAvailable());
             mediaState.setPreviousEnabled(getMediaPlaylistManager().isPreviousAvailable());
-            mediaState.setPlaying(audioPlayer.isPlaying());
+            mediaState.setPlaying(isPlaying());
         }
 
         Bitmap bitmap = getLargeNotificationImage();

@@ -33,7 +33,7 @@ public class AudioService extends EMPlaylistService<MediaItem, PlaylistManager> 
     private NotificationTarget notificationImageTarget = new NotificationTarget();
     private LockScreenTarget lockScreenImageTarget = new LockScreenTarget();
 
-    //Picasso is an image loading library
+    //Picasso is an image loading library (NOTE: google now recommends using glide for image loading)
     private Picasso picasso;
 
     @Override
@@ -80,6 +80,12 @@ public class AudioService extends EMPlaylistService<MediaItem, PlaylistManager> 
         }
 
         return defaultLargeNotificationImage;
+    }
+
+    @Nullable
+    @Override
+    protected Bitmap getDefaultLargeNotificationSecondaryImage() {
+        return null;
     }
 
     @Override

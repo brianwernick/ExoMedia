@@ -1,16 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <dimen name="exomedia_min_button_height">44dp</dimen>
-
     <dimen name="exomedia_default_padding">5dp</dimen>
-    <dimen name="exomedia_notification_button_height">44dp</dimen>
+
+    <!-- Notification sizes-->
+    <dimen name="exomedia_notification_button_height">@dimen/exomedia_min_button_height</dimen>
+    <dimen name="exomedia_big_notification_text_pad">5dp</dimen>
+    <dimen name="exomedia_big_notification_image_margin">0dp</dimen>
 
     <!-- NOTE: the standard notification height is 64dp, and we are limited to 256dp-->
     <dimen name="exomedia_big_notification_height">128dp</dimen>
-    <dimen name="exomedia_big_notification_image_size">118dp</dimen> <!-- we have 5dp margins -->
-    <dimen name="exomedia_big_notification_secondary_image_size">59dp</dimen> <!-- fill a quarter of the image -->
-
-    <!-- Values based on the dimens.xml for API 21-->
-    <dimen name="exomedia_big_notification_top_pad">10dp</dimen>
-    <dimen name="exomedia_big_notification_text_pad">5dp</dimen>
+    <dimen name="exomedia_big_notification_image_size">@dimen/exomedia_big_notification_height</dimen>
+    <dimen name="exomedia_big_notification_secondary_image_size">64dp</dimen> <!-- fill a quarter of the image -->
 </resources>

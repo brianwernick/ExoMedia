@@ -30,6 +30,7 @@ class NotificationInfo {
     private String content;
 
     private Bitmap largeImage;
+    private Bitmap secondaryImage;
 
     @DrawableRes
     private int appIcon;
@@ -51,6 +52,10 @@ class NotificationInfo {
 
     public void setLargeImage(@Nullable Bitmap largeImage) {
         this.largeImage = largeImage;
+    }
+
+    public void setSecondaryImage(@Nullable Bitmap secondaryImage) {
+        this.secondaryImage = secondaryImage;
     }
 
     public void setAppIcon(@DrawableRes int appIcon) {
@@ -86,6 +91,11 @@ class NotificationInfo {
     @Nullable
     public Bitmap getLargeImage() {
         return largeImage;
+    }
+
+    @Nullable
+    public Bitmap getSecondaryImage() {
+        return secondaryImage;
     }
 
     @DrawableRes

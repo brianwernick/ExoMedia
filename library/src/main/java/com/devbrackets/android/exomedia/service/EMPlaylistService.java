@@ -115,6 +115,8 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
     protected abstract M getMediaPlaylistManager();
     protected abstract PendingIntent getNotificationClickPendingIntent();
     protected abstract Bitmap getDefaultLargeNotificationImage();
+    @Nullable
+    protected abstract Bitmap getDefaultLargeNotificationSecondaryImage();
 
     /**
      * Retrieves the Drawable resource that specifies the icon to place in the
@@ -242,6 +244,19 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
      */
     @Nullable
     protected Bitmap getLargeNotificationImage() {
+        return null;
+    }
+
+    /**
+     * Retrieves the image that will be displayed in the notification as a secondary
+     * image.  This can be used to specify playback type (e.g. Chromecast).
+     *
+     * This will be called any time the notification is updated
+     *
+     * @return The image to display in the secondary position
+     */
+    @Nullable
+    protected Bitmap getLargeNotificationSecondaryImage() {
         return null;
     }
 
@@ -976,7 +991,12 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
             bitmap = getDefaultLargeNotificationImage();
         }
 
-        notificationHelper.updateNotificationInformation(getAppName(), title, bitmap, mediaState);
+        Bitmap secondaryImage = getLargeNotificationSecondaryImage();
+        if (secondaryImage == null) {
+            secondaryImage = getDefaultLargeNotificationSecondaryImage();
+        }
+
+        notificationHelper.updateNotificationInformation(getAppName(), title, bitmap, secondaryImage, mediaState);
     }
 
     /**

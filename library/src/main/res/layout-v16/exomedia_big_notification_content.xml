@@ -8,7 +8,7 @@
         android:id="@+id/exomedia_notification_large_image"
         android:layout_width="@dimen/exomedia_big_notification_image_size"
         android:layout_height="@dimen/exomedia_big_notification_image_size"
-        android:layout_margin="@dimen/exomedia_default_padding"
+        android:layout_margin="@dimen/exomedia_big_notification_image_margin"
         android:layout_alignParentLeft="true"
         android:layout_alignParentTop="true"
         android:scaleType="centerInside"
@@ -16,9 +16,10 @@
         tools:ignore="ContentDescription"/>
 
     <ImageView
+        android:id="@+id/exomedia_notification_secondary_image"
         android:layout_width="@dimen/exomedia_big_notification_secondary_image_size"
         android:layout_height="@dimen/exomedia_big_notification_secondary_image_size"
-        android:layout_margin="@dimen/exomedia_default_padding"
+        android:layout_margin="@dimen/exomedia_big_notification_image_margin"
         android:layout_alignParentLeft="true"
         android:layout_alignParentBottom="true"
         android:scaleType="centerInside"
@@ -82,7 +83,7 @@
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:layout_alignParentRight="true"
-        android:layout_toRightOf="@+id/exomedia_notification_large_image"
+        android:layout_toRightOf="@id/exomedia_notification_large_image"
         android:divider="?android:listDivider"
         android:gravity="center_horizontal"
         android:orientation="horizontal">

@@ -52,7 +52,7 @@ public class EMNotification {
      * Sets weather notifications are shown when audio is playing or
      * ready for playback (e.g. paused).  The notification information
      * will need to be updated by calling {@link #setNotificationBaseInformation(int, int)}
-     * and {@link #updateNotificationInformation(String, String, android.graphics.Bitmap)} and can be retrieved
+     * and {@link #updateNotificationInformation(String, String, Bitmap, Bitmap)} and can be retrieved
      * with {@link #getNotification(android.app.PendingIntent)}
      *
      * @param enabled True if notifications should be shown
@@ -109,9 +109,10 @@ public class EMNotification {
      * @param title The title to display for the notification (e.g. A song name)
      * @param content A short description or additional information for the notification (e.g. An artists name)
      * @param notificationImage An image to display on the notification (e.g. Album artwork)
+     * @param secondaryNotificationImage An image to display on the notification should be used to indicate playback type (e.g. Chromecast)
      */
-    public void updateNotificationInformation(String title, String content, @Nullable Bitmap notificationImage) {
-        updateNotificationInformation(title, content, notificationImage, null);
+    public void updateNotificationInformation(String title, String content, @Nullable Bitmap notificationImage, @Nullable Bitmap secondaryNotificationImage) {
+        updateNotificationInformation(title, content, notificationImage, secondaryNotificationImage, null);
     }
 
     /**
@@ -121,13 +122,15 @@ public class EMNotification {
      * @param title The title to display for the notification (e.g. A song name)
      * @param content A short description or additional information for the notification (e.g. An artists name)
      * @param notificationImage An image to display on the notification (e.g. Album artwork)
+     * @param secondaryNotificationImage An image to display on the notification should be used to indicate playback type (e.g. Chromecast)
      * @param notificationMediaState The current media state for the expanded (big) notification
      */
-    public void updateNotificationInformation(String title, String content, @Nullable Bitmap notificationImage,
+    public void updateNotificationInformation(String title, String content, @Nullable Bitmap notificationImage, @Nullable Bitmap secondaryNotificationImage,
                                               @Nullable NotificationMediaState notificationMediaState) {
         notificationInfo.setTitle(title);
         notificationInfo.setContent(content);
         notificationInfo.setLargeImage(notificationImage);
+        notificationInfo.setSecondaryImage(secondaryNotificationImage);
         notificationInfo.setMediaState(notificationMediaState);
 
         if (notificationInfo.getShowNotifications()) {
@@ -138,7 +141,7 @@ public class EMNotification {
     /**
      * Returns a fully constructed notification to use when moving a service to the
      * foreground.  This should be called after the notification information is set with
-     * {@link #setNotificationBaseInformation(int, int)} and {@link #updateNotificationInformation(String, String, Bitmap)}.
+     * {@link #setNotificationBaseInformation(int, int)} and {@link #updateNotificationInformation(String, String, Bitmap, Bitmap)}.
      *
      * @param pendingIntent The pending intent to use when the notification itself is clicked
      * @return The constructed notification
@@ -191,6 +194,7 @@ public class EMNotification {
         bigContent.setTextViewText(R.id.exomedia_notification_title, notificationInfo.getTitle());
         bigContent.setTextViewText(R.id.exomedia_notification_content_text, notificationInfo.getContent());
         bigContent.setBitmap(R.id.exomedia_notification_large_image, "setImageBitmap", notificationInfo.getLargeImage());
+        bigContent.setBitmap(R.id.exomedia_notification_secondary_image, "setImageBitmap", notificationInfo.getSecondaryImage());
 
         //Makes sure the play/pause, next, and previous are displayed correctly
         if (notificationInfo.getMediaState() != null) {

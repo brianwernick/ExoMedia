@@ -26,6 +26,7 @@ import android.util.AttributeSet;
 import android.view.View;
 import android.view.animation.AlphaAnimation;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.SeekBar;
@@ -46,7 +47,7 @@ import java.util.Locale;
  * This is a simple abstraction for the EMVideoView to have a single "View" to add
  * or remove for the Default Video Controls.
  */
-class DefaultControls extends RelativeLayout {
+public class DefaultControls extends RelativeLayout {
     private static final long CONTROL_VISIBILITY_ANIMATION_LENGTH = 300;
 
     private TextView currentTime;
@@ -60,6 +61,7 @@ class DefaultControls extends RelativeLayout {
     private StringBuilder formatBuilder;
     private Formatter formatter;
     private EMVideoViewControlsCallback callback;
+    private boolean busPostHandlesEvent = false;
 
     //Remember, 0 is not a valid resourceId
     private int playResourceId = 0;
@@ -101,6 +103,290 @@ class DefaultControls extends RelativeLayout {
         setup(context);
     }
 
+    /**
+     * Sets the bus to use for dispatching Events that correspond to the callbacks
+     * listed in {@link com.devbrackets.android.exomedia.listener.EMVideoViewControlsCallback}
+     *
+     * @param bus The Otto bus to dispatch events on
+     */
+    public void setBus(Bus bus) {
+        this.bus = bus;
+    }
+
+    /**
+     * Sets the parent view to use for determining playback length, position,
+     * state, etc.  This should only be called once, during the setup process
+     *
+     * @param EMVideoView The Parent view to these controls
+     */
+    public void setVideoView(EMVideoView EMVideoView) {
+        this.videoView = EMVideoView;
+    }
+
+    /**
+     * Specifies the callback to use for informing the host app of click events
+     *
+     * @param callback The callback
+     */
+    public void setVideoViewControlsCallback(EMVideoViewControlsCallback callback) {
+        this.callback = callback;
+    }
+
+    /**
+     * Used to inform the controls to finalize their setup.  This
+     * means replacing the loading animation with the PlayPause button
+     */
+    public void loadCompleted() {
+        playPauseButton.setVisibility(View.VISIBLE);
+        previousButton.setVisibility(previousButtonRemoved ? View.INVISIBLE : View.VISIBLE);
+        nextButton.setVisibility(nextButtonRemoved ? View.INVISIBLE : View.VISIBLE);
+        loadingProgress.setVisibility(View.GONE);
+
+        updatePlayPauseImage(videoView.isPlaying());
+    }
+
+    /**
+     * Used to inform the controls to return to the loading stage.
+     * This is the opposite of {@link #loadCompleted()}
+     */
+    public void restartLoading() {
+        playPauseButton.setVisibility(View.INVISIBLE);
+        previousButton.setVisibility(View.INVISIBLE);
+        nextButton.setVisibility(View.INVISIBLE);
+        loadingProgress.setVisibility(View.VISIBLE);
+    }
+
+    /**
+     * Sets the current video position, updating the seek bar
+     * and the current time field
+     *
+     * @param position The position in milliseconds
+     */
+    public void setPosition(long position) {
+        currentTime.setText(formatTime(position));
+        seekBar.setProgress((int) position);
+    }
+
+    /**
+     * Sets the video duration in Milliseconds to display
+     * at the end of the progress bar
+     *
+     * @param duration The duration of the video in milliseconds
+     */
+    public void setDuration(long duration) {
+        endTime.setText(formatTime(duration));
+        seekBar.setMax((int) duration);
+    }
+
+    /**
+     * Performs the progress update on the current time field,
+     * and the seek bar
+     *
+     * @param event The most recent progress
+     */
+    public void setProgressEvent(EMMediaProgressEvent event) {
+        if (!userInteracting) {
+            seekBar.setSecondaryProgress((int) (seekBar.getMax() * event.getBufferPercentFloat()));
+            seekBar.setProgress((int)event.getPosition());
+            currentTime.setText(formatTime(event.getPosition()));
+        }
+    }
+
+    /**
+     * Sets the resource id's to use for the PlayPause button.
+     *
+     * @param playResourceId  The resourceId or 0
+     * @param pauseResourceId The resourceId or 0
+     */
+    public void setPlayPauseImages(@DrawableRes int playResourceId, @DrawableRes int pauseResourceId) {
+        this.playResourceId = playResourceId;
+        this.pauseResourceId = pauseResourceId;
+    }
+
+    /**
+     * Sets the state list drawable resource id to use for the Previous button.
+     *
+     * @param resourceId The resourceId or 0
+     */
+    public void setPreviousImageResource(@DrawableRes int resourceId) {
+        previousButton.setImageResource(resourceId != 0 ? resourceId : R.drawable.exomedia_video_previous);
+    }
+
+    /**
+     * Sets the state list drawable resource id to use for the Next button.
+     *
+     * @param resourceId The resourceId or 0
+     */
+    public void setNextImageResource(@DrawableRes int resourceId) {
+        nextButton.setImageResource(resourceId != 0 ? resourceId : R.drawable.exomedia_video_next);
+    }
+
+    /**
+     * Makes sure the playPause button represents the correct playback state
+     *
+     * @param isPlaying If the video is currently playing
+     */
+    public void updatePlayPauseImage(boolean isPlaying) {
+        if (isPlaying) {
+            playPauseButton.setImageResource(pauseResourceId != 0 ? pauseResourceId : R.drawable.exomedia_ic_pause_white);
+        } else {
+            playPauseButton.setImageResource(playResourceId != 0 ? playResourceId : R.drawable.exomedia_ic_play_arrow_white);
+        }
+    }
+
+    /**
+     * Sets the button state for the Previous button.  This will just
+     * change the images specified with {@link #setPreviousImageResource(int)},
+     * or use the defaults if they haven't been set, and block any click events.
+     * </p>
+     * This method will NOT re-add buttons that have previously been removed with
+     * {@link #setNextButtonRemoved(boolean)}.
+     *
+     * @param enabled If the Previous button is enabled [default: false]
+     */
+    public void setPreviousButtonEnabled(boolean enabled) {
+        previousButton.setEnabled(enabled);
+    }
+
+    /**
+     * Sets the button state for the Next button.  This will just
+     * change the images specified with {@link #setNextImageResource(int)},
+     * or use the defaults if they haven't been set, and block any click events.
+     * </p>
+     * This method will NOT re-add buttons that have previously been removed with
+     * {@link #setPreviousButtonRemoved(boolean)}.
+     *
+     * @param enabled If the Next button is enabled [default: false]
+     */
+    public void setNextButtonEnabled(boolean enabled) {
+        nextButton.setEnabled(enabled);
+    }
+
+    /**
+     * Adds or removes the Previous button.  This will change the visibility
+     * of the button, if you want to change the enabled/disabled images see {@link #setPreviousButtonEnabled(boolean)}
+     *
+     * @param removed If the Previous button should be removed [default: true]
+     */
+    public void setPreviousButtonRemoved(boolean removed) {
+        previousButton.setVisibility(removed ? View.INVISIBLE : View.VISIBLE);
+        previousButtonRemoved = removed;
+    }
+
+    /**
+     * Adds or removes the Next button.  This will change the visibility
+     * of the button, if you want to change the enabled/disabled images see {@link #setNextButtonEnabled(boolean)}
+     *
+     * @param removed If the Next button should be removed [default: true]
+     */
+    public void setNextButtonRemoved(boolean removed) {
+        nextButton.setVisibility(removed ? View.INVISIBLE : View.VISIBLE);
+        nextButtonRemoved = removed;
+    }
+
+    /**
+     * Immediately starts the animation to show the controls
+     */
+    public void show() {
+        //Makes sure we don't have a hide animation scheduled
+        visibilityHandler.removeCallbacksAndMessages(null);
+        clearAnimation();
+
+        animateVisibility(true);
+    }
+
+    /**
+     * After the specified delay the view will be hidden.  If the user is interacting
+     * with the controls then we wait until after they are done to start the delay.
+     *
+     * @param delay The delay in milliseconds to wait to start the hide animation
+     */
+    public void hideDelayed(long delay) {
+        hideDelay = delay;
+
+        if (delay < 0 || !canViewHide) {
+            return;
+        }
+
+        //If the user is interacting with controls we don't want to start the delayed hide yet
+        if (userInteracting) {
+            return;
+        }
+
+        visibilityHandler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                animateVisibility(false);
+            }
+        }, delay);
+    }
+
+    /**
+     * Sets weather this control can be hidden.
+     *
+     * @param canHide If this control can be hidden [default: true]
+     */
+    public void setCanHide(boolean canHide) {
+        canViewHide = canHide;
+    }
+
+    /**
+     * Sets weather the control functionality should treat the button clicks
+     * as handled when a bus event is posted.  This is to make Bus events
+     * act like the callbacks set with {@link #setVideoViewControlsCallback(EMVideoViewControlsCallback)}
+     *
+     * @param finish True if the Bus events should act as handling the button clicks
+     */
+    public void setFinishOnBusEvents(boolean finish) {
+        busPostHandlesEvent = finish;
+    }
+
+    /**
+     * Performs the functionality when the PlayPause button is clicked.  This
+     * includes invoking the callback method if it is enabled, posting the bus
+     * event, and toggling the video playback.
+     */
+    private void onPlayPauseClick() {
+        if (callback != null && callback.onPlayPauseClicked()) {
+            return;
+        }
+
+        if (bus != null) {
+            bus.post(new EMMediaPlayPauseEvent());
+            if (busPostHandlesEvent) {
+                return;
+            }
+        }
+
+        //toggles the playback
+        boolean playing = videoView.isPlaying();
+        if (playing) {
+            videoView.pause();
+        } else {
+            videoView.start();
+        }
+    }
+
+    private void onPreviousClick() {
+        if (callback != null && callback.onPreviousClicked()) {
+            return;
+        }
+
+        if (bus != null) {
+            bus.post(new EMMediaPreviousEvent());
+        }
+    }
+
+    private void onNextClick() {
+        if (callback != null && callback.onNextClicked()) {
+            return;
+        }
+
+        if (bus != null) {
+            bus.post(new EMMediaNextEvent());
+        }
+    }
+
     private void setup(Context context) {
         View.inflate(context, R.layout.exomedia_video_controls_overlay, this);
 
@@ -135,292 +421,6 @@ class DefaultControls extends RelativeLayout {
                 onNextClick();
             }
         });
-    }
-
-    /**
-     * Sets the bus to use for dispatching Events that correspond to the callbacks
-     * listed in {@link com.devbrackets.android.exomedia.listener.EMVideoViewControlsCallback}
-     *
-     * @param bus The Otto bus to dispatch events on
-     */
-    void setBus(Bus bus) {
-        this.bus = bus;
-    }
-
-    /**
-     * Sets the parent view to use for determining playback length, position,
-     * state, etc.  This should only be called once, during the setup process
-     *
-     * @param EMVideoView The Parent view to these controls
-     */
-    void setVideoView(EMVideoView EMVideoView) {
-        this.videoView = EMVideoView;
-    }
-
-    /**
-     * Specifies the callback to use for informing the host app of click events
-     *
-     * @param callback The callback
-     */
-    void setVideoViewControlsCallback(EMVideoViewControlsCallback callback) {
-        this.callback = callback;
-    }
-
-    /**
-     * Used to inform the controls to finalize their setup.  This
-     * means replacing the loading animation with the PlayPause button
-     */
-    void loadCompleted() {
-        playPauseButton.setVisibility(View.VISIBLE);
-        previousButton.setVisibility(previousButtonRemoved ? View.INVISIBLE : View.VISIBLE);
-        nextButton.setVisibility(nextButtonRemoved ? View.INVISIBLE : View.VISIBLE);
-        loadingProgress.setVisibility(View.GONE);
-
-        updatePlayPauseImage(videoView.isPlaying());
-    }
-
-    /**
-     * Used to inform the controls to return to the loading stage.
-     * This is the opposite of {@link #loadCompleted()}
-     */
-    void restartLoading() {
-        playPauseButton.setVisibility(View.INVISIBLE);
-        previousButton.setVisibility(View.INVISIBLE);
-        nextButton.setVisibility(View.INVISIBLE);
-        loadingProgress.setVisibility(View.VISIBLE);
-    }
-
-    /**
-     * Sets the current video position, updating the seek bar
-     * and the current time field
-     *
-     * @param position The position in milliseconds
-     */
-    void setPosition(long position) {
-        currentTime.setText(formatTime(position));
-        seekBar.setProgress((int) position);
-    }
-
-    /**
-     * Sets the video duration in Milliseconds to display
-     * at the end of the progress bar
-     *
-     * @param duration The duration of the video in milliseconds
-     */
-    void setDuration(long duration) {
-        endTime.setText(formatTime(duration));
-        seekBar.setMax((int) duration);
-    }
-
-    /**
-     * Performs the progress update on the current time field,
-     * and the seek bar
-     *
-     * @param event The most recent progress
-     */
-    void setProgressEvent(EMMediaProgressEvent event) {
-        if (!userInteracting) {
-            seekBar.setSecondaryProgress((int) (seekBar.getMax() * event.getBufferPercentFloat()));
-            seekBar.setProgress((int)event.getPosition());
-            currentTime.setText(formatTime(event.getPosition()));
-        }
-    }
-
-    /**
-     * Sets the resource id's to use for the PlayPause button.
-     *
-     * @param playResourceId  The resourceId or 0
-     * @param pauseResourceId The resourceId or 0
-     */
-    void setPlayPauseImages(@DrawableRes int playResourceId, @DrawableRes int pauseResourceId) {
-        this.playResourceId = playResourceId;
-        this.pauseResourceId = pauseResourceId;
-    }
-
-    /**
-     * Sets the state list drawable resource id to use for the Previous button.
-     *
-     * @param resourceId The resourceId or 0
-     */
-    void setPreviousImageResource(@DrawableRes int resourceId) {
-        previousButton.setImageResource(resourceId != 0 ? resourceId : R.drawable.exomedia_video_previous);
-    }
-
-    /**
-     * Sets the state list drawable resource id to use for the Next button.
-     *
-     * @param resourceId The resourceId or 0
-     */
-    void setNextImageResource(@DrawableRes int resourceId) {
-        nextButton.setImageResource(resourceId != 0 ? resourceId : R.drawable.exomedia_video_next);
-    }
-
-    /**
-     * Makes sure the playPause button represents the correct playback state
-     *
-     * @param isPlaying If the video is currently playing
-     */
-    void updatePlayPauseImage(boolean isPlaying) {
-        if (isPlaying) {
-            playPauseButton.setImageResource(pauseResourceId != 0 ? pauseResourceId : R.drawable.exomedia_ic_pause_white);
-        } else {
-            playPauseButton.setImageResource(playResourceId != 0 ? playResourceId : R.drawable.exomedia_ic_play_arrow_white);
-        }
-    }
-
-    /**
-     * Sets the button state for the Previous button.  This will just
-     * change the images specified with {@link #setPreviousImageResource(int)},
-     * or use the defaults if they haven't been set, and block any click events.
-     * </p>
-     * This method will NOT re-add buttons that have previously been removed with
-     * {@link #setNextButtonRemoved(boolean)}.
-     *
-     * @param enabled If the Previous button is enabled [default: false]
-     */
-    void setPreviousButtonEnabled(boolean enabled) {
-        //The tag is used in the onClick methods to determine if they should perform callbacks or post events
-        previousButton.setTag(enabled);
-        previousButton.setEnabled(enabled);
-    }
-
-    /**
-     * Sets the button state for the Next button.  This will just
-     * change the images specified with {@link #setNextImageResource(int)},
-     * or use the defaults if they haven't been set, and block any click events.
-     * </p>
-     * This method will NOT re-add buttons that have previously been removed with
-     * {@link #setPreviousButtonRemoved(boolean)}.
-     *
-     * @param enabled If the Next button is enabled [default: false]
-     */
-    void setNextButtonEnabled(boolean enabled) {
-        //The tag is used in the onClick methods to determine if they should perform callbacks or post events
-        nextButton.setTag(enabled);
-        nextButton.setEnabled(enabled);
-    }
-
-    /**
-     * Adds or removes the Previous button.  This will change the visibility
-     * of the button, if you want to change the enabled/disabled images see {@link #setPreviousButtonEnabled(boolean)}
-     *
-     * @param removed If the Previous button should be removed [default: true]
-     */
-    public void setPreviousButtonRemoved(boolean removed) {
-        previousButton.setVisibility(removed ? View.INVISIBLE : View.VISIBLE);
-        previousButtonRemoved = removed;
-    }
-
-    /**
-     * Adds or removes the Next button.  This will change the visibility
-     * of the button, if you want to change the enabled/disabled images see {@link #setNextButtonEnabled(boolean)}
-     *
-     * @param removed If the Next button should be removed [default: true]
-     */
-    public void setNextButtonRemoved(boolean removed) {
-        nextButton.setVisibility(removed ? View.INVISIBLE : View.VISIBLE);
-        nextButtonRemoved = removed;
-    }
-
-    /**
-     * Immediately starts the animation to show the controls
-     */
-    void show() {
-        //Makes sure we don't have a hide animation scheduled
-        visibilityHandler.removeCallbacksAndMessages(null);
-        clearAnimation();
-
-        animateVisibility(true);
-    }
-
-    /**
-     * After the specified delay the view will be hidden.  If the user is interacting
-     * with the controls then we wait until after they are done to start the delay.
-     *
-     * @param delay The delay in milliseconds to wait to start the hide animation
-     */
-    void hideDelayed(long delay) {
-        hideDelay = delay;
-
-        if (delay < 0 || !canViewHide) {
-            return;
-        }
-
-        //If the user is interacting with controls we don't want to start the delayed hide yet
-        if (userInteracting) {
-            return;
-        }
-
-        visibilityHandler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                animateVisibility(false);
-            }
-        }, delay);
-    }
-
-    /**
-     * Sets weather this control can be hidden.
-     *
-     * @param canHide If this control can be hidden [default: true]
-     */
-    void setCanHide(boolean canHide) {
-        canViewHide = canHide;
-    }
-
-    /**
-     * Performs the functionality when the PlayPause button is clicked.  This
-     * includes invoking the callback method if it is enabled, posting the bus
-     * event, and toggling the video playback.
-     */
-    private void onPlayPauseClick() {
-        if (callback != null && callback.onPlayPauseClicked()) {
-            return;
-        }
-
-        if (bus != null) {
-            bus.post(new EMMediaPlayPauseEvent());
-        }
-
-        //toggles the playback
-        boolean playing = videoView.isPlaying();
-        if (playing) {
-            videoView.pause();
-        } else {
-            videoView.start();
-        }
-
-        updatePlayPauseImage(!playing);
-    }
-
-    private void onPreviousClick() {
-        //If the tag is null or if the button is not enabled, then don't inform anything
-        if (previousButton.getTag() == null || !(Boolean)previousButton.getTag()) {
-            return;
-        }
-
-        if (callback != null && callback.onPreviousClicked()) {
-            return;
-        }
-
-        if (bus != null) {
-            bus.post(new EMMediaPreviousEvent());
-        }
-    }
-
-    private void onNextClick() {
-        //If the tag is null or if the button is not enabled, then don't inform anything
-        if (nextButton.getTag() == null || !(Boolean)nextButton.getTag()) {
-            return;
-        }
-
-        if (callback != null && callback.onNextClicked()) {
-            return;
-        }
-
-        if (bus != null) {
-            bus.post(new EMMediaNextEvent());
-        }
     }
 
     /**

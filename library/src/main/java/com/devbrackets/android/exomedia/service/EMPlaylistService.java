@@ -538,17 +538,15 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
      * events registered with {@link #registerBus(Bus)}
      */
     protected void performPlayPause() {
-        if (currentItemIsAudio()) {
-            if (audioPlayer.isPlaying() || pausedForFocusLoss) {
-                pausedForFocusLoss = false;
-                performPause();
-            } else {
-                performPlay();
-            }
-
-            updateNotification();
-            updateLockScreen();
+        if (isPlaying() || pausedForFocusLoss) {
+            pausedForFocusLoss = false;
+            performPause();
+        } else {
+            performPlay();
         }
+
+        updateNotification();
+        updateLockScreen();
     }
 
     /**
@@ -595,9 +593,12 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
      * events registered with {@link #registerBus(Bus)}
      */
     protected void performSeekStarted() {
-        if (currentItemIsAudio() && audioPlayer.isPlaying()) {
+        EMVideoView videoView = getMediaPlaylistManager().getVideoView();
+        boolean isPlaying = (currentItemIsAudio() && audioPlayer.isPlaying()) || (currentItemIsVideo() && videoView != null && videoView.isPlaying());
+
+        if (isPlaying) {
             pausedForSeek = true;
-            audioPlayer.pause();
+            performPause();
         }
     }
 
@@ -609,13 +610,11 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
      * events registered with {@link #registerBus(Bus)}
      */
     protected void performSeekEnded(int newPosition) {
-        if (currentItemIsAudio()) {
-            audioPlayer.seekTo(newPosition);
+        performSeek(newPosition);
 
-            if (pausedForSeek) {
-                audioPlayer.start();
-                pausedForSeek = false;
-            }
+        if (pausedForSeek) {
+            performPlay();
+            pausedForSeek = false;
         }
     }
 
@@ -709,6 +708,11 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
     protected void performSeek(int position) {
         if (currentItemIsAudio() && (currentState == MediaState.PLAYING || currentState == MediaState.PAUSED)) {
             audioPlayer.seekTo(position);
+        } else if (currentItemIsVideo()) {
+            EMVideoView videoView = getMediaPlaylistManager().getVideoView();
+            if (videoView != null) {
+                videoView.seekTo(position);
+            }
         }
     }
 
@@ -719,8 +723,14 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
     protected void performPause() {
         if (currentItemIsAudio()) {
             audioPlayer.pause();
-            setMediaState(MediaState.PAUSED);
+        } else if (currentItemIsVideo()) {
+            EMVideoView videoView = getMediaPlaylistManager().getVideoView();
+            if (videoView != null) {
+                videoView.pause();
+            }
         }
+
+        setMediaState(MediaState.PAUSED);
     }
 
     /**
@@ -730,8 +740,14 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
     protected void performPlay() {
         if (currentItemIsAudio()) {
             audioPlayer.start();
-            setMediaState(MediaState.PLAYING);
+        } else if (currentItemIsVideo()) {
+            EMVideoView videoView = getMediaPlaylistManager().getVideoView();
+            if (videoView != null) {
+                videoView.start();
+            }
         }
+
+        setMediaState(MediaState.PLAYING);
     }
 
     /**
@@ -990,18 +1006,14 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
             return;
         }
 
-        String title = currentPlaylistItem.getTitle();
+        //Generate the notification state
+        EMNotification.NotificationMediaState mediaState = new EMNotification.NotificationMediaState();
+        mediaState.setNextEnabled(getMediaPlaylistManager().isNextAvailable());
+        mediaState.setPreviousEnabled(getMediaPlaylistManager().isPreviousAvailable());
+        mediaState.setPlaying(isPlaying());
 
-        EMNotification.NotificationMediaState mediaState = null;
 
-        //We only want the expanded notification for audio
-        if (currentItemIsAudio()) {
-            mediaState = new EMNotification.NotificationMediaState();
-            mediaState.setNextEnabled(getMediaPlaylistManager().isNextAvailable());
-            mediaState.setPreviousEnabled(getMediaPlaylistManager().isPreviousAvailable());
-            mediaState.setPlaying(isPlaying());
-        }
-
+        //Update the big notification images
         Bitmap bitmap = getLargeNotificationImage();
         if (bitmap == null) {
             bitmap = getDefaultLargeNotificationImage();
@@ -1012,6 +1024,8 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
             secondaryImage = getDefaultLargeNotificationSecondaryImage();
         }
 
+        //Finish up the update
+        String title = currentPlaylistItem.getTitle();
         notificationHelper.updateNotificationInformation(getAppName(), title, bitmap, secondaryImage, mediaState);
     }
 
@@ -1020,19 +1034,20 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
      * (artwork) image displayed on the lock screen.
      */
     protected void updateLockScreen() {
-        if (currentPlaylistItem == null || audioPlayer == null || !foregroundSetup) {
+        if (currentPlaylistItem == null || !foregroundSetup) {
             return;
         }
 
-        String title = getAppName();
-        String subTitle = currentPlaylistItem.getTitle();
-
-
+        //Generate the notification state
         EMNotification.NotificationMediaState mediaState = new EMNotification.NotificationMediaState();
         mediaState.setNextEnabled(getMediaPlaylistManager().isNextAvailable());
         mediaState.setPreviousEnabled(getMediaPlaylistManager().isPreviousAvailable());
-        mediaState.setPlaying(audioPlayer.isPlaying());
+        mediaState.setPlaying(isPlaying());
 
+
+        //Finish up the update
+        String title = getAppName();
+        String subTitle = currentPlaylistItem.getTitle();
         lockScreenHelper.updateLockScreenInformation(title, subTitle, getLockScreenArtwork(), mediaState);
     }
 

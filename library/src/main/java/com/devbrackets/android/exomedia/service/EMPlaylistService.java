@@ -190,7 +190,7 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
     }
 
     /**
-     * Called when the {@link #performStop(boolean)} has been called.
+     * Called when the {@link #performStop()} has been called.
      *
      * @param playlistItem The playlist item that has been stopped
      */
@@ -675,14 +675,8 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
     /**
      * Performs the functionality to stop the media playback.  This will perform any cleanup
      * and stop the service.
-     *
-     * @param force True if the playback should be stopped regardless of the current media state.
      */
-    protected void performStop(boolean force) {
-        if (currentState != MediaState.PLAYING && currentState != MediaState.PAUSED && !force) {
-            return;
-        }
-
+    protected void performStop() {
         setMediaState(MediaState.STOPPED);
         if (currentPlaylistItem != null) {
             onMediaStopped(currentPlaylistItem);
@@ -813,7 +807,7 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
             performNext();
         } else {
             //At this point there is nothing for us to play, so we stop the service
-            performStop(true);
+            performStop();
         }
     }
 
@@ -854,7 +848,8 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
         EMVideoView videoView = getMediaPlaylistManager().getVideoView();
         if (videoView != null) {
             videoView.stopPlayback();
-            videoView.setVideoURI(Uri.parse(currentPlaylistItem.getMediaUrl()));
+            boolean isItemDownloaded = isDownloaded(currentPlaylistItem);
+            videoView.setVideoURI(Uri.parse(isItemDownloaded ? currentPlaylistItem.getDownloadedMediaUri() : currentPlaylistItem.getMediaUrl()));
         }
     }
 
@@ -1106,7 +1101,7 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
                 break;
 
             case EMRemoteActions.ACTION_STOP:
-                performStop(false);
+                performStop();
                 break;
 
             case EMRemoteActions.ACTION_SEEK_STARTED:
@@ -1240,7 +1235,7 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
 
         @Subscribe
         public void onStopEvent(EMMediaStopEvent event) {
-            performStop(false);
+            performStop();
         }
 
         @Subscribe

@@ -92,8 +92,8 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
     private EMExoPlayer emExoPlayer;
 
     protected DefaultControls defaultControls;
+    protected Repeater pollRepeater = new Repeater();
     private EMProgressCallback progressCallback;
-    private Repeater pollRepeater = new Repeater();
     private StopWatch overriddenPositionStopWatch = new StopWatch();
 
     private AudioCapabilities audioCapabilities;

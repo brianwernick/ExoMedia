@@ -700,8 +700,10 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
      * @param position The position to seek to in milliseconds
      */
     protected void performSeek(int position) {
-        if (currentItemIsAudio() && (currentState == MediaState.PLAYING || currentState == MediaState.PAUSED)) {
-            audioPlayer.seekTo(position);
+        if (currentItemIsAudio()) {
+            if (audioPlayer != null) {
+                audioPlayer.seekTo(position);
+            }
         } else if (currentItemIsVideo()) {
             EMVideoView videoView = getMediaPlaylistManager().getVideoView();
             if (videoView != null) {
@@ -716,7 +718,9 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
      */
     protected void performPause() {
         if (currentItemIsAudio()) {
-            audioPlayer.pause();
+            if (audioPlayer != null) {
+                audioPlayer.pause();
+            }
         } else if (currentItemIsVideo()) {
             EMVideoView videoView = getMediaPlaylistManager().getVideoView();
             if (videoView != null) {
@@ -733,7 +737,9 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
      */
     protected void performPlay() {
         if (currentItemIsAudio()) {
-            audioPlayer.start();
+            if (audioPlayer != null) {
+                audioPlayer.start();
+            }
         } else if (currentItemIsVideo()) {
             EMVideoView videoView = getMediaPlaylistManager().getVideoView();
             if (videoView != null) {

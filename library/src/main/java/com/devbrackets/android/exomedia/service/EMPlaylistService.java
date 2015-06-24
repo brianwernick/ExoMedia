@@ -386,6 +386,10 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
      */
     @Override
     public boolean onAudioFocusGained() {
+        if (!currentItemIsAudio()) {
+            return false;
+        }
+
         if (!audioPlayer.isPlaying() && pausedForFocusLoss) {
             audioPlayer.start();
         } else {
@@ -400,6 +404,10 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
      */
     @Override
     public boolean onAudioFocusLost(boolean canDuckAudio) {
+        if (!currentItemIsAudio()) {
+            return false;
+        }
+
         if (audioFocusHelper.getCurrentAudioFocus() == EMAudioFocusHelper.Focus.NO_FOCUS_NO_DUCK) {
             if (audioPlayer.isPlaying()) {
                 pausedForFocusLoss = true;
@@ -798,10 +806,8 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
             onAudioPlaybackEnded();
         }
 
-        I currentItem = currentPlaylistItem;
         seekToNextPlayableItem();
-
-        mediaItemChanged(currentItem);
+        mediaItemChanged(currentPlaylistItem);
 
         if (currentItemIsAudio()) {
             audioListener.resetRetryCount();
@@ -1158,11 +1164,21 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
 
         @Override
         public void onCompletion(MediaPlayer mp) {
+            //Make sure to only perform this functionality when playing audio
+            if (!currentItemIsAudio()) {
+                return;
+            }
+
             performMediaCompletion();
         }
 
         @Override
         public boolean onError(MediaPlayer mp, int what, int extra) {
+            //Make sure to only perform this functionality when playing audio
+            if (!currentItemIsAudio()) {
+                return false;
+            }
+
             //The retry count is a workaround for when the EMAudioPlayer will occasionally fail to load valid content due to the MediaPlayer on pre 4.1 devices
             if (++retryCount <= MAX_RETRY_COUNT) {
                 Log.d(TAG, "Retrying audio playback.  Retry count: " + retryCount);
@@ -1181,6 +1197,11 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
 
         @Override
         public void onPrepared(MediaPlayer mp) {
+            //Make sure to only perform this functionality when playing audio
+            if (!currentItemIsAudio()) {
+                return;
+            }
+
             retryCount = 0;
             setMediaState(MediaState.PLAYING);
             startAudioPlayer();

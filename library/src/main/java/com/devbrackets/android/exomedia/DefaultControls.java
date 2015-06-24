@@ -132,27 +132,36 @@ public class DefaultControls extends RelativeLayout {
     }
 
     /**
+     * Used to update the control view visibilities to indicate that the video
+     * is loading.  This is different from using {@link #loadCompleted()} and {@link #restartLoading()}
+     * because those update additional information.
+     *
+     * @param isLoading True if loading progress should be shown
+     */
+    public void setLoading(boolean isLoading) {
+        playPauseButton.setVisibility(isLoading ? View.GONE : View.VISIBLE);
+        previousButton.setVisibility(isLoading || previousButtonRemoved ? View.INVISIBLE : View.VISIBLE);
+        nextButton.setVisibility(isLoading || nextButtonRemoved ? View.INVISIBLE : View.VISIBLE);
+        loadingProgress.setVisibility(isLoading ? View.VISIBLE : View.INVISIBLE);
+    }
+
+    /**
      * Used to inform the controls to finalize their setup.  This
      * means replacing the loading animation with the PlayPause button
      */
     public void loadCompleted() {
-        playPauseButton.setVisibility(View.VISIBLE);
-        previousButton.setVisibility(previousButtonRemoved ? View.INVISIBLE : View.VISIBLE);
-        nextButton.setVisibility(nextButtonRemoved ? View.INVISIBLE : View.VISIBLE);
-        loadingProgress.setVisibility(View.GONE);
-
+        setLoading(false);
         updatePlayPauseImage(videoView.isPlaying());
     }
+
+
 
     /**
      * Used to inform the controls to return to the loading stage.
      * This is the opposite of {@link #loadCompleted()}
      */
     public void restartLoading() {
-        playPauseButton.setVisibility(View.INVISIBLE);
-        previousButton.setVisibility(View.INVISIBLE);
-        nextButton.setVisibility(View.INVISIBLE);
-        loadingProgress.setVisibility(View.VISIBLE);
+        setLoading(true);
     }
 
     /**

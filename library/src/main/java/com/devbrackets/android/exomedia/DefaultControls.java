@@ -209,6 +209,8 @@ public class DefaultControls extends RelativeLayout {
     public void setPlayPauseImages(@DrawableRes int playResourceId, @DrawableRes int pauseResourceId) {
         this.playResourceId = playResourceId;
         this.pauseResourceId = pauseResourceId;
+
+        updatePlayPauseImage(videoView != null && videoView.isPlaying());
     }
 
     /**

@@ -85,7 +85,7 @@
         android:layout_alignParentRight="true"
         android:layout_toRightOf="@id/exomedia_notification_large_image"
         android:divider="?android:listDivider"
-        android:gravity="center_horizontal"
+        android:gravity="center"
         android:orientation="horizontal">
 
         <ImageButton

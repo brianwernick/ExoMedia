@@ -197,8 +197,10 @@ public class DefaultControls extends RelativeLayout {
      * @param duration The duration of the video in milliseconds
      */
     public void setDuration(long duration) {
-        endTime.setText(formatTime(duration));
-        seekBar.setMax((int) duration);
+        if (duration != seekBar.getMax()) {
+            endTime.setText(formatTime(duration));
+            seekBar.setMax((int) duration);
+        }
     }
 
     /**

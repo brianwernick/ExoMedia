@@ -21,6 +21,7 @@ import android.content.Context;
 import android.os.Build;
 import android.os.Handler;
 import android.support.annotation.DrawableRes;
+import android.support.annotation.Nullable;
 import android.text.format.DateUtils;
 import android.util.AttributeSet;
 import android.view.View;
@@ -48,6 +49,11 @@ import java.util.Locale;
  */
 public class DefaultControls extends RelativeLayout {
     private static final long CONTROL_VISIBILITY_ANIMATION_LENGTH = 300;
+
+    public interface SeekCallbacks {
+        boolean onSeekStarted();
+        boolean onSeekEnded(int seekTime);
+    }
 
     private TextView currentTime;
     private TextView endTime;
@@ -79,6 +85,8 @@ public class DefaultControls extends RelativeLayout {
 
     private EMVideoView videoView;
     private Bus bus;
+
+    private SeekCallbacks seekCallbacks;
 
     public DefaultControls(Context context) {
         super(context);
@@ -154,14 +162,21 @@ public class DefaultControls extends RelativeLayout {
         updatePlayPauseImage(videoView.isPlaying());
     }
 
-
-
     /**
      * Used to inform the controls to return to the loading stage.
      * This is the opposite of {@link #loadCompleted()}
      */
     public void restartLoading() {
         setLoading(true);
+    }
+
+    /**
+     * Sets the callbacks to inform of progress seek events
+     *
+     * @param callbacks The callbacks to inform
+     */
+    public void setSeekCallbacks(@Nullable SeekCallbacks callbacks) {
+        this.seekCallbacks = callbacks;
     }
 
     /**
@@ -508,6 +523,9 @@ public class DefaultControls extends RelativeLayout {
             }
 
             seekToTime = progress;
+            if (seekCallbacks != null && seekCallbacks.onSeekStarted()) {
+                return;
+            }
 
             if (currentTime != null) {
                 currentTime.setText(formatTime(progress));
@@ -530,6 +548,10 @@ public class DefaultControls extends RelativeLayout {
         @Override
         public void onStopTrackingTouch(SeekBar seekBar) {
             userInteracting = false;
+            if (seekCallbacks != null && seekCallbacks.onSeekEnded(seekToTime)) {
+                return;
+            }
+
             videoView.seekTo(seekToTime);
 
             if (pausedForSeek) {

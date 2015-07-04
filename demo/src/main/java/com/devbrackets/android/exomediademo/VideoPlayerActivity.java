@@ -17,12 +17,11 @@ public class VideoPlayerActivity extends AppCompatActivity implements MediaPlaye
         setContentView(R.layout.video_player_activity);
 
         emVideoView = (EMVideoView)findViewById(R.id.video_play_activity_video_view);
-        emVideoView.setDefaultControlsEnabled(true);
         emVideoView.setOnPreparedListener(this);
 
         //For now we just picked an arbitrary item to play.  More can be found at
-        //https://github.com/google/ExoPlayer/blob/master/demo/src/main/java/com/google/android/exoplayer/demo/Samples.java
-        emVideoView.setVideoURI(Uri.parse("https://devimages.apple.com.edgekey.net/streaming/examples/bipbop_4x3/bipbop_4x3_variant.m3u8"));
+        //https://archive.org/details/more_animation
+        emVideoView.setVideoURI(Uri.parse("https://archive.org/download/Popeye_forPresident/Popeye_forPresident_512kb.mp4"));
     }
 
     @Override

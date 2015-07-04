@@ -18,6 +18,7 @@ package com.devbrackets.android.exomedia;
 
 import android.annotation.TargetApi;
 import android.content.Context;
+import android.content.res.TypedArray;
 import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
 import android.media.MediaPlayer;
@@ -113,27 +114,27 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
 
     public EMVideoView(Context context) {
         super(context);
-        setup(context);
+        setup(context, null);
     }
 
     public EMVideoView(Context context, AttributeSet attrs) {
         super(context, attrs);
-        setup(context);
+        setup(context, attrs);
     }
 
     @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     public EMVideoView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
-        setup(context);
+        setup(context, attrs);
     }
 
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     public EMVideoView(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
         super(context, attrs, defStyleAttr, defStyleRes);
-        setup(context);
+        setup(context, attrs);
     }
 
-    private void setup(Context context) {
+    private void setup(Context context, @Nullable AttributeSet attrs) {
         useExo = Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN && EMDeviceUtil.isDeviceCTSCompliant();
         pollRepeater.setRepeatListener(new Repeater.RepeatListener() {
             @Override
@@ -155,6 +156,30 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
         });
 
         initView(context);
+        readAttributes(context, attrs);
+    }
+
+    /**
+     * Reads the attributes associated with this view, setting any values found
+     *
+     * @param context The context to retrieve the styled attributes with
+     * @param attrs The {@link AttributeSet} to retrieve the values from
+     */
+    private void readAttributes(Context context, @Nullable AttributeSet attrs) {
+        if (attrs == null || isInEditMode()) {
+            return;
+        }
+
+        TypedArray typedArray = context.obtainStyledAttributes(attrs, R.styleable.EMVideoView);
+        if (typedArray == null) {
+            return;
+        }
+
+        //Updates the DefaultControls
+        boolean enableDefaultControls = typedArray.getBoolean(R.styleable.EMVideoView_defaultControlsEnabled, false);
+        setDefaultControlsEnabled(enableDefaultControls);
+
+        typedArray.recycle();
     }
 
     private void initView(Context context) {

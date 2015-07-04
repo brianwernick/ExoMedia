@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="EMVideoView">
+        <attr name="defaultControlsEnabled" format="boolean" />
+    </declare-styleable>
+</resources>

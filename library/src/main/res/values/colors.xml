@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- DefaultControls button selector colors -->
+    <color name="exomedia_default_controls_button_normal">#FFFFFFFF</color>
+    <color name="exomedia_default_controls_button_pressed">#FFE0E0E0</color>
+    <color name="exomedia_default_controls_button_disabled">#FF757575</color>
+</resources>

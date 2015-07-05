@@ -18,10 +18,12 @@ package com.devbrackets.android.exomedia;
 
 import android.annotation.TargetApi;
 import android.content.Context;
+import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Handler;
 import android.support.annotation.DrawableRes;
 import android.support.annotation.Nullable;
+import android.support.v4.graphics.drawable.DrawableCompat;
 import android.text.format.DateUtils;
 import android.util.AttributeSet;
 import android.view.View;
@@ -67,6 +69,11 @@ public class DefaultControls extends RelativeLayout {
     private Formatter formatter;
     private EMVideoViewControlsCallback callback;
     private boolean busPostHandlesEvent = false;
+
+    private Drawable defaultPlayDrawable;
+    private Drawable defaultPauseDrawable;
+    private Drawable defaultPreviousDrawable;
+    private Drawable defaultNextDrawable;
 
     //Remember, 0 is not a valid resourceId
     private int playResourceId = 0;
@@ -236,7 +243,11 @@ public class DefaultControls extends RelativeLayout {
      * @param resourceId The resourceId or 0
      */
     public void setPreviousImageResource(@DrawableRes int resourceId) {
-        previousButton.setImageResource(resourceId != 0 ? resourceId : R.drawable.exomedia_video_previous);
+        if (resourceId != 0) {
+            previousButton.setImageResource(resourceId);
+        } else {
+            previousButton.setImageDrawable(defaultPreviousDrawable);
+        }
     }
 
     /**
@@ -245,7 +256,11 @@ public class DefaultControls extends RelativeLayout {
      * @param resourceId The resourceId or 0
      */
     public void setNextImageResource(@DrawableRes int resourceId) {
-        nextButton.setImageResource(resourceId != 0 ? resourceId : R.drawable.exomedia_video_next);
+        if (resourceId != 0) {
+            nextButton.setImageResource(resourceId);
+        } else {
+            nextButton.setImageDrawable(defaultNextDrawable);
+        }
     }
 
     /**
@@ -255,9 +270,17 @@ public class DefaultControls extends RelativeLayout {
      */
     public void updatePlayPauseImage(boolean isPlaying) {
         if (isPlaying) {
-            playPauseButton.setImageResource(pauseResourceId != 0 ? pauseResourceId : R.drawable.exomedia_ic_pause_white);
+            if (pauseResourceId != 0) {
+                playPauseButton.setImageResource(pauseResourceId);
+            } else {
+                playPauseButton.setImageDrawable(defaultPauseDrawable);
+            }
         } else {
-            playPauseButton.setImageResource(playResourceId != 0 ? playResourceId : R.drawable.exomedia_ic_play_arrow_white);
+            if (playResourceId != 0) {
+                playPauseButton.setImageResource(playResourceId);
+            } else {
+                playPauseButton.setImageDrawable(defaultPlayDrawable);
+            }
         }
     }
 
@@ -369,6 +392,35 @@ public class DefaultControls extends RelativeLayout {
     }
 
     /**
+     * Updates the drawables used for the buttons to AppCompatTintDrawables
+     */
+    private void updateButtonDrawables() {
+        defaultPlayDrawable = DrawableCompat.wrap(getDrawable(R.drawable.exomedia_ic_play_arrow_white));
+        DrawableCompat.setTintList(defaultPlayDrawable, getResources().getColorStateList(R.color.exomedia_default_controls_button_selector));
+
+        defaultPauseDrawable = DrawableCompat.wrap(getDrawable(R.drawable.exomedia_ic_pause_white));
+        DrawableCompat.setTintList(defaultPauseDrawable, getResources().getColorStateList(R.color.exomedia_default_controls_button_selector));
+        playPauseButton.setImageDrawable(defaultPlayDrawable);
+
+        defaultPreviousDrawable = DrawableCompat.wrap(getDrawable(R.drawable.exomedia_video_previous));
+        DrawableCompat.setTintList(defaultPreviousDrawable, getResources().getColorStateList(R.color.exomedia_default_controls_button_selector));
+        previousButton.setImageDrawable(defaultPreviousDrawable);
+
+        defaultNextDrawable = DrawableCompat.wrap(getDrawable(R.drawable.exomedia_video_next));
+        DrawableCompat.setTintList(defaultNextDrawable, getResources().getColorStateList(R.color.exomedia_default_controls_button_selector));
+        nextButton.setImageDrawable(defaultNextDrawable);
+    }
+
+    private Drawable getDrawable(@DrawableRes int resourceId) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            return getResources().getDrawable(resourceId, getContext().getTheme());
+        }
+
+        //noinspection deprecation - depreciated in API 22
+        return getResources().getDrawable(resourceId);
+    }
+
+    /**
      * Performs the functionality when the PlayPause button is clicked.  This
      * includes invoking the callback method if it is enabled, posting the bus
      * event, and toggling the video playback.
@@ -448,6 +500,8 @@ public class DefaultControls extends RelativeLayout {
                 onNextClick();
             }
         });
+
+        updateButtonDrawables();
     }
 
     /**

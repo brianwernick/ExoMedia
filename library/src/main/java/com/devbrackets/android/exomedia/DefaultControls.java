@@ -402,11 +402,11 @@ public class DefaultControls extends RelativeLayout {
         DrawableCompat.setTintList(defaultPauseDrawable, getResources().getColorStateList(R.color.exomedia_default_controls_button_selector));
         playPauseButton.setImageDrawable(defaultPlayDrawable);
 
-        defaultPreviousDrawable = DrawableCompat.wrap(getDrawable(R.drawable.exomedia_video_previous));
+        defaultPreviousDrawable = DrawableCompat.wrap(getDrawable(R.drawable.exomedia_ic_skip_previous_white));
         DrawableCompat.setTintList(defaultPreviousDrawable, getResources().getColorStateList(R.color.exomedia_default_controls_button_selector));
         previousButton.setImageDrawable(defaultPreviousDrawable);
 
-        defaultNextDrawable = DrawableCompat.wrap(getDrawable(R.drawable.exomedia_video_next));
+        defaultNextDrawable = DrawableCompat.wrap(getDrawable(R.drawable.exomedia_ic_skip_next_white));
         DrawableCompat.setTintList(defaultNextDrawable, getResources().getColorStateList(R.color.exomedia_default_controls_button_selector));
         nextButton.setImageDrawable(defaultNextDrawable);
     }

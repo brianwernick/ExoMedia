@@ -273,11 +273,23 @@ public class EMAudioPlayer implements AudioCapabilitiesReceiver.Listener {
 
     /**
      * Sets the source path for the audio item.  This path can be a web address (e.g. http://) or
+     * an absolute local path (e.g. file://). Uses MP3 as the default for media type.
+     *
+     * @param context The applications context that owns the media
+     * @param uri The Uri representing the path to the audio item
+     */
+    public void setDataSource(Context context, Uri uri) {
+        setDataSource(context, uri, MediaUtil.MediaType.MP3);
+    }
+
+
+    /**
+     * Sets the source path for the audio item.  This path can be a web address (e.g. http://) or
      * an absolute local path (e.g. file://)
      *
-     * @param context           The applications context that owns the media
-     * @param uri               The Uri representing the path to the audio item
-     * @param defaultMediaType  The MediaType to use when auto-detection fails
+     * @param context The applications context that owns the media
+     * @param uri The Uri representing the path to the audio item
+     * @param defaultMediaType The MediaType to use when auto-detection fails
      */
     public void setDataSource(Context context, Uri uri, MediaUtil.MediaType defaultMediaType) {
         if (!useExo) {
@@ -300,17 +312,6 @@ public class EMAudioPlayer implements AudioCapabilitiesReceiver.Listener {
         listenerMux.setNotifiedPrepared(false);
         overrideDuration(-1);
         setPositionOffset(0);
-    }
-
-    /**
-     * Sets the source path for the audio item.  This path can be a web address (e.g. http://) or
-     * an absolute local path (e.g. file://). Uses MP3 as the default for media type.
-     *
-     * @param context The applications context that owns the media
-     * @param uri     The Uri representing the path to the audio item
-     */
-    public void setDataSource(Context context, Uri uri) {
-        setDataSource(context, uri, MediaUtil.MediaType.MP3);
     }
 
     public void prepareAsync() {

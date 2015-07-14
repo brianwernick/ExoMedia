@@ -236,14 +236,15 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
      *
      * @param renderType The RenderType to use for creating the correct RenderBuilder
      * @param uri The video's Uri
+     * @param defaultMediaType  The MediaType to use when auto-detection fails
      * @return The appropriate RenderBuilder
      */
-    private RenderBuilder getRendererBuilder(VideoType renderType, Uri uri) {
+    private RenderBuilder getRendererBuilder(VideoType renderType, Uri uri, MediaUtil.MediaType defaultMediaType) {
         switch (renderType) {
             case HLS:
                 return new HlsRenderBuilder(getContext(), getUserAgent(), uri.toString(), audioCapabilities);
             default:
-                return new RenderBuilder(getContext(), getUserAgent(), uri.toString(), MediaUtil.MediaType.MP4);
+                return new RenderBuilder(getContext(), getUserAgent(), uri.toString(), defaultMediaType);
         }
     }
 
@@ -617,11 +618,23 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
      */
 
     /**
-     * Sets the Uri location for the video to play
+     * Sets the Uri location for the video to play.  If the media format cannot be determine
+     * MP4 will be assumed.  You can also manually specify the media format with
+     * {@link #setVideoURI(Uri, MediaUtil.MediaType)}
      *
      * @param uri The video's Uri
      */
     public void setVideoURI(Uri uri) {
+        setVideoURI(uri, MediaUtil.MediaType.MP4);
+    }
+
+    /**
+     * Sets the Uri location for the video to play
+     *
+     * @param uri The video's Uri
+     * @param defaultMediaType The MediaType to use when auto-detection fails
+     */
+    public void setVideoURI(Uri uri, MediaUtil.MediaType defaultMediaType) {
         videoUri = uri;
 
         if (!useExo) {
@@ -630,7 +643,7 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
             if (uri == null) {
                 emExoPlayer.replaceRenderBuilder(null);
             } else {
-                emExoPlayer.replaceRenderBuilder(getRendererBuilder(VideoType.get(uri), uri));
+                emExoPlayer.replaceRenderBuilder(getRendererBuilder(VideoType.get(uri), uri, defaultMediaType));
                 listenerMux.setNotifiedCompleted(false);
             }
 

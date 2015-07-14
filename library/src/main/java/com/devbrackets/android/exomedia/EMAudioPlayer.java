@@ -213,16 +213,17 @@ public class EMAudioPlayer implements AudioCapabilitiesReceiver.Listener {
     /**
      * Creates and returns the correct render builder for the specified AudioType and uri.
      *
-     * @param renderType The RenderType to use for creating the correct RenderBuilder
-     * @param uri        The audio item's Uri
-     * @return The appropriate RenderBuilder
+     * @param renderType        The RenderType to use for creating the correct RenderBuilder
+     * @param uri               The audio item's Uri
+     * @param defaultMediaType  The MediaType to use when auto-detection fails
+     * @return                  The appropriate RenderBuilder
      */
-    private RenderBuilder getRendererBuilder(AudioType renderType, Uri uri) {
+    private RenderBuilder getRendererBuilder(AudioType renderType, Uri uri, MediaUtil.MediaType defaultMediaType) {
         switch (renderType) {
             case HLS:
                 return new HlsRenderBuilder(context, getUserAgent(), uri.toString(), audioCapabilities);
             default:
-                return new RenderBuilder(context, getUserAgent(), uri.toString(), MediaUtil.MediaType.MP3);
+                return new RenderBuilder(context, getUserAgent(), uri.toString(), defaultMediaType);
         }
     }
 
@@ -274,10 +275,11 @@ public class EMAudioPlayer implements AudioCapabilitiesReceiver.Listener {
      * Sets the source path for the audio item.  This path can be a web address (e.g. http://) or
      * an absolute local path (e.g. file://)
      *
-     * @param context The applications context that owns the media
-     * @param uri The Uri representing the path to the audio item
+     * @param context           The applications context that owns the media
+     * @param uri               The Uri representing the path to the audio item
+     * @param defaultMediaType  The MediaType to use when auto-detection fails
      */
-    public void setDataSource(Context context, Uri uri) {
+    public void setDataSource(Context context, Uri uri, MediaUtil.MediaType defaultMediaType) {
         if (!useExo) {
             try {
                 mediaPlayer.setDataSource(context, uri);
@@ -286,7 +288,7 @@ public class EMAudioPlayer implements AudioCapabilitiesReceiver.Listener {
             }
         } else {
             if (uri != null) {
-                emExoPlayer.replaceRenderBuilder(getRendererBuilder(AudioType.get(uri), uri));
+                emExoPlayer.replaceRenderBuilder(getRendererBuilder(AudioType.get(uri), uri, defaultMediaType));
                 listenerMux.setNotifiedCompleted(false);
             } else {
                 emExoPlayer.replaceRenderBuilder(null);
@@ -298,6 +300,17 @@ public class EMAudioPlayer implements AudioCapabilitiesReceiver.Listener {
         listenerMux.setNotifiedPrepared(false);
         overrideDuration(-1);
         setPositionOffset(0);
+    }
+
+    /**
+     * Sets the source path for the audio item.  This path can be a web address (e.g. http://) or
+     * an absolute local path (e.g. file://). Uses MP3 as the default for media type.
+     *
+     * @param context The applications context that owns the media
+     * @param uri     The Uri representing the path to the audio item
+     */
+    public void setDataSource(Context context, Uri uri) {
+        setDataSource(context, uri, MediaUtil.MediaType.MP3);
     }
 
     public void prepareAsync() {

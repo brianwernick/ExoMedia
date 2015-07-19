@@ -47,7 +47,7 @@ import com.devbrackets.android.exomedia.util.EMDeviceUtil;
 import com.devbrackets.android.exomedia.util.MediaUtil;
 import com.devbrackets.android.exomedia.util.Repeater;
 import com.devbrackets.android.exomedia.util.StopWatch;
-import com.google.android.exoplayer.VideoSurfaceView;
+import com.devbrackets.android.exomedia.widget.VideoSurfaceView;
 import com.google.android.exoplayer.audio.AudioCapabilities;
 import com.google.android.exoplayer.audio.AudioCapabilitiesReceiver;
 import com.squareup.otto.Bus;
@@ -992,7 +992,7 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
         public void onVideoSizeChanged(int width, int height, float pixelWidthHeightRatio) {
             //Makes sure we have the correct aspect ratio
             float videoAspectRatio = height == 0 ? 1 : (width * pixelWidthHeightRatio) / height;
-            exoVideoSurfaceView.setVideoWidthHeightRatio(videoAspectRatio);
+            exoVideoSurfaceView.setAspectRatio(videoAspectRatio);
 
             //Sets the horizontal shutter (top and bottom) sizes
             int shutterHeight = calculateVerticalShutterSize(height);

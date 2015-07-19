@@ -47,11 +47,13 @@ import com.google.android.exoplayer.chunk.MultiTrackChunkSource;
 import com.google.android.exoplayer.drm.StreamingDrmSessionManager;
 import com.google.android.exoplayer.hls.HlsSampleSource;
 import com.google.android.exoplayer.metadata.MetadataTrackRenderer;
+import com.google.android.exoplayer.text.Cue;
 import com.google.android.exoplayer.text.TextRenderer;
 import com.google.android.exoplayer.upstream.DefaultBandwidthMeter;
 import com.google.android.exoplayer.util.PlayerControl;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -464,11 +466,6 @@ public class EMExoPlayer implements ExoPlayer.Listener, ChunkSampleSource.EventL
         }
     }
 
-    @Override
-    public void onText(String text) {
-        processText(text);
-    }
-
     public MetadataTrackRenderer.MetadataRenderer<Map<String, Object>> getId3MetadataRenderer() {
         return new MetadataTrackRenderer.MetadataRenderer<Map<String, Object>>() {
             @Override
@@ -511,6 +508,11 @@ public class EMExoPlayer implements ExoPlayer.Listener, ChunkSampleSource.EventL
 
     @Override
     public void onUpstreamDiscarded(int sourceId, int mediaStartTimeMs, int mediaEndTimeMs) {
+        //Purposefully left blank
+    }
+
+    @Override
+    public void onCues(List<Cue> list) {
         //Purposefully left blank
     }
 

@@ -23,6 +23,8 @@ import android.os.Build;
 
 import com.devbrackets.android.exomedia.exoplayer.EMExoPlayer;
 import com.devbrackets.android.exomedia.listener.RendererBuilderCallback;
+import com.google.android.exoplayer.DefaultLoadControl;
+import com.google.android.exoplayer.LoadControl;
 import com.google.android.exoplayer.MediaCodecAudioTrackRenderer;
 import com.google.android.exoplayer.MediaCodecUtil;
 import com.google.android.exoplayer.MediaCodecVideoTrackRenderer;
@@ -37,6 +39,7 @@ import com.google.android.exoplayer.hls.HlsSampleSource;
 import com.google.android.exoplayer.metadata.Id3Parser;
 import com.google.android.exoplayer.metadata.MetadataTrackRenderer;
 import com.google.android.exoplayer.upstream.DataSource;
+import com.google.android.exoplayer.upstream.DefaultAllocator;
 import com.google.android.exoplayer.upstream.DefaultBandwidthMeter;
 import com.google.android.exoplayer.upstream.DefaultUriDataSource;
 import com.google.android.exoplayer.util.ManifestFetcher;
@@ -51,8 +54,8 @@ import java.util.Map;
  */
 @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
 public class HlsRenderBuilder extends RenderBuilder implements ManifestCallback<HlsPlaylist> {
-    private static final int DOWNSTREAM_RENDER_COUNT = 3;
-    private static final long REQUESTED_BUFFER_DURATION_MS = 40000;
+    private static final int BUFFER_SEGMENT_SIZE = 256 * 1024;
+    private static final int BUFFER_SEGMENTS = 64;
 
     private final AudioCapabilities audioCapabilities;
 
@@ -80,6 +83,7 @@ public class HlsRenderBuilder extends RenderBuilder implements ManifestCallback<
 
     @Override
     public void onSingleManifest(HlsPlaylist playlist) {
+        LoadControl loadControl = new DefaultLoadControl(new DefaultAllocator(BUFFER_SEGMENT_SIZE));
         DefaultBandwidthMeter bandwidthMeter = new DefaultBandwidthMeter();
 
         //Calculates the Chunk variant indices
@@ -100,9 +104,8 @@ public class HlsRenderBuilder extends RenderBuilder implements ManifestCallback<
         HlsChunkSource chunkSource = new HlsChunkSource(dataSource, uri, playlist, bandwidthMeter,
                 variantIndices, HlsChunkSource.ADAPTIVE_MODE_SPLICE, audioCapabilities);
 
-        HlsSampleSource sampleSource = new HlsSampleSource(chunkSource, true, DOWNSTREAM_RENDER_COUNT, REQUESTED_BUFFER_SIZE,
-                REQUESTED_BUFFER_DURATION_MS, player.getMainHandler(), player, EMExoPlayer.RENDER_VIDEO_INDEX);
-
+        HlsSampleSource sampleSource = new HlsSampleSource(chunkSource, loadControl,
+                BUFFER_SEGMENTS * BUFFER_SEGMENT_SIZE, true, player.getMainHandler(), player, EMExoPlayer.RENDER_VIDEO_INDEX);
 
         //Create the renderers
         MediaCodecVideoTrackRenderer videoRenderer = new MediaCodecVideoTrackRenderer(sampleSource,

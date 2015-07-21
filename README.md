@@ -26,7 +26,7 @@ The latest AAR (Android Archive) files can be downloaded from JCenter [ExoMedia]
 Or included in your gradle dependencies
 
 ```groovy
-compile 'com.devbrackets.android:exomedia:2.2.2'
+compile 'com.devbrackets.android:exomedia:2.2.3'
 ```
 
 Additionally, if you use ProGuard you will need to add the following rule
@@ -41,14 +41,17 @@ The EMVideoView (EM for ExoMedia) can be added in your layout files like any oth
 
 ```xml
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-				   android:layout_width="match_parent"
-				   android:layout_height="match_parent">
+                xmlns:EMVideoView="http://schemas.android.com/apk/res-auto"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
 
-	<com.devbrackets.android.exomedia.EMVideoView
-			android:id="@+id/video_play_activity_video_view"
-			android:layout_width="match_parent"
-			android:layout_height="match_parent"/>
+    <com.devbrackets.android.exomedia.EMVideoView
+        android:id="@+id/video_play_activity_video_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        EMVideoView:defaultControlsEnabled="true"/>
 </RelativeLayout>
+
 ```
 
 While in your Activity or Fragment you treat it like a standard Android VideoView
@@ -56,12 +59,11 @@ While in your Activity or Fragment you treat it like a standard Android VideoVie
 ```java
 private void setupVideoView() {
 	EMVideoView emVideoView = (EMVideoView)findViewById(R.id.video_play_activity_video_view);
-	emVideoView.setDefaultControlsEnabled(true);
 	emVideoView.setOnPreparedListener(this);
 
-	//For now we just picked an arbitrary item to play.  More can be found at
-	//https://github.com/google/ExoPlayer/blob/master/demo/src/main/java/com/google/android/exoplayer/demo/Samples.java
-	emVideoView.setVideoURI(Uri.parse("https://devimages.apple.com.edgekey.net/streaming/examples/bipbop_4x3/bipbop_4x3_variant.m3u8"));
+    //For now we just picked an arbitrary item to play.  More can be found at
+    //https://archive.org/details/more_animation
+    emVideoView.setVideoURI(Uri.parse("https://archive.org/download/Popeye_forPresident/Popeye_forPresident_512kb.mp4"));
 }
 
 @Override
@@ -101,4 +103,4 @@ under [Attribution 4.0 International][2]
  [2]: http://creativecommons.org/licenses/by/4.0/
  [3]: https://bintray.com/brianwernick/maven/ExoMedia/view#files
  [4]: http://devbrackets.com/dev/libs/exomedia.html
- [5]: http://devbrackets.com/dev/libs/docs/exomedia/2.2.2/index.html
+ [5]: http://devbrackets.com/dev/libs/docs/exomedia/2.2.3/index.html

@@ -21,7 +21,7 @@
         android:layout_alignParentLeft="true"
         android:background="@android:color/black"/>
 
-    <com.google.android.exoplayer.VideoSurfaceView
+    <com.devbrackets.android.exomedia.widget.VideoSurfaceView
         android:id="@+id/exomedia_exo_video_surface"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

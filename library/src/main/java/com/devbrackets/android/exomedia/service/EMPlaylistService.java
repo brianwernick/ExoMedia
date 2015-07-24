@@ -1287,7 +1287,7 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
 
         @Subscribe
         public void onAllowedMediaTypeChangeEvent(EMMediaAllowedTypeChangedEvent event) {
-            updateAllowedMediaType(event.allowedType);
+            updateAllowedMediaType(event.getAllowedType());
         }
 
         @Produce

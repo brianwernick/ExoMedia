@@ -142,7 +142,7 @@ public class AudioPlayerActivity extends AppCompatActivity implements EMPlaylist
     private void updateCurrentPlaybackInformation() {
         EMPlaylistItemChangedEvent itemChangedEvent = playlistManager.getCurrentItemChangedEvent();
         if (itemChangedEvent != null) {
-            onPlaylistItemChanged(itemChangedEvent.currentItem, itemChangedEvent.mediaType, itemChangedEvent.hasNext, itemChangedEvent.hasPrevious);
+            onPlaylistItemChanged(itemChangedEvent.getCurrentItem(), itemChangedEvent.getMediaType(), itemChangedEvent.hasNext(), itemChangedEvent.hasPrevious());
         }
 
         onMediaStateChanged(playlistManager.getCurrentMediaState());

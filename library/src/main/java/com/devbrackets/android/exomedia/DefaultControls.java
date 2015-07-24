@@ -24,7 +24,6 @@ import android.os.Handler;
 import android.support.annotation.DrawableRes;
 import android.support.annotation.Nullable;
 import android.support.v4.graphics.drawable.DrawableCompat;
-import android.text.format.DateUtils;
 import android.util.AttributeSet;
 import android.view.View;
 import android.view.animation.AlphaAnimation;
@@ -40,10 +39,8 @@ import com.devbrackets.android.exomedia.event.EMMediaPreviousEvent;
 import com.devbrackets.android.exomedia.event.EMMediaProgressEvent;
 import com.devbrackets.android.exomedia.event.EMVideoViewControlVisibilityEvent;
 import com.devbrackets.android.exomedia.listener.EMVideoViewControlsCallback;
+import com.devbrackets.android.exomedia.util.TimeFormatUtil;
 import com.squareup.otto.Bus;
-
-import java.util.Formatter;
-import java.util.Locale;
 
 /**
  * This is a simple abstraction for the EMVideoView to have a single "View" to add
@@ -65,8 +62,6 @@ public class DefaultControls extends RelativeLayout {
     private ImageButton nextButton;
     private ProgressBar loadingProgress;
 
-    private StringBuilder formatBuilder;
-    private Formatter formatter;
     private EMVideoViewControlsCallback callback;
     private boolean busPostHandlesEvent = false;
 
@@ -193,7 +188,7 @@ public class DefaultControls extends RelativeLayout {
      * @param position The position in milliseconds
      */
     public void setPosition(long position) {
-        currentTime.setText(formatTime(position));
+        currentTime.setText(TimeFormatUtil.formatMs(position));
         seekBar.setProgress((int) position);
     }
 
@@ -205,7 +200,7 @@ public class DefaultControls extends RelativeLayout {
      */
     public void setDuration(long duration) {
         if (duration != seekBar.getMax()) {
-            endTime.setText(formatTime(duration));
+            endTime.setText(TimeFormatUtil.formatMs(duration));
             seekBar.setMax((int) duration);
         }
     }
@@ -219,8 +214,8 @@ public class DefaultControls extends RelativeLayout {
     public void setProgressEvent(EMMediaProgressEvent event) {
         if (!userInteracting) {
             seekBar.setSecondaryProgress((int) (seekBar.getMax() * event.getBufferPercentFloat()));
-            seekBar.setProgress((int)event.getPosition());
-            currentTime.setText(formatTime(event.getPosition()));
+            seekBar.setProgress((int) event.getPosition());
+            currentTime.setText(TimeFormatUtil.formatMs(event.getPosition()));
         }
     }
 
@@ -469,9 +464,6 @@ public class DefaultControls extends RelativeLayout {
     private void setup(Context context) {
         View.inflate(context, R.layout.exomedia_video_controls_overlay, this);
 
-        formatBuilder = new StringBuilder();
-        formatter = new Formatter(formatBuilder, Locale.getDefault());
-
         currentTime = (TextView) findViewById(R.id.exomedia_controls_current_time);
         endTime = (TextView) findViewById(R.id.exomedia_controls_end_time);
         seekBar = (SeekBar) findViewById(R.id.exomedia_controls_video_seek);
@@ -524,26 +516,6 @@ public class DefaultControls extends RelativeLayout {
     }
 
     /**
-     * Formats the specified millisecond time to a human readable format
-     * in the form of (Hours : Minutes : Seconds)
-     *
-     * @param time The time in milliseconds to format
-     * @return The human readable time
-     */
-    private String formatTime(long time) {
-        long seconds = (time % DateUtils.MINUTE_IN_MILLIS) / DateUtils.SECOND_IN_MILLIS;
-        long minutes = (time % DateUtils.HOUR_IN_MILLIS) / DateUtils.MINUTE_IN_MILLIS;
-        long hours = (time % DateUtils.DAY_IN_MILLIS) / DateUtils.HOUR_IN_MILLIS;
-
-        formatBuilder.setLength(0);
-        if (hours > 0) {
-            return formatter.format("%d:%02d:%02d", hours, minutes, seconds).toString();
-        }
-
-        return formatter.format("%02d:%02d", minutes, seconds).toString();
-    }
-
-    /**
      * Performs the control visibility animation for showing or hiding
      * this view
      *
@@ -584,7 +556,7 @@ public class DefaultControls extends RelativeLayout {
             }
 
             if (currentTime != null) {
-                currentTime.setText(formatTime(progress));
+                currentTime.setText(TimeFormatUtil.formatMs(progress));
             }
         }
 

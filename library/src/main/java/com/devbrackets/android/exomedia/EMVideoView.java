@@ -536,6 +536,44 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
     }
 
     /**
+     * Sets the button state for the Rewind button on the default controls; see
+     * {@link #setDefaultControlsEnabled(boolean)}.
+     * {@link #setDefaultControlsEnabled(boolean)} must be called prior to this.
+     * <p/>
+     * This will just change the images specified with {@link #setRewindImageResource(int)},
+     * or use the defaults if they haven't been set, and block any click events.
+     * </p>
+     * This method will NOT re-add buttons that have previously been removed with
+     * {@link #setRewindButtonRemoved(boolean)}.
+     *
+     * @param enabled If the Rewind button is enabled [default: false]
+     */
+    public void setRewindButtonEnabled(boolean enabled) {
+        if (defaultControls != null) {
+            defaultControls.setRewindButtonEnabled(enabled);
+        }
+    }
+
+    /**
+     * Sets the button state for the Fast Forward button on the default controls; see
+     * {@link #setDefaultControlsEnabled(boolean)}.
+     * {@link #setDefaultControlsEnabled(boolean)} must be called prior to this.
+     * <p/>
+     * This will just change the images specified with {@link #setFastForwardImageResource(int)},
+     * or use the defaults if they haven't been set, and block any click events.
+     * </p>
+     * This method will NOT re-add buttons that have previously been removed with
+     * {@link #setFastForwardButtonRemoved(boolean)}.
+     *
+     * @param enabled If the Fast Forward button is enabled [default: false]
+     */
+    public void setFastForwardButtonEnabled(boolean enabled) {
+        if (defaultControls != null) {
+            defaultControls.setFastForwardButtonEnabled(enabled);
+        }
+    }
+
+    /**
      * Sets the EMVideoViewControlsCallback to be used.  {@link #setDefaultControlsEnabled(boolean)} must
      * be called prior to this.
      *
@@ -586,6 +624,30 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
     }
 
     /**
+     * Sets the state list drawable resource id to use for the Rewind button.
+     * {@link #setDefaultControlsEnabled(boolean)} must be called prior to this.
+     *
+     * @param resourceId The resourceId or 0
+     */
+    public void setRewindImageResource(@DrawableRes int resourceId) {
+        if (defaultControls != null) {
+            defaultControls.setRewindImageResource(resourceId);
+        }
+    }
+
+    /**
+     * Sets the state list drawable resource id to use for the Fast Forward button.
+     * {@link #setDefaultControlsEnabled(boolean)} must be called prior to this.
+     *
+     * @param resourceId The resourceId or 0
+     */
+    public void setFastForwardImageResource(@DrawableRes int resourceId) {
+        if (defaultControls != null) {
+            defaultControls.setFastForwardImageResource(resourceId);
+        }
+    }
+
+    /**
      * Adds or removes the Previous button.  This will change the visibility
      * of the button, if you want to change the enabled/disabled images see {@link #setPreviousButtonEnabled(boolean)}
      * {@link #setDefaultControlsEnabled(boolean)} must be called prior to this.
@@ -610,6 +672,33 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
             defaultControls.setNextButtonRemoved(removed);
         }
     }
+
+    /**
+     * Adds or removes the Rewind button.  This will change the visibility
+     * of the button, if you want to change the enabled/disabled images see {@link #setRewindButtonEnabled(boolean)}
+     * {@link #setDefaultControlsEnabled(boolean)} must be called prior to this.
+     *
+     * @param removed If the Rewind button should be removed [default: true]
+     */
+    public void setRewindButtonRemoved(boolean removed) {
+        if (defaultControls != null) {
+            defaultControls.setRewindButtonRemoved(removed);
+        }
+    }
+
+    /**
+     * Adds or removes the Fast Forward button.  This will change the visibility
+     * of the button, if you want to change the enabled/disabled images see {@link #setFastForwardButtonEnabled(boolean)}
+     * {@link #setDefaultControlsEnabled(boolean)} must be called prior to this.
+     *
+     * @param removed If the Fast Forward button should be removed [default: true]
+     */
+    public void setFastForwardButtonRemoved(boolean removed) {
+        if (defaultControls != null) {
+            defaultControls.setFastForwardButtonRemoved(removed);
+        }
+    }
+
 
     /**
      * *************************************

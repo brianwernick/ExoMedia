@@ -28,6 +28,7 @@ import android.util.AttributeSet;
 import android.view.View;
 import android.view.animation.AlphaAnimation;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.SeekBar;
@@ -61,6 +62,12 @@ public class DefaultControls extends RelativeLayout {
     private ImageButton previousButton;
     private ImageButton nextButton;
     private ProgressBar loadingProgress;
+    private LinearLayout controlsContainer;
+
+    @Nullable //Only available in the leanback (tv) layout
+    private ImageButton fastForwardButton;
+    @Nullable //Only available in the leanback (tv) layout
+    private ImageButton rewindButton;
 
     private EMVideoViewControlsCallback callback;
     private boolean busPostHandlesEvent = false;
@@ -69,13 +76,12 @@ public class DefaultControls extends RelativeLayout {
     private Drawable defaultPauseDrawable;
     private Drawable defaultPreviousDrawable;
     private Drawable defaultNextDrawable;
+    private Drawable defaultRewindDrawable;
+    private Drawable defaultFastForwardDrawable;
 
     //Remember, 0 is not a valid resourceId
     private int playResourceId = 0;
     private int pauseResourceId = 0;
-
-    private boolean previousButtonRemoved = true;
-    private boolean nextButtonRemoved = true;
 
     private boolean pausedForSeek = false;
     private long hideDelay = -1;
@@ -149,9 +155,7 @@ public class DefaultControls extends RelativeLayout {
      * @param isLoading True if loading progress should be shown
      */
     public void setLoading(boolean isLoading) {
-        playPauseButton.setVisibility(isLoading ? View.GONE : View.VISIBLE);
-        previousButton.setVisibility(isLoading || previousButtonRemoved ? View.INVISIBLE : View.VISIBLE);
-        nextButton.setVisibility(isLoading || nextButtonRemoved ? View.INVISIBLE : View.VISIBLE);
+        controlsContainer.setVisibility(isLoading ? View.GONE : View.VISIBLE);
         loadingProgress.setVisibility(isLoading ? View.VISIBLE : View.INVISIBLE);
     }
 
@@ -259,6 +263,42 @@ public class DefaultControls extends RelativeLayout {
     }
 
     /**
+     * Sets the state list drawable resource id to use for the Rewind button.
+     * <b><em>NOTE:</em></b> The Rewind button is only shown on TV layouts
+     *
+     * @param resourceId The resourceId or 0
+     */
+    public void setRewindImageResource(@DrawableRes int resourceId) {
+        if (rewindButton == null) {
+            return;
+        }
+
+        if (resourceId != 0) {
+            rewindButton.setImageResource(resourceId);
+        } else {
+            rewindButton.setImageDrawable(defaultRewindDrawable);
+        }
+    }
+
+    /**
+     * Sets the state list drawable resource id to use for the Fast Forward button.
+     * <b><em>NOTE:</em></b> The Fast Forward button is only shown on TV layouts
+     *
+     * @param resourceId The resourceId or 0
+     */
+    public void setFastForwardImageResource(@DrawableRes int resourceId) {
+        if (fastForwardButton == null) {
+            return;
+        }
+
+        if (resourceId != 0) {
+            fastForwardButton.setImageResource(resourceId);
+        } else {
+            fastForwardButton.setImageDrawable(defaultFastForwardDrawable);
+        }
+    }
+
+    /**
      * Makes sure the playPause button represents the correct playback state
      *
      * @param isPlaying If the video is currently playing
@@ -282,7 +322,7 @@ public class DefaultControls extends RelativeLayout {
     /**
      * Sets the button state for the Previous button.  This will just
      * change the images specified with {@link #setPreviousImageResource(int)},
-     * or use the defaults if they haven't been set, and block any click events.
+     * or use the defaults if they haven't been set
      * </p>
      * This method will NOT re-add buttons that have previously been removed with
      * {@link #setNextButtonRemoved(boolean)}.
@@ -296,7 +336,7 @@ public class DefaultControls extends RelativeLayout {
     /**
      * Sets the button state for the Next button.  This will just
      * change the images specified with {@link #setNextImageResource(int)},
-     * or use the defaults if they haven't been set, and block any click events.
+     * or use the defaults if they haven't been set
      * </p>
      * This method will NOT re-add buttons that have previously been removed with
      * {@link #setPreviousButtonRemoved(boolean)}.
@@ -308,6 +348,38 @@ public class DefaultControls extends RelativeLayout {
     }
 
     /**
+     * Sets the button state for the Rewind button.  This will just
+     * change the images specified with {@link #setRewindImageResource(int)},
+     * or use the defaults if they haven't been set
+     * </p>
+     * This method will NOT re-add buttons that have previously been removed with
+     * {@link #setRewindButtonRemoved(boolean)}.
+     *
+     * @param enabled If the Rewind button is enabled [default: false]
+     */
+    public void setRewindButtonEnabled(boolean enabled) {
+        if (rewindButton != null) {
+            rewindButton.setEnabled(enabled);
+        }
+    }
+
+    /**
+     * Sets the button state for the Fast Forward button.  This will just
+     * change the images specified with {@link #setFastForwardImageResource(int)},
+     * or use the defaults if they haven't been set
+     * </p>
+     * This method will NOT re-add buttons that have previously been removed with
+     * {@link #setFastForwardButtonRemoved(boolean)}.
+     *
+     * @param enabled If the Rewind button is enabled [default: false]
+     */
+    public void setFastForwardButtonEnabled(boolean enabled) {
+        if (fastForwardButton != null) {
+            fastForwardButton.setEnabled(enabled);
+        }
+    }
+
+    /**
      * Adds or removes the Previous button.  This will change the visibility
      * of the button, if you want to change the enabled/disabled images see {@link #setPreviousButtonEnabled(boolean)}
      *
@@ -315,7 +387,6 @@ public class DefaultControls extends RelativeLayout {
      */
     public void setPreviousButtonRemoved(boolean removed) {
         previousButton.setVisibility(removed ? View.INVISIBLE : View.VISIBLE);
-        previousButtonRemoved = removed;
     }
 
     /**
@@ -326,7 +397,30 @@ public class DefaultControls extends RelativeLayout {
      */
     public void setNextButtonRemoved(boolean removed) {
         nextButton.setVisibility(removed ? View.INVISIBLE : View.VISIBLE);
-        nextButtonRemoved = removed;
+    }
+
+    /**
+     * Adds or removes the Rewind button.  This will change the visibility
+     * of the button, if you want to change the enabled/disabled images see {@link #setRewindButtonEnabled(boolean)}
+     *
+     * @param removed If the Rewind button should be removed [default: true]
+     */
+    public void setRewindButtonRemoved(boolean removed) {
+        if (rewindButton != null) {
+            rewindButton.setVisibility(removed ? View.GONE : View.VISIBLE);
+        }
+    }
+
+    /**
+     * Adds or removes the FastForward button.  This will change the visibility
+     * of the button, if you want to change the enabled/disabled images see {@link #setFastForwardButtonEnabled(boolean)}
+     *
+     * @param removed If the FastForward button should be removed [default: true]
+     */
+    public void setFastForwardButtonRemoved(boolean removed) {
+        if (fastForwardButton != null) {
+            fastForwardButton.setVisibility(removed ? View.GONE : View.VISIBLE);
+        }
     }
 
     /**
@@ -404,6 +498,18 @@ public class DefaultControls extends RelativeLayout {
         defaultNextDrawable = DrawableCompat.wrap(getDrawable(R.drawable.exomedia_ic_skip_next_white));
         DrawableCompat.setTintList(defaultNextDrawable, getResources().getColorStateList(R.color.exomedia_default_controls_button_selector));
         nextButton.setImageDrawable(defaultNextDrawable);
+
+        if (rewindButton != null) {
+            defaultRewindDrawable = DrawableCompat.wrap(getDrawable(R.drawable.exomedia_ic_rewind_white));
+            DrawableCompat.setTintList(defaultRewindDrawable, getResources().getColorStateList(R.color.exomedia_default_controls_button_selector));
+            rewindButton.setImageDrawable(defaultRewindDrawable);
+        }
+
+        if (fastForwardButton != null) {
+            defaultFastForwardDrawable = DrawableCompat.wrap(getDrawable(R.drawable.exomedia_ic_fast_forward_white));
+            DrawableCompat.setTintList(defaultFastForwardDrawable, getResources().getColorStateList(R.color.exomedia_default_controls_button_selector));
+            fastForwardButton.setImageDrawable(defaultFastForwardDrawable);
+        }
     }
 
     private Drawable getDrawable(@DrawableRes int resourceId) {
@@ -461,8 +567,17 @@ public class DefaultControls extends RelativeLayout {
         }
     }
 
+    private void onRewindClick() {
+        //TODO: ?
+    }
+
+    private void onFastForwardClick() {
+        //TODO: ?
+    }
+
     private void setup(Context context) {
-        View.inflate(context, R.layout.exomedia_video_controls_overlay, this);
+        boolean isTV = false; //TODO: determine if we are on a TV to use the leanback layout
+        View.inflate(context, isTV ? R.layout.exomedia_video_controls_overlay_leanback : R.layout.exomedia_video_controls_overlay, this);
 
         currentTime = (TextView) findViewById(R.id.exomedia_controls_current_time);
         endTime = (TextView) findViewById(R.id.exomedia_controls_end_time);
@@ -470,9 +585,15 @@ public class DefaultControls extends RelativeLayout {
         playPauseButton = (ImageButton) findViewById(R.id.exomedia_controls_play_pause_btn);
         previousButton = (ImageButton) findViewById(R.id.exomedia_controls_previous_btn);
         nextButton = (ImageButton) findViewById(R.id.exomedia_controls_next_btn);
+        rewindButton = (ImageButton)findViewById(R.id.exomedia_controls_rewind_btn);
+        fastForwardButton = (ImageButton) findViewById(R.id.exomedia_controls_fast_forward_btn);
         loadingProgress = (ProgressBar) findViewById(R.id.exomedia_controls_video_loading);
+        controlsContainer = (LinearLayout) findViewById(R.id.exomedia_controls_interactive_container);
 
         seekBar.setOnSeekBarChangeListener(new SeekBarChanged());
+        if (isTV) {
+            seekBar.setThumb(null);
+        }
 
         playPauseButton.setOnClickListener(new OnClickListener() {
             @Override
@@ -492,6 +613,26 @@ public class DefaultControls extends RelativeLayout {
                 onNextClick();
             }
         });
+
+        //Rewind is only available in the leanback(tv) layout
+        if (rewindButton != null) {
+            rewindButton.setOnClickListener(new OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    onRewindClick();
+                }
+            });
+        }
+
+        //Fast Forward is only available in the leanback(tv) layout
+        if (fastForwardButton != null) {
+            fastForwardButton.setOnClickListener(new OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    onFastForwardClick();
+                }
+            });
+        }
 
         updateButtonDrawables();
     }

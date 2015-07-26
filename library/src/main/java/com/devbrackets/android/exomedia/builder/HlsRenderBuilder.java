@@ -54,9 +54,6 @@ import java.util.Map;
  */
 @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
 public class HlsRenderBuilder extends RenderBuilder implements ManifestCallback<HlsPlaylist> {
-    private static final int BUFFER_SEGMENT_SIZE = 256 * 1024;
-    private static final int BUFFER_SEGMENTS = 64;
-
     private final AudioCapabilities audioCapabilities;
 
     private EMExoPlayer player;
@@ -84,7 +81,7 @@ public class HlsRenderBuilder extends RenderBuilder implements ManifestCallback<
     @Override
     public void onSingleManifest(HlsPlaylist playlist) {
         LoadControl loadControl = new DefaultLoadControl(new DefaultAllocator(BUFFER_SEGMENT_SIZE));
-        DefaultBandwidthMeter bandwidthMeter = new DefaultBandwidthMeter();
+        DefaultBandwidthMeter bandwidthMeter = new DefaultBandwidthMeter(player.getMainHandler(), player);
 
         //Calculates the Chunk variant indices
         int[] variantIndices = null;
@@ -122,7 +119,7 @@ public class HlsRenderBuilder extends RenderBuilder implements ManifestCallback<
         renderers[EMExoPlayer.RENDER_VIDEO_INDEX] = videoRenderer;
         renderers[EMExoPlayer.RENDER_AUDIO_INDEX] = audioRenderer;
         renderers[EMExoPlayer.RENDER_TIMED_METADATA_INDEX] = id3Renderer;
-        callback.onRenderers(null, null, renderers);
+        callback.onRenderers(null, null, renderers, bandwidthMeter);
     }
 
 }

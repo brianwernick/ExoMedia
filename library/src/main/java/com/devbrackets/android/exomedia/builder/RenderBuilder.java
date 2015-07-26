@@ -36,7 +36,10 @@ import com.google.android.exoplayer.extractor.mp4.Mp4Extractor;
 import com.google.android.exoplayer.extractor.ts.AdtsExtractor;
 import com.google.android.exoplayer.extractor.ts.TsExtractor;
 import com.google.android.exoplayer.extractor.webm.WebmExtractor;
+import com.google.android.exoplayer.upstream.Allocator;
 import com.google.android.exoplayer.upstream.DataSource;
+import com.google.android.exoplayer.upstream.DefaultAllocator;
+import com.google.android.exoplayer.upstream.DefaultBandwidthMeter;
 import com.google.android.exoplayer.upstream.DefaultUriDataSource;
 
 
@@ -50,7 +53,8 @@ public class RenderBuilder {
     protected static final int DROPPED_FRAME_NOTIFICATION_AMOUNT = 50;
 
     protected static final long MAX_JOIN_TIME = 5000;
-    protected static final int REQUESTED_BUFFER_SIZE = 18 * 1024 * 1024; //18 MB
+    protected static final int BUFFER_SEGMENT_SIZE = 256 * 1024;
+    protected static final int BUFFER_SEGMENTS = 64;
 
     protected final Context context;
     protected final String userAgent;
@@ -70,9 +74,12 @@ public class RenderBuilder {
 
     public void buildRenderers(EMExoPlayer player, RendererBuilderCallback callback) {
         //Create the Sample Source to be used by the renderers
+        Allocator allocator = new DefaultAllocator(BUFFER_SEGMENT_SIZE);
+        DefaultBandwidthMeter bandwidthMeter = new DefaultBandwidthMeter(player.getMainHandler(), player);
         DataSource dataSource = new DefaultUriDataSource(context, userAgent);
+
         ExtractorSampleSource sampleSource = new ExtractorSampleSource(Uri.parse(MediaUtil.getUriWithProtocol(uri)), dataSource,
-                getExtractor(uri, requestedDefaultType), DEFAULT_DOWNSTREAM_RENDER_COUNT, REQUESTED_BUFFER_SIZE);
+                getExtractor(uri, requestedDefaultType), allocator, DEFAULT_DOWNSTREAM_RENDER_COUNT, BUFFER_SEGMENT_SIZE * BUFFER_SEGMENTS);
 
         //Create the Renderers
         MediaCodecVideoTrackRenderer videoRenderer = new MediaCodecVideoTrackRenderer(sampleSource, null, true, MediaCodec.VIDEO_SCALING_MODE_SCALE_TO_FIT,
@@ -80,11 +87,12 @@ public class RenderBuilder {
 
         EMMediaCodecAudioTrackRenderer audioRenderer = new EMMediaCodecAudioTrackRenderer(sampleSource, null, true, player.getMainHandler(), player);
 
+
         //Create the Render list to send to the callback
         TrackRenderer[] renderers = new TrackRenderer[EMExoPlayer.RENDER_COUNT];
         renderers[EMExoPlayer.RENDER_VIDEO_INDEX] = videoRenderer;
         renderers[EMExoPlayer.RENDER_AUDIO_INDEX] = audioRenderer;
-        callback.onRenderers(null, null, renderers);
+        callback.onRenderers(null, null, renderers, bandwidthMeter);
     }
 
     /**

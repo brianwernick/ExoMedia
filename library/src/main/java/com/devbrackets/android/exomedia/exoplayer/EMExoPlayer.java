@@ -23,6 +23,7 @@ import android.media.MediaPlayer;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.PowerManager;
+import android.support.annotation.Nullable;
 import android.view.Surface;
 
 import com.devbrackets.android.exomedia.builder.RenderBuilder;
@@ -49,6 +50,7 @@ import com.google.android.exoplayer.hls.HlsSampleSource;
 import com.google.android.exoplayer.metadata.MetadataTrackRenderer;
 import com.google.android.exoplayer.text.Cue;
 import com.google.android.exoplayer.text.TextRenderer;
+import com.google.android.exoplayer.upstream.BandwidthMeter;
 import com.google.android.exoplayer.upstream.DefaultBandwidthMeter;
 import com.google.android.exoplayer.util.PlayerControl;
 
@@ -57,8 +59,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-public class EMExoPlayer implements ExoPlayer.Listener, ChunkSampleSource.EventListener, DefaultBandwidthMeter.EventListener, HlsSampleSource.EventListener,
-        MediaCodecVideoTrackRenderer.EventListener, TextRenderer, MediaCodecAudioTrackRenderer.EventListener, StreamingDrmSessionManager.EventListener {
+public class EMExoPlayer implements ExoPlayer.Listener,
+        ChunkSampleSource.EventListener,
+        DefaultBandwidthMeter.EventListener,
+        HlsSampleSource.EventListener,
+        MediaCodecVideoTrackRenderer.EventListener,
+        TextRenderer,
+        MediaCodecAudioTrackRenderer.EventListener,
+        StreamingDrmSessionManager.EventListener {
 
     public static final int DISABLED_TRACK = -1;
     public static final int PRIMARY_TRACK = 0;
@@ -95,6 +103,7 @@ public class EMExoPlayer implements ExoPlayer.Listener, ChunkSampleSource.EventL
     private TrackRenderer videoRenderer;
     private TrackRenderer audioRenderer;
 
+    private BandwidthMeter bandwidthMeter;
     private MultiTrackChunkSource[] multiTrackSources;
     private String[][] trackNames;
     private int[] selectedTracks;
@@ -231,7 +240,7 @@ public class EMExoPlayer implements ExoPlayer.Listener, ChunkSampleSource.EventL
         prepared = true;
     }
 
-    public void onRenderers(String[][] trackNames, MultiTrackChunkSource[] multiTrackSources, TrackRenderer[] renderers) {
+    public void onRenderers(String[][] trackNames, MultiTrackChunkSource[] multiTrackSources, TrackRenderer[] renderers, @Nullable BandwidthMeter bandwidthMeter) {
         builderCallback = null;
         // Normalize the results.
         if (trackNames == null) {
@@ -259,6 +268,8 @@ public class EMExoPlayer implements ExoPlayer.Listener, ChunkSampleSource.EventL
         this.audioRenderer = renderers[RENDER_AUDIO_INDEX];
         this.trackNames = trackNames;
         this.multiTrackSources = multiTrackSources;
+        this.bandwidthMeter = bandwidthMeter;
+
         rendererBuildingState = RenderBuildingState.BUILT;
         pushSurfaceAndVideoTrack(false);
         pushTrackSelection(RENDER_AUDIO_INDEX, true);
@@ -578,9 +589,9 @@ public class EMExoPlayer implements ExoPlayer.Listener, ChunkSampleSource.EventL
         }
 
         @Override
-        public void onRenderers(String[][] trackNames, MultiTrackChunkSource[] multiTrackSources, TrackRenderer[] renderers) {
+        public void onRenderers(String[][] trackNames, MultiTrackChunkSource[] multiTrackSources, TrackRenderer[] renderers, @Nullable BandwidthMeter bandwidthMeter) {
             if (!canceled) {
-                EMExoPlayer.this.onRenderers(trackNames, multiTrackSources, renderers);
+                EMExoPlayer.this.onRenderers(trackNames, multiTrackSources, renderers, bandwidthMeter);
             }
         }
 

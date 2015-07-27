@@ -66,7 +66,8 @@ public class EMExoPlayer implements ExoPlayer.Listener,
         MediaCodecVideoTrackRenderer.EventListener,
         TextRenderer,
         MediaCodecAudioTrackRenderer.EventListener,
-        StreamingDrmSessionManager.EventListener {
+        StreamingDrmSessionManager.EventListener,
+        MetadataTrackRenderer.MetadataRenderer<Map<String, Object>>{
 
     public static final int DISABLED_TRACK = -1;
     public static final int PRIMARY_TRACK = 0;
@@ -232,6 +233,9 @@ public class EMExoPlayer implements ExoPlayer.Listener,
             builderCallback.cancel();
         }
 
+        videoRenderer = null;
+        multiTrackSources = null;
+
         rendererBuildingState = RenderBuildingState.BUILDING;
         reportPlayerState();
         builderCallback = new InternalRendererBuilderCallback();
@@ -270,11 +274,11 @@ public class EMExoPlayer implements ExoPlayer.Listener,
         this.multiTrackSources = multiTrackSources;
         this.bandwidthMeter = bandwidthMeter;
 
-        rendererBuildingState = RenderBuildingState.BUILT;
         pushSurfaceAndVideoTrack(false);
         pushTrackSelection(RENDER_AUDIO_INDEX, true);
         pushTrackSelection(RENDER_CLOSED_CAPTION_INDEX, true);
         player.prepare(renderers);
+        rendererBuildingState = RenderBuildingState.BUILT;
     }
 
     public void onRenderersError(Exception e) {
@@ -477,15 +481,16 @@ public class EMExoPlayer implements ExoPlayer.Listener,
         }
     }
 
-    public MetadataTrackRenderer.MetadataRenderer<Map<String, Object>> getId3MetadataRenderer() {
-        return new MetadataTrackRenderer.MetadataRenderer<Map<String, Object>>() {
-            @Override
-            public void onMetadata(Map<String, Object> metadata) {
-                if (id3MetadataListener != null) {
-                    id3MetadataListener.onId3Metadata(metadata);
-                }
-            }
-        };
+    @Override
+    public void onCues(List<Cue> list) {
+        //Purposefully left blank
+    }
+
+    @Override
+    public void onMetadata(Map<String, Object> metadata) {
+        if (id3MetadataListener != null && selectedTracks[RENDER_TIMED_METADATA_INDEX] != DISABLED_TRACK) {
+            id3MetadataListener.onId3Metadata(metadata);
+        }
     }
 
     @Override
@@ -522,11 +527,6 @@ public class EMExoPlayer implements ExoPlayer.Listener,
         //Purposefully left blank
     }
 
-    @Override
-    public void onCues(List<Cue> list) {
-        //Purposefully left blank
-    }
-
     private void reportPlayerState() {
         boolean playWhenReady = player.getPlayWhenReady();
         int playbackState = getPlaybackState();
@@ -540,7 +540,7 @@ public class EMExoPlayer implements ExoPlayer.Listener,
     }
 
     private void pushSurfaceAndVideoTrack(boolean blockForSurfacePush) {
-        if (rendererBuildingState != RenderBuildingState.BUILT) {
+        if (videoRenderer == null) {
             return;
         }
 
@@ -549,12 +549,10 @@ public class EMExoPlayer implements ExoPlayer.Listener,
         } else {
             player.sendMessage(videoRenderer, MediaCodecVideoTrackRenderer.MSG_SET_SURFACE, surface);
         }
-
-        pushTrackSelection(RENDER_VIDEO_INDEX, surface != null && surface.isValid());
     }
 
     private void pushTrackSelection(int type, boolean allowRendererEnable) {
-        if (rendererBuildingState != RenderBuildingState.BUILT) {
+        if (multiTrackSources == null) {
             return;
         }
 
@@ -571,14 +569,6 @@ public class EMExoPlayer implements ExoPlayer.Listener,
             player.setRendererEnabled(type, allowRendererEnable);
             player.setPlayWhenReady(playWhenReady);
         }
-    }
-
-    public void processText(String text) {
-        if (textListener == null || selectedTracks[RENDER_CLOSED_CAPTION_INDEX] == DISABLED_TRACK) {
-            return;
-        }
-
-        textListener.onText(text);
     }
 
     private class InternalRendererBuilderCallback implements RendererBuilderCallback {

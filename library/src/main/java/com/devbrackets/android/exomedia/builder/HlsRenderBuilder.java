@@ -111,7 +111,7 @@ public class HlsRenderBuilder extends RenderBuilder implements ManifestCallback<
         MediaCodecAudioTrackRenderer audioRenderer = new MediaCodecAudioTrackRenderer(sampleSource);
 
         MetadataTrackRenderer<Map<String, Object>> id3Renderer = new MetadataTrackRenderer<>(sampleSource, new Id3Parser(),
-                        player.getId3MetadataRenderer(), player.getMainHandler().getLooper());
+                        player, player.getMainHandler().getLooper());
 
 
         //Populate the Render list to pass back to the callback

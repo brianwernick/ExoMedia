@@ -12,6 +12,12 @@ This is useful for supporting Http Live Streaming (HLS) and full HD (1080p +) pl
 since the Android VideoView struggles with those.
 
 
+NOTE:
+-------
+There is currently an issue with the 2.2.3 release version.  I'm working on fixing it, in the meantime
+you should continue to use 2.2.2
+
+
 Website And Documentation
 -------
 The ExoMedia website can be found [here][4]

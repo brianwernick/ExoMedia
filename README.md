@@ -26,7 +26,7 @@ The latest AAR (Android Archive) files can be downloaded from JCenter [ExoMedia]
 Or included in your gradle dependencies
 
 ```groovy
-compile 'com.devbrackets.android:exomedia:2.2.3'
+compile 'com.devbrackets.android:exomedia:2.2.2'
 ```
 
 Additionally, if you use ProGuard you will need to add the following rule

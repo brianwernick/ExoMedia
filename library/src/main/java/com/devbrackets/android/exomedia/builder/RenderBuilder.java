@@ -54,8 +54,8 @@ public class RenderBuilder {
     protected static final int DROPPED_FRAME_NOTIFICATION_AMOUNT = 50;
 
     protected static final long MAX_JOIN_TIME = 5000;
-    protected static final int BUFFER_SEGMENT_SIZE = 256 * 1024;
-    protected static final int BUFFER_SEGMENTS = 64;
+    private static final int BUFFER_SEGMENT_SIZE = 64 * 1024;
+    private static final int BUFFER_SEGMENTS = 160;
 
     protected final Context context;
     protected final String userAgent;

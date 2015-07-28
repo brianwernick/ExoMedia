@@ -56,6 +56,9 @@ import java.util.Map;
 public class HlsRenderBuilder extends RenderBuilder implements ManifestCallback<HlsPlaylist> {
     private final AudioCapabilities audioCapabilities;
 
+    private static final int BUFFER_SEGMENT_SIZE = 256 * 1024;
+    private static final int BUFFER_SEGMENTS = 64;
+
     private EMExoPlayer player;
     private RendererBuilderCallback callback;
 

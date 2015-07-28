@@ -50,7 +50,6 @@ import com.google.android.exoplayer.upstream.DefaultUriDataSource;
 @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
 public class RenderBuilder {
     private static final String TAG = RenderBuilder.class.getSimpleName();
-    private static final int DEFAULT_DOWNSTREAM_RENDER_COUNT = 2;
     protected static final int DROPPED_FRAME_NOTIFICATION_AMOUNT = 50;
 
     protected static final long MAX_JOIN_TIME = 5000;
@@ -80,7 +79,7 @@ public class RenderBuilder {
         DataSource dataSource = new DefaultUriDataSource(context, bandwidthMeter, userAgent);
 
         ExtractorSampleSource sampleSource = new ExtractorSampleSource(Uri.parse(MediaUtil.getUriWithProtocol(uri)), dataSource,
-                getExtractor(uri, requestedDefaultType), allocator, DEFAULT_DOWNSTREAM_RENDER_COUNT, BUFFER_SEGMENT_SIZE * BUFFER_SEGMENTS);
+                getExtractor(uri, requestedDefaultType), allocator, BUFFER_SEGMENT_SIZE * BUFFER_SEGMENTS);
 
         //Create the Renderers
         MediaCodecVideoTrackRenderer videoRenderer = new MediaCodecVideoTrackRenderer(sampleSource, null, true, MediaCodec.VIDEO_SCALING_MODE_SCALE_TO_FIT,

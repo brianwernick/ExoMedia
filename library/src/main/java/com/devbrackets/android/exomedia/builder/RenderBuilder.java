@@ -32,6 +32,7 @@ import com.google.android.exoplayer.TrackRenderer;
 import com.google.android.exoplayer.extractor.Extractor;
 import com.google.android.exoplayer.extractor.ExtractorSampleSource;
 import com.google.android.exoplayer.extractor.mp3.Mp3Extractor;
+import com.google.android.exoplayer.extractor.mp4.FragmentedMp4Extractor;
 import com.google.android.exoplayer.extractor.mp4.Mp4Extractor;
 import com.google.android.exoplayer.extractor.ts.AdtsExtractor;
 import com.google.android.exoplayer.extractor.ts.TsExtractor;
@@ -144,6 +145,9 @@ public class RenderBuilder {
             case AAC:
                 return new AdtsExtractor();
 
+            case FMP4:
+                return new FragmentedMp4Extractor();
+
             case M4A:
             case MP4:
                 return new Mp4Extractor();
@@ -155,6 +159,7 @@ public class RenderBuilder {
                 return new TsExtractor(0, null);
 
             case WEBM:
+            case MKV:
                 return new WebmExtractor();
 
             default:

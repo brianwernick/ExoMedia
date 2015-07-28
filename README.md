@@ -12,12 +12,6 @@ This is useful for supporting Http Live Streaming (HLS) and full HD (1080p +) pl
 since the Android VideoView struggles with those.
 
 
-NOTE:
--------
-There is currently an issue with the 2.2.3 release version.  I'm working on fixing it, in the meantime
-you should continue to use 2.2.2
-
-
 Website And Documentation
 -------
 The ExoMedia website can be found [here][4]
@@ -32,7 +26,7 @@ The latest AAR (Android Archive) files can be downloaded from JCenter [ExoMedia]
 Or included in your gradle dependencies
 
 ```groovy
-compile 'com.devbrackets.android:exomedia:2.2.2'
+compile 'com.devbrackets.android:exomedia:2.2.4'
 ```
 
 Additionally, if you use ProGuard you will need to add the following rule

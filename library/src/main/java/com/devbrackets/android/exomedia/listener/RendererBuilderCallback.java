@@ -17,8 +17,11 @@
 
 package com.devbrackets.android.exomedia.listener;
 
+import android.support.annotation.Nullable;
+
 import com.google.android.exoplayer.TrackRenderer;
 import com.google.android.exoplayer.chunk.MultiTrackChunkSource;
+import com.google.android.exoplayer.upstream.BandwidthMeter;
 
 /**
  *
@@ -35,9 +38,9 @@ public interface RendererBuilderCallback {
      *                          multiple tracks. An individual element may be null if it does not have multiple tracks.
      * @param renderers         Renderers indexed by {@link com.devbrackets.android.exomedia.exoplayer.EMExoPlayer} TYPE_* constants. An individual
      *                          element may be null if there do not exist tracks of the corresponding type.
+     * @param bandwidthMeter Provides an estimate of the currently available bandwidth. May be null.
      */
-    void onRenderers(String[][] trackNames, MultiTrackChunkSource[] multiTrackSources, TrackRenderer[] renderers);
-
+    void onRenderers(String[][] trackNames, MultiTrackChunkSource[] multiTrackSources, TrackRenderer[] renderers, @Nullable BandwidthMeter bandwidthMeter);
     /**
      * Invoked if a {@link com.devbrackets.android.exomedia.builder.RenderBuilder} encounters an error.
      *

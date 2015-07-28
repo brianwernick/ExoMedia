@@ -23,6 +23,7 @@ import android.media.MediaPlayer;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.PowerManager;
+import android.support.annotation.Nullable;
 import android.view.Surface;
 
 import com.devbrackets.android.exomedia.builder.RenderBuilder;
@@ -31,7 +32,7 @@ import com.devbrackets.android.exomedia.listener.Id3MetadataListener;
 import com.devbrackets.android.exomedia.listener.InfoListener;
 import com.devbrackets.android.exomedia.listener.InternalErrorListener;
 import com.devbrackets.android.exomedia.listener.RendererBuilderCallback;
-import com.devbrackets.android.exomedia.listener.TextListener;
+import com.devbrackets.android.exomedia.listener.CaptionListener;
 import com.devbrackets.android.exomedia.renderer.EMMediaCodecAudioTrackRenderer;
 import com.google.android.exoplayer.DummyTrackRenderer;
 import com.google.android.exoplayer.ExoPlaybackException;
@@ -39,26 +40,39 @@ import com.google.android.exoplayer.ExoPlayer;
 import com.google.android.exoplayer.MediaCodecAudioTrackRenderer;
 import com.google.android.exoplayer.MediaCodecTrackRenderer;
 import com.google.android.exoplayer.MediaCodecVideoTrackRenderer;
+import com.google.android.exoplayer.TimeRange;
 import com.google.android.exoplayer.TrackRenderer;
 import com.google.android.exoplayer.audio.AudioTrack;
 import com.google.android.exoplayer.chunk.ChunkSampleSource;
 import com.google.android.exoplayer.chunk.Format;
 import com.google.android.exoplayer.chunk.MultiTrackChunkSource;
+import com.google.android.exoplayer.dash.DashChunkSource;
 import com.google.android.exoplayer.drm.StreamingDrmSessionManager;
 import com.google.android.exoplayer.hls.HlsSampleSource;
 import com.google.android.exoplayer.metadata.MetadataTrackRenderer;
 import com.google.android.exoplayer.text.Cue;
 import com.google.android.exoplayer.text.TextRenderer;
+import com.google.android.exoplayer.upstream.BandwidthMeter;
 import com.google.android.exoplayer.upstream.DefaultBandwidthMeter;
 import com.google.android.exoplayer.util.PlayerControl;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-public class EMExoPlayer implements ExoPlayer.Listener, ChunkSampleSource.EventListener, DefaultBandwidthMeter.EventListener, HlsSampleSource.EventListener,
-        MediaCodecVideoTrackRenderer.EventListener, TextRenderer, MediaCodecAudioTrackRenderer.EventListener, StreamingDrmSessionManager.EventListener {
+public class EMExoPlayer implements
+        ExoPlayer.Listener,
+        ChunkSampleSource.EventListener,
+        HlsSampleSource.EventListener,
+        DefaultBandwidthMeter.EventListener,
+        MediaCodecVideoTrackRenderer.EventListener,
+        MediaCodecAudioTrackRenderer.EventListener,
+        StreamingDrmSessionManager.EventListener,
+        DashChunkSource.EventListener,
+        MetadataTrackRenderer.MetadataRenderer<Map<String, Object>>,
+        TextRenderer {
 
     public static final int DISABLED_TRACK = -1;
     public static final int PRIMARY_TRACK = 0;
@@ -99,7 +113,7 @@ public class EMExoPlayer implements ExoPlayer.Listener, ChunkSampleSource.EventL
     private String[][] trackNames;
     private int[] selectedTracks;
 
-    private TextListener textListener;
+    private CaptionListener captionListener;
     private Id3MetadataListener id3MetadataListener;
     private InternalErrorListener internalErrorListener;
     private InfoListener infoListener;
@@ -121,7 +135,7 @@ public class EMExoPlayer implements ExoPlayer.Listener, ChunkSampleSource.EventL
         rendererBuildingState = RenderBuildingState.IDLE;
         selectedTracks = new int[RENDER_COUNT];
 
-        // Disable text initially.
+        // Disable closed captions initially
         selectedTracks[RENDER_CLOSED_CAPTION_INDEX] = DISABLED_TRACK;
     }
 
@@ -156,8 +170,8 @@ public class EMExoPlayer implements ExoPlayer.Listener, ChunkSampleSource.EventL
         infoListener = listener;
     }
 
-    public void setTextListener(TextListener listener) {
-        textListener = listener;
+    public void setCaptionListener(CaptionListener listener) {
+        captionListener = listener;
     }
 
     public void setMetadataListener(Id3MetadataListener listener) {
@@ -166,7 +180,7 @@ public class EMExoPlayer implements ExoPlayer.Listener, ChunkSampleSource.EventL
 
     public void setSurface(Surface surface) {
         this.surface = surface;
-        pushSurfaceAndVideoTrack(false);
+        pushSurface(false);
     }
 
     public Surface getSurface() {
@@ -175,11 +189,15 @@ public class EMExoPlayer implements ExoPlayer.Listener, ChunkSampleSource.EventL
 
     public void blockingClearSurface() {
         surface = null;
-        pushSurfaceAndVideoTrack(true);
+        pushSurface(true);
     }
 
-    public String[] getTracks(int type) {
-        return trackNames == null ? null : trackNames[type];
+    public int getTrackCount(int type) {
+        return !player.getRendererHasMedia(type) ? 0 : trackNames[type].length;
+    }
+
+    public String getTrackName(int type, int index) {
+        return trackNames[type][index];
     }
 
     public int getSelectedTrackIndex(int type) {
@@ -192,13 +210,9 @@ public class EMExoPlayer implements ExoPlayer.Listener, ChunkSampleSource.EventL
         }
 
         selectedTracks[type] = index;
-        if (type == RENDER_VIDEO_INDEX) {
-            pushSurfaceAndVideoTrack(false);
-        } else {
-            pushTrackSelection(type, true);
-            if (type == RENDER_CLOSED_CAPTION_INDEX && index == DISABLED_TRACK && textListener != null) {
-                textListener.onText(null);
-            }
+        pushTrackSelection(type, true);
+        if (type == RENDER_CLOSED_CAPTION_INDEX && index == DISABLED_TRACK && captionListener != null) {
+            captionListener.onCues(Collections.<Cue>emptyList());
         }
     }
 
@@ -223,6 +237,9 @@ public class EMExoPlayer implements ExoPlayer.Listener, ChunkSampleSource.EventL
             builderCallback.cancel();
         }
 
+        videoRenderer = null;
+        multiTrackSources = null;
+
         rendererBuildingState = RenderBuildingState.BUILDING;
         reportPlayerState();
         builderCallback = new InternalRendererBuilderCallback();
@@ -231,8 +248,9 @@ public class EMExoPlayer implements ExoPlayer.Listener, ChunkSampleSource.EventL
         prepared = true;
     }
 
-    public void onRenderers(String[][] trackNames, MultiTrackChunkSource[] multiTrackSources, TrackRenderer[] renderers) {
+    public void onRenderers(String[][] trackNames, MultiTrackChunkSource[] multiTrackSources, TrackRenderer[] renderers, @Nullable BandwidthMeter bandwidthMeter) {
         builderCallback = null;
+
         // Normalize the results.
         if (trackNames == null) {
             trackNames = new String[RENDER_COUNT][];
@@ -255,19 +273,22 @@ public class EMExoPlayer implements ExoPlayer.Listener, ChunkSampleSource.EventL
         }
 
         // Complete preparation.
+        this.trackNames = trackNames;
         this.videoRenderer = renderers[RENDER_VIDEO_INDEX];
         this.audioRenderer = renderers[RENDER_AUDIO_INDEX];
-        this.trackNames = trackNames;
         this.multiTrackSources = multiTrackSources;
-        rendererBuildingState = RenderBuildingState.BUILT;
-        pushSurfaceAndVideoTrack(false);
+
+        pushSurface(false);
+        pushTrackSelection(RENDER_VIDEO_INDEX, true);
         pushTrackSelection(RENDER_AUDIO_INDEX, true);
         pushTrackSelection(RENDER_CLOSED_CAPTION_INDEX, true);
         player.prepare(renderers);
+        rendererBuildingState = RenderBuildingState.BUILT;
     }
 
     public void onRenderersError(Exception e) {
         builderCallback = null;
+
         if (internalErrorListener != null) {
             internalErrorListener.onRendererInitializationError(e);
         }
@@ -466,15 +487,25 @@ public class EMExoPlayer implements ExoPlayer.Listener, ChunkSampleSource.EventL
         }
     }
 
-    public MetadataTrackRenderer.MetadataRenderer<Map<String, Object>> getId3MetadataRenderer() {
-        return new MetadataTrackRenderer.MetadataRenderer<Map<String, Object>>() {
-            @Override
-            public void onMetadata(Map<String, Object> metadata) {
-                if (id3MetadataListener != null) {
-                    id3MetadataListener.onId3Metadata(metadata);
-                }
-            }
-        };
+    @Override
+    public void onCues(List<Cue> cues) {
+        if (captionListener != null && selectedTracks[RENDER_CLOSED_CAPTION_INDEX] != DISABLED_TRACK) {
+            captionListener.onCues(cues);
+        }
+    }
+
+    @Override
+    public void onMetadata(Map<String, Object> metadata) {
+        if (id3MetadataListener != null && selectedTracks[RENDER_TIMED_METADATA_INDEX] != DISABLED_TRACK) {
+            id3MetadataListener.onId3Metadata(metadata);
+        }
+    }
+
+    @Override
+    public void onSeekRangeChanged(TimeRange seekRange) {
+        if (infoListener != null) {
+            infoListener.onSeekRangeChanged(seekRange);
+        }
     }
 
     @Override
@@ -511,25 +542,22 @@ public class EMExoPlayer implements ExoPlayer.Listener, ChunkSampleSource.EventL
         //Purposefully left blank
     }
 
-    @Override
-    public void onCues(List<Cue> list) {
-        //Purposefully left blank
-    }
-
     private void reportPlayerState() {
         boolean playWhenReady = player.getPlayWhenReady();
         int playbackState = getPlaybackState();
+
         if (lastReportedPlayWhenReady != playWhenReady || lastReportedPlaybackState != playbackState) {
             for (ExoPlayerListener listener : listeners) {
                 listener.onStateChanged(playWhenReady, playbackState);
             }
+
             lastReportedPlayWhenReady = playWhenReady;
             lastReportedPlaybackState = playbackState;
         }
     }
 
-    private void pushSurfaceAndVideoTrack(boolean blockForSurfacePush) {
-        if (rendererBuildingState != RenderBuildingState.BUILT) {
+    private void pushSurface(boolean blockForSurfacePush) {
+        if (videoRenderer == null) {
             return;
         }
 
@@ -538,12 +566,10 @@ public class EMExoPlayer implements ExoPlayer.Listener, ChunkSampleSource.EventL
         } else {
             player.sendMessage(videoRenderer, MediaCodecVideoTrackRenderer.MSG_SET_SURFACE, surface);
         }
-
-        pushTrackSelection(RENDER_VIDEO_INDEX, surface != null && surface.isValid());
     }
 
     private void pushTrackSelection(int type, boolean allowRendererEnable) {
-        if (rendererBuildingState != RenderBuildingState.BUILT) {
+        if (multiTrackSources == null) {
             return;
         }
 
@@ -562,14 +588,6 @@ public class EMExoPlayer implements ExoPlayer.Listener, ChunkSampleSource.EventL
         }
     }
 
-    public void processText(String text) {
-        if (textListener == null || selectedTracks[RENDER_CLOSED_CAPTION_INDEX] == DISABLED_TRACK) {
-            return;
-        }
-
-        textListener.onText(text);
-    }
-
     private class InternalRendererBuilderCallback implements RendererBuilderCallback {
         private volatile boolean canceled;
 
@@ -578,9 +596,9 @@ public class EMExoPlayer implements ExoPlayer.Listener, ChunkSampleSource.EventL
         }
 
         @Override
-        public void onRenderers(String[][] trackNames, MultiTrackChunkSource[] multiTrackSources, TrackRenderer[] renderers) {
+        public void onRenderers(String[][] trackNames, MultiTrackChunkSource[] multiTrackSources, TrackRenderer[] renderers, @Nullable BandwidthMeter bandwidthMeter) {
             if (!canceled) {
-                EMExoPlayer.this.onRenderers(trackNames, multiTrackSources, renderers);
+                EMExoPlayer.this.onRenderers(trackNames, multiTrackSources, renderers, bandwidthMeter);
             }
         }
 

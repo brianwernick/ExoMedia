@@ -264,13 +264,13 @@ public abstract class DefaultControls extends RelativeLayout {
      */
     public void updatePlayPauseImage(boolean isPlaying) {
         if (isPlaying) {
-            if (pauseResourceId != 0) {
+            if (pauseResourceId != INVALID_RESOURCE_ID) {
                 playPauseButton.setImageResource(pauseResourceId);
             } else {
                 playPauseButton.setImageDrawable(defaultPauseDrawable);
             }
         } else {
-            if (playResourceId != 0) {
+            if (playResourceId != INVALID_RESOURCE_ID) {
                 playPauseButton.setImageResource(playResourceId);
             } else {
                 playPauseButton.setImageDrawable(defaultPlayDrawable);
@@ -341,7 +341,7 @@ public abstract class DefaultControls extends RelativeLayout {
      * @param removed If the Previous button should be removed [default: true]
      */
     public void setPreviousButtonRemoved(boolean removed) {
-        previousButton.setVisibility(removed ? View.INVISIBLE : View.VISIBLE);
+        previousButton.setVisibility(removed ? View.GONE : View.VISIBLE);
     }
 
     /**
@@ -351,7 +351,7 @@ public abstract class DefaultControls extends RelativeLayout {
      * @param removed If the Next button should be removed [default: true]
      */
     public void setNextButtonRemoved(boolean removed) {
-        nextButton.setVisibility(removed ? View.INVISIBLE : View.VISIBLE);
+        nextButton.setVisibility(removed ? View.GONE : View.VISIBLE);
     }
 
     /**

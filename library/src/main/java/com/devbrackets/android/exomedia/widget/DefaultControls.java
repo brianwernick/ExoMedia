@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.devbrackets.android.exomedia;
+package com.devbrackets.android.exomedia.widget;
 
 import android.annotation.TargetApi;
 import android.content.Context;
@@ -34,12 +34,15 @@ import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
+import com.devbrackets.android.exomedia.EMVideoView;
+import com.devbrackets.android.exomedia.R;
 import com.devbrackets.android.exomedia.event.EMMediaNextEvent;
 import com.devbrackets.android.exomedia.event.EMMediaPlayPauseEvent;
 import com.devbrackets.android.exomedia.event.EMMediaPreviousEvent;
 import com.devbrackets.android.exomedia.event.EMMediaProgressEvent;
 import com.devbrackets.android.exomedia.event.EMVideoViewControlVisibilityEvent;
 import com.devbrackets.android.exomedia.listener.EMVideoViewControlsCallback;
+import com.devbrackets.android.exomedia.util.EMDeviceUtil;
 import com.devbrackets.android.exomedia.util.TimeFormatUtil;
 import com.squareup.otto.Bus;
 
@@ -576,7 +579,7 @@ public class DefaultControls extends RelativeLayout {
     }
 
     private void setup(Context context) {
-        boolean isTV = false; //TODO: determine if we are on a TV to use the leanback layout
+        boolean isTV = EMDeviceUtil.isDeviceTV(context);
         View.inflate(context, isTV ? R.layout.exomedia_video_controls_overlay_leanback : R.layout.exomedia_video_controls_overlay, this);
 
         currentTime = (TextView) findViewById(R.id.exomedia_controls_current_time);

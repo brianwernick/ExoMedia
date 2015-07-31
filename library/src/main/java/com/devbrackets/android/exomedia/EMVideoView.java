@@ -48,6 +48,8 @@ import com.devbrackets.android.exomedia.util.MediaUtil;
 import com.devbrackets.android.exomedia.util.Repeater;
 import com.devbrackets.android.exomedia.util.StopWatch;
 import com.devbrackets.android.exomedia.widget.DefaultControls;
+import com.devbrackets.android.exomedia.widget.DefaultControlsLeanback;
+import com.devbrackets.android.exomedia.widget.DefaultControlsMobile;
 import com.devbrackets.android.exomedia.widget.VideoSurfaceView;
 import com.google.android.exoplayer.audio.AudioCapabilities;
 import com.google.android.exoplayer.audio.AudioCapabilitiesReceiver;
@@ -464,7 +466,7 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
      */
     public void setDefaultControlsEnabled(boolean enabled) {
         if (defaultControls == null && enabled) {
-            defaultControls = new DefaultControls(getContext());
+            defaultControls = EMDeviceUtil.isDeviceTV(getContext()) ? new DefaultControlsLeanback(getContext()) : new DefaultControlsMobile(getContext());
             defaultControls.setVideoView(this);
             defaultControls.setBus(bus);
 

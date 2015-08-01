@@ -25,7 +25,6 @@ import android.support.v4.graphics.drawable.DrawableCompat;
 import android.util.AttributeSet;
 import android.view.View;
 import android.widget.ImageButton;
-import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 
 import com.devbrackets.android.exomedia.R;
@@ -36,8 +35,9 @@ import com.devbrackets.android.exomedia.util.TimeFormatUtil;
  * Provides playback controls for the EMVideoView on TV devices.
  */
 public class DefaultControlsLeanback extends DefaultControls {
+    private static final int FAST_FORWARD_REWIND_AMOUNT = 10000; //10 seconds
+
     private ProgressBar progressBar;
-    private LinearLayout controlsContainer;
 
     private ImageButton fastForwardButton;
     private ImageButton rewindButton;
@@ -66,19 +66,6 @@ public class DefaultControlsLeanback extends DefaultControls {
     @Override
     protected int getLayoutResource() {
         return R.layout.exomedia_video_controls_overlay_leanback;
-    }
-
-    /**
-     * Used to update the control view visibilities to indicate that the video
-     * is loading.  This is different from using {@link #loadCompleted()} and {@link #restartLoading()}
-     * because those update additional information.
-     *
-     * @param isLoading True if loading progress should be shown
-     */
-    @Override
-    public void setLoading(boolean isLoading) {
-        super.setLoading(isLoading);
-        controlsContainer.setVisibility(isLoading ? View.GONE : View.VISIBLE);
     }
 
     /**
@@ -115,11 +102,9 @@ public class DefaultControlsLeanback extends DefaultControls {
      */
     @Override
     public void setProgressEvent(EMMediaProgressEvent event) {
-        if (!userInteracting) {
-            progressBar.setSecondaryProgress((int) (progressBar.getMax() * event.getBufferPercentFloat()));
-            progressBar.setProgress((int) event.getPosition());
-            currentTime.setText(TimeFormatUtil.formatMs(event.getPosition()));
-        }
+        progressBar.setSecondaryProgress((int) (progressBar.getMax() * event.getBufferPercentFloat()));
+        progressBar.setProgress((int) event.getPosition());
+        currentTime.setText(TimeFormatUtil.formatMs(event.getPosition()));
     }
 
     /**
@@ -220,26 +205,31 @@ public class DefaultControlsLeanback extends DefaultControls {
         }
     }
 
+    /**
+     * Retrieves the view references from the xml layout
+     */
     @Override
     protected void retrieveViews() {
         super.retrieveViews();
         progressBar = (ProgressBar) findViewById(R.id.exomedia_controls_video_progress);
 
-        rewindButton = (ImageButton)findViewById(R.id.exomedia_controls_rewind_btn);
+        rewindButton = (ImageButton) findViewById(R.id.exomedia_controls_rewind_btn);
         fastForwardButton = (ImageButton) findViewById(R.id.exomedia_controls_fast_forward_btn);
-        controlsContainer = (LinearLayout) findViewById(R.id.exomedia_controls_interactive_container);
     }
 
+    /**
+     * Registers any internal listeners to perform the playback controls,
+     * such as play/pause, next, and previous
+     */
     @Override
-    protected void registerClickListeners() {
-        super.registerClickListeners();
+    protected void registerListeners() {
+        super.registerListeners();
         rewindButton.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
                 onRewindClick();
             }
         });
-
         fastForwardButton.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -262,11 +252,43 @@ public class DefaultControlsLeanback extends DefaultControls {
         fastForwardButton.setImageDrawable(defaultFastForwardDrawable);
     }
 
+    /**
+     * Performs the functionality to rewind the current video by
+     * {@value #FAST_FORWARD_REWIND_AMOUNT} milliseconds.
+     */
     private void onRewindClick() {
-        //TODO: ?
+        int newPosition = (int) videoView.getCurrentPosition() - FAST_FORWARD_REWIND_AMOUNT;
+        if (newPosition < 0) {
+            newPosition = 0;
+        }
+
+        performSeek(newPosition);
     }
 
+    /**
+     * Performs the functionality to fast forward the current video by
+     * {@value #FAST_FORWARD_REWIND_AMOUNT} milliseconds.
+     */
     private void onFastForwardClick() {
-        //TODO: ?
+        int newPosition = (int) videoView.getCurrentPosition() + FAST_FORWARD_REWIND_AMOUNT;
+        if (newPosition > progressBar.getMax()) {
+            newPosition = progressBar.getMax();
+        }
+
+        performSeek(newPosition);
+    }
+
+    /**
+     * Performs the functionality to inform any listeners that the video has been
+     * seeked to the specified time.
+     *
+     * @param seekToTime The time to seek to in milliseconds
+     */
+    private void performSeek(int seekToTime) {
+        if (seekCallbacks != null && seekCallbacks.onSeekEnded(seekToTime)) {
+            return;
+        }
+
+        videoView.seekTo(seekToTime);
     }
 }

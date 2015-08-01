@@ -20,8 +20,6 @@ import android.annotation.TargetApi;
 import android.content.Context;
 import android.os.Build;
 import android.util.AttributeSet;
-import android.view.View;
-import android.widget.LinearLayout;
 import android.widget.SeekBar;
 
 import com.devbrackets.android.exomedia.R;
@@ -34,8 +32,8 @@ import com.devbrackets.android.exomedia.util.TimeFormatUtil;
  */
 public class DefaultControlsMobile extends DefaultControls {
     private SeekBar seekBar;
-    private LinearLayout controlsContainer;
     private boolean pausedForSeek = false;
+    private boolean userInteracting = false;
 
     public DefaultControlsMobile(Context context) {
         super(context);
@@ -58,19 +56,6 @@ public class DefaultControlsMobile extends DefaultControls {
     @Override
     protected int getLayoutResource() {
         return R.layout.exomedia_video_controls_overlay;
-    }
-
-    /**
-     * Used to update the control view visibilities to indicate that the video
-     * is loading.  This is different from using {@link #loadCompleted()} and {@link #restartLoading()}
-     * because those update additional information.
-     *
-     * @param isLoading True if loading progress should be shown
-     */
-    @Override
-    public void setLoading(boolean isLoading) {
-        super.setLoading(isLoading);
-        controlsContainer.setVisibility(isLoading ? View.GONE : View.VISIBLE);
     }
 
     /**
@@ -114,17 +99,50 @@ public class DefaultControlsMobile extends DefaultControls {
         }
     }
 
+    /**
+     * Retrieves the view references from the xml layout
+     */
     @Override
     protected void retrieveViews() {
         super.retrieveViews();
         seekBar = (SeekBar) findViewById(R.id.exomedia_controls_video_seek);
-        controlsContainer = (LinearLayout) findViewById(R.id.exomedia_controls_interactive_container);
     }
 
+    /**
+     * Registers any internal listeners to perform the playback controls,
+     * such as play/pause, next, and previous
+     */
     @Override
-    protected void registerClickListeners() {
-        super.registerClickListeners();
+    protected void registerListeners() {
+        super.registerListeners();
         seekBar.setOnSeekBarChangeListener(new SeekBarChanged());
+    }
+
+    /**
+     * After the specified delay the view will be hidden.  If the user is interacting
+     * with the controls then we wait until after they are done to start the delay.
+     *
+     * @param delay The delay in milliseconds to wait to start the hide animation
+     */
+    @Override
+    public void hideDelayed(long delay) {
+        hideDelay = delay;
+
+        if (delay < 0 || !canViewHide) {
+            return;
+        }
+
+        //If the user is interacting with controls we don't want to start the delayed hide yet
+        if (userInteracting) {
+            return;
+        }
+
+        visibilityHandler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                animateVisibility(false);
+            }
+        }, delay);
     }
 
     /**

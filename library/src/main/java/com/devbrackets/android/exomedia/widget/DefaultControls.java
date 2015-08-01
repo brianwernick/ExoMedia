@@ -27,6 +27,7 @@ import android.support.annotation.Nullable;
 import android.support.v4.graphics.drawable.DrawableCompat;
 import android.util.AttributeSet;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.animation.AlphaAnimation;
 import android.widget.ImageButton;
 import android.widget.ProgressBar;
@@ -61,6 +62,7 @@ public abstract class DefaultControls extends RelativeLayout {
     protected ImageButton playPauseButton;
     protected ImageButton previousButton;
     protected ImageButton nextButton;
+    protected ViewGroup controlsContainer;
     protected ProgressBar loadingProgress;
 
     protected Drawable defaultPlayDrawable;
@@ -73,7 +75,6 @@ public abstract class DefaultControls extends RelativeLayout {
     protected int pauseResourceId = INVALID_RESOURCE_ID;
 
     protected long hideDelay = -1;
-    protected boolean userInteracting = false;
 
     protected boolean isVisible = true;
     protected boolean canViewHide = true;
@@ -146,6 +147,7 @@ public abstract class DefaultControls extends RelativeLayout {
      */
     public void setLoading(boolean isLoading) {
         loadingProgress.setVisibility(isLoading ? View.VISIBLE : View.INVISIBLE);
+        controlsContainer.setVisibility(isLoading ? View.GONE : View.VISIBLE);
     }
 
     /**
@@ -398,11 +400,6 @@ public abstract class DefaultControls extends RelativeLayout {
             return;
         }
 
-        //If the user is interacting with controls we don't want to start the delayed hide yet
-        if (userInteracting) {
-            return;
-        }
-
         visibilityHandler.postDelayed(new Runnable() {
             @Override
             public void run() {
@@ -431,6 +428,9 @@ public abstract class DefaultControls extends RelativeLayout {
         busPostHandlesEvent = finish;
     }
 
+    /**
+     * Retrieves the view references from the xml layout
+     */
     protected void retrieveViews() {
         currentTime = (TextView) findViewById(R.id.exomedia_controls_current_time);
         endTime = (TextView) findViewById(R.id.exomedia_controls_end_time);
@@ -438,9 +438,14 @@ public abstract class DefaultControls extends RelativeLayout {
         previousButton = (ImageButton) findViewById(R.id.exomedia_controls_previous_btn);
         nextButton = (ImageButton) findViewById(R.id.exomedia_controls_next_btn);
         loadingProgress = (ProgressBar) findViewById(R.id.exomedia_controls_video_loading);
+        controlsContainer = (ViewGroup) findViewById(R.id.exomedia_controls_interactive_container);
     }
 
-    protected void registerClickListeners() {
+    /**
+     * Registers any internal listeners to perform the playback controls,
+     * such as play/pause, next, and previous
+     */
+    protected void registerListeners() {
         playPauseButton.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -523,6 +528,10 @@ public abstract class DefaultControls extends RelativeLayout {
         }
     }
 
+    /**
+     * Performs the functionality to inform any listeners that the previous
+     * button has been clicked
+     */
     protected void onPreviousClick() {
         if (callback != null && callback.onPreviousClicked()) {
             return;
@@ -533,6 +542,10 @@ public abstract class DefaultControls extends RelativeLayout {
         }
     }
 
+    /**
+     * Performs the functionality to inform any listeners that the next
+     * button has been clicked
+     */
     protected void onNextClick() {
         if (callback != null && callback.onNextClicked()) {
             return;
@@ -543,14 +556,25 @@ public abstract class DefaultControls extends RelativeLayout {
         }
     }
 
+    /**
+     * Used to retrieve the layout resource identifier to inflate
+     *
+     * @return The layout resource identifier to inflate
+     */
     @LayoutRes
     protected abstract int getLayoutResource();
 
+    /**
+     * Performs any initialization steps such as retrieving views, registering listeners,
+     * and updating any drawables.
+     *
+     * @param context The context to use for retrieving the correct layout
+     */
     protected void setup(Context context) {
         View.inflate(context, getLayoutResource(), this);
         retrieveViews();
 
-        registerClickListeners();
+        registerListeners();
         updateButtonDrawables();
     }
 

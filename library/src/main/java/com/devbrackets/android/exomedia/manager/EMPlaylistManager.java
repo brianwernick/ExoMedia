@@ -25,17 +25,10 @@ import android.util.Log;
 
 import com.devbrackets.android.exomedia.EMRemoteActions;
 import com.devbrackets.android.exomedia.EMVideoView;
-import com.devbrackets.android.exomedia.event.EMMediaNextEvent;
-import com.devbrackets.android.exomedia.event.EMMediaPlayPauseEvent;
-import com.devbrackets.android.exomedia.event.EMMediaPreviousEvent;
 import com.devbrackets.android.exomedia.event.EMMediaProgressEvent;
-import com.devbrackets.android.exomedia.event.EMMediaSeekEndedEvent;
-import com.devbrackets.android.exomedia.event.EMMediaSeekStartedEvent;
-import com.devbrackets.android.exomedia.event.EMMediaStopEvent;
 import com.devbrackets.android.exomedia.event.EMPlaylistItemChangedEvent;
 import com.devbrackets.android.exomedia.listener.EMPlaylistServiceCallback;
 import com.devbrackets.android.exomedia.service.EMPlaylistService;
-import com.squareup.otto.Bus;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
@@ -91,20 +84,6 @@ public abstract class EMPlaylistManager<I extends EMPlaylistManager.PlaylistItem
 
     protected abstract Application getApplication();
     protected abstract Class<? extends Service> getMediaServiceClass();
-
-    /**
-     * Specifies the bus to use for posting any events such as
-     * {@link #invokeNext()}.  If the specified bus is not null then
-     * the Bus will be used to inform any class of the invokes rather
-     * than using intents.
-     *
-     * <b><em>NOTE:</em></b> You will have to provide your own bus subscription in the EMPlaylistService
-     * @return The Bus to use for informing any listeners of events
-     */
-    @Nullable
-    protected Bus getBus() {
-        return null;
-    }
 
     @Override
     public boolean onPlaylistItemChanged(PlaylistItem currentItem, MediaType mediaType, boolean hasNext, boolean hasPrevious) {
@@ -281,9 +260,6 @@ public abstract class EMPlaylistManager<I extends EMPlaylistManager.PlaylistItem
      * <li>{@link EMRemoteActions#ACTION_NEXT}</li>
      * <li>{@link EMRemoteActions#ACTION_SEEK_ENDED}</li>
      * </ul>
-     * <p/>
-     * <b><em>NOTE:</em></b> if you have specified a Bus with {@link #getBus()} then you don't
-     * need to set the mediaServiceClass
      *
      * @param mediaServiceClass The class to inform of any media playback controls
      */
@@ -519,73 +495,41 @@ public abstract class EMPlaylistManager<I extends EMPlaylistManager.PlaylistItem
 
     /**
      * Informs the Media service that the current item
-     * needs to be played/paused.  If {@link #getBus()} doesn't return
-     * a null value then the service will be informed though the bus event
-     * {@link EMMediaPlayPauseEvent}.  Otherwise the service specified with
+     * needs to be played/paused.  The service specified with
      * {@link #setMediaServiceClass(Class)} will be informed using the action
      * {@link EMRemoteActions#ACTION_PLAY_PAUSE}
      */
     public void invokePausePlay() {
-        Bus bus = getBus();
-        if (bus != null) {
-            bus.post(new EMMediaPlayPauseEvent());
-            return;
-        }
-
         sendPendingIntent(playPausePendingIntent);
     }
 
     /**
      * Informs the Media service that we need to seek to
-     * the next item.  If {@link #getBus()} doesn't return
-     * a null value then the service will be informed though the bus event
-     * {@link EMMediaNextEvent}.  Otherwise the service specified with
+     * the next item. The service specified with
      * {@link #setMediaServiceClass(Class)} will be informed using the action
      * {@link EMRemoteActions#ACTION_NEXT}
      */
     public void invokeNext() {
-        Bus bus = getBus();
-        if (bus != null) {
-            bus.post(new EMMediaNextEvent());
-            return;
-        }
-
         sendPendingIntent(nextPendingIntent);
     }
 
     /**
      * Informs the Media service that we need to seek to
-     * the previous item.  If {@link #getBus()} doesn't return
-     * a null value then the service will be informed though the bus event
-     * {@link EMMediaPreviousEvent}.  Otherwise the service specified with
+     * the previous item. The service specified with
      * {@link #setMediaServiceClass(Class)} will be informed using the action
      * {@link EMRemoteActions#ACTION_PREVIOUS}
      */
     public void invokePrevious() {
-        Bus bus = getBus();
-        if (bus != null) {
-            bus.post(new EMMediaPreviousEvent());
-            return;
-        }
-
         sendPendingIntent(previousPendingIntent);
     }
 
     /**
      * Informs the Media service that we need to stop
-     * playback. If {@link #getBus()} doesn't return
-     * a null value then the service will be informed though the bus event
-     * {@link EMMediaStopEvent}.  Otherwise the service specified with
+     * playback. The service specified with
      * {@link #setMediaServiceClass(Class)} will be informed using the action
      * {@link EMRemoteActions#ACTION_STOP}
      */
     public void invokeStop() {
-        Bus bus = getBus();
-        if (bus != null) {
-            bus.post(new EMMediaStopEvent());
-            return;
-        }
-
         sendPendingIntent(stopPendingIntent);
     }
 
@@ -596,31 +540,17 @@ public abstract class EMPlaylistManager<I extends EMPlaylistManager.PlaylistItem
      * {@link EMRemoteActions#ACTION_SEEK_STARTED}
      */
     public void invokeSeekStarted() {
-        Bus bus = getBus();
-        if (bus != null) {
-            bus.post(new EMMediaSeekStartedEvent());
-            return;
-        }
-
         sendPendingIntent(seekStartedPendingIntent);
     }
 
     /**
      * Informs the Media service that we need to seek
-     * the current item. If {@link #getBus()} doesn't return
-     * a null value then the service will be informed though the bus event
-     * {@link EMMediaSeekEndedEvent}.  Otherwise the service specified with
+     * the current item. The service specified with
      * {@link #setMediaServiceClass(Class)} will be informed using the action
      * {@link EMRemoteActions#ACTION_SEEK_ENDED} and have an intent extra with the
      * key {@link EMRemoteActions#ACTION_EXTRA_SEEK_POSITION} (integer)
      */
     public void invokeSeekEnded(int seekPosition) {
-        Bus bus = getBus();
-        if (bus != null) {
-            bus.post(new EMMediaSeekEndedEvent(seekPosition));
-            return;
-        }
-
         //Tries to start the intent
         if (seekEndedIntent != null) {
             seekEndedIntent.putExtra(EMRemoteActions.ACTION_EXTRA_SEEK_POSITION, seekPosition);

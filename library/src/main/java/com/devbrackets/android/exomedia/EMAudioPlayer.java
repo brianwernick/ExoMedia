@@ -20,6 +20,7 @@ import android.content.Context;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Build;
+import android.support.annotation.Nullable;
 import android.util.Log;
 
 import com.devbrackets.android.exomedia.builder.HlsRenderBuilder;
@@ -29,13 +30,12 @@ import com.devbrackets.android.exomedia.exoplayer.EMExoPlayer;
 import com.devbrackets.android.exomedia.listener.EMProgressCallback;
 import com.devbrackets.android.exomedia.listener.ExoPlayerListener;
 import com.devbrackets.android.exomedia.util.EMDeviceUtil;
+import com.devbrackets.android.exomedia.util.EMEventBus;
 import com.devbrackets.android.exomedia.util.MediaUtil;
 import com.devbrackets.android.exomedia.util.Repeater;
 import com.devbrackets.android.exomedia.util.StopWatch;
 import com.google.android.exoplayer.audio.AudioCapabilities;
 import com.google.android.exoplayer.audio.AudioCapabilitiesReceiver;
-import com.squareup.otto.Bus;
-import com.squareup.otto.Produce;
 
 /**
  * An AudioPlayer that uses the ExoPlayer as the backing architecture.  If the current device
@@ -75,7 +75,8 @@ public class EMAudioPlayer implements AudioCapabilitiesReceiver.Listener {
 
     private boolean overridePosition = false;
 
-    private Bus bus;
+    @Nullable
+    private EMEventBus bus;
     private EMProgressCallback progressCallback;
 
     private Repeater pollRepeater = new Repeater();
@@ -168,9 +169,9 @@ public class EMAudioPlayer implements AudioCapabilitiesReceiver.Listener {
     /**
      * Sets the bus to use for dispatching Events such as the poll progress
      *
-     * @param bus The Otto bus to dispatch events on
+     * @param bus The EventBus to dispatch events on
      */
-    public void setBus(Bus bus) {
+    public void setBus(@Nullable EMEventBus bus) {
         this.bus = bus;
         listenerMux.setBus(bus);
     }
@@ -178,9 +179,9 @@ public class EMAudioPlayer implements AudioCapabilitiesReceiver.Listener {
     /**
      * Starts the progress poll.
      *
-     * @param bus The Otto Bus event dispatcher that the listener is connected to
+     * @param bus The EventBus event dispatcher that the listener is connected to
      */
-    public void startProgressPoll(Bus bus) {
+    public void startProgressPoll(@Nullable EMEventBus bus) {
         setBus(bus);
 
         if (bus != null) {
@@ -204,7 +205,7 @@ public class EMAudioPlayer implements AudioCapabilitiesReceiver.Listener {
 
     /**
      * Stops the progress poll
-     * (see {@link #startProgressPoll(Bus)})
+     * (see {@link #startProgressPoll(EMEventBus)})
      */
     public void stopProgressPoll() {
         pollRepeater.stop();
@@ -235,11 +236,6 @@ public class EMAudioPlayer implements AudioCapabilitiesReceiver.Listener {
      */
     public String getUserAgent() {
         return String.format(USER_AGENT_FORMAT, BuildConfig.VERSION_NAME + " (" + BuildConfig.VERSION_CODE + ")", Build.VERSION.RELEASE, Build.MODEL);
-    }
-
-    @Produce
-    public EMMediaProgressEvent produceMediaProgressEvent() {
-        return currentMediaProgressEvent;
     }
 
     /**
@@ -410,7 +406,7 @@ public class EMAudioPlayer implements AudioCapabilitiesReceiver.Listener {
 
     /**
      * If an audio item is currently in playback, it will be paused and the progressPoll
-     * will be stopped (see {@link #startProgressPoll(com.squareup.otto.Bus)})
+     * will be stopped (see {@link #startProgressPoll(EMEventBus)})
      */
     public void pause() {
         if (!useExo) {
@@ -424,7 +420,7 @@ public class EMAudioPlayer implements AudioCapabilitiesReceiver.Listener {
 
     /**
      * If an audio item is currently in playback then the playback will be stopped
-     * and the progressPoll will be stopped (see {@link #startProgressPoll(com.squareup.otto.Bus)})
+     * and the progressPoll will be stopped (see {@link #startProgressPoll(EMEventBus)})
      */
     public void stopPlayback() {
         if (!useExo) {
@@ -582,7 +578,7 @@ public class EMAudioPlayer implements AudioCapabilitiesReceiver.Listener {
 
     /**
      * Sets the listener to inform of VideoPlayer prepared events.  This can also be
-     * accessed through the Otto event {@link com.devbrackets.android.exomedia.event.EMMediaPreparedEvent}
+     * accessed through the bus event {@link com.devbrackets.android.exomedia.event.EMMediaPreparedEvent}
      *
      * @param listener The listener
      */
@@ -592,7 +588,7 @@ public class EMAudioPlayer implements AudioCapabilitiesReceiver.Listener {
 
     /**
      * Sets the listener to inform of VideoPlayer completion events.  This can also be
-     * accessed through the Otto event {@link com.devbrackets.android.exomedia.event.EMMediaCompletionEvent}
+     * accessed through the bus event {@link com.devbrackets.android.exomedia.event.EMMediaCompletionEvent}
      *
      * @param listener The listener
      */
@@ -602,7 +598,7 @@ public class EMAudioPlayer implements AudioCapabilitiesReceiver.Listener {
 
     /**
      * Sets the listener to inform of playback errors.  This can also be
-     * accessed through the Otto event {@link com.devbrackets.android.exomedia.event.EMMediaErrorEvent}
+     * accessed through the bus event {@link com.devbrackets.android.exomedia.event.EMMediaErrorEvent}
      *
      * @param listener The listener
      */

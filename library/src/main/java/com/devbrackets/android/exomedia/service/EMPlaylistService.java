@@ -39,24 +39,15 @@ import com.devbrackets.android.exomedia.EMNotification;
 import com.devbrackets.android.exomedia.EMRemoteActions;
 import com.devbrackets.android.exomedia.EMVideoView;
 import com.devbrackets.android.exomedia.R;
-import com.devbrackets.android.exomedia.event.EMMediaAllowedTypeChangedEvent;
-import com.devbrackets.android.exomedia.event.EMMediaNextEvent;
-import com.devbrackets.android.exomedia.event.EMMediaPlayPauseEvent;
-import com.devbrackets.android.exomedia.event.EMMediaPreviousEvent;
 import com.devbrackets.android.exomedia.event.EMMediaProgressEvent;
-import com.devbrackets.android.exomedia.event.EMMediaSeekEndedEvent;
-import com.devbrackets.android.exomedia.event.EMMediaSeekStartedEvent;
 import com.devbrackets.android.exomedia.event.EMMediaStateEvent;
-import com.devbrackets.android.exomedia.event.EMMediaStopEvent;
 import com.devbrackets.android.exomedia.event.EMPlaylistItemChangedEvent;
 import com.devbrackets.android.exomedia.listener.EMAudioFocusCallback;
 import com.devbrackets.android.exomedia.listener.EMPlaylistServiceCallback;
 import com.devbrackets.android.exomedia.listener.EMProgressCallback;
 import com.devbrackets.android.exomedia.manager.EMPlaylistManager;
 import com.devbrackets.android.exomedia.util.EMAudioFocusHelper;
-import com.squareup.otto.Bus;
-import com.squareup.otto.Produce;
-import com.squareup.otto.Subscribe;
+import com.devbrackets.android.exomedia.util.EMEventBus;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -106,7 +97,6 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
     protected boolean onCreateCalled = false;
     protected Intent workaroundIntent = null;
 
-    protected EventBusMethods busMethods = new EventBusMethods();
     protected List<EMPlaylistServiceCallback> callbackList = new LinkedList<>();
 
     protected abstract String getAppName();
@@ -144,7 +134,7 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
      * @return The bus to post events to or null
      */
     @Nullable
-    protected Bus getBus() {
+    protected EMEventBus getBus() {
         return null;
     }
 
@@ -333,7 +323,6 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
         setMediaState(MediaState.STOPPED);
 
         relaxResources(true);
-        unRegisterBus();
         getMediaPlaylistManager().unRegisterService();
         audioFocusHelper.abandonFocus();
         lockScreenHelper.release();
@@ -508,7 +497,6 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
         notificationHelper = new EMNotification(getApplicationContext());
         lockScreenHelper = new EMLockScreen(getApplicationContext(), getClass());
         getMediaPlaylistManager().registerService(this);
-        registerBus(getBus());
 
         //Another part of the workaround for some Samsung devices
         if (workaroundIntent != null) {
@@ -518,32 +506,10 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
     }
 
     /**
-     * Registers an internal {@link EventBusMethods}
-     * that will listen to Bus Events and Provide Bus Event related to the {@link EMPlaylistService}.  The bus will NOT
-     *  be used for posting events, in order to enable that a bus needs to be provided with {@link #getBus()}
-     *
-     * @param bus The bus to register
-     */
-    protected void registerBus(Bus bus) {
-        if (bus != null) {
-            busMethods.registerBus(bus);
-        }
-    }
-
-    /**
-     * UnRegisters a previously registered bus for the
-     * Events and Provides. (see {@link #registerBus(Bus)}
-     */
-    protected void unRegisterBus() {
-        busMethods.unRegisterBus();
-    }
-
-    /**
      * Performs the functionality to pause and/or resume
      * the media playback.  This is called through an intent
      * with the {@link EMRemoteActions#ACTION_PLAY_PAUSE}, through
-     * {@link EMPlaylistManager#invokePausePlay()}, or through Bus
-     * events registered with {@link #registerBus(Bus)}
+     * {@link EMPlaylistManager#invokePausePlay()}
      */
     protected void performPlayPause() {
         if (isPlaying() || pausedForFocusLoss) {
@@ -561,8 +527,7 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
      * Performs the functionality to seek to the previous media
      * item.  This is called through an intent
      * with the {@link EMRemoteActions#ACTION_PREVIOUS}, through
-     * {@link EMPlaylistManager#invokePrevious()}, or through Bus
-     * events registered with {@link #registerBus(Bus)}
+     * {@link EMPlaylistManager#invokePrevious()}
      */
     protected void performPrevious() {
         getMediaPlaylistManager().previous();
@@ -574,8 +539,7 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
      * Performs the functionality to seek to the next media
      * item.  This is called through an intent
      * with the {@link EMRemoteActions#ACTION_NEXT}, through
-     * {@link EMPlaylistManager#invokeNext()}, or through Bus
-     * events registered with {@link #registerBus(Bus)}
+     * {@link EMPlaylistManager#invokeNext()}
      */
     protected void performNext() {
         getMediaPlaylistManager().next();
@@ -597,8 +561,7 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
      * Performs the functionality to start a seek for the current
      * media item.  This is called through an intent
      * with the {@link EMRemoteActions#ACTION_SEEK_STARTED}, through
-     * {@link EMPlaylistManager#invokeSeekStarted()}, or through Bus
-     * events registered with {@link #registerBus(Bus)}
+     * {@link EMPlaylistManager#invokeSeekStarted()}
      */
     protected void performSeekStarted() {
         EMVideoView videoView = getMediaPlaylistManager().getVideoView();
@@ -614,8 +577,7 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
      * Performs the functionality to end a seek for the current
      * media item.  This is called through an intent
      * with the {@link EMRemoteActions#ACTION_SEEK_ENDED}, through
-     * {@link EMPlaylistManager#invokeSeekEnded(int)}, or through Bus
-     * events registered with {@link #registerBus(Bus)}
+     * {@link EMPlaylistManager#invokeSeekEnded(int)}
      */
     protected void performSeekEnded(int newPosition) {
         performSeek(newPosition);
@@ -656,7 +618,7 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
             }
         }
 
-        Bus bus = getBus();
+        EMEventBus bus = getBus();
         if (bus != null) {
             bus.post(new EMPlaylistItemChangedEvent<>(currentPlaylistItem, currentMediaType, hasPrevious, hasNext));
         }
@@ -674,7 +636,7 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
             }
         }
 
-        Bus bus = getBus();
+        EMEventBus bus = getBus();
         if (bus != null) {
             bus.post(new EMMediaStateEvent(currentState));
         }
@@ -1225,84 +1187,6 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
 
         public void resetRetryCount() {
             retryCount = 0;
-        }
-    }
-
-    /**
-     * A container that allows us to easily register the appropriate subscribe and produce
-     * methods for the {@link EMPlaylistService}.
-     */
-    private class EventBusMethods {
-        private Bus bus;
-        private boolean isRegistered;
-
-        public void registerBus(Bus bus) {
-            if (isRegistered) {
-                return;
-            }
-
-            this.bus = bus;
-            isRegistered = true;
-            bus.register(this);
-        }
-
-        public void unRegisterBus() {
-            if (isRegistered) {
-                bus.unregister(this);
-            }
-
-            isRegistered = false;
-            bus = null;
-        }
-
-        @Subscribe
-        public void onPlayPauseClickEvent(EMMediaPlayPauseEvent event) {
-            performPlayPause();
-        }
-
-        @Subscribe
-        public void onStopEvent(EMMediaStopEvent event) {
-            performStop();
-        }
-
-        @Subscribe
-        public void onPreviousButtonClickEvent(EMMediaPreviousEvent event) {
-            performPrevious();
-        }
-
-        @Subscribe
-        public void onNextButtonClickEvent(EMMediaNextEvent event) {
-            performNext();
-        }
-
-        @Subscribe
-        public void onSeekStartedEvent(EMMediaSeekStartedEvent event) {
-            performSeekStarted();
-        }
-
-        @Subscribe
-        public void onSeekEndedEvent(EMMediaSeekEndedEvent event) {
-            performSeekEnded((int) event.getSeekPosition());
-        }
-
-        @Subscribe
-        public void onAllowedMediaTypeChangeEvent(EMMediaAllowedTypeChangedEvent event) {
-            updateAllowedMediaType(event.getAllowedType());
-        }
-
-        @Produce
-        public EMPlaylistItemChangedEvent produceEMPlaylistItemChangedEvent() {
-            return getCurrentItemChangedEvent();
-        }
-
-        @Produce
-        public EMMediaStateEvent produceMediaStateEvent() {
-            return new EMMediaStateEvent(getCurrentMediaState());
-        }
-
-        @Produce
-        public EMMediaProgressEvent produceMediaProgressEvent() {
-            return getCurrentMediaProgress();
         }
     }
 }

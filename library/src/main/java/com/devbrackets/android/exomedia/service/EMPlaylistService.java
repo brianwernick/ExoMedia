@@ -548,6 +548,26 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
     }
 
     /**
+     * Performs the functionality to repeat the current
+     * media item in playback.  This is called through an
+     * intent with the {@link EMRemoteActions#ACTION_REPEAT},
+     * through {@link EMPlaylistManager#invokeRepeat()}
+     */
+    protected void performRepeat() {
+        //Left for the extending class to implement
+    }
+
+    /**
+     * Performs the functionality to repeat the current
+     * media item in playback.  This is called through an
+     * intent with the {@link EMRemoteActions#ACTION_SHUFFLE},
+     * through {@link EMPlaylistManager#invokeShuffle()}
+     */
+    protected void performShuffle() {
+        //Left for the extending class to implement
+    }
+
+    /**
      * Performs the functionality for when a media item
      * has finished playback.  By default the completion
      * will seek to the next available media item.  This is
@@ -1072,6 +1092,14 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
 
             case EMRemoteActions.ACTION_PREVIOUS:
                 performPrevious();
+                break;
+
+            case EMRemoteActions.ACTION_REPEAT:
+                performRepeat();
+                break;
+
+            case EMRemoteActions.ACTION_SHUFFLE:
+                performShuffle();
                 break;
 
             case EMRemoteActions.ACTION_STOP:

@@ -78,7 +78,7 @@ public abstract class EMPlaylistManager<I extends EMPlaylistManager.PlaylistItem
     private List<EMPlaylistServiceCallback> callbackList = new ArrayList<>();
 
     @Nullable
-    private PendingIntent playPausePendingIntent, nextPendingIntent, previousPendingIntent, stopPendingIntent, seekStartedPendingIntent;
+    private PendingIntent playPausePendingIntent, nextPendingIntent, previousPendingIntent, stopPendingIntent, repeatPendingIntent, shufflePendingIntent, seekStartedPendingIntent;
     @Nullable
     private Intent seekEndedIntent, allowedTypeChangedIntent;
 
@@ -258,7 +258,11 @@ public abstract class EMPlaylistManager<I extends EMPlaylistManager.PlaylistItem
      * <li>{@link EMRemoteActions#ACTION_PLAY_PAUSE}</li>
      * <li>{@link EMRemoteActions#ACTION_PREVIOUS}</li>
      * <li>{@link EMRemoteActions#ACTION_NEXT}</li>
+     * <li>{@link EMRemoteActions#ACTION_REPEAT}</li>
+     * <li>{@link EMRemoteActions#ACTION_SHUFFLE}</li>
+     * <li>{@link EMRemoteActions#ACTION_SEEK_STARTED}</li>
      * <li>{@link EMRemoteActions#ACTION_SEEK_ENDED}</li>
+     * <li>{@link EMRemoteActions#ACTION_ALLOWED_TYPE_CHANGED}</li>
      * </ul>
      *
      * @param mediaServiceClass The class to inform of any media playback controls
@@ -269,6 +273,8 @@ public abstract class EMPlaylistManager<I extends EMPlaylistManager.PlaylistItem
             previousPendingIntent = null;
             playPausePendingIntent = null;
             stopPendingIntent = null;
+            repeatPendingIntent = null;
+            shufflePendingIntent = null;
             seekStartedPendingIntent = null;
             seekEndedIntent = null;
             allowedTypeChangedIntent = null;
@@ -279,6 +285,8 @@ public abstract class EMPlaylistManager<I extends EMPlaylistManager.PlaylistItem
         previousPendingIntent = createPendingIntent(EMRemoteActions.ACTION_PREVIOUS, mediaServiceClass);
         nextPendingIntent = createPendingIntent(EMRemoteActions.ACTION_NEXT, mediaServiceClass);
         playPausePendingIntent = createPendingIntent(EMRemoteActions.ACTION_PLAY_PAUSE, mediaServiceClass);
+        repeatPendingIntent = createPendingIntent(EMRemoteActions.ACTION_REPEAT, mediaServiceClass);
+        shufflePendingIntent = createPendingIntent(EMRemoteActions.ACTION_SHUFFLE, mediaServiceClass);
 
         stopPendingIntent = createPendingIntent(EMRemoteActions.ACTION_STOP, mediaServiceClass);
         seekStartedPendingIntent = createPendingIntent(EMRemoteActions.ACTION_SEEK_STARTED, mediaServiceClass);
@@ -308,7 +316,7 @@ public abstract class EMPlaylistManager<I extends EMPlaylistManager.PlaylistItem
     }
 
     /**
-     * Sets the current playback index.  This should only be used when jumping
+     * Sets the current playback index.  This should only be used when jumPendingIntentng
      * down the current playback list, if you are only changing one see {@link #next()} or
      * {@link #previous()}.
      *
@@ -531,6 +539,26 @@ public abstract class EMPlaylistManager<I extends EMPlaylistManager.PlaylistItem
      */
     public void invokeStop() {
         sendPendingIntent(stopPendingIntent);
+    }
+
+    /**
+     * Informs the Media service that we need to repeat
+     * the current playback item. The service specified with
+     * {@link #setMediaServiceClass(Class)} will be informed using the action
+     * {@link EMRemoteActions#ACTION_REPEAT}
+     */
+    public void invokeRepeat() {
+        sendPendingIntent(repeatPendingIntent);
+    }
+
+    /**
+     * Informs the Media service that we need to shuffle the
+     * current playlist items. The service specified with
+     * {@link #setMediaServiceClass(Class)} will be informed using the action
+     * {@link EMRemoteActions#ACTION_SHUFFLE}
+     */
+    public void invokeShuffle() {
+        sendPendingIntent(shufflePendingIntent);
     }
 
     /**

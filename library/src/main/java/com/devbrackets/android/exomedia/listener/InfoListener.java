@@ -17,6 +17,7 @@
 
 package com.devbrackets.android.exomedia.listener;
 
+import com.google.android.exoplayer.TimeRange;
 import com.google.android.exoplayer.chunk.Format;
 
 /**
@@ -36,4 +37,6 @@ public interface InfoListener {
     void onLoadCompleted(int sourceId, long bytesLoaded, int type, int trigger, Format format, int mediaStartTimeMs, int mediaEndTimeMs, long elapsedRealtimeMs, long loadDurationMs);
 
     void onDecoderInitialized(String decoderName, long elapsedRealtimeMs, long initializationDurationMs);
+
+    void onSeekRangeChanged(TimeRange seekRange);
 }

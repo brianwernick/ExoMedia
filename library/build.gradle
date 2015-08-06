@@ -4,7 +4,7 @@ apply plugin: 'bintray-release'
 
 def versionMajor = 2
 def versionMinor = 2
-def versionPatch = 3
+def versionPatch = 4
 
 // Maven GAV
 def libraryGroupId = 'com.devbrackets.android'
@@ -19,7 +19,7 @@ dependencies {
     compile 'com.squareup:otto:1.3.8'
 
     // ExoPlayer
-    compile 'com.google.android.exoplayer:exoplayer:r1.4.1'
+    compile 'com.google.android.exoplayer:exoplayer:r1.4.2'
 }
 
 android {

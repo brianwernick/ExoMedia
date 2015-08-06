@@ -85,6 +85,10 @@ public abstract class EMPlaylistManager<I extends EMPlaylistManager.PlaylistItem
     protected abstract Application getApplication();
     protected abstract Class<? extends Service> getMediaServiceClass();
 
+    public EMPlaylistManager() {
+        setMediaServiceClass(getMediaServiceClass());
+    }
+
     @Override
     public boolean onPlaylistItemChanged(PlaylistItem currentItem, MediaType mediaType, boolean hasNext, boolean hasPrevious) {
         for (EMPlaylistServiceCallback callback : callbackList) {

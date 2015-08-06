@@ -23,7 +23,5 @@ package com.devbrackets.android.exomedia.event;
  * are implemented and consume the event, this will NOT be called.
  */
 public class EMMediaShuffleEvent {
-    public EMMediaShuffleEvent() {
-        //Purposefully left blank
-    }
+    //Purposefully left blank
 }

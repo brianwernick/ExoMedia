@@ -21,7 +21,5 @@ package com.devbrackets.android.exomedia.event;
  * to determine when to show custom playback controls, etc.
  */
 public class EMVideoViewClickedEvent {
-    public EMVideoViewClickedEvent() {
-        //Purposefully left blank
-    }
+    //Purposefully left blank
 }

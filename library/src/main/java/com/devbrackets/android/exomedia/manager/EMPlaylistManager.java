@@ -272,7 +272,7 @@ public abstract class EMPlaylistManager<I extends EMPlaylistManager.PlaylistItem
      * @param mediaServiceClass The class to inform of any media playback controls
      */
     public void setMediaServiceClass(@Nullable Class<? extends Service> mediaServiceClass) {
-        if (mediaServiceClass == null) {
+        if (mediaServiceClass == null || getApplication() == null) {
             nextPendingIntent = null;
             previousPendingIntent = null;
             playPausePendingIntent = null;

@@ -25,17 +25,10 @@ import android.util.Log;
 
 import com.devbrackets.android.exomedia.EMRemoteActions;
 import com.devbrackets.android.exomedia.EMVideoView;
-import com.devbrackets.android.exomedia.event.EMMediaNextEvent;
-import com.devbrackets.android.exomedia.event.EMMediaPlayPauseEvent;
-import com.devbrackets.android.exomedia.event.EMMediaPreviousEvent;
 import com.devbrackets.android.exomedia.event.EMMediaProgressEvent;
-import com.devbrackets.android.exomedia.event.EMMediaSeekEndedEvent;
-import com.devbrackets.android.exomedia.event.EMMediaSeekStartedEvent;
-import com.devbrackets.android.exomedia.event.EMMediaStopEvent;
 import com.devbrackets.android.exomedia.event.EMPlaylistItemChangedEvent;
 import com.devbrackets.android.exomedia.listener.EMPlaylistServiceCallback;
 import com.devbrackets.android.exomedia.service.EMPlaylistService;
-import com.squareup.otto.Bus;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
@@ -81,11 +74,12 @@ public abstract class EMPlaylistManager<I extends EMPlaylistManager.PlaylistItem
     private MediaType allowedType = MediaType.AUDIO;
     private WeakReference<EMVideoView> videoPlayer = new WeakReference<>(null);
 
+    @Nullable
     private EMPlaylistService service;
     private List<EMPlaylistServiceCallback> callbackList = new ArrayList<>();
 
     @Nullable
-    private PendingIntent playPausePendingIntent, nextPendingIntent, previousPendingIntent, stopPendingIntent, seekStartedPendingIntent;
+    private PendingIntent playPausePendingIntent, nextPendingIntent, previousPendingIntent, stopPendingIntent, repeatPendingIntent, shufflePendingIntent, seekStartedPendingIntent;
     @Nullable
     private Intent seekEndedIntent, allowedTypeChangedIntent;
 
@@ -93,17 +87,23 @@ public abstract class EMPlaylistManager<I extends EMPlaylistManager.PlaylistItem
     protected abstract Class<? extends Service> getMediaServiceClass();
 
     /**
-     * Specifies the bus to use for posting any events such as
-     * {@link #invokeNext()}.  If the specified bus is not null then
-     * the Bus will be used to inform any class of the invokes rather
-     * than using intents.
-     *
-     * <b><em>NOTE:</em></b> You will have to provide your own bus subscription in the EMPlaylistService
-     * @return The Bus to use for informing any listeners of events
+     * A basic constructor that will retrieve the application
+     * via {@link #getApplication()}.
      */
-    @Nullable
-    protected Bus getBus() {
-        return null;
+    public EMPlaylistManager() {
+        constructControlIntents(getMediaServiceClass(), getApplication());
+    }
+
+    /**
+     * A constructor that will use the specified application to initialize
+     * the EMPlaylistManager.  This should only be used in instances that
+     * {@link #getApplication()} will not be prepared at this point.  This
+     * can happen when using Dependence Injection frameworks such as Dagger.
+     *
+     * @param application The application to use to initialize the EMPlaylistManager
+     */
+    public EMPlaylistManager(Application application) {
+        constructControlIntents(getMediaServiceClass(), application);
     }
 
     @Override
@@ -187,8 +187,10 @@ public abstract class EMPlaylistManager<I extends EMPlaylistManager.PlaylistItem
      * UnLinks the {@link EMPlaylistService} from this manager. (see {@link #registerService(EMPlaylistService)}
      */
     public void unRegisterService() {
-        service.unRegisterCallback(this);
-        service = null;
+        if (service != null) {
+            service.unRegisterCallback(this);
+            service = null;
+        }
     }
 
     /**
@@ -269,49 +271,6 @@ public abstract class EMPlaylistManager<I extends EMPlaylistManager.PlaylistItem
      */
     public void setPlaylistId(long playListId) {
         this.playListId = playListId;
-    }
-
-    /**
-     * Sets the class to inform of invoked media playback controls using intents.  These
-     * will be one of:
-     * <ul>
-     * <li>{@link EMRemoteActions#ACTION_STOP}</li>
-     * <li>{@link EMRemoteActions#ACTION_PLAY_PAUSE}</li>
-     * <li>{@link EMRemoteActions#ACTION_PREVIOUS}</li>
-     * <li>{@link EMRemoteActions#ACTION_NEXT}</li>
-     * <li>{@link EMRemoteActions#ACTION_SEEK_ENDED}</li>
-     * </ul>
-     * <p/>
-     * <b><em>NOTE:</em></b> if you have specified a Bus with {@link #getBus()} then you don't
-     * need to set the mediaServiceClass
-     *
-     * @param mediaServiceClass The class to inform of any media playback controls
-     */
-    public void setMediaServiceClass(@Nullable Class<? extends Service> mediaServiceClass) {
-        if (mediaServiceClass == null) {
-            nextPendingIntent = null;
-            previousPendingIntent = null;
-            playPausePendingIntent = null;
-            stopPendingIntent = null;
-            seekStartedPendingIntent = null;
-            seekEndedIntent = null;
-            allowedTypeChangedIntent = null;
-            return;
-        }
-
-        //Creates the pending intents
-        previousPendingIntent = createPendingIntent(EMRemoteActions.ACTION_PREVIOUS, mediaServiceClass);
-        nextPendingIntent = createPendingIntent(EMRemoteActions.ACTION_NEXT, mediaServiceClass);
-        playPausePendingIntent = createPendingIntent(EMRemoteActions.ACTION_PLAY_PAUSE, mediaServiceClass);
-
-        stopPendingIntent = createPendingIntent(EMRemoteActions.ACTION_STOP, mediaServiceClass);
-        seekStartedPendingIntent = createPendingIntent(EMRemoteActions.ACTION_SEEK_STARTED, mediaServiceClass);
-
-        seekEndedIntent = new Intent(getApplication(), mediaServiceClass);
-        seekEndedIntent.setAction(EMRemoteActions.ACTION_SEEK_ENDED);
-
-        allowedTypeChangedIntent = new Intent(getApplication(), mediaServiceClass);
-        allowedTypeChangedIntent.setAction(EMRemoteActions.ACTION_ALLOWED_TYPE_CHANGED);
     }
 
     /**
@@ -462,6 +421,15 @@ public abstract class EMPlaylistManager<I extends EMPlaylistManager.PlaylistItem
     }
 
     /**
+     * Returns the current size of the playlist.
+     *
+     * @return The size of the playlist
+     */
+    public int getPlayListSize() {
+        return playList == null ? 0 : playList.size();
+    }
+
+    /**
      * Retrieves the Item representing the currently selected
      * item.  If there aren't any items in the play list then null will
      * be returned instead.
@@ -519,108 +487,82 @@ public abstract class EMPlaylistManager<I extends EMPlaylistManager.PlaylistItem
 
     /**
      * Informs the Media service that the current item
-     * needs to be played/paused.  If {@link #getBus()} doesn't return
-     * a null value then the service will be informed though the bus event
-     * {@link EMMediaPlayPauseEvent}.  Otherwise the service specified with
-     * {@link #setMediaServiceClass(Class)} will be informed using the action
+     * needs to be played/paused.  The service specified with
+     * {@link #getMediaServiceClass()}} will be informed using the action
      * {@link EMRemoteActions#ACTION_PLAY_PAUSE}
      */
     public void invokePausePlay() {
-        Bus bus = getBus();
-        if (bus != null) {
-            bus.post(new EMMediaPlayPauseEvent());
-            return;
-        }
-
         sendPendingIntent(playPausePendingIntent);
     }
 
     /**
      * Informs the Media service that we need to seek to
-     * the next item.  If {@link #getBus()} doesn't return
-     * a null value then the service will be informed though the bus event
-     * {@link EMMediaNextEvent}.  Otherwise the service specified with
-     * {@link #setMediaServiceClass(Class)} will be informed using the action
+     * the next item. The service specified with
+     * {@link #getMediaServiceClass()} will be informed using the action
      * {@link EMRemoteActions#ACTION_NEXT}
      */
     public void invokeNext() {
-        Bus bus = getBus();
-        if (bus != null) {
-            bus.post(new EMMediaNextEvent());
-            return;
-        }
-
         sendPendingIntent(nextPendingIntent);
     }
 
     /**
      * Informs the Media service that we need to seek to
-     * the previous item.  If {@link #getBus()} doesn't return
-     * a null value then the service will be informed though the bus event
-     * {@link EMMediaPreviousEvent}.  Otherwise the service specified with
-     * {@link #setMediaServiceClass(Class)} will be informed using the action
+     * the previous item. The service specified with
+     * {@link #getMediaServiceClass()} will be informed using the action
      * {@link EMRemoteActions#ACTION_PREVIOUS}
      */
     public void invokePrevious() {
-        Bus bus = getBus();
-        if (bus != null) {
-            bus.post(new EMMediaPreviousEvent());
-            return;
-        }
-
         sendPendingIntent(previousPendingIntent);
     }
 
     /**
      * Informs the Media service that we need to stop
-     * playback. If {@link #getBus()} doesn't return
-     * a null value then the service will be informed though the bus event
-     * {@link EMMediaStopEvent}.  Otherwise the service specified with
-     * {@link #setMediaServiceClass(Class)} will be informed using the action
+     * playback. The service specified with
+     * {@link #getMediaServiceClass()} will be informed using the action
      * {@link EMRemoteActions#ACTION_STOP}
      */
     public void invokeStop() {
-        Bus bus = getBus();
-        if (bus != null) {
-            bus.post(new EMMediaStopEvent());
-            return;
-        }
-
         sendPendingIntent(stopPendingIntent);
+    }
+
+    /**
+     * Informs the Media service that we need to repeat
+     * the current playback item. The service specified with
+     * {@link #getMediaServiceClass()} will be informed using the action
+     * {@link EMRemoteActions#ACTION_REPEAT}
+     */
+    public void invokeRepeat() {
+        sendPendingIntent(repeatPendingIntent);
+    }
+
+    /**
+     * Informs the Media service that we need to shuffle the
+     * current playlist items. The service specified with
+     * {@link #getMediaServiceClass()} will be informed using the action
+     * {@link EMRemoteActions#ACTION_SHUFFLE}
+     */
+    public void invokeShuffle() {
+        sendPendingIntent(shufflePendingIntent);
     }
 
     /**
      * Informs the Media service that we have started seeking
      * the playback.  The service specified with
-     * {@link #setMediaServiceClass(Class)} will be informed using the action
+     * {@link #getMediaServiceClass()} will be informed using the action
      * {@link EMRemoteActions#ACTION_SEEK_STARTED}
      */
     public void invokeSeekStarted() {
-        Bus bus = getBus();
-        if (bus != null) {
-            bus.post(new EMMediaSeekStartedEvent());
-            return;
-        }
-
         sendPendingIntent(seekStartedPendingIntent);
     }
 
     /**
      * Informs the Media service that we need to seek
-     * the current item. If {@link #getBus()} doesn't return
-     * a null value then the service will be informed though the bus event
-     * {@link EMMediaSeekEndedEvent}.  Otherwise the service specified with
-     * {@link #setMediaServiceClass(Class)} will be informed using the action
+     * the current item. The service specified with
+     * {@link #getMediaServiceClass()} will be informed using the action
      * {@link EMRemoteActions#ACTION_SEEK_ENDED} and have an intent extra with the
      * key {@link EMRemoteActions#ACTION_EXTRA_SEEK_POSITION} (integer)
      */
     public void invokeSeekEnded(int seekPosition) {
-        Bus bus = getBus();
-        if (bus != null) {
-            bus.post(new EMMediaSeekEndedEvent(seekPosition));
-            return;
-        }
-
         //Tries to start the intent
         if (seekEndedIntent != null) {
             seekEndedIntent.putExtra(EMRemoteActions.ACTION_EXTRA_SEEK_POSITION, seekPosition);
@@ -629,12 +571,27 @@ public abstract class EMPlaylistManager<I extends EMPlaylistManager.PlaylistItem
     }
 
     /**
-     * Returns the current size of the playlist.
+     * Creates the Intents that will be used to interact with the playlist service
      *
-     * @return The size of the playlist
+     * @param mediaServiceClass The class to inform of any media playback controls
+     * @param application The application to use when constructing the intents used to inform the playlist service of invocations
      */
-    private int getPlayListSize() {
-        return playList == null ? 0 : playList.size();
+    protected void constructControlIntents(Class<? extends Service> mediaServiceClass, Application application) {
+        //Creates the pending intents
+        previousPendingIntent = createPendingIntent(application, mediaServiceClass, EMRemoteActions.ACTION_PREVIOUS);
+        nextPendingIntent = createPendingIntent(application, mediaServiceClass, EMRemoteActions.ACTION_NEXT);
+        playPausePendingIntent = createPendingIntent(application, mediaServiceClass, EMRemoteActions.ACTION_PLAY_PAUSE);
+        repeatPendingIntent = createPendingIntent(application, mediaServiceClass, EMRemoteActions.ACTION_REPEAT);
+        shufflePendingIntent = createPendingIntent(application, mediaServiceClass, EMRemoteActions.ACTION_SHUFFLE);
+
+        stopPendingIntent = createPendingIntent(application, mediaServiceClass, EMRemoteActions.ACTION_STOP);
+        seekStartedPendingIntent = createPendingIntent(application, mediaServiceClass, EMRemoteActions.ACTION_SEEK_STARTED);
+
+        seekEndedIntent = new Intent(application, mediaServiceClass);
+        seekEndedIntent.setAction(EMRemoteActions.ACTION_SEEK_ENDED);
+
+        allowedTypeChangedIntent = new Intent(application, mediaServiceClass);
+        allowedTypeChangedIntent.setAction(EMRemoteActions.ACTION_ALLOWED_TYPE_CHANGED);
     }
 
     /**
@@ -722,15 +679,16 @@ public abstract class EMPlaylistManager<I extends EMPlaylistManager.PlaylistItem
     /**
      * Creates a PendingIntent for the given action to the specified service
      *
-     * @param action The action to use
+     * @param application The application to use when creating the  pending intent
      * @param serviceClass The service class to notify of intents
+     * @param action The action to use
      * @return The resulting PendingIntent
      */
-    private PendingIntent createPendingIntent(String action, Class<? extends Service> serviceClass) {
-        Intent intent = new Intent(getApplication(), serviceClass);
+    private PendingIntent createPendingIntent(Application application, Class<? extends Service> serviceClass, String action) {
+        Intent intent = new Intent(application, serviceClass);
         intent.setAction(action);
 
-        return PendingIntent.getService(getApplication(), 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+        return PendingIntent.getService(application, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
     }
 
     /**

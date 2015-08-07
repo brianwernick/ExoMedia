@@ -20,7 +20,5 @@ package com.devbrackets.android.exomedia.event;
  * An event posted when a seek bar is first interacted with.
  */
 public class EMMediaSeekStartedEvent {
-    public EMMediaSeekStartedEvent() {
-        //Purposefully left blank
-    }
+    //Purposefully left blank
 }

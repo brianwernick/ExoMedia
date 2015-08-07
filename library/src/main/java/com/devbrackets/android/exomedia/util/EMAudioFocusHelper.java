@@ -23,11 +23,10 @@ import android.support.annotation.Nullable;
 import com.devbrackets.android.exomedia.event.EMAudioFocusGainedEvent;
 import com.devbrackets.android.exomedia.event.EMAudioFocusLostEvent;
 import com.devbrackets.android.exomedia.listener.EMAudioFocusCallback;
-import com.squareup.otto.Bus;
 
 /**
  * A helper to simplify audio focus procedures in to simple callbacks and/or
- * Otto events.
+ * EventBus events.
  */
 public class EMAudioFocusHelper {
     public enum Focus {
@@ -37,7 +36,8 @@ public class EMAudioFocusHelper {
         FOCUSED             // have full audio focus
     }
 
-    private Bus bus;
+    @Nullable
+    private EMEventBus bus;
     private AudioManager audioManager;
     private EMAudioFocusCallback callbacks;
     private AudioFocusListener audioFocusListener = new AudioFocusListener();
@@ -46,7 +46,7 @@ public class EMAudioFocusHelper {
 
     /**
      * Creates and sets up the basic information for the AudioFocusHelper.  In order to
-     * be of any use you must call {@link #setBus(com.squareup.otto.Bus)} or
+     * be of any use you must call {@link #setBus(EMEventBus)} or
      * {@link #setAudioFocusCallback(com.devbrackets.android.exomedia.listener.EMAudioFocusCallback)}
      *
      * @param context The context for the AudioFocus (Generally Application)
@@ -59,9 +59,9 @@ public class EMAudioFocusHelper {
      * Sets the bus to use for dispatching Events that correspond to the callbacks
      * listed in {@link com.devbrackets.android.exomedia.listener.EMAudioFocusCallback}
      *
-     * @param bus The Otto bus to dispatch events on
+     * @param bus The EventBus to dispatch events on
      */
-    public void setBus(Bus bus) {
+    public void setBus(@Nullable EMEventBus bus) {
         this.bus = bus;
     }
 

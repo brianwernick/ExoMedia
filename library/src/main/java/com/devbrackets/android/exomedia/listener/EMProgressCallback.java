@@ -27,7 +27,7 @@ public interface EMProgressCallback {
 
     /**
      * Occurs when the currently playing item has a progress change.
-     * You can also catch this event with the Otto bus event
+     * You can also catch this event with the EventBus event
      * {@link com.devbrackets.android.exomedia.event.EMMediaProgressEvent}
      *
      * @return True if the progress update has been handled

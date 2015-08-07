@@ -23,7 +23,5 @@ package com.devbrackets.android.exomedia.event;
  * are implemented consume the event, this will NOT be called.
  */
 public class EMMediaShareEvent {
-    public EMMediaShareEvent() {
-        //Purposefully left blank
-    }
+    //Purposefully left blank
 }

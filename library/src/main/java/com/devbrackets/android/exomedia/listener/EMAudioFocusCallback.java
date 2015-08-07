@@ -18,12 +18,12 @@ package com.devbrackets.android.exomedia.listener;
 
 /**
  * Basic AudioFocus callbacks.  These can also be accessed through
- * their corresponding Otto events.
+ * their corresponding EventBus events.
  */
 public interface EMAudioFocusCallback {
     /**
      * Occurs when the application gains audio focus.
-     * You can also catch this event with the Otto bus event
+     * You can also catch this event with the EventBus event
      * {@link com.devbrackets.android.exomedia.event.EMAudioFocusGainedEvent}
      *
      * @return True if the event has been handled
@@ -32,7 +32,7 @@ public interface EMAudioFocusCallback {
 
     /**
      * Occurs when the application looses audio focus.
-     * You can also catch this event with the Otto bus event
+     * You can also catch this event with the EventBus event
      * {@link com.devbrackets.android.exomedia.event.EMAudioFocusLostEvent}
      *
      * @return True if the event has been handled

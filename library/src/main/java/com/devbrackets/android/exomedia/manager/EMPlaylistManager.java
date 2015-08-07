@@ -74,6 +74,7 @@ public abstract class EMPlaylistManager<I extends EMPlaylistManager.PlaylistItem
     private MediaType allowedType = MediaType.AUDIO;
     private WeakReference<EMVideoView> videoPlayer = new WeakReference<>(null);
 
+    @Nullable
     private EMPlaylistService service;
     private List<EMPlaylistServiceCallback> callbackList = new ArrayList<>();
 
@@ -85,8 +86,24 @@ public abstract class EMPlaylistManager<I extends EMPlaylistManager.PlaylistItem
     protected abstract Application getApplication();
     protected abstract Class<? extends Service> getMediaServiceClass();
 
+    /**
+     * A basic constructor that will retrieve the application
+     * via {@link #getApplication()}.
+     */
     public EMPlaylistManager() {
-        setMediaServiceClass(getMediaServiceClass());
+        constructControlIntents(getMediaServiceClass(), getApplication());
+    }
+
+    /**
+     * A constructor that will use the specified application to initialize
+     * the EMPlaylistManager.  This should only be used in instances that
+     * {@link #getApplication()} will not be prepared at this point.  This
+     * can happen when using Dependence Injection frameworks such as Dagger.
+     *
+     * @param application The application to use to initialize the EMPlaylistManager
+     */
+    public EMPlaylistManager(Application application) {
+        constructControlIntents(getMediaServiceClass(), application);
     }
 
     @Override
@@ -170,8 +187,10 @@ public abstract class EMPlaylistManager<I extends EMPlaylistManager.PlaylistItem
      * UnLinks the {@link EMPlaylistService} from this manager. (see {@link #registerService(EMPlaylistService)}
      */
     public void unRegisterService() {
-        service.unRegisterCallback(this);
-        service = null;
+        if (service != null) {
+            service.unRegisterCallback(this);
+            service = null;
+        }
     }
 
     /**
@@ -255,54 +274,6 @@ public abstract class EMPlaylistManager<I extends EMPlaylistManager.PlaylistItem
     }
 
     /**
-     * Sets the class to inform of invoked media playback controls using intents.  These
-     * will be one of:
-     * <ul>
-     * <li>{@link EMRemoteActions#ACTION_STOP}</li>
-     * <li>{@link EMRemoteActions#ACTION_PLAY_PAUSE}</li>
-     * <li>{@link EMRemoteActions#ACTION_PREVIOUS}</li>
-     * <li>{@link EMRemoteActions#ACTION_NEXT}</li>
-     * <li>{@link EMRemoteActions#ACTION_REPEAT}</li>
-     * <li>{@link EMRemoteActions#ACTION_SHUFFLE}</li>
-     * <li>{@link EMRemoteActions#ACTION_SEEK_STARTED}</li>
-     * <li>{@link EMRemoteActions#ACTION_SEEK_ENDED}</li>
-     * <li>{@link EMRemoteActions#ACTION_ALLOWED_TYPE_CHANGED}</li>
-     * </ul>
-     *
-     * @param mediaServiceClass The class to inform of any media playback controls
-     */
-    public void setMediaServiceClass(@Nullable Class<? extends Service> mediaServiceClass) {
-        if (mediaServiceClass == null || getApplication() == null) {
-            nextPendingIntent = null;
-            previousPendingIntent = null;
-            playPausePendingIntent = null;
-            stopPendingIntent = null;
-            repeatPendingIntent = null;
-            shufflePendingIntent = null;
-            seekStartedPendingIntent = null;
-            seekEndedIntent = null;
-            allowedTypeChangedIntent = null;
-            return;
-        }
-
-        //Creates the pending intents
-        previousPendingIntent = createPendingIntent(EMRemoteActions.ACTION_PREVIOUS, mediaServiceClass);
-        nextPendingIntent = createPendingIntent(EMRemoteActions.ACTION_NEXT, mediaServiceClass);
-        playPausePendingIntent = createPendingIntent(EMRemoteActions.ACTION_PLAY_PAUSE, mediaServiceClass);
-        repeatPendingIntent = createPendingIntent(EMRemoteActions.ACTION_REPEAT, mediaServiceClass);
-        shufflePendingIntent = createPendingIntent(EMRemoteActions.ACTION_SHUFFLE, mediaServiceClass);
-
-        stopPendingIntent = createPendingIntent(EMRemoteActions.ACTION_STOP, mediaServiceClass);
-        seekStartedPendingIntent = createPendingIntent(EMRemoteActions.ACTION_SEEK_STARTED, mediaServiceClass);
-
-        seekEndedIntent = new Intent(getApplication(), mediaServiceClass);
-        seekEndedIntent.setAction(EMRemoteActions.ACTION_SEEK_ENDED);
-
-        allowedTypeChangedIntent = new Intent(getApplication(), mediaServiceClass);
-        allowedTypeChangedIntent.setAction(EMRemoteActions.ACTION_ALLOWED_TYPE_CHANGED);
-    }
-
-    /**
      * Sets the type of media that we can currently play.  When set,
      * the {@link #next()} and {@link #previous()} will skip any items
      * that do not match the allowed type.
@@ -320,7 +291,7 @@ public abstract class EMPlaylistManager<I extends EMPlaylistManager.PlaylistItem
     }
 
     /**
-     * Sets the current playback index.  This should only be used when jumPendingIntentng
+     * Sets the current playback index.  This should only be used when jumping
      * down the current playback list, if you are only changing one see {@link #next()} or
      * {@link #previous()}.
      *
@@ -450,6 +421,15 @@ public abstract class EMPlaylistManager<I extends EMPlaylistManager.PlaylistItem
     }
 
     /**
+     * Returns the current size of the playlist.
+     *
+     * @return The size of the playlist
+     */
+    public int getPlayListSize() {
+        return playList == null ? 0 : playList.size();
+    }
+
+    /**
      * Retrieves the Item representing the currently selected
      * item.  If there aren't any items in the play list then null will
      * be returned instead.
@@ -508,7 +488,7 @@ public abstract class EMPlaylistManager<I extends EMPlaylistManager.PlaylistItem
     /**
      * Informs the Media service that the current item
      * needs to be played/paused.  The service specified with
-     * {@link #setMediaServiceClass(Class)} will be informed using the action
+     * {@link #getMediaServiceClass()}} will be informed using the action
      * {@link EMRemoteActions#ACTION_PLAY_PAUSE}
      */
     public void invokePausePlay() {
@@ -518,7 +498,7 @@ public abstract class EMPlaylistManager<I extends EMPlaylistManager.PlaylistItem
     /**
      * Informs the Media service that we need to seek to
      * the next item. The service specified with
-     * {@link #setMediaServiceClass(Class)} will be informed using the action
+     * {@link #getMediaServiceClass()} will be informed using the action
      * {@link EMRemoteActions#ACTION_NEXT}
      */
     public void invokeNext() {
@@ -528,7 +508,7 @@ public abstract class EMPlaylistManager<I extends EMPlaylistManager.PlaylistItem
     /**
      * Informs the Media service that we need to seek to
      * the previous item. The service specified with
-     * {@link #setMediaServiceClass(Class)} will be informed using the action
+     * {@link #getMediaServiceClass()} will be informed using the action
      * {@link EMRemoteActions#ACTION_PREVIOUS}
      */
     public void invokePrevious() {
@@ -538,7 +518,7 @@ public abstract class EMPlaylistManager<I extends EMPlaylistManager.PlaylistItem
     /**
      * Informs the Media service that we need to stop
      * playback. The service specified with
-     * {@link #setMediaServiceClass(Class)} will be informed using the action
+     * {@link #getMediaServiceClass()} will be informed using the action
      * {@link EMRemoteActions#ACTION_STOP}
      */
     public void invokeStop() {
@@ -548,7 +528,7 @@ public abstract class EMPlaylistManager<I extends EMPlaylistManager.PlaylistItem
     /**
      * Informs the Media service that we need to repeat
      * the current playback item. The service specified with
-     * {@link #setMediaServiceClass(Class)} will be informed using the action
+     * {@link #getMediaServiceClass()} will be informed using the action
      * {@link EMRemoteActions#ACTION_REPEAT}
      */
     public void invokeRepeat() {
@@ -558,7 +538,7 @@ public abstract class EMPlaylistManager<I extends EMPlaylistManager.PlaylistItem
     /**
      * Informs the Media service that we need to shuffle the
      * current playlist items. The service specified with
-     * {@link #setMediaServiceClass(Class)} will be informed using the action
+     * {@link #getMediaServiceClass()} will be informed using the action
      * {@link EMRemoteActions#ACTION_SHUFFLE}
      */
     public void invokeShuffle() {
@@ -568,7 +548,7 @@ public abstract class EMPlaylistManager<I extends EMPlaylistManager.PlaylistItem
     /**
      * Informs the Media service that we have started seeking
      * the playback.  The service specified with
-     * {@link #setMediaServiceClass(Class)} will be informed using the action
+     * {@link #getMediaServiceClass()} will be informed using the action
      * {@link EMRemoteActions#ACTION_SEEK_STARTED}
      */
     public void invokeSeekStarted() {
@@ -578,7 +558,7 @@ public abstract class EMPlaylistManager<I extends EMPlaylistManager.PlaylistItem
     /**
      * Informs the Media service that we need to seek
      * the current item. The service specified with
-     * {@link #setMediaServiceClass(Class)} will be informed using the action
+     * {@link #getMediaServiceClass()} will be informed using the action
      * {@link EMRemoteActions#ACTION_SEEK_ENDED} and have an intent extra with the
      * key {@link EMRemoteActions#ACTION_EXTRA_SEEK_POSITION} (integer)
      */
@@ -591,12 +571,27 @@ public abstract class EMPlaylistManager<I extends EMPlaylistManager.PlaylistItem
     }
 
     /**
-     * Returns the current size of the playlist.
+     * Creates the Intents that will be used to interact with the playlist service
      *
-     * @return The size of the playlist
+     * @param mediaServiceClass The class to inform of any media playback controls
+     * @param application The application to use when constructing the intents used to inform the playlist service of invocations
      */
-    private int getPlayListSize() {
-        return playList == null ? 0 : playList.size();
+    protected void constructControlIntents(Class<? extends Service> mediaServiceClass, Application application) {
+        //Creates the pending intents
+        previousPendingIntent = createPendingIntent(application, mediaServiceClass, EMRemoteActions.ACTION_PREVIOUS);
+        nextPendingIntent = createPendingIntent(application, mediaServiceClass, EMRemoteActions.ACTION_NEXT);
+        playPausePendingIntent = createPendingIntent(application, mediaServiceClass, EMRemoteActions.ACTION_PLAY_PAUSE);
+        repeatPendingIntent = createPendingIntent(application, mediaServiceClass, EMRemoteActions.ACTION_REPEAT);
+        shufflePendingIntent = createPendingIntent(application, mediaServiceClass, EMRemoteActions.ACTION_SHUFFLE);
+
+        stopPendingIntent = createPendingIntent(application, mediaServiceClass, EMRemoteActions.ACTION_STOP);
+        seekStartedPendingIntent = createPendingIntent(application, mediaServiceClass, EMRemoteActions.ACTION_SEEK_STARTED);
+
+        seekEndedIntent = new Intent(application, mediaServiceClass);
+        seekEndedIntent.setAction(EMRemoteActions.ACTION_SEEK_ENDED);
+
+        allowedTypeChangedIntent = new Intent(application, mediaServiceClass);
+        allowedTypeChangedIntent.setAction(EMRemoteActions.ACTION_ALLOWED_TYPE_CHANGED);
     }
 
     /**
@@ -684,15 +679,16 @@ public abstract class EMPlaylistManager<I extends EMPlaylistManager.PlaylistItem
     /**
      * Creates a PendingIntent for the given action to the specified service
      *
-     * @param action The action to use
+     * @param application The application to use when creating the  pending intent
      * @param serviceClass The service class to notify of intents
+     * @param action The action to use
      * @return The resulting PendingIntent
      */
-    private PendingIntent createPendingIntent(String action, Class<? extends Service> serviceClass) {
-        Intent intent = new Intent(getApplication(), serviceClass);
+    private PendingIntent createPendingIntent(Application application, Class<? extends Service> serviceClass, String action) {
+        Intent intent = new Intent(application, serviceClass);
         intent.setAction(action);
 
-        return PendingIntent.getService(getApplication(), 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+        return PendingIntent.getService(application, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
     }
 
     /**

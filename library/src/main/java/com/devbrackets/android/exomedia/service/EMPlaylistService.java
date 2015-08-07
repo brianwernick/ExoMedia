@@ -25,7 +25,6 @@ import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.net.wifi.WifiManager;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.os.PowerManager;
@@ -59,8 +58,7 @@ import java.util.List;
  * This requires the manifest permission &lt;uses-permission android:name="android.permission.WAKE_LOCK" /&gt;
  */
 @SuppressWarnings("unused")
-public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem, M extends EMPlaylistManager<I>> extends Service implements
-        EMAudioFocusCallback, EMProgressCallback {
+public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem, M extends EMPlaylistManager<I>> extends Service implements EMAudioFocusCallback, EMProgressCallback {
     private static final String TAG = "EMPlaylistService";
     public static final String START_SERVICE = "EMPlaylistService.start";
 
@@ -105,8 +103,6 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
     protected abstract M getMediaPlaylistManager();
     protected abstract PendingIntent getNotificationClickPendingIntent();
     protected abstract Bitmap getDefaultLargeNotificationImage();
-    @Nullable
-    protected abstract Bitmap getDefaultLargeNotificationSecondaryImage();
 
     /**
      * Retrieves the Drawable resource that specifies the icon to place in the
@@ -251,6 +247,17 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
     }
 
     /**
+     * Retrieves the image that will be displayed in the notification as a secondary
+     * image if {@link #getLargeNotificationSecondaryImage()} returns null.
+     *
+     * @return The fallback image to display in the secondary position
+     */
+    @Nullable
+    protected Bitmap getDefaultLargeNotificationSecondaryImage() {
+        return null;
+    }
+
+    /**
      * Called when the image in the notification needs to be updated.
      *
      * @param size The square size for the image to display
@@ -362,11 +369,7 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
 
     @Override
     public void onTaskRemoved(Intent rootIntent) {
-        //onTaskRemoved was added in API 14 (ICS)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
-            super.onTaskRemoved(rootIntent);
-        }
-
+        super.onTaskRemoved(rootIntent);
         onDestroy();
     }
 

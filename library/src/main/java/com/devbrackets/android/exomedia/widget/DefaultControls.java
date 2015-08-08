@@ -42,7 +42,7 @@ import com.devbrackets.android.exomedia.event.EMMediaPreviousEvent;
 import com.devbrackets.android.exomedia.event.EMMediaProgressEvent;
 import com.devbrackets.android.exomedia.event.EMVideoViewControlVisibilityEvent;
 import com.devbrackets.android.exomedia.listener.EMVideoViewControlsCallback;
-import com.squareup.otto.Bus;
+import com.devbrackets.android.exomedia.util.EMEventBus;
 
 /**
  * This is a simple abstraction for the EMVideoView to have a single "View" to add
@@ -81,7 +81,9 @@ public abstract class DefaultControls extends RelativeLayout {
     protected Handler visibilityHandler = new Handler();
 
     protected boolean busPostHandlesEvent = false;
-    protected Bus bus;
+
+    @Nullable
+    protected EMEventBus bus;
 
     protected EMVideoView videoView;
     protected SeekCallbacks seekCallbacks;
@@ -113,9 +115,9 @@ public abstract class DefaultControls extends RelativeLayout {
      * Sets the bus to use for dispatching Events that correspond to the callbacks
      * listed in {@link com.devbrackets.android.exomedia.listener.EMVideoViewControlsCallback}
      *
-     * @param bus The Otto bus to dispatch events on
+     * @param bus The EventBus to dispatch events on
      */
-    public void setBus(Bus bus) {
+    public void setBus(@Nullable EMEventBus bus) {
         this.bus = bus;
     }
 

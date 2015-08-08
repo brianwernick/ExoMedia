@@ -3,10 +3,9 @@ apply plugin: 'maven'
 apply plugin: 'bintray-release'
 
 def versionMajor = 2
-def versionMinor = 2
-def versionPatch = 4
+def versionMinor = 3
+def versionPatch = 0
 
-// Maven GAV
 def libraryGroupId = 'com.devbrackets.android'
 def libraryBaseName = 'exomedia'
 def libraryVersion = "${versionMajor}.${versionMinor}.${versionPatch}" // release version
@@ -15,11 +14,8 @@ dependencies {
     // Android
     compile 'com.android.support:appcompat-v7:22.2.1' // includes support-v4
 
-    // Event Bus
-    compile 'com.squareup:otto:1.3.8'
-
     // ExoPlayer
-    compile 'com.google.android.exoplayer:exoplayer:r1.4.1'
+    compile 'com.google.android.exoplayer:exoplayer:r1.4.2'
 }
 
 android {

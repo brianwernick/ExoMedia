@@ -19,7 +19,6 @@ import com.devbrackets.android.exomedia.service.EMPlaylistService;
 import com.devbrackets.android.exomediademo.data.MediaItem;
 import com.devbrackets.android.exomediademo.helper.AudioItems;
 import com.devbrackets.android.exomediademo.manager.PlaylistManager;
-import com.devbrackets.android.exomediademo.service.AudioService;
 import com.squareup.picasso.Picasso;
 
 import java.util.Formatter;
@@ -249,9 +248,6 @@ public class AudioPlayerActivity extends AppCompatActivity implements EMPlaylist
         if (playlistManager.getPlayListId() == PLAYLIST_ID) {
             return false;
         }
-
-        //Create and setup the playlist
-        playlistManager.setMediaServiceClass(AudioService.class);
 
         List<MediaItem> mediaItems = new LinkedList<>();
         for (AudioItems.AudioItem item : AudioItems.getItems()) {

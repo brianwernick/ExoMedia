@@ -2,6 +2,8 @@ ExoMedia
 ============
 A Utility class that wraps the ExoPlayer in to a standardized
 View and API much like the built in Android VideoView and MediaPlayer.
+Additionally, to simplify playback of media lists a playlist manager
+and playlist service have been provided.
 
 Since the ExoPlayer is only supported on JellyBean or greater devices that
 pass the Android Compatibility Test Suite (CTS), the EMVideoView will gracefully
@@ -26,7 +28,7 @@ The latest AAR (Android Archive) files can be downloaded from JCenter [ExoMedia]
 Or included in your gradle dependencies
 
 ```groovy
-compile 'com.devbrackets.android:exomedia:2.2.4'
+compile 'com.devbrackets.android:exomedia:2.3.0'
 ```
 
 Additionally, if you use ProGuard you will need to add the following rule
@@ -103,4 +105,4 @@ under [Attribution 4.0 International][2]
  [2]: http://creativecommons.org/licenses/by/4.0/
  [3]: https://bintray.com/brianwernick/maven/ExoMedia/view#files
  [4]: http://devbrackets.com/dev/libs/exomedia.html
- [5]: http://devbrackets.com/dev/libs/docs/exomedia/2.2.4/index.html
+ [5]: http://devbrackets.com/dev/libs/docs/exomedia/2.3.0/index.html

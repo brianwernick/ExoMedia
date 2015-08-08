@@ -20,7 +20,5 @@ package com.devbrackets.android.exomedia.event;
  * Used to capture when the current media item has been prepared.
  */
 public class EMMediaPreparedEvent {
-    public EMMediaPreparedEvent() {
-        //Purposefully left blank
-    }
+    //Purposefully left blank
 }

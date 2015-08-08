@@ -105,7 +105,7 @@ public class HlsRenderBuilder extends RenderBuilder implements ManifestCallback<
                 variantIndices, HlsChunkSource.ADAPTIVE_MODE_SPLICE, audioCapabilities);
 
         HlsSampleSource sampleSource = new HlsSampleSource(chunkSource, loadControl,
-                BUFFER_SEGMENTS * BUFFER_SEGMENT_SIZE, true, player.getMainHandler(), player, EMExoPlayer.RENDER_VIDEO_INDEX);
+                BUFFER_SEGMENTS * BUFFER_SEGMENT_SIZE, player.getMainHandler(), player, EMExoPlayer.RENDER_VIDEO_INDEX);
 
         //Create the renderers
         MediaCodecVideoTrackRenderer videoRenderer = new MediaCodecVideoTrackRenderer(sampleSource,

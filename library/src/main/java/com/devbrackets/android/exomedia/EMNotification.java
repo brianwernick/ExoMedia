@@ -164,7 +164,8 @@ public class EMNotification {
 
         //Set the notification category on lollipop
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            builder.setCategory(Notification.CATEGORY_SERVICE);
+            builder.setCategory(Notification.CATEGORY_STATUS);
+            builder.setVisibility(Notification.VISIBILITY_PUBLIC);
         }
 
         //Build the notification and set the expanded content view if there is a service to inform of clicks
@@ -216,9 +217,7 @@ public class EMNotification {
             return;
         }
 
-        bigContent.setImageViewResource(R.id.exomedia_notification_playpause, state.isPlaying() ? R.drawable.exomedia_notification_pause
-                : R.drawable.exomedia_notification_play);
-
+        bigContent.setImageViewResource(R.id.exomedia_notification_playpause, state.isPlaying() ? R.drawable.exomedia_notification_pause : R.drawable.exomedia_notification_play);
         bigContent.setInt(R.id.exomedia_notification_prev, "setVisibility", state.isPreviousEnabled() ? View.VISIBLE : View.INVISIBLE);
         bigContent.setInt(R.id.exomedia_notification_next, "setVisibility", state.isNextEnabled() ? View.VISIBLE : View.INVISIBLE);
     }

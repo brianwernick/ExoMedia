@@ -79,7 +79,7 @@ public class RenderBuilder {
         DataSource dataSource = new DefaultUriDataSource(context, bandwidthMeter, userAgent);
 
         ExtractorSampleSource sampleSource = new ExtractorSampleSource(Uri.parse(MediaUtil.getUriWithProtocol(uri)), dataSource,
-                getExtractor(uri, requestedDefaultType), allocator, BUFFER_SEGMENT_SIZE * BUFFER_SEGMENTS);
+               allocator, BUFFER_SEGMENT_SIZE * BUFFER_SEGMENTS, getExtractor(uri, requestedDefaultType));
 
         //Create the Renderers
         MediaCodecVideoTrackRenderer videoRenderer = new MediaCodecVideoTrackRenderer(sampleSource, null, true, MediaCodec.VIDEO_SCALING_MODE_SCALE_TO_FIT,

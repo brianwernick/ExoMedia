@@ -44,6 +44,7 @@ import com.devbrackets.android.exomedia.listener.EMProgressCallback;
 import com.devbrackets.android.exomedia.listener.EMVideoViewControlsCallback;
 import com.devbrackets.android.exomedia.listener.ExoPlayerListener;
 import com.devbrackets.android.exomedia.util.EMDeviceUtil;
+import com.devbrackets.android.exomedia.util.EMEventBus;
 import com.devbrackets.android.exomedia.util.MediaUtil;
 import com.devbrackets.android.exomedia.util.Repeater;
 import com.devbrackets.android.exomedia.util.StopWatch;
@@ -53,8 +54,6 @@ import com.devbrackets.android.exomedia.widget.DefaultControlsMobile;
 import com.devbrackets.android.exomedia.widget.VideoSurfaceView;
 import com.google.android.exoplayer.audio.AudioCapabilities;
 import com.google.android.exoplayer.audio.AudioCapabilitiesReceiver;
-import com.squareup.otto.Bus;
-import com.squareup.otto.Produce;
 
 /**
  * This is a support VideoView that will use the standard VideoView on devices below
@@ -110,7 +109,9 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
 
     private EMListenerMux listenerMux;
     private boolean playRequested = false;
-    private Bus bus;
+
+    @Nullable
+    private EMEventBus bus;
 
     private Uri videoUri;
     private EMMediaProgressEvent currentMediaProgressEvent = new EMMediaProgressEvent(0, 0, 0);
@@ -395,9 +396,9 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
      * Sets the bus to use for dispatching Events that correspond to the callbacks
      * listed in {@link com.devbrackets.android.exomedia.listener.EMVideoViewControlsCallback}
      *
-     * @param bus The Otto bus to dispatch events on
+     * @param bus The EventBus to dispatch events on
      */
-    public void setBus(Bus bus) {
+    public void setBus(@Nullable EMEventBus bus) {
         this.bus = bus;
         listenerMux.setBus(bus);
 
@@ -407,12 +408,12 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
     }
 
     /**
-     * Starts the progress poll.  If you have already called {@link #setBus(com.squareup.otto.Bus)} then
+     * Starts the progress poll.  If you have already called {@link #setBus(EMEventBus)} then
      * you should use the {@link #startProgressPoll()} method instead.
      *
-     * @param bus The Otto Bus event dispatcher that the listener is connected to
+     * @param bus The EventBus event dispatcher that the listener is connected to
      */
-    public void startProgressPoll(Bus bus) {
+    public void startProgressPoll(@Nullable EMEventBus bus) {
         setBus(bus);
         startProgressPoll();
     }
@@ -429,8 +430,8 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
     }
 
     /**
-     * Starts the progress poll.  This should be called after you have set the bus with {@link #setBus(com.squareup.otto.Bus)}
-     * or previously called {@link #startProgressPoll(com.squareup.otto.Bus)}, otherwise you won't get notified
+     * Starts the progress poll.  This should be called after you have set the bus with {@link #setBus(EMEventBus)}
+     * or previously called {@link #startProgressPoll(EMEventBus)}, otherwise you won't get notified
      * of progress changes
      */
     public void startProgressPoll() {
@@ -447,11 +448,6 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
         if (defaultControls == null) {
             pollRepeater.stop();
         }
-    }
-
-    @Produce
-    public EMMediaProgressEvent produceMediaProgressEvent() {
-        return currentMediaProgressEvent;
     }
 
     /***********************************
@@ -844,7 +840,7 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
 
     /**
      * If a video is currently in playback, it will be paused and the progressPoll
-     * will be stopped (see {@link #startProgressPoll(com.squareup.otto.Bus)})
+     * will be stopped (see {@link #startProgressPoll(EMEventBus)})
      */
     public void pause() {
         if (!useExo) {
@@ -1029,7 +1025,7 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
 
     /**
      * Sets the listener to inform of VideoPlayer prepared events.  This can also be
-     * accessed through the Otto event {@link com.devbrackets.android.exomedia.event.EMMediaPreparedEvent}
+     * accessed through the bus event {@link com.devbrackets.android.exomedia.event.EMMediaPreparedEvent}
      *
      * @param listener The listener
      */
@@ -1039,7 +1035,7 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
 
     /**
      * Sets the listener to inform of VideoPlayer completion events.  This can also be
-     * accessed through the Otto event {@link com.devbrackets.android.exomedia.event.EMMediaCompletionEvent}
+     * accessed through the bus event {@link com.devbrackets.android.exomedia.event.EMMediaCompletionEvent}
      *
      * @param listener The listener
      */
@@ -1049,7 +1045,7 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
 
     /**
      * Sets the listener to inform of playback errors.  This can also be
-     * accessed through the Otto event {@link com.devbrackets.android.exomedia.event.EMMediaErrorEvent}
+     * accessed through the bus event {@link com.devbrackets.android.exomedia.event.EMMediaErrorEvent}
      *
      * @param listener The listener
      */

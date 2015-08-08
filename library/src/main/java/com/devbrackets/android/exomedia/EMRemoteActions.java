@@ -23,6 +23,8 @@ public class EMRemoteActions {
     public static final String ACTION_PREVIOUS = "remote_action_previous";
     public static final String ACTION_NEXT = "remote_action_next";
     public static final String ACTION_STOP = "remote_action_stop";
+    public static final String ACTION_REPEAT = "remote_action_repeat";
+    public static final String ACTION_SHUFFLE = "remote_action_shuffle";
 
     public static final String ACTION_SEEK_STARTED = "remote_action_seek_started";
     public static final String ACTION_SEEK_ENDED = "remote_action_seek_ended";

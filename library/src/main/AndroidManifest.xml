@@ -1,5 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest package="com.devbrackets.android.exomedia">
+<manifest
+    package="com.devbrackets.android.exomedia"
+    xmlns:android="http://schemas.android.com/apk/res/android">
     <uses-sdk/>
-    <application/>
+    <application >
+        <receiver android:name=".receiver.MediaControlsReceiver" android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MEDIA_BUTTON" />
+            </intent-filter>
+        </receiver>
+    </application>
 </manifest>

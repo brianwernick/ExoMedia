@@ -23,7 +23,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.os.Build;
 import android.support.annotation.DrawableRes;
 import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaSessionCompat;
@@ -39,7 +38,7 @@ import com.devbrackets.android.exomedia.receiver.MediaControlsReceiver;
 public class EMLockScreen {
     private static final String TAG = "EMLockScreen";
     public static final String SESSION_TAG = "EMLockScreen.Session";
-    public static final String RECEIVER_EXTRA_CLASS = "RECEIVER_EXTRA_CLASS";
+    public static final String RECEIVER_EXTRA_CLASS = "com.devbrackets.android.exomedia.RECEIVER_EXTRA_CLASS";
 
     private Context context;
     private Class<? extends Service> mediaServiceClass;
@@ -59,9 +58,11 @@ public class EMLockScreen {
         this.context = context;
         this.mediaServiceClass = mediaServiceClass;
 
-        ComponentName componentName = new ComponentName(MediaControlsReceiver.class.getPackage().getName(), MediaControlsReceiver.class.getName());
-        mediaSession = new MediaSessionCompat(context, SESSION_TAG, componentName, null);
-        setupMediaSession(mediaSession, componentName);
+        ComponentName componentName = new ComponentName(context, MediaControlsReceiver.class.getName());
+
+        mediaSession = new MediaSessionCompat(context, SESSION_TAG, componentName, getMediaButtonReceiverPendingIntent(componentName));
+        mediaSession.setFlags(MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS | MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS);
+        mediaSession.setCallback(new SessionCallback());
     }
 
     public void release() {
@@ -72,7 +73,7 @@ public class EMLockScreen {
      * Sets weather the lock screen is shown when audio is playing or
      * ready for playback (e.g. paused).  The information
      * will need to be updated by calling {@link #setLockScreenBaseInformation(int)}
-     * and {@link #updateLockScreenInformation(String, String, Bitmap, EMNotification.NotificationMediaState)}
+     * and {@link #updateLockScreenInformation(String, String, String, Bitmap, EMNotification.NotificationMediaState)}
      *
      * @param enabled True if the lock screen should be shown
      */
@@ -110,15 +111,17 @@ public class EMLockScreen {
      * change frequently.
      *
      * @param title The title to display for the notification (e.g. A song name)
-     * @param subTitle A short description or additional information for the notification (e.g. An artists name)
+     * @param album The name of the album the media is found in
+     * @param artist The name of the artist for the media item
      * @param notificationMediaState The current media state for the expanded (big) notification
      */
-    public void updateLockScreenInformation(String title, String subTitle, Bitmap mediaArtwork, EMNotification.NotificationMediaState notificationMediaState) {
+    public void updateLockScreenInformation(String title, String album, String artist, Bitmap mediaArtwork, EMNotification.NotificationMediaState notificationMediaState) {
         //Updates the current media MetaData
         MediaMetadataCompat.Builder metaDataBuilder = new MediaMetadataCompat.Builder();
         metaDataBuilder.putBitmap(MediaMetadataCompat.METADATA_KEY_DISPLAY_ICON, appIconBitmap);
         metaDataBuilder.putString(MediaMetadataCompat.METADATA_KEY_TITLE, title);
-        metaDataBuilder.putString(MediaMetadataCompat.METADATA_KEY_ALBUM_ARTIST, subTitle);
+        metaDataBuilder.putString(MediaMetadataCompat.METADATA_KEY_ALBUM, album);
+        metaDataBuilder.putString(MediaMetadataCompat.METADATA_KEY_ARTIST, artist);
 
         if (mediaArtwork != null) {
             metaDataBuilder.putBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART, mediaArtwork);
@@ -133,26 +136,19 @@ public class EMLockScreen {
         playbackStateBuilder.setState(getPlaybackState(notificationMediaState.isPlaying()), PlaybackStateCompat.PLAYBACK_POSITION_UNKNOWN, 1.0f);
 
         mediaSession.setPlaybackState(playbackStateBuilder.build());
+        Log.d(TAG, "update, controller is null ? " + (mediaSession.getController() == null ? "true" : "false"));
 
         if (showLockScreen && !mediaSession.isActive()) {
             mediaSession.setActive(true);
         }
     }
 
-    private void setupMediaSession(MediaSessionCompat mediaSession, ComponentName componentName) {
-        mediaSession.setCallback(new SessionCallback());
-        mediaSession.setFlags(MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS | MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS);
-
-        //Registers the receiver to handle the media buttons
+    private PendingIntent getMediaButtonReceiverPendingIntent(ComponentName componentName) {
         Intent mediaButtonIntent = new Intent(Intent.ACTION_MEDIA_BUTTON);
-        mediaButtonIntent.putExtra(RECEIVER_EXTRA_CLASS, mediaServiceClass);
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-            mediaButtonIntent.addFlags(Intent.FLAG_RECEIVER_FOREGROUND);
-        }
-
         mediaButtonIntent.setComponent(componentName);
-        mediaSession.setMediaButtonReceiver(PendingIntent.getBroadcast(context, 0, mediaButtonIntent, 0));
+
+        mediaButtonIntent.putExtra(RECEIVER_EXTRA_CLASS, mediaServiceClass); //TODO: if this is enabled we don't get the event type (which button)
+        return PendingIntent.getBroadcast(context, 0, mediaButtonIntent, 0);
     }
 
     private int getPlaybackState(boolean isPlaying) {

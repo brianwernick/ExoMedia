@@ -147,8 +147,8 @@ public class EMLockScreen {
         Intent mediaButtonIntent = new Intent(Intent.ACTION_MEDIA_BUTTON);
         mediaButtonIntent.setComponent(componentName);
 
-        mediaButtonIntent.putExtra(RECEIVER_EXTRA_CLASS, mediaServiceClass); //TODO: if this is enabled we don't get the event type (which button)
-        return PendingIntent.getBroadcast(context, 0, mediaButtonIntent, 0);
+        mediaButtonIntent.putExtra(RECEIVER_EXTRA_CLASS, mediaServiceClass.getName());
+        return PendingIntent.getBroadcast(context, 0, mediaButtonIntent, PendingIntent.FLAG_CANCEL_CURRENT);
     }
 
     private int getPlaybackState(boolean isPlaying) {

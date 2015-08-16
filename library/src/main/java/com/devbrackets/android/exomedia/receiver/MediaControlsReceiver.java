@@ -27,8 +27,6 @@ import android.view.KeyEvent;
 import com.devbrackets.android.exomedia.EMLockScreen;
 import com.devbrackets.android.exomedia.EMRemoteActions;
 
-import java.io.Serializable;
-
 /**
  * A Receiver to handle lock screen and other remote controls
  * such as Bluetooth devices
@@ -44,10 +42,14 @@ public class MediaControlsReceiver extends BroadcastReceiver {
 
         //Retrieves the class to inform of media button clicks
         Class<? extends Service> mediaServiceClass = null;
-        Serializable serializableClass = intent.getSerializableExtra(EMLockScreen.RECEIVER_EXTRA_CLASS);
-        if (serializableClass != null && serializableClass instanceof Class) {
-            //noinspection unchecked
-            mediaServiceClass = (Class<? extends Service>) serializableClass;
+        String className = intent.getStringExtra(EMLockScreen.RECEIVER_EXTRA_CLASS);
+        if (className != null) {
+            try {
+                //noinspection unchecked
+                mediaServiceClass = (Class<? extends Service>) Class.forName(className);
+            } catch (Exception e) {
+                //Purposefully left blank
+            }
         }
 
         //Informs the mediaService of the event

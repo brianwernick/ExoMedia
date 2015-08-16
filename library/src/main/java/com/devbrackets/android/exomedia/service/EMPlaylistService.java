@@ -522,8 +522,8 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
             performPlay();
         }
 
-        updateNotification();
         updateLockScreen();
+        updateNotification();
     }
 
     /**
@@ -1216,6 +1216,7 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
                 seekToPosition = -1;
             }
 
+            updateLockScreen();
             updateNotification();
         }
 

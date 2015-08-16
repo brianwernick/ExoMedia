@@ -62,9 +62,11 @@ public abstract class EMPlaylistManager<I extends EMPlaylistManager.PlaylistItem
         boolean isVideo();
         String getMediaUrl();
         String getDownloadedMediaUri();
-        String getTitle();
         String getThumbnailUrl();
         String getArtworkUrl();
+        String getTitle();
+        String getAlbum();
+        String getArtist();
     }
 
     private List<I> playList;

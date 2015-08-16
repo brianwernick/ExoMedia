@@ -522,8 +522,8 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
             performPlay();
         }
 
-        updateNotification();
         updateLockScreen();
+        updateNotification();
     }
 
     /**
@@ -1018,7 +1018,9 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
 
         //Finish up the update
         String title = currentPlaylistItem.getTitle();
-        notificationHelper.updateNotificationInformation(getAppName(), title, bitmap, secondaryImage, mediaState);
+        String album = currentPlaylistItem.getAlbum();
+        String artist = currentPlaylistItem.getArtist();
+        notificationHelper.updateNotificationInformation(title, artist, bitmap, secondaryImage, mediaState);
     }
 
     /**
@@ -1038,9 +1040,10 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
 
 
         //Finish up the update
-        String title = getAppName();
-        String subTitle = currentPlaylistItem.getTitle();
-        lockScreenHelper.updateLockScreenInformation(title, subTitle, getLockScreenArtwork(), mediaState);
+        String title = currentPlaylistItem.getTitle();
+        String album = currentPlaylistItem.getAlbum();
+        String artist = currentPlaylistItem.getArtist();
+        lockScreenHelper.updateLockScreenInformation(title, album, artist, getLockScreenArtwork(), mediaState);
     }
 
     /**
@@ -1213,6 +1216,7 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
                 seekToPosition = -1;
             }
 
+            updateLockScreen();
             updateNotification();
         }
 

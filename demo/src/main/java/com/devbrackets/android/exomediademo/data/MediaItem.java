@@ -46,11 +46,6 @@ public class MediaItem implements EMPlaylistManager.PlaylistItem {
     }
 
     @Override
-    public String getTitle() {
-        return audioItem.getTitle();
-    }
-
-    @Override
     public String getThumbnailUrl() {
         return audioItem.getArtworkUrl();
     }
@@ -58,5 +53,20 @@ public class MediaItem implements EMPlaylistManager.PlaylistItem {
     @Override
     public String getArtworkUrl() {
         return audioItem.getArtworkUrl();
+    }
+
+    @Override
+    public String getTitle() {
+        return audioItem.getTitle();
+    }
+
+    @Override
+    public String getAlbum() {
+        return "ExoMedia Demo";
+    }
+
+    @Override
+    public String getArtist() {
+        return "Unknown Artist";
     }
 }

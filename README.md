@@ -31,12 +31,6 @@ Or included in your gradle dependencies
 compile 'com.devbrackets.android:exomedia:2.3.1'
 ```
 
-Additionally, if you use ProGuard you will need to add the following rule
-```proguard
-# ExoMedia
--keep class com.devbrackets.android.exomedia.** {*;}
-```
-
 Example
 -------
 The EMVideoView (EM for ExoMedia) can be added in your layout files like any other Android view.

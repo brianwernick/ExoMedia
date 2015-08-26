@@ -187,6 +187,8 @@ public class EMNotification {
             customNotification = new RemoteViews(context.getPackageName(), R.layout.exomedia_notification_content);
 
             customNotification.setOnClickPendingIntent(R.id.exomedia_notification_playpause, createPendingIntent(EMRemoteActions.ACTION_PLAY_PAUSE, mediaServiceClass));
+            customNotification.setOnClickPendingIntent(R.id.exomedia_notification_next, createPendingIntent(EMRemoteActions.ACTION_NEXT, mediaServiceClass));
+            customNotification.setOnClickPendingIntent(R.id.exomedia_notification_prev, createPendingIntent(EMRemoteActions.ACTION_PREVIOUS, mediaServiceClass));
         }
 
         customNotification.setTextViewText(R.id.exomedia_notification_title, notificationInfo.getTitle());
@@ -241,6 +243,8 @@ public class EMNotification {
         }
 
         customNotification.setImageViewResource(R.id.exomedia_notification_playpause, state.isPlaying() ? R.drawable.exomedia_notification_pause : R.drawable.exomedia_notification_play);
+        customNotification.setInt(R.id.exomedia_notification_prev, "setVisibility", state.isPreviousEnabled() ? View.VISIBLE : View.GONE);
+        customNotification.setInt(R.id.exomedia_notification_next, "setVisibility", state.isNextEnabled() ? View.VISIBLE : View.GONE);
     }
 
     /**

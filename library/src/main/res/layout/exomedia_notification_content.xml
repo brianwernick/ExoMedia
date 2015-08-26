@@ -22,8 +22,8 @@
         android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
         android:layout_gravity="top"
-        android:layout_toLeftOf="@+id/exomedia_notification_playpause"
-        android:layout_toStartOf="@+id/exomedia_notification_playpause"
+        android:layout_toLeftOf="@+id/exomedia_notification_button_layout"
+        android:layout_toStartOf="@+id/exomedia_notification_button_layout"
         android:layout_toRightOf="@id/exomedia_notification_large_image"
         android:layout_toEndOf="@id/exomedia_notification_large_image"
         android:paddingLeft="16dp"
@@ -55,8 +55,8 @@
             tools:text="dolor sit amet"/>
     </LinearLayout>
 
-    <ImageButton
-        android:id="@+id/exomedia_notification_playpause"
+    <LinearLayout
+        android:id="@+id/exomedia_notification_button_layout"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentRight="true"
@@ -64,10 +64,44 @@
         android:layout_centerVertical="true"
         android:layout_marginRight="16dp"
         android:layout_marginEnd="16dp"
-        android:minWidth="@dimen/exomedia_min_button_height"
-        android:minHeight="@dimen/exomedia_min_button_height"
-        android:background="?android:selectableItemBackground"
-        android:scaleType="fitCenter"
-        android:src="@drawable/exomedia_notification_play"
-        tools:ignore="ContentDescription"/>
+        android:divider="?android:listDivider"
+        android:orientation="horizontal">
+
+        <ImageButton
+            android:id="@+id/exomedia_notification_prev"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:minWidth="@dimen/exomedia_min_button_height"
+            android:minHeight="@dimen/exomedia_min_button_height"
+            android:layout_marginRight="8dp"
+            android:layout_marginEnd="8dp"
+            android:background="?android:selectableItemBackground"
+            android:scaleType="fitCenter"
+            android:src="@drawable/exomedia_notification_previous"
+            tools:ignore="ContentDescription"/>
+
+        <ImageButton
+            android:id="@+id/exomedia_notification_playpause"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:minWidth="@dimen/exomedia_min_button_height"
+            android:minHeight="@dimen/exomedia_min_button_height"
+            android:background="?android:selectableItemBackground"
+            android:scaleType="fitCenter"
+            android:src="@drawable/exomedia_notification_play"
+            tools:ignore="ContentDescription"/>
+
+        <ImageButton
+            android:id="@+id/exomedia_notification_next"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:minWidth="@dimen/exomedia_min_button_height"
+            android:minHeight="@dimen/exomedia_min_button_height"
+            android:layout_marginLeft="8dp"
+            android:layout_marginStart="8dp"
+            android:background="?android:selectableItemBackground"
+            android:scaleType="fitCenter"
+            android:src="@drawable/exomedia_notification_next"
+            tools:ignore="ContentDescription"/>
+    </LinearLayout>
 </RelativeLayout>

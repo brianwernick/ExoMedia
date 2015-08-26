@@ -95,6 +95,11 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
     protected boolean onCreateCalled = false;
     protected Intent workaroundIntent = null;
 
+    @Nullable
+    protected String currentLargeNotificationUrl;
+    @Nullable
+    protected String currentLockScreenArtworkUrl;
+
     protected List<EMPlaylistServiceCallback> callbackList = new LinkedList<>();
 
     protected abstract String getAppName();
@@ -792,7 +797,7 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
         }
 
         seekToNextPlayableItem();
-        mediaItemChanged(currentPlaylistItem);
+        mediaItemChanged();
 
         if (currentItemIsAudio()) {
             audioListener.resetRetryCount();
@@ -1049,10 +1054,8 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
     /**
      * Called when the current media item has changed, this will update the notification and
      * lock screen values.
-     *
-     * @param currentItem The new media item
      */
-    protected void mediaItemChanged(I currentItem) {
+    protected void mediaItemChanged() {
         currentMediaType = getMediaPlaylistManager().getCurrentItemType();
 
         //Validates that the currentPlaylistItem is for the currentItem
@@ -1062,14 +1065,16 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
         }
 
         //Starts the notification loading
-        if (currentPlaylistItem != null && (currentItem == null || !currentItem.getThumbnailUrl().equals(currentPlaylistItem.getThumbnailUrl()))) {
+        if (currentPlaylistItem != null && (currentLargeNotificationUrl == null || !currentLargeNotificationUrl.equals(currentPlaylistItem.getThumbnailUrl()))) {
             int size = getResources().getDimensionPixelSize(R.dimen.exomedia_big_notification_height);
             updateLargeNotificationImage(size, currentPlaylistItem);
+            currentLargeNotificationUrl = currentPlaylistItem.getThumbnailUrl();
         }
 
         //Starts the lock screen loading
-        if (currentPlaylistItem != null && (currentItem == null || !currentItem.getArtworkUrl().equalsIgnoreCase(currentPlaylistItem.getArtworkUrl()))) {
+        if (currentPlaylistItem != null && (currentLockScreenArtworkUrl == null || !currentLockScreenArtworkUrl.equalsIgnoreCase(currentPlaylistItem.getArtworkUrl()))) {
             updateLockScreenArtwork(currentPlaylistItem);
+            currentLockScreenArtworkUrl = currentPlaylistItem.getArtworkUrl();
         }
 
         postPlaylistItemChanged();

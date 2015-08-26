@@ -2,13 +2,13 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
                 xmlns:tools="http://schemas.android.com/tools"
                 android:layout_width="match_parent"
-                android:layout_height="128dp">
+                android:layout_height="64dp">
 
     <ImageView
-        android:id="@+id/exomedia_big_notification_large_image"
-        android:layout_width="@dimen/exomedia_big_notification_image_size"
-        android:layout_height="@dimen/exomedia_big_notification_image_size"
-        android:layout_margin="@dimen/exomedia_big_notification_image_margin"
+        android:id="@+id/exomedia_notification_large_image"
+        android:layout_width="@dimen/exomedia_notification_image_size"
+        android:layout_height="@dimen/exomedia_notification_image_size"
+        android:layout_margin="@dimen/exomedia_notification_image_margin"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
         android:layout_alignParentTop="true"
@@ -16,48 +16,23 @@
         tools:background="#ffffff"
         tools:ignore="ContentDescription"/>
 
-    <ImageView
-        android:id="@+id/exomedia_big_notification_secondary_image"
-        android:layout_width="@dimen/exomedia_big_notification_secondary_image_size"
-        android:layout_height="@dimen/exomedia_big_notification_secondary_image_size"
-        android:layout_margin="@dimen/exomedia_big_notification_image_margin"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:layout_alignParentBottom="true"
-        android:scaleType="centerInside"
-        tools:background="#000000"
-        tools:ignore="ContentDescription"/>
-
-    <ImageButton
-        android:id="@+id/exomedia_big_notification_close"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:minWidth="@dimen/exomedia_min_button_height"
-        android:minHeight="@dimen/exomedia_min_button_height"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true"
-        android:layout_alignParentTop="true"
-        android:background="?android:selectableItemBackground"
-        android:src="@drawable/exomedia_notification_close"
-        tools:ignore="ContentDescription"/>
-
     <LinearLayout
-        android:id="@+id/exomedia_big_notification_text_area"
+        android:id="@+id/exomedia_notification_text_area"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
         android:layout_gravity="top"
-        android:layout_toLeftOf="@id/exomedia_big_notification_close"
-        android:layout_toStartOf="@id/exomedia_big_notification_close"
-        android:layout_toRightOf="@id/exomedia_big_notification_large_image"
-        android:layout_toEndOf="@id/exomedia_big_notification_large_image"
+        android:layout_toLeftOf="@+id/exomedia_notification_button_layout"
+        android:layout_toStartOf="@+id/exomedia_notification_button_layout"
+        android:layout_toRightOf="@id/exomedia_notification_large_image"
+        android:layout_toEndOf="@id/exomedia_notification_large_image"
         android:paddingLeft="16dp"
         android:paddingRight="16dp"
         android:paddingTop="@dimen/exomedia_default_padding"
         android:orientation="vertical">
 
         <TextView
-            android:id="@+id/exomedia_big_notification_title"
+            android:id="@+id/exomedia_notification_title"
             style="@style/exomedia_notification_title"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
@@ -68,7 +43,7 @@
             tools:text="LOREM IPSUM"/>
 
         <TextView
-            android:id="@+id/exomedia_big_notification_content_text"
+            android:id="@+id/exomedia_notification_content_text"
             style="@style/exomedia_notification_content"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
@@ -81,32 +56,32 @@
     </LinearLayout>
 
     <LinearLayout
-        android:id="@+id/exomedia_big_notification_button_layout"
-        android:layout_width="match_parent"
+        android:id="@+id/exomedia_notification_button_layout"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
         android:layout_alignParentRight="true"
         android:layout_alignParentEnd="true"
-        android:layout_toRightOf="@id/exomedia_big_notification_large_image"
-        android:layout_toEndOf="@id/exomedia_big_notification_large_image"
-        android:gravity="center"
+        android:layout_centerVertical="true"
+        android:layout_marginRight="16dp"
+        android:layout_marginEnd="16dp"
+        android:divider="?android:listDivider"
         android:orientation="horizontal">
 
         <ImageButton
-            android:id="@+id/exomedia_big_notification_prev"
+            android:id="@+id/exomedia_notification_prev"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:minWidth="@dimen/exomedia_min_button_height"
             android:minHeight="@dimen/exomedia_min_button_height"
-            android:layout_marginRight="@dimen/exomedia_min_button_height"
-            android:layout_marginEnd="@dimen/exomedia_min_button_height"
+            android:layout_marginRight="8dp"
+            android:layout_marginEnd="8dp"
             android:background="?android:selectableItemBackground"
             android:scaleType="fitCenter"
             android:src="@drawable/exomedia_notification_previous"
             tools:ignore="ContentDescription"/>
 
         <ImageButton
-            android:id="@+id/exomedia_big_notification_playpause"
+            android:id="@+id/exomedia_notification_playpause"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:minWidth="@dimen/exomedia_min_button_height"
@@ -117,13 +92,13 @@
             tools:ignore="ContentDescription"/>
 
         <ImageButton
-            android:id="@+id/exomedia_big_notification_next"
+            android:id="@+id/exomedia_notification_next"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:minWidth="@dimen/exomedia_min_button_height"
             android:minHeight="@dimen/exomedia_min_button_height"
-            android:layout_marginLeft="@dimen/exomedia_min_button_height"
-            android:layout_marginStart="@dimen/exomedia_min_button_height"
+            android:layout_marginLeft="8dp"
+            android:layout_marginStart="8dp"
             android:background="?android:selectableItemBackground"
             android:scaleType="fitCenter"
             android:src="@drawable/exomedia_notification_next"

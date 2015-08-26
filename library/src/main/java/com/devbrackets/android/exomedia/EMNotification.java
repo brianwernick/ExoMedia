@@ -41,6 +41,8 @@ public class EMNotification {
     private NotificationInfo notificationInfo = new NotificationInfo();
 
     private Class<? extends Service> mediaServiceClass;
+
+    private RemoteViews customNotification;
     private RemoteViews bigContent;
 
     public EMNotification(Context context) {
@@ -149,17 +151,15 @@ public class EMNotification {
     @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
     public Notification getNotification(@Nullable PendingIntent pendingIntent) {
         notificationInfo.setPendingIntent(pendingIntent);
+        RemoteViews customNotificationViews = getCustomNotification();
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(context);
-        builder.setContentTitle(notificationInfo.getTitle());
-        builder.setContentText(notificationInfo.getContent());
-
+        builder.setContent(customNotificationViews);
         builder.setSmallIcon(notificationInfo.getAppIcon());
-        builder.setLargeIcon(notificationInfo.getLargeImage());
         builder.setOngoing(true);
 
         if (pendingIntent != null) {
-            builder.setContentIntent(pendingIntent);
+            customNotificationViews.setOnClickPendingIntent(R.id.exomedia_notification_text_area, pendingIntent);
         }
 
         //Set the notification category on lollipop
@@ -178,6 +178,31 @@ public class EMNotification {
     }
 
     /**
+     * Creates the RemoteViews used for the custom (standard) notification
+     *
+     * @return The resulting RemoteViews
+     */
+    private RemoteViews getCustomNotification() {
+        if (customNotification == null) {
+            customNotification = new RemoteViews(context.getPackageName(), R.layout.exomedia_notification_content);
+
+            customNotification.setOnClickPendingIntent(R.id.exomedia_notification_playpause, createPendingIntent(EMRemoteActions.ACTION_PLAY_PAUSE, mediaServiceClass));
+            customNotification.setOnClickPendingIntent(R.id.exomedia_notification_next, createPendingIntent(EMRemoteActions.ACTION_NEXT, mediaServiceClass));
+            customNotification.setOnClickPendingIntent(R.id.exomedia_notification_prev, createPendingIntent(EMRemoteActions.ACTION_PREVIOUS, mediaServiceClass));
+        }
+
+        customNotification.setTextViewText(R.id.exomedia_notification_title, notificationInfo.getTitle());
+        customNotification.setTextViewText(R.id.exomedia_notification_content_text, notificationInfo.getContent());
+        customNotification.setBitmap(R.id.exomedia_notification_large_image, "setImageBitmap", notificationInfo.getLargeImage());
+
+        if (notificationInfo.getMediaState() != null) {
+            updateCustomNotificationMediaState(customNotification);
+        }
+
+        return customNotification;
+    }
+
+    /**
      * Creates the RemoteViews used for the expanded (big) notification
      *
      * @return The resulting RemoteViews
@@ -186,23 +211,40 @@ public class EMNotification {
         if (bigContent == null) {
             bigContent = new RemoteViews(context.getPackageName(), R.layout.exomedia_big_notification_content);
 
-            bigContent.setOnClickPendingIntent(R.id.exomedia_notification_close, createPendingIntent(EMRemoteActions.ACTION_STOP, mediaServiceClass));
-            bigContent.setOnClickPendingIntent(R.id.exomedia_notification_playpause, createPendingIntent(EMRemoteActions.ACTION_PLAY_PAUSE, mediaServiceClass));
-            bigContent.setOnClickPendingIntent(R.id.exomedia_notification_next, createPendingIntent(EMRemoteActions.ACTION_NEXT, mediaServiceClass));
-            bigContent.setOnClickPendingIntent(R.id.exomedia_notification_prev, createPendingIntent(EMRemoteActions.ACTION_PREVIOUS, mediaServiceClass));
+            bigContent.setOnClickPendingIntent(R.id.exomedia_big_notification_close, createPendingIntent(EMRemoteActions.ACTION_STOP, mediaServiceClass));
+            bigContent.setOnClickPendingIntent(R.id.exomedia_big_notification_playpause, createPendingIntent(EMRemoteActions.ACTION_PLAY_PAUSE, mediaServiceClass));
+            bigContent.setOnClickPendingIntent(R.id.exomedia_big_notification_next, createPendingIntent(EMRemoteActions.ACTION_NEXT, mediaServiceClass));
+            bigContent.setOnClickPendingIntent(R.id.exomedia_big_notification_prev, createPendingIntent(EMRemoteActions.ACTION_PREVIOUS, mediaServiceClass));
         }
 
-        bigContent.setTextViewText(R.id.exomedia_notification_title, notificationInfo.getTitle());
-        bigContent.setTextViewText(R.id.exomedia_notification_content_text, notificationInfo.getContent());
-        bigContent.setBitmap(R.id.exomedia_notification_large_image, "setImageBitmap", notificationInfo.getLargeImage());
-        bigContent.setBitmap(R.id.exomedia_notification_secondary_image, "setImageBitmap", notificationInfo.getSecondaryImage());
+        bigContent.setTextViewText(R.id.exomedia_big_notification_title, notificationInfo.getTitle());
+        bigContent.setTextViewText(R.id.exomedia_big_notification_content_text, notificationInfo.getContent());
+        bigContent.setBitmap(R.id.exomedia_big_notification_large_image, "setImageBitmap", notificationInfo.getLargeImage());
+        bigContent.setBitmap(R.id.exomedia_big_notification_secondary_image, "setImageBitmap", notificationInfo.getSecondaryImage());
 
         //Makes sure the play/pause, next, and previous are displayed correctly
         if (notificationInfo.getMediaState() != null) {
-            updateMediaState(bigContent);
+            updateBigNotificationMediaState(bigContent);
         }
 
         return bigContent;
+    }
+
+    /**
+     * Updates the images for the play/pause button so that only valid ones are
+     * displayed with the correct state.
+     *
+     * @param customNotification The RemoteViews to use to modify the state
+     */
+    private void updateCustomNotificationMediaState(RemoteViews customNotification) {
+        NotificationMediaState state = notificationInfo.getMediaState();
+        if (customNotification == null || state == null) {
+            return;
+        }
+
+        customNotification.setImageViewResource(R.id.exomedia_notification_playpause, state.isPlaying() ? R.drawable.exomedia_notification_pause : R.drawable.exomedia_notification_play);
+        customNotification.setInt(R.id.exomedia_notification_prev, "setVisibility", state.isPreviousEnabled() ? View.VISIBLE : View.GONE);
+        customNotification.setInt(R.id.exomedia_notification_next, "setVisibility", state.isNextEnabled() ? View.VISIBLE : View.GONE);
     }
 
     /**
@@ -211,15 +253,15 @@ public class EMNotification {
      *
      * @param bigContent The RemoteViews to use to modify the state
      */
-    private void updateMediaState(RemoteViews bigContent) {
+    private void updateBigNotificationMediaState(RemoteViews bigContent) {
         NotificationMediaState state = notificationInfo.getMediaState();
         if (bigContent == null || state == null) {
             return;
         }
 
-        bigContent.setImageViewResource(R.id.exomedia_notification_playpause, state.isPlaying() ? R.drawable.exomedia_notification_pause : R.drawable.exomedia_notification_play);
-        bigContent.setInt(R.id.exomedia_notification_prev, "setVisibility", state.isPreviousEnabled() ? View.VISIBLE : View.INVISIBLE);
-        bigContent.setInt(R.id.exomedia_notification_next, "setVisibility", state.isNextEnabled() ? View.VISIBLE : View.INVISIBLE);
+        bigContent.setImageViewResource(R.id.exomedia_big_notification_playpause, state.isPlaying() ? R.drawable.exomedia_notification_pause : R.drawable.exomedia_notification_play);
+        bigContent.setInt(R.id.exomedia_big_notification_prev, "setVisibility", state.isPreviousEnabled() ? View.VISIBLE : View.INVISIBLE);
+        bigContent.setInt(R.id.exomedia_big_notification_next, "setVisibility", state.isNextEnabled() ? View.VISIBLE : View.INVISIBLE);
     }
 
     /**

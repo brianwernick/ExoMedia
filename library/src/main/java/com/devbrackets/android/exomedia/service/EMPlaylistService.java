@@ -54,7 +54,7 @@ import java.util.List;
 /**
  * <b>NOTE:</b> This service will request a wifi wakelock if the item
  * being played isn't downloaded (see {@link #isDownloaded(EMPlaylistManager.PlaylistItem)}).
- * </p>
+ * <p>
  * This requires the manifest permission &lt;uses-permission android:name="android.permission.WAKE_LOCK" /&gt;
  */
 @SuppressWarnings("unused")
@@ -103,10 +103,15 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
     protected List<EMPlaylistServiceCallback> callbackList = new LinkedList<>();
 
     protected abstract String getAppName();
+
     protected abstract int getNotificationId();
+
     protected abstract float getAudioDuckVolume();
+
     protected abstract M getMediaPlaylistManager();
+
     protected abstract PendingIntent getNotificationClickPendingIntent();
+
     protected abstract Bitmap getDefaultLargeNotificationImage();
 
     /**
@@ -185,7 +190,7 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
      *
      * @param playlistItem The playlist item that has been stopped
      */
-    protected void onMediaStopped(I playlistItem){
+    protected void onMediaStopped(I playlistItem) {
         //Purposefully left blank
     }
 
@@ -193,9 +198,9 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
      * Called when a current audio item has ended playback.  This is called when we
      * are unable to play an audio item.
      *
-     * @param playlistItem The PlaylistItem that has ended
+     * @param playlistItem    The PlaylistItem that has ended
      * @param currentPosition The position the playlist item ended at
-     * @param duration The duration of the PlaylistItem
+     * @param duration        The duration of the PlaylistItem
      */
     protected void onAudioPlaybackEnded(I playlistItem, long currentPosition, long duration) {
         //Purposefully left blank
@@ -204,9 +209,9 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
     /**
      * Called when an audio item has started playback.
      *
-     * @param playlistItem The PlaylistItem that has started playback
+     * @param playlistItem    The PlaylistItem that has started playback
      * @param currentPosition The position the playback has started at
-     * @param duration The duration of the PlaylistItem
+     * @param duration        The duration of the PlaylistItem
      */
     protected void onAudioPlaybackStarted(I playlistItem, long currentPosition, long duration) {
         //Purposefully left blank
@@ -241,7 +246,7 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
     /**
      * Retrieves the image that will be displayed in the notification as a secondary
      * image.  This can be used to specify playback type (e.g. Chromecast).
-     *
+     * <p>
      * This will be called any time the notification is updated
      *
      * @return The image to display in the secondary position
@@ -265,7 +270,7 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
     /**
      * Called when the image in the notification needs to be updated.
      *
-     * @param size The square size for the image to display
+     * @param size         The square size for the image to display
      * @param playlistItem The media item to get the image for
      */
     protected void updateLargeNotificationImage(int size, I playlistItem) {
@@ -787,7 +792,7 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
     /**
      * Starts the actual item playback, correctly determining if the
      * item is a video or an audio item.
-     *
+     * <p>
      * <em><b>NOTE:</b></em> In order to play videos you will need to specify the
      * VideoView with {@link EMPlaylistManager#setVideoView(EMVideoView)}
      */
@@ -959,14 +964,14 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
         }
 
         //Only iterate through the list if we aren't connected to the internet
-        if(!isNetworkAvailable()) {
-            while(currentItem != null && !isDownloaded(currentItem)) {
+        if (!isNetworkAvailable()) {
+            while (currentItem != null && !isDownloaded(currentItem)) {
                 currentItem = getMediaPlaylistManager().next();
             }
         }
 
         //If we are unable to get a next playable item, post a network error
-        if(currentItem == null) {
+        if (currentItem == null) {
             onNoNonNetworkItemsAvailable();
         }
 

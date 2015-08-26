@@ -285,7 +285,7 @@ public class DefaultControls extends RelativeLayout {
      * Sets the button state for the Previous button.  This will just
      * change the images specified with {@link #setPreviousImageResource(int)},
      * or use the defaults if they haven't been set, and block any click events.
-     * </p>
+     * <p>
      * This method will NOT re-add buttons that have previously been removed with
      * {@link #setNextButtonRemoved(boolean)}.
      *
@@ -299,7 +299,7 @@ public class DefaultControls extends RelativeLayout {
      * Sets the button state for the Next button.  This will just
      * change the images specified with {@link #setNextImageResource(int)},
      * or use the defaults if they haven't been set, and block any click events.
-     * </p>
+     * <p>
      * This method will NOT re-add buttons that have previously been removed with
      * {@link #setPreviousButtonRemoved(boolean)}.
      *

@@ -38,7 +38,6 @@
         android:layout_alignParentEnd="true"
         android:layout_alignParentTop="true"
         android:background="?android:selectableItemBackground"
-        android:layout_margin="@dimen/exomedia_default_padding"
         android:src="@drawable/exomedia_notification_close"
         tools:ignore="ContentDescription"/>
 
@@ -90,7 +89,6 @@
         android:layout_alignParentEnd="true"
         android:layout_toRightOf="@id/exomedia_big_notification_large_image"
         android:layout_toEndOf="@id/exomedia_big_notification_large_image"
-        android:divider="?android:listDivider"
         android:gravity="center"
         android:orientation="horizontal">
 

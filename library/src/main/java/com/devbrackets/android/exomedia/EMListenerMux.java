@@ -19,13 +19,14 @@ package com.devbrackets.android.exomedia;
 import android.media.MediaPlayer;
 import android.os.Handler;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 
 import com.devbrackets.android.exomedia.event.EMMediaCompletionEvent;
 import com.devbrackets.android.exomedia.event.EMMediaErrorEvent;
 import com.devbrackets.android.exomedia.event.EMMediaPreparedEvent;
 import com.devbrackets.android.exomedia.listener.ExoPlayerListener;
+import com.devbrackets.android.exomedia.util.EMEventBus;
 import com.google.android.exoplayer.ExoPlayer;
-import com.squareup.otto.Bus;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -45,7 +46,9 @@ class EMListenerMux implements ExoPlayerListener, MediaPlayer.OnPreparedListener
 
     private Handler delayedHandler = new Handler();
     private EMListenerMuxNotifier muxNotifier;
-    private Bus bus;
+
+    @Nullable
+    private EMEventBus bus;
 
     private List<ExoPlayerListener> exoPlayerListeners = new LinkedList<>();
 
@@ -155,7 +158,7 @@ class EMListenerMux implements ExoPlayerListener, MediaPlayer.OnPreparedListener
         }
     }
 
-    public void setBus(Bus bus) {
+    public void setBus(@Nullable EMEventBus bus) {
         this.bus = bus;
     }
 
@@ -183,7 +186,7 @@ class EMListenerMux implements ExoPlayerListener, MediaPlayer.OnPreparedListener
 
     /**
      * Sets the listener to inform of VideoPlayer prepared events.  This can also be
-     * accessed through the Otto event {@link com.devbrackets.android.exomedia.event.EMMediaPreparedEvent}
+     * accessed through the bus event {@link com.devbrackets.android.exomedia.event.EMMediaPreparedEvent}
      *
      * @param listener The listener
      */
@@ -193,7 +196,7 @@ class EMListenerMux implements ExoPlayerListener, MediaPlayer.OnPreparedListener
 
     /**
      * Sets the listener to inform of VideoPlayer completion events.  This can also be
-     * accessed through the Otto event {@link com.devbrackets.android.exomedia.event.EMMediaCompletionEvent}
+     * accessed through the bus event {@link com.devbrackets.android.exomedia.event.EMMediaCompletionEvent}
      *
      * @param listener The listener
      */
@@ -203,7 +206,7 @@ class EMListenerMux implements ExoPlayerListener, MediaPlayer.OnPreparedListener
 
     /**
      * Sets the listener to inform of playback errors.  This can also be
-     * accessed through the Otto event {@link com.devbrackets.android.exomedia.event.EMMediaErrorEvent}
+     * accessed through the bus event {@link com.devbrackets.android.exomedia.event.EMMediaErrorEvent}
      *
      * @param listener The listener
      */

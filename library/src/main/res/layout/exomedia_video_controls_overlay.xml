@@ -32,10 +32,8 @@
             android:layout_height="wrap_content"
             android:minWidth="@dimen/exomedia_min_button_height"
             android:minHeight="@dimen/exomedia_min_button_height"
-            android:visibility="invisible"
             android:background="@android:color/transparent"
             android:src="@drawable/exomedia_ic_play_arrow_white"
-            tools:visibility="visible"
             tools:ignore="ContentDescription"/>
 
         <ImageButton

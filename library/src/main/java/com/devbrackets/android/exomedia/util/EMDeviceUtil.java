@@ -16,6 +16,9 @@
 
 package com.devbrackets.android.exomedia.util;
 
+import android.app.UiModeManager;
+import android.content.Context;
+import android.content.res.Configuration;
 import android.os.Build;
 
 /**
@@ -57,5 +60,21 @@ public class EMDeviceUtil {
         }
 
         return true;
+    }
+
+    /**
+     * Determines if the current device is a TV.
+     *
+     * @param context The context to use for determining the device information
+     * @return True if the current device is a TV
+     */
+    public static boolean isDeviceTV(Context context) {
+        //Since Android TV is only API 21+ that is the only time we will compare configurations
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            UiModeManager uiManager = (UiModeManager) context.getSystemService(Context.UI_MODE_SERVICE);
+            return uiManager != null && uiManager.getCurrentModeType() == Configuration.UI_MODE_TYPE_TELEVISION;
+        }
+
+        return false;
     }
 }

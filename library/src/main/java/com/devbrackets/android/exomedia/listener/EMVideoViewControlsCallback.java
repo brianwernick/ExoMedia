@@ -18,12 +18,12 @@ package com.devbrackets.android.exomedia.listener;
 
 /**
  * Basic VideoView callbacks.  These can also be accessed through
- * their corresponding Otto bus events.
+ * their corresponding EventBus events.
  */
 public interface EMVideoViewControlsCallback {
     /**
      * Occurs when the PlayPause button on the VideoView is clicked.
-     * You can also catch this event with the Otto bus event
+     * You can also catch this event with the EventBus event
      * {@link com.devbrackets.android.exomedia.event.EMMediaPlayPauseEvent}
      *
      * @return True if the event has been handled
@@ -32,7 +32,7 @@ public interface EMVideoViewControlsCallback {
 
     /**
      * Occurs when the Previous button on the VideoView is clicked.
-     * You can also catch this event with the Otto bus event
+     * You can also catch this event with the EventBus event
      * {@link com.devbrackets.android.exomedia.event.EMMediaPreviousEvent}
      *
      * @return True if the event has been handled
@@ -41,7 +41,7 @@ public interface EMVideoViewControlsCallback {
 
     /**
      * Occurs when the Next button on the VideoView is clicked.
-     * You can also catch this event with the Otto bus event
+     * You can also catch this event with the EventBus event
      * {@link com.devbrackets.android.exomedia.event.EMMediaNextEvent}
      *
      * @return True if the event has been handled
@@ -50,7 +50,7 @@ public interface EMVideoViewControlsCallback {
 
     /**
      * Occurs when the DefaultControls becomes visible
-     * You can also catch this event with the Otto bus event
+     * You can also catch this event with the EventBus event
      * {@link com.devbrackets.android.exomedia.event.EMVideoViewControlVisibilityEvent}
      *
      * @return True if the event has been handled
@@ -59,7 +59,7 @@ public interface EMVideoViewControlsCallback {
 
     /**
      * Occurs when the DefaultControls becomes hidden
-     * You can also catch this event with the Otto bus event
+     * You can also catch this event with the EventBus event
      * {@link com.devbrackets.android.exomedia.event.EMVideoViewControlVisibilityEvent}
      *
      * @return True if the event has been handled

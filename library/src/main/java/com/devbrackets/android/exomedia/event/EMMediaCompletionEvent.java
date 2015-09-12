@@ -22,7 +22,5 @@ package com.devbrackets.android.exomedia.event;
  * which is the same as {@link android.media.MediaPlayer.OnCompletionListener}
  */
 public class EMMediaCompletionEvent {
-    public EMMediaCompletionEvent() {
-        //Purposefully left blank
-    }
+    //Purposefully left blank
 }

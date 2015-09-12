@@ -28,7 +28,7 @@ public interface EMPlaylistServiceCallback {
 
     /**
      * Occurs when the currently playing item has changed.
-     * You can also catch this event with the Otto bus event
+     * You can also catch this event with the EventBus event
      * {@link com.devbrackets.android.exomedia.event.EMPlaylistItemChangedEvent}
      *
      * @return True if the event has been handled
@@ -37,7 +37,7 @@ public interface EMPlaylistServiceCallback {
 
     /**
      * Occurs when the current media state changes.
-     * You can also catch this event with the Otto bus event
+     * You can also catch this event with the EventBus event
      * {@link com.devbrackets.android.exomedia.event.EMMediaStateEvent}
      *
      * @return True if the event has been handled
@@ -46,7 +46,7 @@ public interface EMPlaylistServiceCallback {
 
     /**
      * Occurs when the currently playing item has a progress change.
-     * You can also catch this event with the Otto bus event
+     * You can also catch this event with the EventBus event
      * {@link com.devbrackets.android.exomedia.event.EMMediaProgressEvent}
      *
      * @return True if the progress update has been handled

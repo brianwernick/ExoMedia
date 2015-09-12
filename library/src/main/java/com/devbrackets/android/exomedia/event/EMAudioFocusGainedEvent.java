@@ -25,7 +25,5 @@ import com.devbrackets.android.exomedia.util.EMAudioFocusHelper;
  * are implemented and consume the event, this will NOT be called.
  */
 public class EMAudioFocusGainedEvent {
-    public EMAudioFocusGainedEvent() {
-        //Purposefully left blank
-    }
+    //Purposefully left blank
 }

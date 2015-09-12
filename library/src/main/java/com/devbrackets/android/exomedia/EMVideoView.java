@@ -60,7 +60,7 @@ import com.google.android.exoplayer.audio.AudioCapabilitiesReceiver;
  * JellyBean.  On devices with JellyBean and up we will use the ExoPlayer in order to
  * better support HLS streaming and full 1080p video resolutions which the VideoView
  * struggles with, and in some cases crashes.
- * <p/>
+ * <p>
  * To an external user this view should have the same APIs used with the standard VideoView
  * to help with quick implementations.
  */
@@ -75,7 +75,7 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
         DEFAULT;
 
         public static VideoType get(Uri uri) {
-            if (uri.toString().matches(".*\\.m3u8.*")) {
+            if (uri.toString().matches(".*m3u8.*")) {
                 return VideoType.HLS;
             }
 
@@ -500,10 +500,10 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
      * Sets the button state for the Previous button on the default controls; see
      * {@link #setDefaultControlsEnabled(boolean)}.
      * {@link #setDefaultControlsEnabled(boolean)} must be called prior to this.
-     * <p/>
+     * <p>
      * This will just change the images specified with {@link #setPreviousImageResource(int)},
      * or use the defaults if they haven't been set, and block any click events.
-     * </p>
+     * <p>
      * This method will NOT re-add buttons that have previously been removed with
      * {@link #setPreviousButtonRemoved(boolean)}.
      *
@@ -519,10 +519,10 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
      * Sets the button state for the Next button on the default controls; see
      * {@link #setDefaultControlsEnabled(boolean)}.
      * {@link #setDefaultControlsEnabled(boolean)} must be called prior to this.
-     * <p/>
+     * <p>
      * This will just change the images specified with {@link #setNextImageResource(int)},
      * or use the defaults if they haven't been set, and block any click events.
-     * </p>
+     * <p>
      * This method will NOT re-add buttons that have previously been removed with
      * {@link #setNextButtonRemoved(boolean)}.
      *
@@ -926,7 +926,7 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
      * only be used when the item doesn't return the correct duration such as with audio streams.
      * This only overrides the current audio item.
      *
-     * @param duration The duration for the current media item or < 0 to disable
+     * @param duration The duration for the current media item or &lt; 0 to disable
      */
     public void overrideDuration(int duration) {
         overriddenDuration = duration;

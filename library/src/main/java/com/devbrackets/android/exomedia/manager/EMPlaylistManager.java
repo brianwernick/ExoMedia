@@ -57,14 +57,26 @@ public abstract class EMPlaylistManager<I extends EMPlaylistManager.PlaylistItem
 
     public interface PlaylistItem {
         long getId();
+
         long getPlaylistId();
+
         boolean isAudio();
+
         boolean isVideo();
+
         String getMediaUrl();
+
         String getDownloadedMediaUri();
-        String getTitle();
+
         String getThumbnailUrl();
+
         String getArtworkUrl();
+
+        String getTitle();
+
+        String getAlbum();
+
+        String getArtist();
     }
 
     private List<I> playList;
@@ -84,6 +96,7 @@ public abstract class EMPlaylistManager<I extends EMPlaylistManager.PlaylistItem
     private Intent seekEndedIntent, allowedTypeChangedIntent;
 
     protected abstract Application getApplication();
+
     protected abstract Class<? extends Service> getMediaServiceClass();
 
     /**
@@ -222,9 +235,9 @@ public abstract class EMPlaylistManager<I extends EMPlaylistManager.PlaylistItem
      * item as specified by the passed parameters.
      *
      * @param playListItems The list of items to play
-     * @param startIndex The index in the playlistItems to start playback
-     * @param seekPosition The position in the startIndex item to start at (in milliseconds)
-     * @param startPaused True if the media item should start paused instead of playing
+     * @param startIndex    The index in the playlistItems to start playback
+     * @param seekPosition  The position in the startIndex item to start at (in milliseconds)
+     * @param startPaused   True if the media item should start paused instead of playing
      */
     public void play(List<I> playListItems, int startIndex, int seekPosition, boolean startPaused) {
         setParameters(playListItems, startIndex);
@@ -255,7 +268,7 @@ public abstract class EMPlaylistManager<I extends EMPlaylistManager.PlaylistItem
      * and video items.
      *
      * @param playListItems The List of items to play
-     * @param startIndex The index in the list to start playback with
+     * @param startIndex    The index in the list to start playback with
      */
     public void setParameters(List<I> playListItems, int startIndex) {
         playList = playListItems;
@@ -574,7 +587,7 @@ public abstract class EMPlaylistManager<I extends EMPlaylistManager.PlaylistItem
      * Creates the Intents that will be used to interact with the playlist service
      *
      * @param mediaServiceClass The class to inform of any media playback controls
-     * @param application The application to use when constructing the intents used to inform the playlist service of invocations
+     * @param application       The application to use when constructing the intents used to inform the playlist service of invocations
      */
     protected void constructControlIntents(Class<? extends Service> mediaServiceClass, Application application) {
         //Creates the pending intents
@@ -679,9 +692,9 @@ public abstract class EMPlaylistManager<I extends EMPlaylistManager.PlaylistItem
     /**
      * Creates a PendingIntent for the given action to the specified service
      *
-     * @param application The application to use when creating the  pending intent
+     * @param application  The application to use when creating the  pending intent
      * @param serviceClass The service class to notify of intents
-     * @param action The action to use
+     * @param action       The action to use
      * @return The resulting PendingIntent
      */
     private PendingIntent createPendingIntent(Application application, Class<? extends Service> serviceClass, String action) {

@@ -10,7 +10,7 @@ import com.devbrackets.android.exomedia.widget.DefaultControls;
 
 /**
  * A simple example of making a fullscreen video player activity.
- * </p>
+ * <p>
  * <b><em>NOTE:</em></b> the EMVideoView setup is done in the {@link VideoPlayerActivity}
  */
 public class FullScreenVideoPlayerActivity extends VideoPlayerActivity {

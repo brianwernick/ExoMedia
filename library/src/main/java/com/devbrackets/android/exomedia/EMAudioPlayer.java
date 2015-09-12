@@ -41,7 +41,7 @@ import com.google.android.exoplayer.audio.AudioCapabilitiesReceiver;
  * An AudioPlayer that uses the ExoPlayer as the backing architecture.  If the current device
  * does <em>NOT</em> pass the Android Compatibility Test Suite (CTS) then the backing architecture
  * will fall back to using the default Android MediaPlayer.
- * <p/>
+ * <p>
  * To help with quick conversions from the Android MediaPlayer this class follows the APIs
  * the MediaPlayer provides.
  */
@@ -476,7 +476,7 @@ public class EMAudioPlayer implements AudioCapabilitiesReceiver.Listener {
      * only be used when the item doesn't return the correct duration such as with audio streams.
      * This only overrides the current audio item.
      *
-     * @param duration The duration for the current media item or < 0 to disable
+     * @param duration The duration for the current media item or &lt; 0 to disable
      */
     public void overrideDuration(int duration) {
         overriddenDuration = duration;

@@ -27,14 +27,12 @@ import android.view.KeyEvent;
 import com.devbrackets.android.exomedia.EMLockScreen;
 import com.devbrackets.android.exomedia.EMRemoteActions;
 
-import java.io.Serializable;
-
+/**
+ * A Receiver to handle lock screen and other remote controls
+ * such as Bluetooth devices
+ */
 public class MediaControlsReceiver extends BroadcastReceiver {
     private static final String TAG = "MediaControlsReceiver";
-
-    private boolean intentsCreated = false;
-    private PendingIntent playPausePendingIntent, nextPendingIntent, previousPendingIntent;
-    private Class<? extends Service> mediaServiceClass;
 
     @Override
     public void onReceive(Context context, Intent intent) {
@@ -42,58 +40,44 @@ public class MediaControlsReceiver extends BroadcastReceiver {
             return;
         }
 
-        //Retrieves the class to inform of media button clicks, and creates the pending intents that will perform the actual
-        // notifications.
-        if (!intentsCreated) {
-            if (mediaServiceClass == null) {
-                Serializable serializableClass = intent.getSerializableExtra(EMLockScreen.RECEIVER_EXTRA_CLASS);
-                if (serializableClass != null && serializableClass instanceof Class) {
-                    //noinspection unchecked
-                    mediaServiceClass = (Class<? extends Service>)serializableClass;
-                }
-            }
-
-            //Creates the actual pending intents
-            if (mediaServiceClass != null) {
-                createIntents(context);
-                intentsCreated = true;
+        //Retrieves the class to inform of media button clicks
+        Class<? extends Service> mediaServiceClass = null;
+        String className = intent.getStringExtra(EMLockScreen.RECEIVER_EXTRA_CLASS);
+        if (className != null) {
+            try {
+                //noinspection unchecked
+                mediaServiceClass = (Class<? extends Service>) Class.forName(className);
+            } catch (Exception e) {
+                //Purposefully left blank
             }
         }
 
-
-        //Performs the actual handling of the button events
+        //Informs the mediaService of the event
         KeyEvent event = intent.getParcelableExtra(Intent.EXTRA_KEY_EVENT);
-        if (intentsCreated && event != null && event.getAction() == KeyEvent.ACTION_UP) {
-            handleKeyEvent(event);
+        if (mediaServiceClass != null && event != null && event.getAction() == KeyEvent.ACTION_UP) {
+            handleKeyEvent(context, mediaServiceClass, event);
         }
-    }
-
-    /**
-     * Creates the PendingIntents that inform the mediaService of button clicks
-     */
-    private void createIntents(Context context) {
-        playPausePendingIntent = createPendingIntent(context, EMRemoteActions.ACTION_PLAY_PAUSE, mediaServiceClass);
-        nextPendingIntent = createPendingIntent(context, EMRemoteActions.ACTION_NEXT, mediaServiceClass);
-        previousPendingIntent = createPendingIntent(context, EMRemoteActions.ACTION_PREVIOUS, mediaServiceClass);
     }
 
     /**
      * Handles the media button click events
      *
+     * @param context The context to use when informing the media service of the event
+     * @param mediaServiceClass The service class to inform of the event
      * @param keyEvent The KeyEvent associated with the button click
      */
-    private void handleKeyEvent(KeyEvent keyEvent) {
+    private void handleKeyEvent(Context context, Class<? extends Service> mediaServiceClass, KeyEvent keyEvent) {
         switch (keyEvent.getKeyCode()) {
             case KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE:
-                sendPendingIntent(playPausePendingIntent);
+                sendPendingIntent(createPendingIntent(context, EMRemoteActions.ACTION_PLAY_PAUSE, mediaServiceClass));
                 break;
 
             case KeyEvent.KEYCODE_MEDIA_NEXT:
-                sendPendingIntent(nextPendingIntent);
+                sendPendingIntent(createPendingIntent(context, EMRemoteActions.ACTION_NEXT, mediaServiceClass));
                 break;
 
             case KeyEvent.KEYCODE_MEDIA_PREVIOUS:
-                sendPendingIntent(previousPendingIntent);
+                sendPendingIntent(createPendingIntent(context, EMRemoteActions.ACTION_PREVIOUS, mediaServiceClass));
                 break;
 
             default:
@@ -115,6 +99,11 @@ public class MediaControlsReceiver extends BroadcastReceiver {
         return PendingIntent.getService(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
     }
 
+    /**
+     * Attempts to send the pending intent
+     *
+     * @param pi The pending intent to send
+     */
     private void sendPendingIntent(PendingIntent pi) {
         try {
             pi.send();

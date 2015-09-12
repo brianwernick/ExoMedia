@@ -4,7 +4,7 @@ apply plugin: 'bintray-release'
 
 def versionMajor = 2
 def versionMinor = 3
-def versionPatch = 3
+def versionPatch = 4
 
 def libraryGroupId = 'com.devbrackets.android'
 def libraryBaseName = 'exomedia'
@@ -12,7 +12,7 @@ def libraryVersion = "${versionMajor}.${versionMinor}.${versionPatch}" // releas
 
 dependencies {
     // Android
-    compile 'com.android.support:appcompat-v7:23.0.0' // includes support-v4
+    compile 'com.android.support:appcompat-v7:23.0.1' // includes support-v4
 
     // ExoPlayer
     compile 'com.google.android.exoplayer:exoplayer:r1.4.2'
@@ -20,7 +20,7 @@ dependencies {
 
 android {
     compileSdkVersion 23
-    buildToolsVersion '23.0.0'
+    buildToolsVersion '23.0.1'
 
     defaultConfig {
         minSdkVersion 10

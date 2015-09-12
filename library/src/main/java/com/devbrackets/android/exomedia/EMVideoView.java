@@ -72,7 +72,7 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
         DEFAULT;
 
         public static VideoType get(Uri uri) {
-            if (uri.toString().matches(".*\\.m3u8.*")) {
+            if (uri.toString().matches(".*m3u8.*")) {
                 return VideoType.HLS;
             }
 

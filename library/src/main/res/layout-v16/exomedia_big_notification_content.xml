@@ -1,17 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-                xmlns:tools="http://schemas.android.com/tools"
-                android:layout_width="match_parent"
-                android:layout_height="128dp">
+<RelativeLayout
+    android:id="@+id/exomedia_big_notification_touch_area"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="128dp">
 
     <ImageView
         android:id="@+id/exomedia_big_notification_large_image"
         android:layout_width="@dimen/exomedia_big_notification_image_size"
         android:layout_height="@dimen/exomedia_big_notification_image_size"
-        android:layout_margin="@dimen/exomedia_big_notification_image_margin"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
         android:layout_alignParentTop="true"
+        android:layout_margin="@dimen/exomedia_big_notification_image_margin"
         android:scaleType="centerInside"
         tools:background="#ffffff"
         tools:ignore="ContentDescription"/>
@@ -20,10 +22,10 @@
         android:id="@+id/exomedia_big_notification_secondary_image"
         android:layout_width="@dimen/exomedia_big_notification_secondary_image_size"
         android:layout_height="@dimen/exomedia_big_notification_secondary_image_size"
-        android:layout_margin="@dimen/exomedia_big_notification_image_margin"
+        android:layout_alignParentBottom="true"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
-        android:layout_alignParentBottom="true"
+        android:layout_margin="@dimen/exomedia_big_notification_image_margin"
         android:scaleType="centerInside"
         tools:background="#000000"
         tools:ignore="ContentDescription"/>
@@ -32,12 +34,12 @@
         android:id="@+id/exomedia_big_notification_close"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:minWidth="@dimen/exomedia_min_button_height"
-        android:minHeight="@dimen/exomedia_min_button_height"
-        android:layout_alignParentRight="true"
         android:layout_alignParentEnd="true"
+        android:layout_alignParentRight="true"
         android:layout_alignParentTop="true"
         android:background="?android:selectableItemBackground"
+        android:minHeight="@dimen/exomedia_min_button_height"
+        android:minWidth="@dimen/exomedia_min_button_height"
         android:src="@drawable/exomedia_notification_close"
         tools:ignore="ContentDescription"/>
 
@@ -47,14 +49,14 @@
         android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
         android:layout_gravity="top"
-        android:layout_toLeftOf="@id/exomedia_big_notification_close"
-        android:layout_toStartOf="@id/exomedia_big_notification_close"
-        android:layout_toRightOf="@id/exomedia_big_notification_large_image"
         android:layout_toEndOf="@id/exomedia_big_notification_large_image"
+        android:layout_toLeftOf="@id/exomedia_big_notification_close"
+        android:layout_toRightOf="@id/exomedia_big_notification_large_image"
+        android:layout_toStartOf="@id/exomedia_big_notification_close"
+        android:orientation="vertical"
         android:paddingLeft="16dp"
         android:paddingRight="16dp"
-        android:paddingTop="@dimen/exomedia_default_padding"
-        android:orientation="vertical">
+        android:paddingTop="@dimen/exomedia_default_padding">
 
         <TextView
             android:id="@+id/exomedia_big_notification_title"
@@ -75,8 +77,8 @@
             android:ellipsize="marquee"
             android:fadingEdge="horizontal"
             android:focusable="true"
-            android:singleLine="true"
             android:paddingTop="@dimen/exomedia_big_notification_text_pad"
+            android:singleLine="true"
             tools:text="dolor sit amet"/>
     </LinearLayout>
 
@@ -85,10 +87,10 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
-        android:layout_alignParentRight="true"
         android:layout_alignParentEnd="true"
-        android:layout_toRightOf="@id/exomedia_big_notification_large_image"
+        android:layout_alignParentRight="true"
         android:layout_toEndOf="@id/exomedia_big_notification_large_image"
+        android:layout_toRightOf="@id/exomedia_big_notification_large_image"
         android:gravity="center"
         android:orientation="horizontal">
 
@@ -96,11 +98,11 @@
             android:id="@+id/exomedia_big_notification_prev"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:minWidth="@dimen/exomedia_min_button_height"
-            android:minHeight="@dimen/exomedia_min_button_height"
-            android:layout_marginRight="@dimen/exomedia_min_button_height"
             android:layout_marginEnd="@dimen/exomedia_min_button_height"
+            android:layout_marginRight="@dimen/exomedia_min_button_height"
             android:background="?android:selectableItemBackground"
+            android:minHeight="@dimen/exomedia_min_button_height"
+            android:minWidth="@dimen/exomedia_min_button_height"
             android:scaleType="fitCenter"
             android:src="@drawable/exomedia_notification_previous"
             tools:ignore="ContentDescription"/>
@@ -109,9 +111,9 @@
             android:id="@+id/exomedia_big_notification_playpause"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:minWidth="@dimen/exomedia_min_button_height"
-            android:minHeight="@dimen/exomedia_min_button_height"
             android:background="?android:selectableItemBackground"
+            android:minHeight="@dimen/exomedia_min_button_height"
+            android:minWidth="@dimen/exomedia_min_button_height"
             android:scaleType="fitCenter"
             android:src="@drawable/exomedia_notification_play"
             tools:ignore="ContentDescription"/>
@@ -120,11 +122,11 @@
             android:id="@+id/exomedia_big_notification_next"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:minWidth="@dimen/exomedia_min_button_height"
-            android:minHeight="@dimen/exomedia_min_button_height"
             android:layout_marginLeft="@dimen/exomedia_min_button_height"
             android:layout_marginStart="@dimen/exomedia_min_button_height"
             android:background="?android:selectableItemBackground"
+            android:minHeight="@dimen/exomedia_min_button_height"
+            android:minWidth="@dimen/exomedia_min_button_height"
             android:scaleType="fitCenter"
             android:src="@drawable/exomedia_notification_next"
             tools:ignore="ContentDescription"/>

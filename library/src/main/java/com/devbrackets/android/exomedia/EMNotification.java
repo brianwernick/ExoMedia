@@ -155,11 +155,12 @@ public class EMNotification {
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(context);
         builder.setContent(customNotificationViews);
+        builder.setContentIntent(pendingIntent);
         builder.setSmallIcon(notificationInfo.getAppIcon());
         builder.setOngoing(notificationInfo.getMediaState() != null && notificationInfo.getMediaState().isPlaying()); //TODO: make sure to stop the service when swipped away
 
         if (pendingIntent != null) {
-            customNotificationViews.setOnClickPendingIntent(R.id.exomedia_notification_text_area, pendingIntent);
+            customNotificationViews.setOnClickPendingIntent(R.id.exomedia_notification_touch_area, pendingIntent);
         }
 
         //Set the notification category on lollipop
@@ -172,6 +173,7 @@ public class EMNotification {
         Notification notification = builder.build();
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN && mediaServiceClass != null) {
             notification.bigContentView = getBigNotification();
+            notification.bigContentView.setOnClickPendingIntent(R.id.exomedia_big_notification_touch_area, pendingIntent);
         }
 
         return notification;

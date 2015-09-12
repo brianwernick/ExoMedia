@@ -51,6 +51,15 @@ public class EMNotification {
     }
 
     /**
+     * Dismisses the current active notification
+     */
+    public void dismiss() {
+        if (notificationManager != null && notificationInfo != null) {
+            notificationManager.cancel(notificationInfo.getNotificationId());
+        }
+    }
+
+    /**
      * Sets weather notifications are shown when audio is playing or
      * ready for playback (e.g. paused).  The notification information
      * will need to be updated by calling {@link #setNotificationBaseInformation(int, int)}
@@ -118,6 +127,15 @@ public class EMNotification {
     }
 
     /**
+     * Sets the {@link PendingIntent} to call when the notification is clicked.
+     *
+     * @param pendingIntent The pending intent to use when the notification itself is clicked
+     */
+    public void setClickPendingIntent(@Nullable PendingIntent pendingIntent) {
+        notificationInfo.setPendingIntent(pendingIntent);
+    }
+
+    /**
      * Sets the volatile information for the notification.  This information is expected to
      * change frequently.
      *
@@ -150,14 +168,18 @@ public class EMNotification {
      */
     @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
     public Notification getNotification(@Nullable PendingIntent pendingIntent) {
-        notificationInfo.setPendingIntent(pendingIntent);
+        setClickPendingIntent(pendingIntent);
         RemoteViews customNotificationViews = getCustomNotification();
+
+        boolean allowSwipe = notificationInfo.getMediaState() == null || !notificationInfo.getMediaState().isPlaying();
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(context);
         builder.setContent(customNotificationViews);
         builder.setContentIntent(pendingIntent);
+        builder.setDeleteIntent(createPendingIntent(EMRemoteActions.ACTION_STOP, mediaServiceClass));
         builder.setSmallIcon(notificationInfo.getAppIcon());
-        builder.setOngoing(true);
+        builder.setAutoCancel(allowSwipe);
+        builder.setOngoing(!allowSwipe);
 
         if (pendingIntent != null) {
             customNotificationViews.setOnClickPendingIntent(R.id.exomedia_notification_touch_area, pendingIntent);

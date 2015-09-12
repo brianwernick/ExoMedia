@@ -66,7 +66,9 @@ public class EMLockScreen {
     }
 
     public void release() {
-        mediaSession.release();
+        if (mediaSession != null) {
+            mediaSession.release();
+        }
     }
 
     /**

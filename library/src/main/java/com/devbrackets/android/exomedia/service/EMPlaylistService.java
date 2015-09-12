@@ -90,7 +90,7 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
 
     protected AudioListener audioListener = new AudioListener();
     protected boolean pausedForSeek = false;
-    protected boolean foregroundSetup;
+    protected boolean notificationSetup;
 
     protected boolean onCreateCalled = false;
     protected Intent workaroundIntent = null;
@@ -342,7 +342,6 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
         relaxResources(true);
         getMediaPlaylistManager().unRegisterService();
         audioFocusHelper.abandonFocus();
-        lockScreenHelper.release();
 
         audioFocusHelper = null;
         notificationHelper = null;
@@ -923,8 +922,9 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
      * @param releaseAudioPlayer True if the audioPlayer should be released
      */
     protected void relaxResources(boolean releaseAudioPlayer) {
-        foregroundSetup = false;
-        stopForeground(true);
+        notificationSetup = false;
+        notificationHelper.dismiss();
+        lockScreenHelper.release();
 
         if (releaseAudioPlayer) {
             if (audioPlayer != null) {
@@ -992,8 +992,8 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
         notificationHelper.setNotificationBaseInformation(getNotificationId(), getNotificationIconRes(), getClass());
 
         //Starts the service as the foreground audio player
-        startForeground(getNotificationId(), notificationHelper.getNotification(getNotificationClickPendingIntent()));
-        foregroundSetup = true;
+        notificationHelper.setClickPendingIntent(getNotificationClickPendingIntent());
+        notificationSetup = true;
 
         updateLockScreen();
         updateNotification();
@@ -1004,7 +1004,7 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
      * associated with the current playlist item.
      */
     protected void updateNotification() {
-        if (currentPlaylistItem == null || !foregroundSetup) {
+        if (currentPlaylistItem == null || !notificationSetup) {
             return;
         }
 
@@ -1038,7 +1038,7 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
      * (artwork) image displayed on the lock screen.
      */
     protected void updateLockScreen() {
-        if (currentPlaylistItem == null || !foregroundSetup) {
+        if (currentPlaylistItem == null || !notificationSetup) {
             return;
         }
 

@@ -3,12 +3,16 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    tools:background="@android:color/black">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
+        android:layout_marginBottom="@dimen/exomedia_leanback_controls_bottom_margin"
+        android:layout_marginLeft="@dimen/exomedia_leanback_controls_horizontal_margin"
+        android:layout_marginRight="@dimen/exomedia_leanback_controls_horizontal_margin"
         android:orientation="vertical">
 
         <ProgressBar
@@ -50,11 +54,20 @@
                 tools:text="99:99"
                 tools:ignore="RelativeOverlap"/>
 
+            <ImageView
+                android:id="@+id/exomedia_controls_leanback_ripple"
+                android:layout_width="@dimen/exomedia_leanback_ripple_selector_size"
+                android:layout_height="@dimen/exomedia_leanback_controls_height"
+                android:scaleType="centerCrop"
+                android:layout_centerHorizontal="true"
+                android:src="@drawable/exomedia_leanback_ripple_selector"
+                tools:ignore="ContentDescription"/>
+
 
             <LinearLayout
                 android:id="@+id/exomedia_controls_interactive_container"
                 android:layout_width="match_parent"
-                android:layout_height="64dp"
+                android:layout_height="@dimen/exomedia_leanback_controls_height"
                 android:gravity="center"
                 android:orientation="horizontal">
 

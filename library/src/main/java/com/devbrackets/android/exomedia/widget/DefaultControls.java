@@ -24,7 +24,6 @@ import android.os.Handler;
 import android.support.annotation.DrawableRes;
 import android.support.annotation.LayoutRes;
 import android.support.annotation.Nullable;
-import android.support.v4.graphics.drawable.DrawableCompat;
 import android.util.AttributeSet;
 import android.view.View;
 import android.view.ViewGroup;
@@ -43,6 +42,7 @@ import com.devbrackets.android.exomedia.event.EMMediaProgressEvent;
 import com.devbrackets.android.exomedia.event.EMVideoViewControlVisibilityEvent;
 import com.devbrackets.android.exomedia.listener.EMVideoViewControlsCallback;
 import com.devbrackets.android.exomedia.util.EMEventBus;
+import com.devbrackets.android.exomedia.util.EMResourceUtil;
 
 /**
  * This is a simple abstraction for the EMVideoView to have a single "View" to add
@@ -472,36 +472,16 @@ public abstract class DefaultControls extends RelativeLayout {
      * Updates the drawables used for the buttons to AppCompatTintDrawables
      */
     protected void updateButtonDrawables() {
-        defaultPlayDrawable = DrawableCompat.wrap(getDrawable(R.drawable.exomedia_ic_play_arrow_white));
-        DrawableCompat.setTintList(defaultPlayDrawable, getResources().getColorStateList(R.color.exomedia_default_controls_button_selector));
+        defaultPlayDrawable = EMResourceUtil.tintList(getContext(), R.drawable.exomedia_ic_play_arrow_white, R.color.exomedia_default_controls_button_selector);
 
-        defaultPauseDrawable = DrawableCompat.wrap(getDrawable(R.drawable.exomedia_ic_pause_white));
-        DrawableCompat.setTintList(defaultPauseDrawable, getResources().getColorStateList(R.color.exomedia_default_controls_button_selector));
+        defaultPauseDrawable = EMResourceUtil.tintList(getContext(), R.drawable.exomedia_ic_pause_white, R.color.exomedia_default_controls_button_selector);
         playPauseButton.setImageDrawable(defaultPlayDrawable);
 
-        defaultPreviousDrawable = DrawableCompat.wrap(getDrawable(R.drawable.exomedia_ic_skip_previous_white));
-        DrawableCompat.setTintList(defaultPreviousDrawable, getResources().getColorStateList(R.color.exomedia_default_controls_button_selector));
+        defaultPreviousDrawable = EMResourceUtil.tintList(getContext(), R.drawable.exomedia_ic_skip_previous_white, R.color.exomedia_default_controls_button_selector);
         previousButton.setImageDrawable(defaultPreviousDrawable);
 
-        defaultNextDrawable = DrawableCompat.wrap(getDrawable(R.drawable.exomedia_ic_skip_next_white));
-        DrawableCompat.setTintList(defaultNextDrawable, getResources().getColorStateList(R.color.exomedia_default_controls_button_selector));
+        defaultNextDrawable = EMResourceUtil.tintList(getContext(), R.drawable.exomedia_ic_skip_next_white, R.color.exomedia_default_controls_button_selector);
         nextButton.setImageDrawable(defaultNextDrawable);
-    }
-
-    /**
-     * Retrieves the drawable specified with the <code>resourceId</code>.  This
-     * is a helper method to deal with the API differences for retrieving drawables
-     *
-     * @param resourceId The id for the drawable to retrieve
-     * @return The drawable associated with <code>resourceId</code>
-     */
-    protected Drawable getDrawable(@DrawableRes int resourceId) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            return getResources().getDrawable(resourceId, getContext().getTheme());
-        }
-
-        //noinspection deprecation - depreciated in API 22
-        return getResources().getDrawable(resourceId);
     }
 
     /**

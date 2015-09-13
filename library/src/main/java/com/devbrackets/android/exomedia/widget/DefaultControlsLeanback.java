@@ -21,29 +21,37 @@ import android.content.Context;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.support.annotation.DrawableRes;
-import android.support.v4.graphics.drawable.DrawableCompat;
 import android.util.AttributeSet;
 import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.TranslateAnimation;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.ProgressBar;
 
 import com.devbrackets.android.exomedia.R;
 import com.devbrackets.android.exomedia.event.EMMediaProgressEvent;
+import com.devbrackets.android.exomedia.util.EMResourceUtil;
 import com.devbrackets.android.exomedia.util.TimeFormatUtil;
 
 /**
  * Provides playback controls for the EMVideoView on TV devices.
  */
+@TargetApi(Build.VERSION_CODES.LOLLIPOP)
 public class DefaultControlsLeanback extends DefaultControls {
     private static final int FAST_FORWARD_REWIND_AMOUNT = 10000; //10 seconds
 
     private ProgressBar progressBar;
+
+    private ImageView rippleIndicator;
 
     private ImageButton fastForwardButton;
     private ImageButton rewindButton;
 
     private Drawable defaultRewindDrawable;
     private Drawable defaultFastForwardDrawable;
+
+    private ButtonFocusChangeListener buttonFocusChangeListener = new ButtonFocusChangeListener();
 
     public DefaultControlsLeanback(Context context) {
         super(context);
@@ -53,12 +61,10 @@ public class DefaultControlsLeanback extends DefaultControls {
         super(context, attrs);
     }
 
-    @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     public DefaultControlsLeanback(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
     }
 
-    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     public DefaultControlsLeanback(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
         super(context, attrs, defStyleAttr, defStyleRes);
     }
@@ -215,6 +221,7 @@ public class DefaultControlsLeanback extends DefaultControls {
 
         rewindButton = (ImageButton) findViewById(R.id.exomedia_controls_rewind_btn);
         fastForwardButton = (ImageButton) findViewById(R.id.exomedia_controls_fast_forward_btn);
+        rippleIndicator = (ImageView) findViewById(R.id.exomedia_controls_leanback_ripple);
     }
 
     /**
@@ -236,6 +243,13 @@ public class DefaultControlsLeanback extends DefaultControls {
                 onFastForwardClick();
             }
         });
+
+        //Registers the buttons for focus changes in order to update the ripple selector
+        previousButton.setOnFocusChangeListener(buttonFocusChangeListener);
+        rewindButton.setOnFocusChangeListener(buttonFocusChangeListener);
+        playPauseButton.setOnFocusChangeListener(buttonFocusChangeListener);
+        fastForwardButton.setOnFocusChangeListener(buttonFocusChangeListener);
+        nextButton.setOnFocusChangeListener(buttonFocusChangeListener);
     }
 
     /**
@@ -243,12 +257,10 @@ public class DefaultControlsLeanback extends DefaultControls {
      */
     @Override
     protected void updateButtonDrawables() {
-        defaultRewindDrawable = DrawableCompat.wrap(getDrawable(R.drawable.exomedia_ic_rewind_white));
-        DrawableCompat.setTintList(defaultRewindDrawable, getResources().getColorStateList(R.color.exomedia_default_controls_button_selector));
+        defaultRewindDrawable = EMResourceUtil.tintList(getContext(), R.drawable.exomedia_ic_rewind_white, R.color.exomedia_default_controls_button_selector);
         rewindButton.setImageDrawable(defaultRewindDrawable);
 
-        defaultFastForwardDrawable = DrawableCompat.wrap(getDrawable(R.drawable.exomedia_ic_fast_forward_white));
-        DrawableCompat.setTintList(defaultFastForwardDrawable, getResources().getColorStateList(R.color.exomedia_default_controls_button_selector));
+        defaultFastForwardDrawable = EMResourceUtil.tintList(getContext(), R.drawable.exomedia_ic_fast_forward_white, R.color.exomedia_default_controls_button_selector);
         fastForwardButton.setImageDrawable(defaultFastForwardDrawable);
     }
 
@@ -290,5 +302,61 @@ public class DefaultControlsLeanback extends DefaultControls {
         }
 
         videoView.seekTo(seekToTime);
+    }
+
+    /**
+     * A listener to monitor the selected button and move the ripple
+     * indicator when the focus shifts.
+     */
+    private class ButtonFocusChangeListener implements OnFocusChangeListener {
+        @Override
+        public void onFocusChange(View view, boolean hasFocus) {
+            if (!hasFocus) {
+                return;
+            }
+
+            //Performs the move animation
+            int xDelta = getHorizontalDelta(view);
+            rippleIndicator.startAnimation(new RippleTranslateAnimation(xDelta));
+        }
+
+        private int getHorizontalDelta(View selectedView) {
+            int[] position = new int[2];
+            selectedView.getLocationOnScreen(position);
+
+            int x = position[0];
+            rippleIndicator.getLocationOnScreen(position);
+
+            return x - position[0];
+        }
+    }
+
+    private class RippleTranslateAnimation extends TranslateAnimation implements Animation.AnimationListener {
+        private static final long DURATION = 250;
+
+        private int xDelta;
+
+        public RippleTranslateAnimation(int xDelta) {
+            super(0, xDelta, 0, 0);
+
+            this.xDelta = xDelta;
+            setDuration(DURATION);
+            setAnimationListener(this);
+        }
+
+        @Override
+        public void onAnimationStart(Animation animation) {
+            //Purposefully left blank
+        }
+
+        @Override
+        public void onAnimationEnd(Animation animation) {
+            rippleIndicator.setLeft(rippleIndicator.getLeft() + xDelta);
+        }
+
+        @Override
+        public void onAnimationRepeat(Animation animation) {
+            //Purposefully left blank
+        }
     }
 }

@@ -76,7 +76,7 @@ public class RenderBuilder {
         //Create the Sample Source to be used by the renderers
         Allocator allocator = new DefaultAllocator(BUFFER_SEGMENT_SIZE);
         DefaultBandwidthMeter bandwidthMeter = new DefaultBandwidthMeter(player.getMainHandler(), player);
-        DataSource dataSource = new DefaultUriDataSource(context, bandwidthMeter, userAgent);
+        DataSource dataSource = new DefaultUriDataSource(context, bandwidthMeter, userAgent, true);
 
         ExtractorSampleSource sampleSource = new ExtractorSampleSource(Uri.parse(MediaUtil.getUriWithProtocol(uri)), dataSource,
                allocator, BUFFER_SEGMENT_SIZE * BUFFER_SEGMENTS, getExtractor(uri, requestedDefaultType));

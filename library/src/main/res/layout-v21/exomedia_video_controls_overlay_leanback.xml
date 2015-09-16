@@ -29,7 +29,7 @@
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            tools:background="#FF43B2E5">
+            android:background="#FF43B2E5">
 
             <TextView
                 android:id="@+id/exomedia_controls_current_time"
@@ -78,11 +78,9 @@
                     android:minWidth="@dimen/exomedia_min_button_height"
                     android:minHeight="@dimen/exomedia_min_button_height"
                     android:layout_marginEnd="@dimen/exomedia_min_button_height"
-                    android:visibility="gone"
                     android:background="@android:color/transparent"
                     android:src="@drawable/exomedia_ic_skip_previous_white"
                     android:nextFocusRight="@+id/exomedia_controls_rewind_btn"
-                    tools:visibility="visible"
                     tools:ignore="ContentDescription"/>
 
                 <ImageButton
@@ -135,11 +133,9 @@
                     android:minWidth="@dimen/exomedia_min_button_height"
                     android:minHeight="@dimen/exomedia_min_button_height"
                     android:layout_marginStart="@dimen/exomedia_min_button_height"
-                    android:visibility="gone"
                     android:background="@android:color/transparent"
                     android:src="@drawable/exomedia_ic_skip_next_white"
                     android:nextFocusLeft="@id/exomedia_controls_fast_forward_btn"
-                    tools:visibility="visible"
                     tools:ignore="ContentDescription"/>
             </LinearLayout>
 

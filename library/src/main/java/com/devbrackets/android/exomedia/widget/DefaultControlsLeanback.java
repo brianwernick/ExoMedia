@@ -70,6 +70,12 @@ public class DefaultControlsLeanback extends DefaultControls {
     }
 
     @Override
+    protected void setup(Context context) {
+        super.setup(context);
+        playPauseButton.requestFocus();
+    }
+
+    @Override
     protected int getLayoutResource() {
         return R.layout.exomedia_video_controls_overlay_leanback;
     }
@@ -257,6 +263,8 @@ public class DefaultControlsLeanback extends DefaultControls {
      */
     @Override
     protected void updateButtonDrawables() {
+        super.updateButtonDrawables();
+
         defaultRewindDrawable = EMResourceUtil.tintList(getContext(), R.drawable.exomedia_ic_rewind_white, R.color.exomedia_default_controls_button_selector);
         rewindButton.setImageDrawable(defaultRewindDrawable);
 

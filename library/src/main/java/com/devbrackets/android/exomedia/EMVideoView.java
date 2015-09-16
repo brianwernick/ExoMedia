@@ -677,7 +677,7 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
      * of the button, if you want to change the enabled/disabled images see {@link #setRewindButtonEnabled(boolean)}
      * {@link #setDefaultControlsEnabled(boolean)} must be called prior to this.
      *
-     * @param removed If the Rewind button should be removed [default: true]
+     * @param removed If the Rewind button should be removed [default: false]
      */
     public void setRewindButtonRemoved(boolean removed) {
         if (defaultControls != null) {
@@ -690,7 +690,7 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
      * of the button, if you want to change the enabled/disabled images see {@link #setFastForwardButtonEnabled(boolean)}
      * {@link #setDefaultControlsEnabled(boolean)} must be called prior to this.
      *
-     * @param removed If the Fast Forward button should be removed [default: true]
+     * @param removed If the Fast Forward button should be removed [default: false]
      */
     public void setFastForwardButtonRemoved(boolean removed) {
         if (defaultControls != null) {

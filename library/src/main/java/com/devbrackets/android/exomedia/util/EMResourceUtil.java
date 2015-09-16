@@ -27,7 +27,7 @@ public class EMResourceUtil {
 
     public static Drawable tintList(Context context, @DrawableRes int drawableRes, @ColorRes int tintListRes) {
         Drawable drawable = getDrawable(context, drawableRes);
-        return tint(context, drawable, tintListRes);
+        return tintList(context, drawable, tintListRes);
     }
 
     public static Drawable tintList(Context context, Drawable drawable, @ColorRes int tintListRes) {

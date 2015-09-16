@@ -72,7 +72,7 @@ public class HlsRenderBuilder extends RenderBuilder implements ManifestCallback<
         this.player = player;
         this.callback = callback;
         HlsPlaylistParser parser = new HlsPlaylistParser();
-        ManifestFetcher<HlsPlaylist> playlistFetcher = new ManifestFetcher<>(uri, new DefaultUriDataSource(context, userAgent), parser);
+        ManifestFetcher<HlsPlaylist> playlistFetcher = new ManifestFetcher<>(uri, new DefaultUriDataSource(context, null, userAgent, true), parser);
         playlistFetcher.singleLoad(player.getMainHandler().getLooper(), this);
     }
 
@@ -100,7 +100,7 @@ public class HlsRenderBuilder extends RenderBuilder implements ManifestCallback<
         }
 
         //Create the Sample Source to be used by the renders
-        DataSource dataSource = new DefaultUriDataSource(context, bandwidthMeter, userAgent);
+        DataSource dataSource = new DefaultUriDataSource(context, bandwidthMeter, userAgent, true);
         HlsChunkSource chunkSource = new HlsChunkSource(dataSource, uri, playlist, bandwidthMeter,
                 variantIndices, HlsChunkSource.ADAPTIVE_MODE_SPLICE, audioCapabilities);
 

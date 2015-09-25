@@ -90,6 +90,7 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
 
     protected AudioListener audioListener = new AudioListener();
     protected boolean pausedForSeek = false;
+    protected boolean foregroundSetup;
     protected boolean notificationSetup;
 
     protected boolean onCreateCalled = false;
@@ -393,6 +394,7 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
 
         if (!audioPlayer.isPlaying() && pausedForFocusLoss) {
             audioPlayer.start();
+            updateNotification();
         } else {
             audioPlayer.setVolume(1.0f, 1.0f); //reset the audio volume
         }
@@ -413,6 +415,7 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
             if (audioPlayer.isPlaying()) {
                 pausedForFocusLoss = true;
                 audioPlayer.pause();
+                updateNotification();
             }
         } else {
             audioPlayer.setVolume(getAudioDuckVolume(), getAudioDuckVolume());
@@ -504,6 +507,7 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
      */
     protected void onServiceCreate() {
         audioFocusHelper = new EMAudioFocusHelper(getApplicationContext());
+        audioFocusHelper.setAudioFocusCallback(this);
         wifiLock = ((WifiManager) getSystemService(Context.WIFI_SERVICE)).createWifiLock(WifiManager.WIFI_MODE_FULL, "mcLock");
 
         notificationHelper = new EMNotification(getApplicationContext());
@@ -731,6 +735,7 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
         }
 
         setMediaState(MediaState.PAUSED);
+        stopForeground();
     }
 
     /**
@@ -750,6 +755,7 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
         }
 
         setMediaState(MediaState.PLAYING);
+        setupForeground();
     }
 
     /**
@@ -786,6 +792,27 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
      */
     protected void onLockScreenArtworkUpdated() {
         updateLockScreen();
+    }
+
+    /**
+     * Sets up the service as a Foreground service only if we aren't already registered as such
+     */
+    protected void setupForeground() {
+        if (!foregroundSetup) {
+            foregroundSetup = true;
+            startForeground(getNotificationId(), notificationHelper.getNotification(getNotificationClickPendingIntent()));
+        }
+    }
+
+    /**
+     * If the service is registered as a foreground service then it will be unregistered
+     * as such without removing the notification
+     */
+    protected void stopForeground() {
+        if (foregroundSetup) {
+            foregroundSetup = false;
+            stopForeground(false);
+        }
     }
 
     /**
@@ -922,7 +949,8 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
      * @param releaseAudioPlayer True if the audioPlayer should be released
      */
     protected void relaxResources(boolean releaseAudioPlayer) {
-        notificationSetup = false;
+        foregroundSetup = false;
+        stopForeground(true);
         notificationHelper.dismiss();
         lockScreenHelper.release();
 
@@ -992,7 +1020,7 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
         notificationHelper.setNotificationBaseInformation(getNotificationId(), getNotificationIconRes(), getClass());
 
         //Starts the service as the foreground audio player
-        notificationHelper.setClickPendingIntent(getNotificationClickPendingIntent());
+        setupForeground();
         notificationSetup = true;
 
         updateLockScreen();

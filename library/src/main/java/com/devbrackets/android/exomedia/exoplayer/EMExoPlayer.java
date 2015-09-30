@@ -73,7 +73,6 @@ public class EMExoPlayer implements
         TextRenderer {
 
     public static final int DISABLED_TRACK = -1;
-    public static final int PRIMARY_TRACK = 0;
 
     public static final int RENDER_COUNT = 4;
     public static final int RENDER_VIDEO_INDEX = 0;

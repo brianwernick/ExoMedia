@@ -356,7 +356,7 @@ public class EMExoPlayer implements
     @Override
     public void onVideoSizeChanged(int width, int height, int unappliedRotationDegrees, float pixelWidthHeightRatio) {
         for (ExoPlayerListener listener : listeners) {
-            listener.onVideoSizeChanged(width, height, pixelWidthHeightRatio);
+            listener.onVideoSizeChanged(width, height, unappliedRotationDegrees, pixelWidthHeightRatio);
         }
     }
 

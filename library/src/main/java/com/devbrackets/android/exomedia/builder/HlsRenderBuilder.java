@@ -22,14 +22,12 @@ import android.media.MediaCodec;
 import android.os.Build;
 
 import com.devbrackets.android.exomedia.exoplayer.EMExoPlayer;
-import com.devbrackets.android.exomedia.listener.RendererBuilderCallback;
 import com.google.android.exoplayer.DefaultLoadControl;
 import com.google.android.exoplayer.LoadControl;
 import com.google.android.exoplayer.MediaCodecAudioTrackRenderer;
 import com.google.android.exoplayer.MediaCodecUtil;
 import com.google.android.exoplayer.MediaCodecVideoTrackRenderer;
 import com.google.android.exoplayer.TrackRenderer;
-import com.google.android.exoplayer.audio.AudioCapabilities;
 import com.google.android.exoplayer.chunk.VideoFormatSelectorUtil;
 import com.google.android.exoplayer.hls.HlsChunkSource;
 import com.google.android.exoplayer.hls.HlsMasterPlaylist;
@@ -54,23 +52,19 @@ import java.util.Map;
  */
 @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
 public class HlsRenderBuilder extends RenderBuilder implements ManifestCallback<HlsPlaylist> {
-    private final AudioCapabilities audioCapabilities;
 
     private static final int BUFFER_SEGMENT_SIZE = 256 * 1024;
     private static final int BUFFER_SEGMENTS = 64;
 
     private EMExoPlayer player;
-    private RendererBuilderCallback callback;
 
-    public HlsRenderBuilder(Context context, String userAgent, String url, AudioCapabilities audioCapabilities) {
+    public HlsRenderBuilder(Context context, String userAgent, String url) {
         super(context, userAgent, url);
-        this.audioCapabilities = audioCapabilities;
     }
 
     @Override
-    public void buildRenderers(EMExoPlayer player, RendererBuilderCallback callback) {
+    public void buildRenderers(EMExoPlayer player) {
         this.player = player;
-        this.callback = callback;
         HlsPlaylistParser parser = new HlsPlaylistParser();
         ManifestFetcher<HlsPlaylist> playlistFetcher = new ManifestFetcher<>(uri, new DefaultUriDataSource(context, null, userAgent, true), parser);
         playlistFetcher.singleLoad(player.getMainHandler().getLooper(), this);
@@ -78,7 +72,7 @@ public class HlsRenderBuilder extends RenderBuilder implements ManifestCallback<
 
     @Override
     public void onSingleManifestError(IOException e) {
-        callback.onRenderersError(e);
+        player.onRenderersError(e);
     }
 
     @Override
@@ -94,7 +88,7 @@ public class HlsRenderBuilder extends RenderBuilder implements ManifestCallback<
             try {
                 variantIndices = VideoFormatSelectorUtil.selectVideoFormatsForDefaultDisplay(context, masterPlaylist.variants, null, false);
             } catch (MediaCodecUtil.DecoderQueryException e) {
-                callback.onRenderersError(e);
+                player.onRenderersError(e);
                 return;
             }
         }
@@ -102,7 +96,7 @@ public class HlsRenderBuilder extends RenderBuilder implements ManifestCallback<
         //Create the Sample Source to be used by the renders
         DataSource dataSource = new DefaultUriDataSource(context, bandwidthMeter, userAgent, true);
         HlsChunkSource chunkSource = new HlsChunkSource(dataSource, uri, playlist, bandwidthMeter,
-                variantIndices, HlsChunkSource.ADAPTIVE_MODE_SPLICE, audioCapabilities);
+                variantIndices, HlsChunkSource.ADAPTIVE_MODE_SPLICE);
 
         HlsSampleSource sampleSource = new HlsSampleSource(chunkSource, loadControl,
                 BUFFER_SEGMENTS * BUFFER_SEGMENT_SIZE, player.getMainHandler(), player, EMExoPlayer.RENDER_VIDEO_INDEX);
@@ -122,7 +116,7 @@ public class HlsRenderBuilder extends RenderBuilder implements ManifestCallback<
         renderers[EMExoPlayer.RENDER_VIDEO_INDEX] = videoRenderer;
         renderers[EMExoPlayer.RENDER_AUDIO_INDEX] = audioRenderer;
         renderers[EMExoPlayer.RENDER_TIMED_METADATA_INDEX] = id3Renderer;
-        callback.onRenderers(null, null, renderers, bandwidthMeter);
+        player.onRenderers(renderers, bandwidthMeter);
     }
 
 }

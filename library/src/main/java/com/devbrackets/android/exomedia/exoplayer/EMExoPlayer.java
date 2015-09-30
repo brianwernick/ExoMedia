@@ -31,7 +31,6 @@ import com.devbrackets.android.exomedia.listener.ExoPlayerListener;
 import com.devbrackets.android.exomedia.listener.Id3MetadataListener;
 import com.devbrackets.android.exomedia.listener.InfoListener;
 import com.devbrackets.android.exomedia.listener.InternalErrorListener;
-import com.devbrackets.android.exomedia.listener.RendererBuilderCallback;
 import com.devbrackets.android.exomedia.listener.CaptionListener;
 import com.devbrackets.android.exomedia.renderer.EMMediaCodecAudioTrackRenderer;
 import com.google.android.exoplayer.DummyTrackRenderer;
@@ -45,7 +44,6 @@ import com.google.android.exoplayer.TrackRenderer;
 import com.google.android.exoplayer.audio.AudioTrack;
 import com.google.android.exoplayer.chunk.ChunkSampleSource;
 import com.google.android.exoplayer.chunk.Format;
-import com.google.android.exoplayer.chunk.MultiTrackChunkSource;
 import com.google.android.exoplayer.dash.DashChunkSource;
 import com.google.android.exoplayer.drm.StreamingDrmSessionManager;
 import com.google.android.exoplayer.hls.HlsSampleSource;
@@ -75,7 +73,6 @@ public class EMExoPlayer implements
         TextRenderer {
 
     public static final int DISABLED_TRACK = -1;
-    public static final int PRIMARY_TRACK = 0;
 
     public static final int RENDER_COUNT = 4;
     public static final int RENDER_VIDEO_INDEX = 0;
@@ -105,13 +102,8 @@ public class EMExoPlayer implements
     private boolean prepared = false;
 
     private Surface surface;
-    private InternalRendererBuilderCallback builderCallback;
     private TrackRenderer videoRenderer;
     private TrackRenderer audioRenderer;
-
-    private MultiTrackChunkSource[] multiTrackSources;
-    private String[][] trackNames;
-    private int[] selectedTracks;
 
     private CaptionListener captionListener;
     private Id3MetadataListener id3MetadataListener;
@@ -129,14 +121,12 @@ public class EMExoPlayer implements
         player = ExoPlayer.Factory.newInstance(RENDER_COUNT, BUFFER_LENGTH_MIN, REBUFFER_LENGTH_MIN);
         player.addListener(this);
         playerControl = new PlayerControl(player);
+
         mainHandler = new Handler();
         listeners = new CopyOnWriteArrayList<>();
         lastReportedPlaybackState = ExoPlayer.STATE_IDLE;
         rendererBuildingState = RenderBuildingState.IDLE;
-        selectedTracks = new int[RENDER_COUNT];
-
-        // Disable closed captions initially
-        selectedTracks[RENDER_CLOSED_CAPTION_INDEX] = DISABLED_TRACK;
+        player.setSelectedTrack(RENDER_CLOSED_CAPTION_INDEX, DISABLED_TRACK);
     }
 
     public void replaceRenderBuilder(RenderBuilder renderBuilder) {
@@ -193,24 +183,15 @@ public class EMExoPlayer implements
     }
 
     public int getTrackCount(int type) {
-        return !player.getRendererHasMedia(type) ? 0 : trackNames[type].length;
+        return player.getTrackCount(type);
     }
 
-    public String getTrackName(int type, int index) {
-        return trackNames[type][index];
+    public int getSelectedTrack(int type) {
+        return player.getSelectedTrack(type);
     }
 
-    public int getSelectedTrackIndex(int type) {
-        return selectedTracks[type];
-    }
-
-    public void selectTrack(int type, int index) {
-        if (selectedTracks[type] == index) {
-            return;
-        }
-
-        selectedTracks[type] = index;
-        pushTrackSelection(type, true);
+    public void setSelectedTrack(int type, int index) {
+        player.setSelectedTrack(type, index);
         if (type == RENDER_CLOSED_CAPTION_INDEX && index == DISABLED_TRACK && captionListener != null) {
             captionListener.onCues(Collections.<Cue>emptyList());
         }
@@ -233,62 +214,32 @@ public class EMExoPlayer implements
             player.stop();
         }
 
-        if (builderCallback != null) {
-            builderCallback.cancel();
-        }
-
         videoRenderer = null;
-        multiTrackSources = null;
-
         rendererBuildingState = RenderBuildingState.BUILDING;
         reportPlayerState();
-        builderCallback = new InternalRendererBuilderCallback();
-        rendererBuilder.buildRenderers(this, builderCallback);
 
+        rendererBuilder.buildRenderers(this);
         prepared = true;
     }
 
-    public void onRenderers(String[][] trackNames, MultiTrackChunkSource[] multiTrackSources, TrackRenderer[] renderers, @Nullable BandwidthMeter bandwidthMeter) {
-        builderCallback = null;
-
-        // Normalize the results.
-        if (trackNames == null) {
-            trackNames = new String[RENDER_COUNT][];
-        }
-
-        if (multiTrackSources == null) {
-            multiTrackSources = new MultiTrackChunkSource[RENDER_COUNT];
-        }
-
+    public void onRenderers(TrackRenderer[] renderers, @Nullable BandwidthMeter bandwidthMeter) {
         for (int i = 0; i < RENDER_COUNT; i++) {
             if (renderers[i] == null) {
                 // Convert a null renderer to a dummy renderer.
                 renderers[i] = new DummyTrackRenderer();
-            } else if (trackNames[i] == null) {
-                // We have a renderer so we must have at least one track, but the names are unknown.
-                // Initialize the correct number of null track names.
-                int trackCount = multiTrackSources[i] == null ? 1 : multiTrackSources[i].getTrackCount();
-                trackNames[i] = new String[trackCount];
             }
         }
 
         // Complete preparation.
-        this.trackNames = trackNames;
         this.videoRenderer = renderers[RENDER_VIDEO_INDEX];
         this.audioRenderer = renderers[RENDER_AUDIO_INDEX];
-        this.multiTrackSources = multiTrackSources;
 
         pushSurface(false);
-        pushTrackSelection(RENDER_VIDEO_INDEX, true);
-        pushTrackSelection(RENDER_AUDIO_INDEX, true);
-        pushTrackSelection(RENDER_CLOSED_CAPTION_INDEX, true);
         player.prepare(renderers);
         rendererBuildingState = RenderBuildingState.BUILT;
     }
 
     public void onRenderersError(Exception e) {
-        builderCallback = null;
-
         if (internalErrorListener != null) {
             internalErrorListener.onRendererInitializationError(e);
         }
@@ -310,16 +261,14 @@ public class EMExoPlayer implements
     }
 
     public void release() {
-        if (builderCallback != null) {
-            builderCallback.cancel();
-            builderCallback = null;
+        if (rendererBuilder != null) {
+            rendererBuilder.cancel();
         }
 
         rendererBuildingState = RenderBuildingState.IDLE;
         surface = null;
         player.release();
     }
-
 
     public int getPlaybackState() {
         if (rendererBuildingState == RenderBuildingState.BUILDING) {
@@ -405,9 +354,9 @@ public class EMExoPlayer implements
     }
 
     @Override
-    public void onVideoSizeChanged(int width, int height, float pixelWidthHeightRatio) {
+    public void onVideoSizeChanged(int width, int height, int unappliedRotationDegrees, float pixelWidthHeightRatio) {
         for (ExoPlayerListener listener : listeners) {
-            listener.onVideoSizeChanged(width, height, pixelWidthHeightRatio);
+            listener.onVideoSizeChanged(width, height, unappliedRotationDegrees, pixelWidthHeightRatio);
         }
     }
 
@@ -426,7 +375,7 @@ public class EMExoPlayer implements
     }
 
     @Override
-    public void onDownstreamFormatChanged(int sourceId, Format format, int trigger, int mediaTimeMs) {
+    public void onDownstreamFormatChanged(int sourceId, Format format, int trigger, long mediaTimeMs) {
         if (infoListener == null) {
             return;
         }
@@ -436,6 +385,11 @@ public class EMExoPlayer implements
         } else if (sourceId == RENDER_AUDIO_INDEX) {
             infoListener.onAudioFormatEnabled(format, trigger, mediaTimeMs);
         }
+    }
+
+    @Override
+    public void onDrmKeysLoaded() {
+        //Purposefully left blank
     }
 
     @Override
@@ -489,22 +443,22 @@ public class EMExoPlayer implements
 
     @Override
     public void onCues(List<Cue> cues) {
-        if (captionListener != null && selectedTracks[RENDER_CLOSED_CAPTION_INDEX] != DISABLED_TRACK) {
+        if (captionListener != null && getSelectedTrack(RENDER_CLOSED_CAPTION_INDEX) != DISABLED_TRACK) {
             captionListener.onCues(cues);
         }
     }
 
     @Override
     public void onMetadata(Map<String, Object> metadata) {
-        if (id3MetadataListener != null && selectedTracks[RENDER_TIMED_METADATA_INDEX] != DISABLED_TRACK) {
+        if (id3MetadataListener != null && getSelectedTrack(RENDER_TIMED_METADATA_INDEX) != DISABLED_TRACK) {
             id3MetadataListener.onId3Metadata(metadata);
         }
     }
 
     @Override
-    public void onSeekRangeChanged(TimeRange seekRange) {
+    public void onAvailableRangeChanged(TimeRange availableRange) {
         if (infoListener != null) {
-            infoListener.onSeekRangeChanged(seekRange);
+            infoListener.onAvailableRangeChanged(availableRange);
         }
     }
 
@@ -519,14 +473,14 @@ public class EMExoPlayer implements
     }
 
     @Override
-    public void onLoadStarted(int sourceId, long length, int type, int trigger, Format format, int mediaStartTimeMs, int mediaEndTimeMs) {
+    public void onLoadStarted(int sourceId, long length, int type, int trigger, Format format, long mediaStartTimeMs, long mediaEndTimeMs) {
         if (infoListener != null) {
             infoListener.onLoadStarted(sourceId, length, type, trigger, format, mediaStartTimeMs, mediaEndTimeMs);
         }
     }
 
     @Override
-    public void onLoadCompleted(int sourceId, long bytesLoaded, int type, int trigger, Format format, int mediaStartTimeMs, int mediaEndTimeMs, long elapsedRealtimeMs, long loadDurationMs) {
+    public void onLoadCompleted(int sourceId, long bytesLoaded, int type, int trigger, Format format, long mediaStartTimeMs, long mediaEndTimeMs, long elapsedRealtimeMs, long loadDurationMs) {
         if (infoListener != null) {
             infoListener.onLoadCompleted(sourceId, bytesLoaded, type, trigger, format, mediaStartTimeMs, mediaEndTimeMs, elapsedRealtimeMs, loadDurationMs);
         }
@@ -538,7 +492,7 @@ public class EMExoPlayer implements
     }
 
     @Override
-    public void onUpstreamDiscarded(int sourceId, int mediaStartTimeMs, int mediaEndTimeMs) {
+    public void onUpstreamDiscarded(int sourceId, long mediaStartTimeMs, long mediaEndTimeMs) {
         //Purposefully left blank
     }
 
@@ -565,48 +519,6 @@ public class EMExoPlayer implements
             player.blockingSendMessage(videoRenderer, MediaCodecVideoTrackRenderer.MSG_SET_SURFACE, surface);
         } else {
             player.sendMessage(videoRenderer, MediaCodecVideoTrackRenderer.MSG_SET_SURFACE, surface);
-        }
-    }
-
-    private void pushTrackSelection(int type, boolean allowRendererEnable) {
-        if (multiTrackSources == null) {
-            return;
-        }
-
-        int trackIndex = selectedTracks[type];
-        if (trackIndex == DISABLED_TRACK) {
-            player.setRendererEnabled(type, false);
-        } else if (multiTrackSources[type] == null) {
-            player.setRendererEnabled(type, allowRendererEnable);
-        } else {
-            boolean playWhenReady = player.getPlayWhenReady();
-            player.setPlayWhenReady(false);
-            player.setRendererEnabled(type, false);
-            player.sendMessage(multiTrackSources[type], MultiTrackChunkSource.MSG_SELECT_TRACK, trackIndex);
-            player.setRendererEnabled(type, allowRendererEnable);
-            player.setPlayWhenReady(playWhenReady);
-        }
-    }
-
-    private class InternalRendererBuilderCallback implements RendererBuilderCallback {
-        private volatile boolean canceled;
-
-        public void cancel() {
-            canceled = true;
-        }
-
-        @Override
-        public void onRenderers(String[][] trackNames, MultiTrackChunkSource[] multiTrackSources, TrackRenderer[] renderers, @Nullable BandwidthMeter bandwidthMeter) {
-            if (!canceled) {
-                EMExoPlayer.this.onRenderers(trackNames, multiTrackSources, renderers, bandwidthMeter);
-            }
-        }
-
-        @Override
-        public void onRenderersError(Exception e) {
-            if (!canceled) {
-                EMExoPlayer.this.onRenderersError(e);
-            }
         }
     }
 }

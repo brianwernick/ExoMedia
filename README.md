@@ -13,6 +13,9 @@ back to the MediaPlayer.
 This is useful for supporting Http Live Streaming (HLS) and full HD (1080p +) playback
 since the Android VideoView struggles with those.
 
+**NOTE:** HLS, DASH, and other streaming protocols are not supported on Android 4.0.* and below
+due to constraints with the Android MediaPlayer and VideoView
+
 
 Website And Documentation
 -------

@@ -11,7 +11,7 @@ import com.devbrackets.android.exomedia.listener.EMAudioFocusCallback;
 import com.devbrackets.android.exomedia.service.EMPlaylistService;
 import com.devbrackets.android.exomediademo.App;
 import com.devbrackets.android.exomediademo.R;
-import com.devbrackets.android.exomediademo.StartupActivity;
+import com.devbrackets.android.exomediademo.ui.activity.StartupActivity;
 import com.devbrackets.android.exomediademo.data.MediaItem;
 import com.devbrackets.android.exomediademo.manager.PlaylistManager;
 import com.squareup.picasso.Picasso;

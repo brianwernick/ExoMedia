@@ -342,6 +342,7 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
 
         relaxResources(true);
         getMediaPlaylistManager().unRegisterService();
+        audioFocusHelper.setAudioFocusCallback(null);
         audioFocusHelper.abandonFocus();
 
         audioFocusHelper = null;

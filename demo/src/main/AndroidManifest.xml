@@ -12,7 +12,7 @@
         android:theme="@style/AppTheme"
         android:name=".App">
         <activity
-            android:name=".StartupActivity"
+            android:name=".ui.activity.StartupActivity"
             android:label="@string/app_name">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
@@ -20,19 +20,19 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".VideoPlayerActivity"
+            android:name=".ui.activity.VideoPlayerActivity"
             android:label="@string/title_activity_video_player">
         </activity>
         <activity
-            android:name=".FullScreenVideoPlayerActivity"
+            android:name=".ui.activity.FullScreenVideoPlayerActivity"
             android:label="@string/title_activity_video_player">
         </activity>
         <activity
-            android:name=".AudioSelectionActivity"
+            android:name=".ui.activity.AudioSelectionActivity"
             android:label="@string/title_activity_audio_player">
         </activity>
         <activity
-            android:name=".AudioPlayerActivity"
+            android:name=".ui.activity.AudioPlayerActivity"
             android:label="@string/title_activity_audio_player">
         </activity>
 

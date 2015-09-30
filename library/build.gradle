@@ -15,7 +15,7 @@ dependencies {
     compile 'com.android.support:appcompat-v7:23.0.1' // includes support-v4
 
     // ExoPlayer
-    compile 'com.google.android.exoplayer:exoplayer:r1.4.2'
+    compile 'com.google.android.exoplayer:exoplayer:r1.5.0'
 }
 
 android {

@@ -262,7 +262,10 @@ public class EMExoPlayer implements
     }
 
     public void release() {
-        rendererBuilder.cancel();
+        if (rendererBuilder != null) {
+            rendererBuilder.cancel();
+        }
+
         rendererBuildingState = RenderBuildingState.IDLE;
         surface = null;
         player.release();

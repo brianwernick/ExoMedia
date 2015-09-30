@@ -1,4 +1,4 @@
-package com.devbrackets.android.exomediademo;
+package com.devbrackets.android.exomediademo.ui.activity;
 
 import android.annotation.TargetApi;
 import android.os.Build;

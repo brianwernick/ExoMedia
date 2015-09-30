@@ -1,4 +1,4 @@
-package com.devbrackets.android.exomediademo;
+package com.devbrackets.android.exomediademo.ui.activity;
 
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -16,6 +16,8 @@ import com.devbrackets.android.exomedia.listener.EMPlaylistServiceCallback;
 import com.devbrackets.android.exomedia.listener.EMProgressCallback;
 import com.devbrackets.android.exomedia.manager.EMPlaylistManager;
 import com.devbrackets.android.exomedia.service.EMPlaylistService;
+import com.devbrackets.android.exomediademo.App;
+import com.devbrackets.android.exomediademo.R;
 import com.devbrackets.android.exomediademo.data.MediaItem;
 import com.devbrackets.android.exomediademo.helper.AudioItems;
 import com.devbrackets.android.exomediademo.manager.PlaylistManager;
@@ -99,6 +101,10 @@ public class AudioPlayerActivity extends AppCompatActivity implements EMPlaylist
     @Override
     public boolean onMediaStateChanged(EMPlaylistService.MediaState mediaState) {
         switch (mediaState) {
+            case STOPPED:
+                finish();
+                break;
+
             case RETRIEVING:
             case PREPARING:
                 restartLoading();
@@ -144,7 +150,10 @@ public class AudioPlayerActivity extends AppCompatActivity implements EMPlaylist
             onPlaylistItemChanged(itemChangedEvent.getCurrentItem(), itemChangedEvent.getMediaType(), itemChangedEvent.hasNext(), itemChangedEvent.hasPrevious());
         }
 
-        onMediaStateChanged(playlistManager.getCurrentMediaState());
+        EMPlaylistService.MediaState currentMediaState = playlistManager.getCurrentMediaState();
+        if (currentMediaState != EMPlaylistService.MediaState.STOPPED) {
+            onMediaStateChanged(currentMediaState);
+        }
 
         EMMediaProgressEvent progressEvent = playlistManager.getCurrentProgress();
         if (progressEvent != null) {

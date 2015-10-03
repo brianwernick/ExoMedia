@@ -101,6 +101,7 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
     @Nullable
     protected String currentLockScreenArtworkUrl;
 
+    //TODO documentation
     protected List<EMPlaylistServiceCallback> callbackList = new LinkedList<>();
 
     protected abstract String getAppName();
@@ -199,9 +200,9 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
      * Called when a current audio item has ended playback.  This is called when we
      * are unable to play an audio item.
      *
-     * @param playlistItem    The PlaylistItem that has ended
+     * @param playlistItem The PlaylistItem that has ended
      * @param currentPosition The position the playlist item ended at
-     * @param duration        The duration of the PlaylistItem
+     * @param duration The duration of the PlaylistItem
      */
     protected void onAudioPlaybackEnded(I playlistItem, long currentPosition, long duration) {
         //Purposefully left blank
@@ -210,9 +211,9 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
     /**
      * Called when an audio item has started playback.
      *
-     * @param playlistItem    The PlaylistItem that has started playback
+     * @param playlistItem The PlaylistItem that has started playback
      * @param currentPosition The position the playback has started at
-     * @param duration        The duration of the PlaylistItem
+     * @param duration The duration of the PlaylistItem
      */
     protected void onAudioPlaybackStarted(I playlistItem, long currentPosition, long duration) {
         //Purposefully left blank
@@ -271,7 +272,7 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
     /**
      * Called when the image in the notification needs to be updated.
      *
-     * @param size         The square size for the image to display
+     * @param size The square size for the image to display
      * @param playlistItem The media item to get the image for
      */
     protected void updateLargeNotificationImage(int size, I playlistItem) {
@@ -761,22 +762,32 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
 
     /**
      * Determines if the current media item is an Audio item.  This is specified
-     * with {@link EMPlaylistManager.PlaylistItem#isAudio()}
+     * with {@link EMPlaylistManager.PlaylistItem#getMediaType()}
      *
      * @return True if the current media item is an Audio item
      */
     protected boolean currentItemIsAudio() {
-        return currentPlaylistItem != null && currentPlaylistItem.isAudio();
+        return currentPlaylistItem != null && currentPlaylistItem.getMediaType() == EMPlaylistManager.MediaType.AUDIO;
     }
 
     /**
      * Determines if the current media item is a Video item.  This is specified
-     * with {@link EMPlaylistManager.PlaylistItem#isVideo()} ()}
+     * with {@link EMPlaylistManager.PlaylistItem#getMediaType()}
      *
      * @return True if the current media item is a video item
      */
     protected boolean currentItemIsVideo() {
-        return currentPlaylistItem != null && currentPlaylistItem.isVideo();
+        return currentPlaylistItem != null && currentPlaylistItem.getMediaType() == EMPlaylistManager.MediaType.VIDEO;
+    }
+
+    /**
+     * Determines if the current media item is an other type.  This is specified
+     * with {@link EMPlaylistManager.PlaylistItem#getMediaType()}
+     *
+     * @return True if the current media item is of the OTHER type
+     */
+    protected boolean currentItemIsOther() {
+        return currentPlaylistItem != null && currentPlaylistItem.getMediaType() == EMPlaylistManager.MediaType.OTHER;
     }
 
     /**
@@ -824,7 +835,7 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
      * VideoView with {@link EMPlaylistManager#setVideoView(EMVideoView)}
      */
     protected void startItemPlayback() {
-        if (currentPlaylistItem != null && currentPlaylistItem.isAudio()) {
+        if (currentItemIsAudio()) {
             onAudioPlaybackEnded();
         }
 
@@ -836,6 +847,8 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
             playAudioItem();
         } else if (currentItemIsVideo()) {
             playVideoItem();
+        } else if (currentItemIsOther()) {
+            playOtherItem();
         } else if (getMediaPlaylistManager().isNextAvailable()) {
             //We get here if there was an error retrieving the currentPlaylistItem
             performNext();
@@ -885,6 +898,13 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
             boolean isItemDownloaded = isDownloaded(currentPlaylistItem);
             videoView.setVideoURI(Uri.parse(isItemDownloaded ? currentPlaylistItem.getDownloadedMediaUri() : currentPlaylistItem.getMediaUrl()));
         }
+    }
+
+    /**
+     * Starts the playback of the specified other item type.
+     */
+    protected void playOtherItem() {
+        //Purposefully left blank
     }
 
     /**

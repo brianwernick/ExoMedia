@@ -52,6 +52,7 @@ public abstract class EMPlaylistManager<I extends EMPlaylistManager.PlaylistItem
         AUDIO,
         VIDEO,
         AUDIO_AND_VIDEO,
+        OTHER,
         NONE
     }
 
@@ -60,9 +61,7 @@ public abstract class EMPlaylistManager<I extends EMPlaylistManager.PlaylistItem
 
         long getPlaylistId();
 
-        boolean isAudio();
-
-        boolean isVideo();
+        MediaType getMediaType();
 
         String getMediaUrl();
 
@@ -95,8 +94,20 @@ public abstract class EMPlaylistManager<I extends EMPlaylistManager.PlaylistItem
     @Nullable
     protected Intent seekEndedIntent, allowedTypeChangedIntent;
 
+    /**
+     * Retrieves the application to use when starting and communicating with the
+     * PlaylistService specified with {@link #getMediaServiceClass()}.
+     *
+     * @return The Application to use when starting and controlling the PlaylistService
+     */
     protected abstract Application getApplication();
 
+    /**
+     * Retrieves the class that represents the PlaylistService.  This is used when communicating
+     * with the service to perform the playback controls.
+     *
+     * @return The class for the Service to control.  This should extend {@link EMPlaylistService}
+     */
     protected abstract Class<? extends Service> getMediaServiceClass();
 
     /**
@@ -119,6 +130,7 @@ public abstract class EMPlaylistManager<I extends EMPlaylistManager.PlaylistItem
         constructControlIntents(getMediaServiceClass(), application);
     }
 
+    //TODO: add documentation
     @Override
     public boolean onPlaylistItemChanged(PlaylistItem currentItem, MediaType mediaType, boolean hasNext, boolean hasPrevious) {
         for (EMPlaylistServiceCallback callback : callbackList) {
@@ -235,9 +247,9 @@ public abstract class EMPlaylistManager<I extends EMPlaylistManager.PlaylistItem
      * item as specified by the passed parameters.
      *
      * @param playListItems The list of items to play
-     * @param startIndex    The index in the playlistItems to start playback
-     * @param seekPosition  The position in the startIndex item to start at (in milliseconds)
-     * @param startPaused   True if the media item should start paused instead of playing
+     * @param startIndex The index in the playlistItems to start playback
+     * @param seekPosition The position in the startIndex item to start at (in milliseconds)
+     * @param startPaused True if the media item should start paused instead of playing
      */
     public void play(List<I> playListItems, int startIndex, int seekPosition, boolean startPaused) {
         setParameters(playListItems, startIndex);
@@ -268,7 +280,7 @@ public abstract class EMPlaylistManager<I extends EMPlaylistManager.PlaylistItem
      * and video items.
      *
      * @param playListItems The List of items to play
-     * @param startIndex    The index in the list to start playback with
+     * @param startIndex The index in the list to start playback with
      */
     public void setParameters(List<I> playListItems, int startIndex) {
         playList = playListItems;
@@ -423,11 +435,7 @@ public abstract class EMPlaylistManager<I extends EMPlaylistManager.PlaylistItem
         I item = getCurrentItem();
 
         if (item != null) {
-            if (item.isAudio()) {
-                return MediaType.AUDIO;
-            } else if (item.isVideo()) {
-                return MediaType.VIDEO;
-            }
+            return item.getMediaType();
         }
 
         return MediaType.NONE;
@@ -603,10 +611,9 @@ public abstract class EMPlaylistManager<I extends EMPlaylistManager.PlaylistItem
      * Creates the Intents that will be used to interact with the playlist service
      *
      * @param mediaServiceClass The class to inform of any media playback controls
-     * @param application       The application to use when constructing the intents used to inform the playlist service of invocations
+     * @param application The application to use when constructing the intents used to inform the playlist service of invocations
      */
     protected void constructControlIntents(Class<? extends Service> mediaServiceClass, Application application) {
-        //Creates the pending intents
         previousPendingIntent = createPendingIntent(application, mediaServiceClass, EMRemoteActions.ACTION_PREVIOUS);
         nextPendingIntent = createPendingIntent(application, mediaServiceClass, EMRemoteActions.ACTION_NEXT);
         playPausePendingIntent = createPendingIntent(application, mediaServiceClass, EMRemoteActions.ACTION_PLAY_PAUSE);
@@ -669,25 +676,16 @@ public abstract class EMPlaylistManager<I extends EMPlaylistManager.PlaylistItem
      * @param item The item to determine if it is allowed
      * @return True if the item is null or is allowed
      */
-    protected boolean isAllowedType(I item) {
-        if (item == null) {
-            return true;
+    protected boolean isAllowedType(@Nullable I item) {
+        if (item == null || item.getMediaType() == MediaType.NONE) {
+            return false;
         }
 
-        switch (allowedType) {
-            case AUDIO:
-                return item.isAudio();
-
-            case VIDEO:
-                return item.isVideo();
-
-            case AUDIO_AND_VIDEO:
-                return item.isAudio() || item.isVideo();
-
-            default:
-            case NONE:
-                return false;
+        if (allowedType == MediaType.AUDIO_AND_VIDEO) {
+            return item.getMediaType() == MediaType.AUDIO || item.getMediaType() == MediaType.VIDEO;
         }
+
+        return allowedType == item.getMediaType();
     }
 
     /**

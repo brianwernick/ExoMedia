@@ -1,6 +1,5 @@
 package com.devbrackets.android.exomediademo.data;
 
-
 import com.devbrackets.android.exomedia.manager.EMPlaylistManager;
 import com.devbrackets.android.exomediademo.helper.AudioItems;
 
@@ -26,13 +25,8 @@ public class MediaItem implements EMPlaylistManager.PlaylistItem {
     }
 
     @Override
-    public boolean isAudio() {
-        return true;
-    }
-
-    @Override
-    public boolean isVideo() {
-        return false;
+    public EMPlaylistManager.MediaType getMediaType() {
+        return EMPlaylistManager.MediaType.AUDIO;
     }
 
     @Override

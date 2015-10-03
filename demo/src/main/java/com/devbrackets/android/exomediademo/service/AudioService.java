@@ -48,11 +48,6 @@ public class AudioService extends EMPlaylistService<MediaItem, PlaylistManager> 
     }
 
     @Override
-    protected String getAppName() {
-        return getResources().getString(R.string.app_name);
-    }
-
-    @Override
     protected int getNotificationId() {
         return NOTIFICATION_ID;
     }

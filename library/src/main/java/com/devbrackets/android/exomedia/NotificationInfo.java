@@ -27,7 +27,8 @@ import android.support.annotation.Nullable;
  */
 class NotificationInfo {
     private String title;
-    private String content;
+    private String album;
+    private String artist;
 
     private Bitmap largeImage;
     private Bitmap secondaryImage;
@@ -42,12 +43,16 @@ class NotificationInfo {
 
     private EMNotification.NotificationMediaState mediaState;
 
-    public void setTitle(String title) {
+    public void setTitle(@Nullable String title) {
         this.title = title;
     }
 
-    public void setContent(String content) {
-        this.content = content;
+    public void setAlbum(@Nullable String album) {
+        this.album = album;
+    }
+
+    public void setArtist(@Nullable String artist) {
+        this.artist = artist;
     }
 
     public void setLargeImage(@Nullable Bitmap largeImage) {
@@ -84,8 +89,13 @@ class NotificationInfo {
     }
 
     @NonNull
-    public String getContent() {
-        return content != null ? content : "";
+    public String getAlbum() {
+        return album != null ? album : "";
+    }
+
+    @NonNull
+    public String getArtist() {
+        return artist != null ? artist : "";
     }
 
     @Nullable

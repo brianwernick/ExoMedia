@@ -12,7 +12,7 @@
     <dimen name="exomedia_notification_image_margin">0dp</dimen>
     <dimen name="exomedia_notification_image_size">64dp</dimen>
 
-    <!-- NOTE: the big notification is limited to 256dp in height-->
+    <!-- NOTE: the big notification is limited to 256dp in height, we use 128dp -->
     <dimen name="exomedia_big_notification_image_margin">0dp</dimen>
     <dimen name="exomedia_big_notification_image_size">@dimen/exomedia_big_notification_height</dimen>
     <dimen name="exomedia_big_notification_secondary_image_size">42dp</dimen> <!-- fill a ninth of the image -->

@@ -28,9 +28,9 @@
         android:layout_toRightOf="@id/exomedia_notification_large_image"
         android:layout_toStartOf="@+id/exomedia_notification_button_layout"
         android:orientation="vertical"
-        android:paddingLeft="16dp"
-        android:paddingRight="16dp"
-        android:paddingTop="@dimen/exomedia_default_padding">
+        android:paddingLeft="5dp"
+        android:paddingRight="5dp"
+        android:paddingTop="5dp">
 
         <TextView
             android:id="@+id/exomedia_notification_title"
@@ -41,19 +41,31 @@
             android:fadingEdge="horizontal"
             android:focusable="true"
             android:singleLine="true"
-            tools:text="LOREM IPSUM"/>
+            tools:text="The Catalans"/>
 
         <TextView
-            android:id="@+id/exomedia_notification_content_text"
+            android:id="@+id/exomedia_notification_album"
             style="@style/exomedia_notification_content"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:ellipsize="marquee"
             android:fadingEdge="horizontal"
             android:focusable="true"
-            android:paddingTop="@dimen/exomedia_big_notification_text_pad"
             android:singleLine="true"
-            tools:text="dolor sit amet"/>
+            android:textSize="12sp"
+            tools:text="The Count of Monte Cristo"/>
+
+        <TextView
+            android:id="@+id/exomedia_notification_artist"
+            style="@style/exomedia_notification_content"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="marquee"
+            android:fadingEdge="horizontal"
+            android:focusable="true"
+            android:singleLine="true"
+            android:textSize="12sp"
+            tools:text="Alexandra Dumas"/>
     </LinearLayout>
 
     <LinearLayout

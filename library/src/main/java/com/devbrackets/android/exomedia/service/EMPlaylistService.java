@@ -1117,7 +1117,7 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
         String title = currentPlaylistItem.getTitle();
         String album = currentPlaylistItem.getAlbum();
         String artist = currentPlaylistItem.getArtist();
-        notificationHelper.updateNotificationInformation(title, artist, bitmap, secondaryImage, mediaState);
+        notificationHelper.updateNotificationInformation(title, album, artist, bitmap, secondaryImage, mediaState);
     }
 
     /**

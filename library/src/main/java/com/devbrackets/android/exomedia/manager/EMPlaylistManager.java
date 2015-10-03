@@ -130,11 +130,19 @@ public abstract class EMPlaylistManager<I extends EMPlaylistManager.PlaylistItem
         constructControlIntents(getMediaServiceClass(), application);
     }
 
-    //TODO: add documentation
+    /**
+     * This is a pass through method that is called from the {@link EMPlaylistService} to inform
+     * any listeners that are registered through {@link #registerServiceCallbacks(EMPlaylistServiceCallback)}
+     *
+     * @param currentItem The new playback item
+     * @param hasNext True if there exists an item after the <code>currentItem</code> in the playlist
+     * @param hasPrevious True if there exists an item before the <code>currentItem</code> in the playlist
+     * @return True if the event should be consumed
+     */
     @Override
-    public boolean onPlaylistItemChanged(PlaylistItem currentItem, MediaType mediaType, boolean hasNext, boolean hasPrevious) {
+    public boolean onPlaylistItemChanged(PlaylistItem currentItem, boolean hasNext, boolean hasPrevious) {
         for (EMPlaylistServiceCallback callback : callbackList) {
-            if (callback.onPlaylistItemChanged(currentItem, mediaType, hasNext, hasPrevious)) {
+            if (callback.onPlaylistItemChanged(currentItem, hasNext, hasPrevious)) {
                 return true;
             }
         }
@@ -142,6 +150,13 @@ public abstract class EMPlaylistManager<I extends EMPlaylistManager.PlaylistItem
         return false;
     }
 
+    /**
+     * This is a pass through method that is called from the {@link EMPlaylistService} to inform
+     * any listeners that are registered through {@link #registerServiceCallbacks(EMPlaylistServiceCallback)}
+     *
+     * @param mediaState The new media playback state
+     * @return True if the event should be consumed
+     */
     @Override
     public boolean onMediaStateChanged(EMPlaylistService.MediaState mediaState) {
         for (EMPlaylistServiceCallback callback : callbackList) {
@@ -153,6 +168,13 @@ public abstract class EMPlaylistManager<I extends EMPlaylistManager.PlaylistItem
         return false;
     }
 
+    /**
+     * This is a pass through method that is called from the {@link EMPlaylistService} to inform
+     * any listeners that are registered through {@link #registerServiceCallbacks(EMPlaylistServiceCallback)}
+     *
+     * @param event The current media progress event
+     * @return True if the event should be consumed
+     */
     @Override
     public boolean onProgressUpdated(EMMediaProgressEvent event) {
         for (EMPlaylistServiceCallback callback : callbackList) {
@@ -433,12 +455,7 @@ public abstract class EMPlaylistManager<I extends EMPlaylistManager.PlaylistItem
      */
     public MediaType getCurrentItemType() {
         I item = getCurrentItem();
-
-        if (item != null) {
-            return item.getMediaType();
-        }
-
-        return MediaType.NONE;
+        return item != null ? item.getMediaType() : MediaType.NONE;
     }
 
     /**

@@ -52,6 +52,8 @@ import java.util.LinkedList;
 import java.util.List;
 
 /**
+ * A base service for adding media playback support using the {@link EMPlaylistManager}.
+ * <p>
  * <b>NOTE:</b> This service will request a wifi wakelock if the item
  * being played isn't downloaded (see {@link #isDownloaded(EMPlaylistManager.PlaylistItem)}).
  * <p>
@@ -84,7 +86,6 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
     protected MediaState currentState = MediaState.PREPARING;
 
     protected I currentPlaylistItem;
-    protected M.MediaType currentMediaType = M.MediaType.NONE;
     protected int seekToPosition = -1;
     protected boolean immediatelyPause = false;
 
@@ -101,19 +102,55 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
     @Nullable
     protected String currentLockScreenArtworkUrl;
 
-    //TODO documentation
     protected List<EMPlaylistServiceCallback> callbackList = new LinkedList<>();
 
-    protected abstract String getAppName();
-
+    /**
+     * Retrieves the ID to use for the notification and registering this
+     * service as Foreground when media is playing. (Foreground is removed
+     * when paused)
+     *
+     * @return The ID to use for the notification
+     */
     protected abstract int getNotificationId();
 
+    /**
+     * Retrieves the volume level to use when audio focus has been temporarily
+     * lost due to a higher importance notification.  The media will continue
+     * playback but be reduced to the specified volume for the duration of the
+     * notification.  This usually happens when receiving an alert for MMS, EMail,
+     * etc.
+     *
+     * @return The volume level to use when a temporary notification sounds. [0.0 - 1.0]
+     */
     protected abstract float getAudioDuckVolume();
 
+    /**
+     * Links the {@link EMPlaylistManager} that contains the information for playback
+     * to this service.
+     *
+     * NOTE: this is only used for retrieving information, it isn't used to register notifications
+     * for playlist changes, however as long as the change isn't breaking (e.g. cleared playlist)
+     * then nothing additional needs to be performed.
+     *
+     * @return The {@link EMPlaylistManager} containing the playback information
+     */
     protected abstract M getMediaPlaylistManager();
 
+    /**
+     * Returns the PendingIntent to use when the playback notification is clicked.
+     * This is called when the playback is started initially to setup the notification
+     * and the service as Foreground.
+     *
+     * @return The PendingIntent to use when the notification is clicked
+     */
     protected abstract PendingIntent getNotificationClickPendingIntent();
 
+    /**
+     * Retrieves the Image to use for the large notification (the double tall notification)
+     * when {@link #getLargeNotificationImage()} returns null.
+     *
+     * @return The image to use on the large notification when no other one is provided
+     */
     protected abstract Bitmap getDefaultLargeNotificationImage();
 
     /**
@@ -499,7 +536,7 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
         boolean hasNext = getMediaPlaylistManager().isNextAvailable();
         boolean hasPrevious = getMediaPlaylistManager().isPreviousAvailable();
 
-        return new EMPlaylistItemChangedEvent<>(currentPlaylistItem, currentMediaType, hasPrevious, hasNext);
+        return new EMPlaylistItemChangedEvent<>(currentPlaylistItem, hasPrevious, hasNext);
     }
 
     /**
@@ -592,7 +629,8 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
      * called from the Audio listener.
      */
     protected void performMediaCompletion() {
-        performNext();
+        //TODO: currently this is only called with Audio, we also need to register for Video completion
+        //Left for the extending class to implement
     }
 
     /**
@@ -636,7 +674,7 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
      */
     protected void updateAllowedMediaType(EMPlaylistManager.MediaType newType) {
         //We seek through the items until an allowed one is reached, or none is reached and the service is stopped.
-        if (newType != M.MediaType.AUDIO_AND_VIDEO && newType != currentMediaType) {
+        if (newType != M.MediaType.AUDIO_AND_VIDEO && currentPlaylistItem != null && newType != currentPlaylistItem.getMediaType()) {
             performNext();
         }
     }
@@ -651,14 +689,14 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
         boolean hasPrevious = getMediaPlaylistManager().isPreviousAvailable();
 
         for (EMPlaylistServiceCallback callback : callbackList) {
-            if (callback.onPlaylistItemChanged(currentPlaylistItem, currentMediaType, hasNext, hasPrevious)) {
+            if (callback.onPlaylistItemChanged(currentPlaylistItem, hasNext, hasPrevious)) {
                 return;
             }
         }
 
         EMEventBus bus = getBus();
         if (bus != null) {
-            bus.post(new EMPlaylistItemChangedEvent<>(currentPlaylistItem, currentMediaType, hasPrevious, hasNext));
+            bus.post(new EMPlaylistItemChangedEvent<>(currentPlaylistItem, hasPrevious, hasNext));
         }
     }
 
@@ -1110,8 +1148,6 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
      * lock screen values.
      */
     protected void mediaItemChanged() {
-        currentMediaType = getMediaPlaylistManager().getCurrentItemType();
-
         //Validates that the currentPlaylistItem is for the currentItem
         if (!getMediaPlaylistManager().isPlayingItem(currentPlaylistItem)) {
             Log.d(TAG, "forcing currentPlaylistItem update");
@@ -1211,7 +1247,11 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
     }
 
     /**
-     * A class to listen to the EMAudioPlayer events
+     * A class to listen to the EMAudioPlayer events, and will
+     * retry audio playback once when an error is encountered.
+     * This is done to workaround an issue on older (pre 4.1)
+     * devices where playback will fail due to a race condition
+     * in the {@link MediaPlayer}
      */
     private class AudioListener implements MediaPlayer.OnPreparedListener, MediaPlayer.OnCompletionListener, MediaPlayer.OnErrorListener {
         private static final int MAX_RETRY_COUNT = 1;

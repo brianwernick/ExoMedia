@@ -33,7 +33,7 @@ public interface EMPlaylistServiceCallback {
      *
      * @return True if the event has been handled
      */
-    boolean onPlaylistItemChanged(EMPlaylistManager.PlaylistItem currentItem, EMPlaylistManager.MediaType mediaType, boolean hasNext, boolean hasPrevious);
+    boolean onPlaylistItemChanged(EMPlaylistManager.PlaylistItem currentItem, boolean hasNext, boolean hasPrevious);
 
     /**
      * Occurs when the current media state changes.

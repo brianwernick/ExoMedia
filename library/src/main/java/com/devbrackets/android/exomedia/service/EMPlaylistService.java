@@ -80,7 +80,7 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
     protected EMNotification notificationHelper;
     protected EMLockScreen lockScreenHelper;
 
-    private boolean pausedForFocusLoss = false;
+    protected boolean pausedForFocusLoss = false;
     protected MediaState currentState = MediaState.PREPARING;
 
     protected I currentPlaylistItem;

@@ -79,21 +79,21 @@ public abstract class EMPlaylistManager<I extends EMPlaylistManager.PlaylistItem
         String getArtist();
     }
 
-    private List<I> playList;
-    private int currentPosition = 0;
-    private long playListId = INVALID_PLAYLIST_ID;
+    protected List<I> playList;
+    protected int currentPosition = 0;
+    protected long playListId = INVALID_PLAYLIST_ID;
 
-    private MediaType allowedType = MediaType.AUDIO;
-    private WeakReference<EMVideoView> videoPlayer = new WeakReference<>(null);
-
-    @Nullable
-    private EMPlaylistService service;
-    private List<EMPlaylistServiceCallback> callbackList = new ArrayList<>();
+    protected MediaType allowedType = MediaType.AUDIO;
+    protected WeakReference<EMVideoView> videoPlayer = new WeakReference<>(null);
 
     @Nullable
-    private PendingIntent playPausePendingIntent, nextPendingIntent, previousPendingIntent, stopPendingIntent, repeatPendingIntent, shufflePendingIntent, seekStartedPendingIntent;
+    protected EMPlaylistService service;
+    protected List<EMPlaylistServiceCallback> callbackList = new ArrayList<>();
+
     @Nullable
-    private Intent seekEndedIntent, allowedTypeChangedIntent;
+    protected PendingIntent playPausePendingIntent, nextPendingIntent, previousPendingIntent, stopPendingIntent, repeatPendingIntent, shufflePendingIntent, seekStartedPendingIntent;
+    @Nullable
+    protected Intent seekEndedIntent, allowedTypeChangedIntent;
 
     protected abstract Application getApplication();
 
@@ -443,6 +443,22 @@ public abstract class EMPlaylistManager<I extends EMPlaylistManager.PlaylistItem
     }
 
     /**
+     * Retrieves the item at the given index in the playlist.  If the playlist
+     * is null or the index is out of bounds then null will be returned.
+     *
+     * @param index The index in the playlist to grab the item for
+     * @return The retrieved item or null
+     */
+    @Nullable
+    public I getItem(int index) {
+        if (playList == null || index < 0 || index >= playList.size()) {
+            return null;
+        }
+
+        return playList.get(index);
+    }
+
+    /**
      * Retrieves the Item representing the currently selected
      * item.  If there aren't any items in the play list then null will
      * be returned instead.
@@ -613,7 +629,7 @@ public abstract class EMPlaylistManager<I extends EMPlaylistManager.PlaylistItem
      * @param index The index to start with
      * @return The new index, or the list size if none exist
      */
-    private int findNextAllowedIndex(int index) {
+    protected int findNextAllowedIndex(int index) {
         if (index >= getPlayListSize()) {
             return getPlayListSize();
         }
@@ -635,7 +651,7 @@ public abstract class EMPlaylistManager<I extends EMPlaylistManager.PlaylistItem
      * @param index The index to start with
      * @return The new index, or the list size if none exist
      */
-    private int findPreviousAllowedIndex(int index) {
+    protected int findPreviousAllowedIndex(int index) {
         if (index >= getPlayListSize() || index < 0) {
             return getPlayListSize();
         }
@@ -648,27 +664,12 @@ public abstract class EMPlaylistManager<I extends EMPlaylistManager.PlaylistItem
     }
 
     /**
-     * Retrieves the item at the given index in the playlist.
-     *
-     * @param index The index in the playlist to grab the item for
-     * @return The retrieved item or null
-     */
-    @Nullable
-    private I getItem(int index) {
-        if (playList == null) {
-            return null;
-        }
-
-        return playList.get(index);
-    }
-
-    /**
      * Determines if the passed item is of the correct type to allow playback
      *
      * @param item The item to determine if it is allowed
      * @return True if the item is null or is allowed
      */
-    private boolean isAllowedType(I item) {
+    protected boolean isAllowedType(I item) {
         if (item == null) {
             return true;
         }
@@ -692,12 +693,12 @@ public abstract class EMPlaylistManager<I extends EMPlaylistManager.PlaylistItem
     /**
      * Creates a PendingIntent for the given action to the specified service
      *
-     * @param application  The application to use when creating the  pending intent
+     * @param application The application to use when creating the  pending intent
      * @param serviceClass The service class to notify of intents
-     * @param action       The action to use
+     * @param action The action to use
      * @return The resulting PendingIntent
      */
-    private PendingIntent createPendingIntent(Application application, Class<? extends Service> serviceClass, String action) {
+    protected PendingIntent createPendingIntent(Application application, Class<? extends Service> serviceClass, String action) {
         Intent intent = new Intent(application, serviceClass);
         intent.setAction(action);
 
@@ -709,7 +710,7 @@ public abstract class EMPlaylistManager<I extends EMPlaylistManager.PlaylistItem
      *
      * @param pi The pending intent to send
      */
-    private void sendPendingIntent(PendingIntent pi) {
+    protected void sendPendingIntent(PendingIntent pi) {
         if (pi == null) {
             return;
         }
@@ -717,7 +718,7 @@ public abstract class EMPlaylistManager<I extends EMPlaylistManager.PlaylistItem
         try {
             pi.send();
         } catch (Exception e) {
-            Log.d(TAG, "Error sending lock screen pending intent", e);
+            Log.d(TAG, "Error sending pending intent " + pi.toString(), e);
         }
     }
 }

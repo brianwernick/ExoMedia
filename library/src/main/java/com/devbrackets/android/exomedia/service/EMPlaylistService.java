@@ -1177,8 +1177,8 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
      * Handles the remote actions from the big notification and lock screen to control
      * the audio playback
      *
-     * @param action The intents action
-     * @param extras The intent extras
+     * @param action The action from the intent to handle
+     * @param extras The extras packaged with the intent associated with the action
      */
     protected void handleRemoteAction(String action, Bundle extras) {
         if (action == null || action.isEmpty()) {
@@ -1263,11 +1263,9 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
         @Override
         public void onCompletion(MediaPlayer mp) {
             //Make sure to only perform this functionality when playing audio
-            if (!currentItemIsAudio()) {
-                return;
+            if (currentItemIsAudio()) {
+                performMediaCompletion();
             }
-
-            performMediaCompletion();
         }
 
         @Override

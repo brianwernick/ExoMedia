@@ -22,6 +22,7 @@ import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.support.annotation.DrawableRes;
 import android.util.AttributeSet;
+import android.view.KeyEvent;
 import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.TranslateAnimation;
@@ -72,7 +73,9 @@ public class DefaultControlsLeanback extends DefaultControls {
     @Override
     protected void setup(Context context) {
         super.setup(context);
+
         playPauseButton.requestFocus();
+        setOnKeyListener(new RemoteKeyListener());
     }
 
     @Override
@@ -336,6 +339,80 @@ public class DefaultControlsLeanback extends DefaultControls {
             rippleIndicator.getLocationOnScreen(position);
 
             return x - position[0];
+        }
+    }
+
+    /**
+     * A listener to catch the key events so that we can correctly perform the
+     * playback functionality and to hide/show the controls
+     */
+    private class RemoteKeyListener implements OnKeyListener {
+        @Override
+        public boolean onKey(View view, int keyCode, KeyEvent event) {
+            switch (keyCode) {
+                case KeyEvent.KEYCODE_BACK:
+                    if (isVisible) {
+                        hideDelayed(0);
+                        return true;
+                    }
+                    break;
+
+                case KeyEvent.KEYCODE_DPAD_UP:
+                    show();
+                    return true;
+
+                case KeyEvent.KEYCODE_DPAD_DOWN:
+                    hideDelayed(0);
+                    return true;
+
+                case KeyEvent.KEYCODE_DPAD_LEFT:
+                    show();
+                    break;
+
+                case KeyEvent.KEYCODE_DPAD_RIGHT:
+                    show();
+                    break;
+
+                case KeyEvent.KEYCODE_DPAD_CENTER:
+                    show();
+                    break;
+
+                case KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE:
+                    onPlayPauseClick();
+                    return true;
+
+                case KeyEvent.KEYCODE_MEDIA_PLAY:
+                    if (!videoView.isPlaying()) {
+                        videoView.start();
+                        return true;
+                    }
+                    break;
+
+                case KeyEvent.KEYCODE_MEDIA_PAUSE:
+                    if (videoView.isPlaying()) {
+                        videoView.pause();
+                        return true;
+                    }
+                    break;
+
+                case KeyEvent.KEYCODE_MEDIA_NEXT:
+                    onNextClick();
+                    return true;
+
+                case KeyEvent.KEYCODE_MEDIA_PREVIOUS:
+                    onPreviousClick();
+                    return true;
+
+                case KeyEvent.KEYCODE_MEDIA_REWIND:
+                    onRewindClick();
+                    return true;
+
+                case KeyEvent.KEYCODE_MEDIA_FAST_FORWARD:
+                    onFastForwardClick();
+                    return true;
+            }
+
+            return false;
         }
     }
 

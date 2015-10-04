@@ -2,11 +2,15 @@ package com.devbrackets.android.exomedia.util;
 
 import android.content.Context;
 import android.content.res.ColorStateList;
+import android.content.res.Resources;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
+import android.support.annotation.AnyRes;
+import android.support.annotation.AttrRes;
 import android.support.annotation.ColorRes;
 import android.support.annotation.DrawableRes;
 import android.support.v4.graphics.drawable.DrawableCompat;
+import android.util.TypedValue;
 
 /**
  * A Utility for handling the changes in the Android Resources API
@@ -51,6 +55,19 @@ public class EMResourceUtil {
 
         //noinspection deprecation
         return context.getResources().getDrawable(drawableResourceId);
+    }
+
+    @AnyRes
+    public int getResolvedResourceId(Context context, @AttrRes int attr) {
+        TypedValue typedValue = new TypedValue();
+        Resources.Theme theme = context.getTheme();
+        theme.resolveAttribute(attr, typedValue, true);
+
+        if (typedValue.type == TypedValue.TYPE_REFERENCE) {
+            return typedValue.data;
+        }
+
+        return typedValue.resourceId;
     }
 
     public static int getColor(Context context, @ColorRes int colorRes) {

@@ -585,9 +585,11 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
      * {@link EMPlaylistManager#invokePrevious()}
      */
     protected void performPrevious() {
+        seekToPosition = 0;
+        immediatelyPause = !isPlaying();
+
         getMediaPlaylistManager().previous();
         startItemPlayback();
-        seekToPosition = 0;
     }
 
     /**
@@ -597,9 +599,11 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
      * {@link EMPlaylistManager#invokeNext()}
      */
     protected void performNext() {
+        seekToPosition = 0;
+        immediatelyPause = !isPlaying();
+
         getMediaPlaylistManager().next();
         startItemPlayback();
-        seekToPosition = 0;
     }
 
     /**
@@ -629,7 +633,6 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
      * called from the Audio listener.
      */
     protected void performMediaCompletion() {
-        //TODO: currently this is only called with Audio, we also need to register for Video completion
         //Left for the extending class to implement
     }
 

@@ -24,7 +24,6 @@ import android.os.Build;
 import android.util.Log;
 
 import com.devbrackets.android.exomedia.exoplayer.EMExoPlayer;
-import com.devbrackets.android.exomedia.listener.RendererBuilderCallback;
 import com.devbrackets.android.exomedia.renderer.EMMediaCodecAudioTrackRenderer;
 import com.devbrackets.android.exomedia.util.MediaUtil;
 import com.google.android.exoplayer.MediaCodecVideoTrackRenderer;
@@ -72,7 +71,7 @@ public class RenderBuilder {
         this.requestedDefaultType = defaultType;
     }
 
-    public void buildRenderers(EMExoPlayer player, RendererBuilderCallback callback) {
+    public void buildRenderers(EMExoPlayer player) {
         //Create the Sample Source to be used by the renderers
         Allocator allocator = new DefaultAllocator(BUFFER_SEGMENT_SIZE);
         DefaultBandwidthMeter bandwidthMeter = new DefaultBandwidthMeter(player.getMainHandler(), player);
@@ -92,7 +91,11 @@ public class RenderBuilder {
         TrackRenderer[] renderers = new TrackRenderer[EMExoPlayer.RENDER_COUNT];
         renderers[EMExoPlayer.RENDER_VIDEO_INDEX] = videoRenderer;
         renderers[EMExoPlayer.RENDER_AUDIO_INDEX] = audioRenderer;
-        callback.onRenderers(null, null, renderers, bandwidthMeter);
+        player.onRenderers(renderers, bandwidthMeter);
+    }
+
+    public void cancel() {
+        //Purposefully left blank
     }
 
     /**
@@ -155,7 +158,7 @@ public class RenderBuilder {
                 return new Mp3Extractor();
 
             case TS:
-                return new TsExtractor(0, null);
+                return new TsExtractor();
 
             case WEBM:
             case MKV:

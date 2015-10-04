@@ -13,6 +13,9 @@ back to the MediaPlayer.
 This is useful for supporting Http Live Streaming (HLS) and full HD (1080p +) playback
 since the Android VideoView struggles with those.
 
+**NOTE:** HLS, DASH, and other streaming protocols are not supported on Android 4.0.* and below
+due to constraints with the Android MediaPlayer and VideoView
+
 
 Website And Documentation
 -------
@@ -28,7 +31,7 @@ The latest AAR (Android Archive) files can be downloaded from JCenter [ExoMedia]
 Or included in your gradle dependencies
 
 ```groovy
-compile 'com.devbrackets.android:exomedia:2.3.4'
+compile 'com.devbrackets.android:exomedia:2.3.5'
 ```
 
 Example

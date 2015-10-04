@@ -1,4 +1,4 @@
-package com.devbrackets.android.exomediademo;
+package com.devbrackets.android.exomediademo.ui.activity;
 
 import android.media.MediaPlayer;
 import android.net.Uri;
@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 
 import com.devbrackets.android.exomedia.EMVideoView;
+import com.devbrackets.android.exomediademo.R;
 
 
 public class VideoPlayerActivity extends AppCompatActivity implements MediaPlayer.OnPreparedListener {
@@ -22,6 +23,7 @@ public class VideoPlayerActivity extends AppCompatActivity implements MediaPlaye
         //For now we just picked an arbitrary item to play.  More can be found at
         //https://archive.org/details/more_animation
         emVideoView.setVideoURI(Uri.parse("https://archive.org/download/Popeye_forPresident/Popeye_forPresident_512kb.mp4"));
+//        emVideoView.setVideoURI(Uri.parse("http://cdn-fms.rbs.com.br/vod/hls_sample1_manifest.m3u8"));
     }
 
     @Override

@@ -1,4 +1,4 @@
-package com.devbrackets.android.exomediademo;
+package com.devbrackets.android.exomediademo.ui.activity;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -7,6 +7,7 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
 
+import com.devbrackets.android.exomediademo.R;
 import com.devbrackets.android.exomediademo.adapter.AudioSelectionListAdapter;
 
 /**

@@ -342,6 +342,7 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
 
         relaxResources(true);
         getMediaPlaylistManager().unRegisterService();
+        audioFocusHelper.setAudioFocusCallback(null);
         audioFocusHelper.abandonFocus();
 
         audioFocusHelper = null;
@@ -1120,7 +1121,7 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
      * @param action The intents action
      * @param extras The intent extras
      */
-    private void handleRemoteAction(String action, Bundle extras) {
+    protected void handleRemoteAction(String action, Bundle extras) {
         if (action == null || action.isEmpty()) {
             return;
         }
@@ -1172,7 +1173,7 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
      * If the audio player has already been initialized, then it will
      * be reset to prepare for the next playback item.
      */
-    private void initializeAudioPlayer() {
+    protected void initializeAudioPlayer() {
         if (audioPlayer != null) {
             audioPlayer.reset();
             return;

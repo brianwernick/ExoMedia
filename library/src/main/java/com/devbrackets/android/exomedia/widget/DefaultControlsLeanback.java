@@ -52,6 +52,7 @@ public class DefaultControlsLeanback extends DefaultControls {
     private Drawable defaultRewindDrawable;
     private Drawable defaultFastForwardDrawable;
 
+    private View currentFocus;
     private ButtonFocusChangeListener buttonFocusChangeListener = new ButtonFocusChangeListener();
 
     public DefaultControlsLeanback(Context context) {
@@ -73,9 +74,14 @@ public class DefaultControlsLeanback extends DefaultControls {
     @Override
     protected void setup(Context context) {
         super.setup(context);
+        registerForInput();
+    }
 
+    @Override
+    protected void onAttachedToWindow() {
+        super.onAttachedToWindow();
         playPauseButton.requestFocus();
-        setOnKeyListener(new RemoteKeyListener());
+        currentFocus = playPauseButton;
     }
 
     @Override
@@ -316,6 +322,79 @@ public class DefaultControlsLeanback extends DefaultControls {
     }
 
     /**
+     * Temporarily shows the default controls, hiding after the standard
+     * delay.  If the {@link #videoView} is not playing then the controls
+     * will not be hidden.
+     */
+    private void showTemporary() {
+        show();
+
+        if (videoView.isPlaying()) {
+            hideDelayed(DEFAULT_CONTROL_HIDE_DELAY);
+        }
+    }
+
+    /**
+     * Registers all selectable fields for key events in order
+     * to correctly handle navigation.
+     */
+    private void registerForInput() {
+        RemoteKeyListener remoteKeyListener = new RemoteKeyListener();
+        setOnKeyListener(remoteKeyListener);
+
+        //Registers each button to make sure we catch the key events
+        playPauseButton.setOnKeyListener(remoteKeyListener);
+        previousButton.setOnKeyListener(remoteKeyListener);
+        nextButton.setOnKeyListener(remoteKeyListener);
+        rewindButton.setOnKeyListener(remoteKeyListener);
+        fastForwardButton.setOnKeyListener(remoteKeyListener);
+    }
+
+    /**
+     * Focuses the next visible view specified in the <code>view</code>
+     *
+     * @param view The view to find the next focus for
+     */
+    private void focusNext(View view) {
+        int nextId = view.getNextFocusRightId();
+        if (nextId == NO_ID) {
+            return;
+        }
+
+        View nextView = findViewById(nextId);
+        if (nextView.getVisibility() != View.VISIBLE) {
+            focusNext(nextView);
+            return;
+        }
+
+        nextView.requestFocus();
+        currentFocus = nextView;
+        buttonFocusChangeListener.onFocusChange(nextView, true);
+    }
+
+    /**
+     * Focuses the previous visible view specified in the <code>view</code>
+     *
+     * @param view The view to find the previous focus for
+     */
+    private void focusPrevious(View view) {
+        int previousId = view.getNextFocusLeftId();
+        if (previousId == NO_ID) {
+            return;
+        }
+
+        View previousView = findViewById(previousId);
+        if (previousView.getVisibility() != View.VISIBLE) {
+            focusPrevious(previousView);
+            return;
+        }
+
+        previousView.requestFocus();
+        currentFocus = previousView;
+        buttonFocusChangeListener.onFocusChange(previousView, true);
+    }
+
+    /**
      * A listener to monitor the selected button and move the ripple
      * indicator when the focus shifts.
      */
@@ -335,10 +414,11 @@ public class DefaultControlsLeanback extends DefaultControls {
             int[] position = new int[2];
             selectedView.getLocationOnScreen(position);
 
-            int x = position[0];
+            int viewX = position[0];
             rippleIndicator.getLocationOnScreen(position);
 
-            return x - position[0];
+            int newRippleX = viewX - ((rippleIndicator.getWidth() - selectedView.getWidth()) / 2);
+            return newRippleX - position[0];
         }
     }
 
@@ -347,8 +427,16 @@ public class DefaultControlsLeanback extends DefaultControls {
      * playback functionality and to hide/show the controls
      */
     private class RemoteKeyListener implements OnKeyListener {
+        /**
+         * NOTE: the view is not always the currently focused view, thus the
+         * {@link #currentFocus} variable
+         */
         @Override
         public boolean onKey(View view, int keyCode, KeyEvent event) {
+            if (event.getAction() != KeyEvent.ACTION_DOWN) {
+                return false;
+            }
+
             switch (keyCode) {
                 case KeyEvent.KEYCODE_BACK:
                     if (isVisible) {
@@ -358,7 +446,7 @@ public class DefaultControlsLeanback extends DefaultControls {
                     break;
 
                 case KeyEvent.KEYCODE_DPAD_UP:
-                    show();
+                    showTemporary();
                     return true;
 
                 case KeyEvent.KEYCODE_DPAD_DOWN:
@@ -366,16 +454,19 @@ public class DefaultControlsLeanback extends DefaultControls {
                     return true;
 
                 case KeyEvent.KEYCODE_DPAD_LEFT:
-                    show();
-                    break;
+                    showTemporary();
+                    focusPrevious(currentFocus);
+                    return true;
 
                 case KeyEvent.KEYCODE_DPAD_RIGHT:
-                    show();
-                    break;
+                    showTemporary();
+                    focusNext(currentFocus);
+                    return true;
 
                 case KeyEvent.KEYCODE_DPAD_CENTER:
-                    show();
-                    break;
+                    showTemporary();
+                    currentFocus.callOnClick();
+                    return true;
 
                 case KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE:
                     onPlayPauseClick();
@@ -416,6 +507,10 @@ public class DefaultControlsLeanback extends DefaultControls {
         }
     }
 
+    /**
+     * An animation for moving the ripple indicator to the correctly
+     * focused view.
+     */
     private class RippleTranslateAnimation extends TranslateAnimation implements Animation.AnimationListener {
         private static final long DURATION = 250;
 
@@ -436,7 +531,8 @@ public class DefaultControlsLeanback extends DefaultControls {
 
         @Override
         public void onAnimationEnd(Animation animation) {
-            rippleIndicator.setLeft(rippleIndicator.getLeft() + xDelta);
+            rippleIndicator.setX(rippleIndicator.getX() + xDelta);
+            rippleIndicator.clearAnimation();
         }
 
         @Override

@@ -49,6 +49,7 @@ import com.devbrackets.android.exomedia.util.EMResourceUtil;
  * or remove for the Default Video Controls.
  */
 public abstract class DefaultControls extends RelativeLayout {
+    public static final int DEFAULT_CONTROL_HIDE_DELAY = 2000;
     protected static final long CONTROL_VISIBILITY_ANIMATION_LENGTH = 300;
     protected static final int INVALID_RESOURCE_ID = 0;
 

@@ -68,7 +68,6 @@ import com.google.android.exoplayer.audio.AudioCapabilitiesReceiver;
 public class EMVideoView extends RelativeLayout implements AudioCapabilitiesReceiver.Listener {
     private static final String TAG = EMVideoView.class.getSimpleName();
     private static final String USER_AGENT_FORMAT = "EMVideoView %s / Android %s / %s";
-    private static final int CONTROL_HIDE_DELAY = 2000;
 
     public enum VideoType {
         HLS,
@@ -491,7 +490,7 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
             defaultControls.show();
 
             if (isPlaying()) {
-                defaultControls.hideDelayed(CONTROL_HIDE_DELAY);
+                defaultControls.hideDelayed(DefaultControls.DEFAULT_CONTROL_HIDE_DELAY);
             }
         }
     }
@@ -831,7 +830,7 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
 
         if (defaultControls != null) {
             defaultControls.updatePlayPauseImage(true);
-            defaultControls.hideDelayed(CONTROL_HIDE_DELAY);
+            defaultControls.hideDelayed(DefaultControls.DEFAULT_CONTROL_HIDE_DELAY);
         }
 
         playRequested = true;
@@ -1201,7 +1200,7 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
                 defaultControls.show();
 
                 if (isPlaying()) {
-                    defaultControls.hideDelayed(CONTROL_HIDE_DELAY);
+                    defaultControls.hideDelayed(DefaultControls.DEFAULT_CONTROL_HIDE_DELAY);
                 }
             }
 

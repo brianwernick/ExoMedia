@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.view.View;
 
 import com.devbrackets.android.exomedia.listener.EMVideoViewControlsCallback;
+import com.devbrackets.android.exomedia.widget.DefaultControls;
 
 /**
  * A simple example of making a fullscreen video player activity.
@@ -94,7 +95,7 @@ public class FullScreenVideoPlayerActivity extends VideoPlayerActivity {
     }
 
     /**
-     * A Listener for the {@link com.devbrackets.android.exomedia.DefaultControls}
+     * A Listener for the {@link DefaultControls}
      * so that we can re-enter fullscreen mode when the controls are hidden.
      */
     private class DefaultControlsCallback implements EMVideoViewControlsCallback {

@@ -48,6 +48,9 @@ import com.devbrackets.android.exomedia.util.EMEventBus;
 import com.devbrackets.android.exomedia.util.MediaUtil;
 import com.devbrackets.android.exomedia.util.Repeater;
 import com.devbrackets.android.exomedia.util.StopWatch;
+import com.devbrackets.android.exomedia.widget.DefaultControls;
+import com.devbrackets.android.exomedia.widget.DefaultControlsLeanback;
+import com.devbrackets.android.exomedia.widget.DefaultControlsMobile;
 import com.devbrackets.android.exomedia.widget.VideoSurfaceView;
 import com.google.android.exoplayer.audio.AudioCapabilities;
 import com.google.android.exoplayer.audio.AudioCapabilitiesReceiver;
@@ -65,7 +68,6 @@ import com.google.android.exoplayer.audio.AudioCapabilitiesReceiver;
 public class EMVideoView extends RelativeLayout implements AudioCapabilitiesReceiver.Listener {
     private static final String TAG = EMVideoView.class.getSimpleName();
     private static final String USER_AGENT_FORMAT = "EMVideoView %s / Android %s / %s";
-    private static final int CONTROL_HIDE_DELAY = 2000;
 
     public enum VideoType {
         HLS,
@@ -459,7 +461,7 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
      */
     public void setDefaultControlsEnabled(boolean enabled) {
         if (defaultControls == null && enabled) {
-            defaultControls = new DefaultControls(getContext());
+            defaultControls = EMDeviceUtil.isDeviceTV(getContext()) ? new DefaultControlsLeanback(getContext()) : new DefaultControlsMobile(getContext());
             defaultControls.setVideoView(this);
             defaultControls.setBus(bus);
 
@@ -488,7 +490,7 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
             defaultControls.show();
 
             if (isPlaying()) {
-                defaultControls.hideDelayed(CONTROL_HIDE_DELAY);
+                defaultControls.hideDelayed(DefaultControls.DEFAULT_CONTROL_HIDE_DELAY);
             }
         }
     }
@@ -528,6 +530,44 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
     public void setNextButtonEnabled(boolean enabled) {
         if (defaultControls != null) {
             defaultControls.setNextButtonEnabled(enabled);
+        }
+    }
+
+    /**
+     * Sets the button state for the Rewind button on the default controls; see
+     * {@link #setDefaultControlsEnabled(boolean)}.
+     * {@link #setDefaultControlsEnabled(boolean)} must be called prior to this.
+     * <p/>
+     * This will just change the images specified with {@link #setRewindImageResource(int)},
+     * or use the defaults if they haven't been set, and block any click events.
+     * </p>
+     * This method will NOT re-add buttons that have previously been removed with
+     * {@link #setRewindButtonRemoved(boolean)}.
+     *
+     * @param enabled If the Rewind button is enabled [default: false]
+     */
+    public void setRewindButtonEnabled(boolean enabled) {
+        if (defaultControls != null) {
+            defaultControls.setRewindButtonEnabled(enabled);
+        }
+    }
+
+    /**
+     * Sets the button state for the Fast Forward button on the default controls; see
+     * {@link #setDefaultControlsEnabled(boolean)}.
+     * {@link #setDefaultControlsEnabled(boolean)} must be called prior to this.
+     * <p/>
+     * This will just change the images specified with {@link #setFastForwardImageResource(int)},
+     * or use the defaults if they haven't been set, and block any click events.
+     * </p>
+     * This method will NOT re-add buttons that have previously been removed with
+     * {@link #setFastForwardButtonRemoved(boolean)}.
+     *
+     * @param enabled If the Fast Forward button is enabled [default: false]
+     */
+    public void setFastForwardButtonEnabled(boolean enabled) {
+        if (defaultControls != null) {
+            defaultControls.setFastForwardButtonEnabled(enabled);
         }
     }
 
@@ -582,6 +622,30 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
     }
 
     /**
+     * Sets the state list drawable resource id to use for the Rewind button.
+     * {@link #setDefaultControlsEnabled(boolean)} must be called prior to this.
+     *
+     * @param resourceId The resourceId or 0
+     */
+    public void setRewindImageResource(@DrawableRes int resourceId) {
+        if (defaultControls != null) {
+            defaultControls.setRewindImageResource(resourceId);
+        }
+    }
+
+    /**
+     * Sets the state list drawable resource id to use for the Fast Forward button.
+     * {@link #setDefaultControlsEnabled(boolean)} must be called prior to this.
+     *
+     * @param resourceId The resourceId or 0
+     */
+    public void setFastForwardImageResource(@DrawableRes int resourceId) {
+        if (defaultControls != null) {
+            defaultControls.setFastForwardImageResource(resourceId);
+        }
+    }
+
+    /**
      * Adds or removes the Previous button.  This will change the visibility
      * of the button, if you want to change the enabled/disabled images see {@link #setPreviousButtonEnabled(boolean)}
      * {@link #setDefaultControlsEnabled(boolean)} must be called prior to this.
@@ -606,6 +670,33 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
             defaultControls.setNextButtonRemoved(removed);
         }
     }
+
+    /**
+     * Adds or removes the Rewind button.  This will change the visibility
+     * of the button, if you want to change the enabled/disabled images see {@link #setRewindButtonEnabled(boolean)}
+     * {@link #setDefaultControlsEnabled(boolean)} must be called prior to this.
+     *
+     * @param removed If the Rewind button should be removed [default: false]
+     */
+    public void setRewindButtonRemoved(boolean removed) {
+        if (defaultControls != null) {
+            defaultControls.setRewindButtonRemoved(removed);
+        }
+    }
+
+    /**
+     * Adds or removes the Fast Forward button.  This will change the visibility
+     * of the button, if you want to change the enabled/disabled images see {@link #setFastForwardButtonEnabled(boolean)}
+     * {@link #setDefaultControlsEnabled(boolean)} must be called prior to this.
+     *
+     * @param removed If the Fast Forward button should be removed [default: false]
+     */
+    public void setFastForwardButtonRemoved(boolean removed) {
+        if (defaultControls != null) {
+            defaultControls.setFastForwardButtonRemoved(removed);
+        }
+    }
+
 
     /**
      * *************************************
@@ -739,7 +830,7 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
 
         if (defaultControls != null) {
             defaultControls.updatePlayPauseImage(true);
-            defaultControls.hideDelayed(CONTROL_HIDE_DELAY);
+            defaultControls.hideDelayed(DefaultControls.DEFAULT_CONTROL_HIDE_DELAY);
         }
 
         playRequested = true;
@@ -1109,7 +1200,7 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
                 defaultControls.show();
 
                 if (isPlaying()) {
-                    defaultControls.hideDelayed(CONTROL_HIDE_DELAY);
+                    defaultControls.hideDelayed(DefaultControls.DEFAULT_CONTROL_HIDE_DELAY);
                 }
             }
 

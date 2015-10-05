@@ -49,6 +49,7 @@ public class FitsSystemWindowRelativeLayout extends RelativeLayout {
     }
 
     @Override
+    @SuppressWarnings("deprecation")
     protected boolean fitSystemWindows(@NonNull Rect insets) {
         updatePadding(insets);
         return false;

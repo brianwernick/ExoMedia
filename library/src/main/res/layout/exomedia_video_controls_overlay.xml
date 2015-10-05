@@ -60,7 +60,9 @@
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="5dp"
+        android:layout_marginBottom="16dp"
+        android:layout_marginLeft="16dp"
+        android:layout_marginRight="16dp"
         android:layout_alignParentBottom="true">
 
         <TextView
@@ -70,7 +72,6 @@
             android:layout_alignParentLeft="true"
             android:layout_centerVertical="true"
             android:textColor="@android:color/white"
-            android:padding="5dp"
             tools:text="00:00"
             tools:ignore="RtlHardcoded"/>
 
@@ -80,9 +81,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_toRightOf="@+id/exomedia_controls_current_time"
-            android:layout_toLeftOf="@+id/exomedia_controls_end_time"
-            android:paddingBottom="5dp"
-            android:paddingTop="5dp" />
+            android:layout_toLeftOf="@+id/exomedia_controls_end_time"/>
 
         <TextView
             android:id="@+id/exomedia_controls_end_time"
@@ -91,7 +90,6 @@
             android:layout_alignParentRight="true"
             android:layout_centerVertical="true"
             android:textColor="@android:color/white"
-            android:padding="5dp"
             tools:text="99:99" />
     </RelativeLayout>
 </com.devbrackets.android.exomedia.widget.FitsSystemWindowRelativeLayout>

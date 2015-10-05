@@ -3,6 +3,11 @@
     <dimen name="exomedia_min_button_height">44dp</dimen>
     <dimen name="exomedia_default_padding">8dp</dimen>
 
+    <dimen name="exomedia_leanback_ripple_selector_size">90dp</dimen>
+    <dimen name="exomedia_leanback_controls_height">64dp</dimen>
+    <dimen name="exomedia_leanback_controls_bottom_margin">64dp</dimen>
+    <dimen name="exomedia_leanback_controls_horizontal_margin">132dp</dimen>
+
     <!-- Notification sizes-->
     <dimen name="exomedia_big_notification_text_pad">5dp</dimen>
     <dimen name="exomedia_big_notification_height">128dp</dimen>

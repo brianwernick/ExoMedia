@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.devbrackets.android.exomedia;
+package com.devbrackets.android.exomedia.widget;
 
 import android.annotation.TargetApi;
 import android.content.Context;
@@ -22,17 +22,19 @@ import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Handler;
 import android.support.annotation.DrawableRes;
+import android.support.annotation.LayoutRes;
 import android.support.annotation.Nullable;
-import android.support.v4.graphics.drawable.DrawableCompat;
 import android.util.AttributeSet;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.animation.AlphaAnimation;
 import android.widget.ImageButton;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
-import android.widget.SeekBar;
 import android.widget.TextView;
 
+import com.devbrackets.android.exomedia.EMVideoView;
+import com.devbrackets.android.exomedia.R;
 import com.devbrackets.android.exomedia.event.EMMediaNextEvent;
 import com.devbrackets.android.exomedia.event.EMMediaPlayPauseEvent;
 import com.devbrackets.android.exomedia.event.EMMediaPreviousEvent;
@@ -40,57 +42,53 @@ import com.devbrackets.android.exomedia.event.EMMediaProgressEvent;
 import com.devbrackets.android.exomedia.event.EMVideoViewControlVisibilityEvent;
 import com.devbrackets.android.exomedia.listener.EMVideoViewControlsCallback;
 import com.devbrackets.android.exomedia.util.EMEventBus;
-import com.devbrackets.android.exomedia.util.TimeFormatUtil;
+import com.devbrackets.android.exomedia.util.EMResourceUtil;
 
 /**
  * This is a simple abstraction for the EMVideoView to have a single "View" to add
  * or remove for the Default Video Controls.
  */
-public class DefaultControls extends RelativeLayout {
-    private static final long CONTROL_VISIBILITY_ANIMATION_LENGTH = 300;
+public abstract class DefaultControls extends RelativeLayout {
+    public static final int DEFAULT_CONTROL_HIDE_DELAY = 2000;
+    protected static final long CONTROL_VISIBILITY_ANIMATION_LENGTH = 300;
+    protected static final int INVALID_RESOURCE_ID = 0;
 
     public interface SeekCallbacks {
         boolean onSeekStarted();
         boolean onSeekEnded(int seekTime);
     }
 
-    private TextView currentTime;
-    private TextView endTime;
-    private SeekBar seekBar;
-    private ImageButton playPauseButton;
-    private ImageButton previousButton;
-    private ImageButton nextButton;
-    private ProgressBar loadingProgress;
+    protected TextView currentTime;
+    protected TextView endTime;
+    protected ImageButton playPauseButton;
+    protected ImageButton previousButton;
+    protected ImageButton nextButton;
+    protected ViewGroup controlsContainer;
+    protected ProgressBar loadingProgress;
 
-    private EMVideoViewControlsCallback callback;
-    private boolean busPostHandlesEvent = false;
+    protected Drawable defaultPlayDrawable;
+    protected Drawable defaultPauseDrawable;
+    protected Drawable defaultPreviousDrawable;
+    protected Drawable defaultNextDrawable;
 
-    private Drawable defaultPlayDrawable;
-    private Drawable defaultPauseDrawable;
-    private Drawable defaultPreviousDrawable;
-    private Drawable defaultNextDrawable;
+    //Since the Play/Pause button uses 2 separate resource Id's we need to store them
+    protected int playResourceId = INVALID_RESOURCE_ID;
+    protected int pauseResourceId = INVALID_RESOURCE_ID;
 
-    //Remember, 0 is not a valid resourceId
-    private int playResourceId = 0;
-    private int pauseResourceId = 0;
+    protected long hideDelay = -1;
 
-    private boolean previousButtonRemoved = true;
-    private boolean nextButtonRemoved = true;
+    protected boolean isVisible = true;
+    protected boolean canViewHide = true;
+    protected Handler visibilityHandler = new Handler();
 
-    private boolean pausedForSeek = false;
-    private long hideDelay = -1;
-    private boolean userInteracting = false;
-
-    private boolean isVisible = true;
-    private boolean canViewHide = true;
-    private Handler visibilityHandler = new Handler();
-
-    private EMVideoView videoView;
+    protected boolean busPostHandlesEvent = false;
 
     @Nullable
-    private EMEventBus bus;
+    protected EMEventBus bus;
 
-    private SeekCallbacks seekCallbacks;
+    protected EMVideoView videoView;
+    protected SeekCallbacks seekCallbacks;
+    protected EMVideoViewControlsCallback callback;
 
     public DefaultControls(Context context) {
         super(context);
@@ -151,10 +149,8 @@ public class DefaultControls extends RelativeLayout {
      * @param isLoading True if loading progress should be shown
      */
     public void setLoading(boolean isLoading) {
-        playPauseButton.setVisibility(isLoading ? View.GONE : View.VISIBLE);
-        previousButton.setVisibility(isLoading || previousButtonRemoved ? View.INVISIBLE : View.VISIBLE);
-        nextButton.setVisibility(isLoading || nextButtonRemoved ? View.INVISIBLE : View.VISIBLE);
         loadingProgress.setVisibility(isLoading ? View.VISIBLE : View.INVISIBLE);
+        controlsContainer.setVisibility(isLoading ? View.GONE : View.VISIBLE);
     }
 
     /**
@@ -189,10 +185,7 @@ public class DefaultControls extends RelativeLayout {
      *
      * @param position The position in milliseconds
      */
-    public void setPosition(long position) {
-        currentTime.setText(TimeFormatUtil.formatMs(position));
-        seekBar.setProgress((int) position);
-    }
+    public abstract void setPosition(long position);
 
     /**
      * Sets the video duration in Milliseconds to display
@@ -200,12 +193,7 @@ public class DefaultControls extends RelativeLayout {
      *
      * @param duration The duration of the video in milliseconds
      */
-    public void setDuration(long duration) {
-        if (duration != seekBar.getMax()) {
-            endTime.setText(TimeFormatUtil.formatMs(duration));
-            seekBar.setMax((int) duration);
-        }
-    }
+    public abstract void setDuration(long duration);
 
     /**
      * Performs the progress update on the current time field,
@@ -213,13 +201,7 @@ public class DefaultControls extends RelativeLayout {
      *
      * @param event The most recent progress
      */
-    public void setProgressEvent(EMMediaProgressEvent event) {
-        if (!userInteracting) {
-            seekBar.setSecondaryProgress((int) (seekBar.getMax() * event.getBufferPercentFloat()));
-            seekBar.setProgress((int) event.getPosition());
-            currentTime.setText(TimeFormatUtil.formatMs(event.getPosition()));
-        }
-    }
+    public abstract void setProgressEvent(EMMediaProgressEvent event);
 
     /**
      * Sets the resource id's to use for the PlayPause button.
@@ -261,19 +243,39 @@ public class DefaultControls extends RelativeLayout {
     }
 
     /**
+     * Sets the state list drawable resource id to use for the Rewind button.
+     * <b><em>NOTE:</em></b> The Rewind button is only shown on TV layouts
+     *
+     * @param resourceId The resourceId or 0
+     */
+    public void setRewindImageResource(@DrawableRes int resourceId) {
+        //Purposefully left blank
+    }
+
+    /**
+     * Sets the state list drawable resource id to use for the Fast Forward button.
+     * <b><em>NOTE:</em></b> The Fast Forward button is only shown on TV layouts
+     *
+     * @param resourceId The resourceId or 0
+     */
+    public void setFastForwardImageResource(@DrawableRes int resourceId) {
+        //Purposefully left blank
+    }
+
+    /**
      * Makes sure the playPause button represents the correct playback state
      *
      * @param isPlaying If the video is currently playing
      */
     public void updatePlayPauseImage(boolean isPlaying) {
         if (isPlaying) {
-            if (pauseResourceId != 0) {
+            if (pauseResourceId != INVALID_RESOURCE_ID) {
                 playPauseButton.setImageResource(pauseResourceId);
             } else {
                 playPauseButton.setImageDrawable(defaultPauseDrawable);
             }
         } else {
-            if (playResourceId != 0) {
+            if (playResourceId != INVALID_RESOURCE_ID) {
                 playPauseButton.setImageResource(playResourceId);
             } else {
                 playPauseButton.setImageDrawable(defaultPlayDrawable);
@@ -310,14 +312,41 @@ public class DefaultControls extends RelativeLayout {
     }
 
     /**
+     * Sets the button state for the Rewind button.  This will just
+     * change the images specified with {@link #setRewindImageResource(int)},
+     * or use the defaults if they haven't been set
+     * </p>
+     * This method will NOT re-add buttons that have previously been removed with
+     * {@link #setRewindButtonRemoved(boolean)}.
+     *
+     * @param enabled If the Rewind button is enabled [default: false]
+     */
+    public void setRewindButtonEnabled(boolean enabled) {
+        //Purposefully left blank
+    }
+
+    /**
+     * Sets the button state for the Fast Forward button.  This will just
+     * change the images specified with {@link #setFastForwardImageResource(int)},
+     * or use the defaults if they haven't been set
+     * </p>
+     * This method will NOT re-add buttons that have previously been removed with
+     * {@link #setFastForwardButtonRemoved(boolean)}.
+     *
+     * @param enabled If the Rewind button is enabled [default: false]
+     */
+    public void setFastForwardButtonEnabled(boolean enabled) {
+        //Purposefully left blank
+    }
+
+    /**
      * Adds or removes the Previous button.  This will change the visibility
      * of the button, if you want to change the enabled/disabled images see {@link #setPreviousButtonEnabled(boolean)}
      *
      * @param removed If the Previous button should be removed [default: true]
      */
     public void setPreviousButtonRemoved(boolean removed) {
-        previousButton.setVisibility(removed ? View.INVISIBLE : View.VISIBLE);
-        previousButtonRemoved = removed;
+        previousButton.setVisibility(removed ? View.GONE : View.VISIBLE);
     }
 
     /**
@@ -327,8 +356,27 @@ public class DefaultControls extends RelativeLayout {
      * @param removed If the Next button should be removed [default: true]
      */
     public void setNextButtonRemoved(boolean removed) {
-        nextButton.setVisibility(removed ? View.INVISIBLE : View.VISIBLE);
-        nextButtonRemoved = removed;
+        nextButton.setVisibility(removed ? View.GONE : View.VISIBLE);
+    }
+
+    /**
+     * Adds or removes the Rewind button.  This will change the visibility
+     * of the button, if you want to change the enabled/disabled images see {@link #setRewindButtonEnabled(boolean)}
+     *
+     * @param removed If the Rewind button should be removed [default: true]
+     */
+    public void setRewindButtonRemoved(boolean removed) {
+        //Purposefully left blank
+    }
+
+    /**
+     * Adds or removes the FastForward button.  This will change the visibility
+     * of the button, if you want to change the enabled/disabled images see {@link #setFastForwardButtonEnabled(boolean)}
+     *
+     * @param removed If the FastForward button should be removed [default: true]
+     */
+    public void setFastForwardButtonRemoved(boolean removed) {
+        //Purposefully left blank
     }
 
     /**
@@ -352,11 +400,6 @@ public class DefaultControls extends RelativeLayout {
         hideDelay = delay;
 
         if (delay < 0 || !canViewHide) {
-            return;
-        }
-
-        //If the user is interacting with controls we don't want to start the delayed hide yet
-        if (userInteracting) {
             return;
         }
 
@@ -389,32 +432,57 @@ public class DefaultControls extends RelativeLayout {
     }
 
     /**
-     * Updates the drawables used for the buttons to AppCompatTintDrawables
+     * Retrieves the view references from the xml layout
      */
-    private void updateButtonDrawables() {
-        defaultPlayDrawable = DrawableCompat.wrap(getDrawable(R.drawable.exomedia_ic_play_arrow_white));
-        DrawableCompat.setTintList(defaultPlayDrawable, getResources().getColorStateList(R.color.exomedia_default_controls_button_selector));
-
-        defaultPauseDrawable = DrawableCompat.wrap(getDrawable(R.drawable.exomedia_ic_pause_white));
-        DrawableCompat.setTintList(defaultPauseDrawable, getResources().getColorStateList(R.color.exomedia_default_controls_button_selector));
-        playPauseButton.setImageDrawable(defaultPlayDrawable);
-
-        defaultPreviousDrawable = DrawableCompat.wrap(getDrawable(R.drawable.exomedia_ic_skip_previous_white));
-        DrawableCompat.setTintList(defaultPreviousDrawable, getResources().getColorStateList(R.color.exomedia_default_controls_button_selector));
-        previousButton.setImageDrawable(defaultPreviousDrawable);
-
-        defaultNextDrawable = DrawableCompat.wrap(getDrawable(R.drawable.exomedia_ic_skip_next_white));
-        DrawableCompat.setTintList(defaultNextDrawable, getResources().getColorStateList(R.color.exomedia_default_controls_button_selector));
-        nextButton.setImageDrawable(defaultNextDrawable);
+    protected void retrieveViews() {
+        currentTime = (TextView) findViewById(R.id.exomedia_controls_current_time);
+        endTime = (TextView) findViewById(R.id.exomedia_controls_end_time);
+        playPauseButton = (ImageButton) findViewById(R.id.exomedia_controls_play_pause_btn);
+        previousButton = (ImageButton) findViewById(R.id.exomedia_controls_previous_btn);
+        nextButton = (ImageButton) findViewById(R.id.exomedia_controls_next_btn);
+        loadingProgress = (ProgressBar) findViewById(R.id.exomedia_controls_video_loading);
+        controlsContainer = (ViewGroup) findViewById(R.id.exomedia_controls_interactive_container);
     }
 
-    private Drawable getDrawable(@DrawableRes int resourceId) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            return getResources().getDrawable(resourceId, getContext().getTheme());
-        }
+    /**
+     * Registers any internal listeners to perform the playback controls,
+     * such as play/pause, next, and previous
+     */
+    protected void registerListeners() {
+        playPauseButton.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onPlayPauseClick();
+            }
+        });
+        previousButton.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onPreviousClick();
+            }
+        });
+        nextButton.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onNextClick();
+            }
+        });
+    }
 
-        //noinspection deprecation - depreciated in API 22
-        return getResources().getDrawable(resourceId);
+    /**
+     * Updates the drawables used for the buttons to AppCompatTintDrawables
+     */
+    protected void updateButtonDrawables() {
+        defaultPlayDrawable = EMResourceUtil.tintList(getContext(), R.drawable.exomedia_ic_play_arrow_white, R.color.exomedia_default_controls_button_selector);
+
+        defaultPauseDrawable = EMResourceUtil.tintList(getContext(), R.drawable.exomedia_ic_pause_white, R.color.exomedia_default_controls_button_selector);
+        playPauseButton.setImageDrawable(defaultPlayDrawable);
+
+        defaultPreviousDrawable = EMResourceUtil.tintList(getContext(), R.drawable.exomedia_ic_skip_previous_white, R.color.exomedia_default_controls_button_selector);
+        previousButton.setImageDrawable(defaultPreviousDrawable);
+
+        defaultNextDrawable = EMResourceUtil.tintList(getContext(), R.drawable.exomedia_ic_skip_next_white, R.color.exomedia_default_controls_button_selector);
+        nextButton.setImageDrawable(defaultNextDrawable);
     }
 
     /**
@@ -422,7 +490,7 @@ public class DefaultControls extends RelativeLayout {
      * includes invoking the callback method if it is enabled, posting the bus
      * event, and toggling the video playback.
      */
-    private void onPlayPauseClick() {
+    protected void onPlayPauseClick() {
         if (callback != null && callback.onPlayPauseClicked()) {
             return;
         }
@@ -443,7 +511,11 @@ public class DefaultControls extends RelativeLayout {
         }
     }
 
-    private void onPreviousClick() {
+    /**
+     * Performs the functionality to inform any listeners that the previous
+     * button has been clicked
+     */
+    protected void onPreviousClick() {
         if (callback != null && callback.onPreviousClicked()) {
             return;
         }
@@ -453,7 +525,11 @@ public class DefaultControls extends RelativeLayout {
         }
     }
 
-    private void onNextClick() {
+    /**
+     * Performs the functionality to inform any listeners that the next
+     * button has been clicked
+     */
+    protected void onNextClick() {
         if (callback != null && callback.onNextClicked()) {
             return;
         }
@@ -463,38 +539,25 @@ public class DefaultControls extends RelativeLayout {
         }
     }
 
-    private void setup(Context context) {
-        View.inflate(context, R.layout.exomedia_video_controls_overlay, this);
+    /**
+     * Used to retrieve the layout resource identifier to inflate
+     *
+     * @return The layout resource identifier to inflate
+     */
+    @LayoutRes
+    protected abstract int getLayoutResource();
 
-        currentTime = (TextView) findViewById(R.id.exomedia_controls_current_time);
-        endTime = (TextView) findViewById(R.id.exomedia_controls_end_time);
-        seekBar = (SeekBar) findViewById(R.id.exomedia_controls_video_seek);
-        playPauseButton = (ImageButton) findViewById(R.id.exomedia_controls_play_pause_btn);
-        previousButton = (ImageButton) findViewById(R.id.exomedia_controls_previous_btn);
-        nextButton = (ImageButton) findViewById(R.id.exomedia_controls_next_btn);
-        loadingProgress = (ProgressBar) findViewById(R.id.exomedia_controls_video_loading);
+    /**
+     * Performs any initialization steps such as retrieving views, registering listeners,
+     * and updating any drawables.
+     *
+     * @param context The context to use for retrieving the correct layout
+     */
+    protected void setup(Context context) {
+        View.inflate(context, getLayoutResource(), this);
+        retrieveViews();
 
-        seekBar.setOnSeekBarChangeListener(new SeekBarChanged());
-
-        playPauseButton.setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                onPlayPauseClick();
-            }
-        });
-        previousButton.setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                onPreviousClick();
-            }
-        });
-        nextButton.setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                onNextClick();
-            }
-        });
-
+        registerListeners();
         updateButtonDrawables();
     }
 
@@ -502,7 +565,7 @@ public class DefaultControls extends RelativeLayout {
      * Performs the functionality to inform the callback and post bus events
      * that the DefaultControls visibility has changed
      */
-    private void onVisibilityChanged() {
+    protected void onVisibilityChanged() {
         boolean handled = false;
         if (callback != null) {
             if (isVisible) {
@@ -523,7 +586,7 @@ public class DefaultControls extends RelativeLayout {
      *
      * @param toVisible True if the view should be visible at the end of the animation
      */
-    private void animateVisibility(boolean toVisible) {
+    protected void animateVisibility(boolean toVisible) {
         if (isVisible == toVisible) {
             return;
         }
@@ -538,57 +601,5 @@ public class DefaultControls extends RelativeLayout {
 
         isVisible = toVisible;
         onVisibilityChanged();
-    }
-
-    /**
-     * Listens to the seek bar change events and correctly handles the changes
-     */
-    private class SeekBarChanged implements SeekBar.OnSeekBarChangeListener {
-        private int seekToTime;
-
-        @Override
-        public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-            if (!fromUser) {
-                return;
-            }
-
-            seekToTime = progress;
-            if (seekCallbacks != null && seekCallbacks.onSeekStarted()) {
-                return;
-            }
-
-            if (currentTime != null) {
-                currentTime.setText(TimeFormatUtil.formatMs(progress));
-            }
-        }
-
-        @Override
-        public void onStartTrackingTouch(SeekBar seekBar) {
-            userInteracting = true;
-
-            if (videoView.isPlaying()) {
-                pausedForSeek = true;
-                videoView.pause();
-            }
-
-            //Make sure to keep the controls visible during seek
-            show();
-        }
-
-        @Override
-        public void onStopTrackingTouch(SeekBar seekBar) {
-            userInteracting = false;
-            if (seekCallbacks != null && seekCallbacks.onSeekEnded(seekToTime)) {
-                return;
-            }
-
-            videoView.seekTo(seekToTime);
-
-            if (pausedForSeek) {
-                pausedForSeek = false;
-                videoView.start();
-                hideDelayed(hideDelay);
-            }
-        }
     }
 }

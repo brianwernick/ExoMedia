@@ -23,17 +23,6 @@ public class VideoPlayerActivity extends Activity implements MediaPlayer.OnPrepa
         //For now we just picked an arbitrary item to play.  More can be found at
         //https://archive.org/details/more_animation
         emVideoView.setVideoURI(Uri.parse("https://archive.org/download/Popeye_forPresident/Popeye_forPresident_512kb.mp4"));
-//        emVideoView.setVideoURI(Uri.parse("http://cdn-fms.rbs.com.br/vod/hls_sample1_manifest.m3u8"));
-
-        emVideoView.setPreviousButtonRemoved(false);
-        emVideoView.setRewindButtonRemoved(false);
-        emVideoView.setFastForwardButtonRemoved(false);
-        emVideoView.setNextButtonRemoved(false);
-
-        emVideoView.setPreviousButtonEnabled(true);
-        emVideoView.setRewindButtonEnabled(true);
-        emVideoView.setFastForwardButtonEnabled(true);
-        emVideoView.setNextButtonEnabled(true);
     }
 
     @Override

@@ -170,7 +170,7 @@ public class DefaultControlsLeanback extends DefaultControls {
      * Sets the button state for the Rewind button.  This will just
      * change the images specified with {@link #setRewindImageResource(int)},
      * or use the defaults if they haven't been set
-     * </p>
+     * <p>
      * This method will NOT re-add buttons that have previously been removed with
      * {@link #setRewindButtonRemoved(boolean)}.
      *
@@ -187,7 +187,7 @@ public class DefaultControlsLeanback extends DefaultControls {
      * Sets the button state for the Fast Forward button.  This will just
      * change the images specified with {@link #setFastForwardImageResource(int)},
      * or use the defaults if they haven't been set
-     * </p>
+     * <p>
      * This method will NOT re-add buttons that have previously been removed with
      * {@link #setFastForwardButtonRemoved(boolean)}.
      *

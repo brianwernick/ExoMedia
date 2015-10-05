@@ -537,10 +537,10 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
      * Sets the button state for the Rewind button on the default controls; see
      * {@link #setDefaultControlsEnabled(boolean)}.
      * {@link #setDefaultControlsEnabled(boolean)} must be called prior to this.
-     * <p/>
+     * <p>
      * This will just change the images specified with {@link #setRewindImageResource(int)},
      * or use the defaults if they haven't been set, and block any click events.
-     * </p>
+     * <p>
      * This method will NOT re-add buttons that have previously been removed with
      * {@link #setRewindButtonRemoved(boolean)}.
      *
@@ -556,10 +556,10 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
      * Sets the button state for the Fast Forward button on the default controls; see
      * {@link #setDefaultControlsEnabled(boolean)}.
      * {@link #setDefaultControlsEnabled(boolean)} must be called prior to this.
-     * <p/>
+     * <p>
      * This will just change the images specified with {@link #setFastForwardImageResource(int)},
      * or use the defaults if they haven't been set, and block any click events.
-     * </p>
+     * <p>
      * This method will NOT re-add buttons that have previously been removed with
      * {@link #setFastForwardButtonRemoved(boolean)}.
      *

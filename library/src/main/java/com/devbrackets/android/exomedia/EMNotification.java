@@ -63,7 +63,7 @@ public class EMNotification {
      * Sets weather notifications are shown when audio is playing or
      * ready for playback (e.g. paused).  The notification information
      * will need to be updated by calling {@link #setNotificationBaseInformation(int, int)}
-     * and {@link #updateNotificationInformation(String, String, Bitmap, Bitmap)} and can be retrieved
+     * and {@link #updateNotificationInformation(String, String, String, Bitmap, Bitmap)} and can be retrieved
      * with {@link #getNotification(android.app.PendingIntent)}
      *
      * @param enabled True if notifications should be shown
@@ -117,13 +117,15 @@ public class EMNotification {
      * Sets the volatile information for the notification.  This information is expected to
      * change frequently.
      *
-     * @param title The title to display for the notification (e.g. A song name)
-     * @param content A short description or additional information for the notification (e.g. An artists name)
+     * @param title The title to display on the notification (e.g. A song name)
+     * @param album The album to display on the notification.  This is the second row of text displayed
+     * @param artist The artist to display on the notification.  This is the third row of text displayed
      * @param notificationImage An image to display on the notification (e.g. Album artwork)
      * @param secondaryNotificationImage An image to display on the notification should be used to indicate playback type (e.g. Chromecast)
      */
-    public void updateNotificationInformation(String title, String content, @Nullable Bitmap notificationImage, @Nullable Bitmap secondaryNotificationImage) {
-        updateNotificationInformation(title, content, notificationImage, secondaryNotificationImage, null);
+    public void updateNotificationInformation(@Nullable String title, @Nullable String album, @Nullable String artist, @Nullable Bitmap notificationImage,
+                                              @Nullable Bitmap secondaryNotificationImage) {
+        updateNotificationInformation(title, album, artist, notificationImage, secondaryNotificationImage, null);
     }
 
     /**
@@ -139,16 +141,18 @@ public class EMNotification {
      * Sets the volatile information for the notification.  This information is expected to
      * change frequently.
      *
-     * @param title The title to display for the notification (e.g. A song name)
-     * @param content A short description or additional information for the notification (e.g. An artists name)
+     * @param title The title to display on the notification (e.g. A song name)
+     * @param album The album to display on the notification.  This is the second row of text displayed
+     * @param artist The artist to display on the notification.  This is the third row of text displayed
      * @param notificationImage An image to display on the notification (e.g. Album artwork)
      * @param secondaryNotificationImage An image to display on the notification should be used to indicate playback type (e.g. Chromecast)
      * @param notificationMediaState The current media state for the expanded (big) notification
      */
-    public void updateNotificationInformation(String title, String content, @Nullable Bitmap notificationImage, @Nullable Bitmap secondaryNotificationImage,
-                                              @Nullable NotificationMediaState notificationMediaState) {
+    public void updateNotificationInformation(@Nullable String title, @Nullable String album, @Nullable String artist, @Nullable Bitmap notificationImage,
+                                              @Nullable Bitmap secondaryNotificationImage, @Nullable NotificationMediaState notificationMediaState) {
         notificationInfo.setTitle(title);
-        notificationInfo.setContent(content);
+        notificationInfo.setAlbum(album);
+        notificationInfo.setArtist(artist);
         notificationInfo.setLargeImage(notificationImage);
         notificationInfo.setSecondaryImage(secondaryNotificationImage);
         notificationInfo.setMediaState(notificationMediaState);
@@ -161,7 +165,7 @@ public class EMNotification {
     /**
      * Returns a fully constructed notification to use when moving a service to the
      * foreground.  This should be called after the notification information is set with
-     * {@link #setNotificationBaseInformation(int, int)} and {@link #updateNotificationInformation(String, String, Bitmap, Bitmap)}.
+     * {@link #setNotificationBaseInformation(int, int)} and {@link #updateNotificationInformation(String, String, String, Bitmap, Bitmap)}.
      *
      * @param pendingIntent The pending intent to use when the notification itself is clicked
      * @return The constructed notification
@@ -216,7 +220,8 @@ public class EMNotification {
         }
 
         customNotification.setTextViewText(R.id.exomedia_notification_title, notificationInfo.getTitle());
-        customNotification.setTextViewText(R.id.exomedia_notification_content_text, notificationInfo.getContent());
+        customNotification.setTextViewText(R.id.exomedia_notification_album, notificationInfo.getAlbum());
+        customNotification.setTextViewText(R.id.exomedia_notification_artist, notificationInfo.getArtist());
         customNotification.setBitmap(R.id.exomedia_notification_large_image, "setImageBitmap", notificationInfo.getLargeImage());
 
         if (notificationInfo.getMediaState() != null) {
@@ -242,7 +247,8 @@ public class EMNotification {
         }
 
         bigContent.setTextViewText(R.id.exomedia_big_notification_title, notificationInfo.getTitle());
-        bigContent.setTextViewText(R.id.exomedia_big_notification_content_text, notificationInfo.getContent());
+        bigContent.setTextViewText(R.id.exomedia_big_notification_album, notificationInfo.getAlbum());
+        bigContent.setTextViewText(R.id.exomedia_big_notification_artist, notificationInfo.getArtist());
         bigContent.setBitmap(R.id.exomedia_big_notification_large_image, "setImageBitmap", notificationInfo.getLargeImage());
         bigContent.setBitmap(R.id.exomedia_big_notification_secondary_image, "setImageBitmap", notificationInfo.getSecondaryImage());
 

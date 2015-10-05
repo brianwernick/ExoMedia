@@ -85,7 +85,7 @@ public class AudioPlayerActivity extends AppCompatActivity implements EMPlaylist
     }
 
     @Override
-    public boolean onPlaylistItemChanged(EMPlaylistManager.PlaylistItem currentItem, EMPlaylistManager.MediaType mediaType, boolean hasNext, boolean hasPrevious) {
+    public boolean onPlaylistItemChanged(EMPlaylistManager.PlaylistItem currentItem, boolean hasNext, boolean hasPrevious) {
         shouldSetDuration = true;
 
         //Updates the button states
@@ -147,7 +147,7 @@ public class AudioPlayerActivity extends AppCompatActivity implements EMPlaylist
     private void updateCurrentPlaybackInformation() {
         EMPlaylistItemChangedEvent itemChangedEvent = playlistManager.getCurrentItemChangedEvent();
         if (itemChangedEvent != null) {
-            onPlaylistItemChanged(itemChangedEvent.getCurrentItem(), itemChangedEvent.getMediaType(), itemChangedEvent.hasNext(), itemChangedEvent.hasPrevious());
+            onPlaylistItemChanged(itemChangedEvent.getCurrentItem(), itemChangedEvent.hasNext(), itemChangedEvent.hasPrevious());
         }
 
         EMPlaylistService.MediaState currentMediaState = playlistManager.getCurrentMediaState();

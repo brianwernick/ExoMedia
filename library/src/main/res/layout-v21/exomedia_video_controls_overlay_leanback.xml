@@ -17,11 +17,14 @@
 
         <ProgressBar
             android:id="@+id/exomedia_controls_video_progress"
-            style="?android:progressBarStyleHorizontal"
+            style="?android:attr/progressBarStyleHorizontal"
             android:layout_width="match_parent"
             android:layout_height="4dp"
+            android:indeterminate="false"
+            android:layoutDirection="ltr"
             android:maxHeight="4dp"
             android:minHeight="4dp"
+            android:progressDrawable="@drawable/leanback_progress_horizontal"
             tools:max="100"
             tools:progress="70"
             tools:secondaryProgress="93"/>

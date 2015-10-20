@@ -107,7 +107,7 @@ public class EMResourceUtil {
      * @return The resource id pointing to the de-referenced attribute
      */
     @AnyRes
-    public int getResolvedResourceId(Context context, @AttrRes int attr) {
+    public static int getResolvedResourceId(Context context, @AttrRes int attr) {
         TypedValue typedValue = new TypedValue();
         Resources.Theme theme = context.getTheme();
         theme.resolveAttribute(attr, typedValue, true);

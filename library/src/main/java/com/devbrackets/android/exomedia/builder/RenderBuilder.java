@@ -81,8 +81,8 @@ public class RenderBuilder {
                allocator, BUFFER_SEGMENT_SIZE * BUFFER_SEGMENTS, getExtractor(uri, requestedDefaultType));
 
         //Create the Renderers
-        MediaCodecVideoTrackRenderer videoRenderer = new MediaCodecVideoTrackRenderer(sampleSource, null, true, MediaCodec.VIDEO_SCALING_MODE_SCALE_TO_FIT,
-                MAX_JOIN_TIME, null, player.getMainHandler(), player, DROPPED_FRAME_NOTIFICATION_AMOUNT);
+        MediaCodecVideoTrackRenderer videoRenderer = new MediaCodecVideoTrackRenderer(context, sampleSource, MediaCodec.VIDEO_SCALING_MODE_SCALE_TO_FIT,
+                MAX_JOIN_TIME, null, true, player.getMainHandler(), player, DROPPED_FRAME_NOTIFICATION_AMOUNT);
 
         EMMediaCodecAudioTrackRenderer audioRenderer = new EMMediaCodecAudioTrackRenderer(sampleSource, null, true, player.getMainHandler(), player);
 

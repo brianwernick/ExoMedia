@@ -332,6 +332,20 @@ public class EMAudioPlayer implements AudioCapabilitiesReceiver.Listener {
         }
     }
 
+    /**
+     * Set the low-level power management behavior for this EMAudioPlayer.
+     *
+     * <p>This function has the EMAudioPlayer access the low-level power manager
+     * service to control the device's power usage while playing is occurring.
+     * The parameter is a combination of {@link android.os.PowerManager} wake flags.
+     * Use of this method requires {@link android.Manifest.permission#WAKE_LOCK}
+     * permission.
+     * By default, no attempt is made to keep the device awake during playback.
+     *
+     * @param context the Context to use
+     * @param mode    the power/wake mode to set
+     * @see android.os.PowerManager
+     */
     public void setWakeMode(Context context, int mode) {
         if (!useExo) {
             mediaPlayer.setWakeMode(context, mode);

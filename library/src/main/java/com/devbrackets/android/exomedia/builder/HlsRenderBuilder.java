@@ -102,7 +102,7 @@ public class HlsRenderBuilder extends RenderBuilder implements ManifestCallback<
                 BUFFER_SEGMENTS * BUFFER_SEGMENT_SIZE, player.getMainHandler(), player, EMExoPlayer.RENDER_VIDEO_INDEX);
 
         //Create the renderers
-        MediaCodecVideoTrackRenderer videoRenderer = new MediaCodecVideoTrackRenderer(sampleSource,
+        MediaCodecVideoTrackRenderer videoRenderer = new MediaCodecVideoTrackRenderer(context, sampleSource,
                 MediaCodec.VIDEO_SCALING_MODE_SCALE_TO_FIT, MAX_JOIN_TIME, player.getMainHandler(), player, DROPPED_FRAME_NOTIFICATION_AMOUNT);
 
         MediaCodecAudioTrackRenderer audioRenderer = new MediaCodecAudioTrackRenderer(sampleSource);

@@ -30,6 +30,7 @@ public class EMResourceUtil {
      */
     public static Drawable tint(Context context, @DrawableRes int drawableRes, @ColorRes int colorRes) {
         Drawable drawable = getDrawable(context, drawableRes);
+        drawable = drawable.mutate();
         return tint(context, drawable, colorRes);
     }
 
@@ -62,6 +63,7 @@ public class EMResourceUtil {
      */
     public static Drawable tintList(Context context, @DrawableRes int drawableRes, @ColorRes int tintListRes) {
         Drawable drawable = getDrawable(context, drawableRes);
+        drawable = drawable.mutate();
         return tintList(context, drawable, tintListRes);
     }
 

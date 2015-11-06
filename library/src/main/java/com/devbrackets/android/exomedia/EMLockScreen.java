@@ -117,6 +117,7 @@ public class EMLockScreen {
      * @param artist The name of the artist for the media item
      * @param notificationMediaState The current media state for the expanded (big) notification
      */
+    @SuppressWarnings("ResourceType") //getPlaybackOptions() and getPlaybackState() return the correctly annotated items
     public void updateLockScreenInformation(String title, String album, String artist, Bitmap mediaArtwork, EMNotification.NotificationMediaState notificationMediaState) {
         //Updates the current media MetaData
         MediaMetadataCompat.Builder metaDataBuilder = new MediaMetadataCompat.Builder();
@@ -153,6 +154,7 @@ public class EMLockScreen {
         return PendingIntent.getBroadcast(context, 0, mediaButtonIntent, PendingIntent.FLAG_CANCEL_CURRENT);
     }
 
+    @PlaybackStateCompat.State
     private int getPlaybackState(boolean isPlaying) {
         return isPlaying ? PlaybackStateCompat.STATE_PLAYING : PlaybackStateCompat.STATE_PAUSED;
     }
@@ -163,6 +165,7 @@ public class EMLockScreen {
      * @param mediaState The current media playback state
      * @return The available playback options
      */
+    @PlaybackStateCompat.Actions
     private long getPlaybackOptions(EMNotification.NotificationMediaState mediaState) {
         long availableActions = PlaybackStateCompat.ACTION_PLAY | PlaybackStateCompat.ACTION_PAUSE | PlaybackStateCompat.ACTION_PLAY_PAUSE;
 

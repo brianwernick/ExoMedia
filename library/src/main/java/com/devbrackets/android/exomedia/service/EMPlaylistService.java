@@ -851,7 +851,7 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
      * Sets up the service as a Foreground service only if we aren't already registered as such
      */
     protected void setupForeground() {
-        if (!foregroundSetup) {
+        if (!foregroundSetup && notificationSetup) {
             foregroundSetup = true;
             startForeground(getNotificationId(), notificationHelper.getNotification(getNotificationClickPendingIntent()));
         }
@@ -1082,8 +1082,8 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
         notificationHelper.setNotificationBaseInformation(getNotificationId(), getNotificationIconRes(), getClass());
 
         //Starts the service as the foreground audio player
-        setupForeground();
         notificationSetup = true;
+        setupForeground();
 
         updateLockScreen();
         updateNotification();

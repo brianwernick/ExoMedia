@@ -19,7 +19,6 @@ package com.devbrackets.android.exomedia.exoplayer;
 
 import android.content.Context;
 import android.media.MediaCodec;
-import android.media.MediaPlayer;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.PowerManager;
@@ -27,11 +26,11 @@ import android.support.annotation.Nullable;
 import android.view.Surface;
 
 import com.devbrackets.android.exomedia.builder.RenderBuilder;
+import com.devbrackets.android.exomedia.listener.CaptionListener;
 import com.devbrackets.android.exomedia.listener.ExoPlayerListener;
 import com.devbrackets.android.exomedia.listener.Id3MetadataListener;
 import com.devbrackets.android.exomedia.listener.InfoListener;
 import com.devbrackets.android.exomedia.listener.InternalErrorListener;
-import com.devbrackets.android.exomedia.listener.CaptionListener;
 import com.devbrackets.android.exomedia.renderer.EMMediaCodecAudioTrackRenderer;
 import com.google.android.exoplayer.DummyTrackRenderer;
 import com.google.android.exoplayer.ExoPlaybackException;
@@ -254,6 +253,7 @@ public class EMExoPlayer implements
 
     public void setPlayWhenReady(boolean playWhenReady) {
         player.setPlayWhenReady(playWhenReady);
+        stayAwake(playWhenReady);
     }
 
     public void seekTo(long positionMs) {
@@ -268,6 +268,7 @@ public class EMExoPlayer implements
         rendererBuildingState = RenderBuildingState.IDLE;
         surface = null;
         player.release();
+        stayAwake(false);
     }
 
     public int getPlaybackState() {
@@ -333,10 +334,27 @@ public class EMExoPlayer implements
         }
 
         PowerManager pm = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
-        wakeLock = pm.newWakeLock(mode | PowerManager.ON_AFTER_RELEASE, MediaPlayer.class.getName());
+        wakeLock = pm.newWakeLock(mode | PowerManager.ON_AFTER_RELEASE, EMExoPlayer.class.getName());
         wakeLock.setReferenceCounted(false);
         if (wasHeld) {
             wakeLock.acquire();
+        }
+    }
+
+    /**
+     * Used with playback state changes to correctly acquire and
+     * release the wakelock if the user has enabled it with {@link #setWakeMode(Context, int)}.
+     * If the {@link #wakeLock} is null then no action will be performed.
+     *
+     * @param awake True if the wakelock should be acquired
+     */
+    protected void stayAwake(boolean awake) {
+        if (wakeLock != null) {
+            if (awake && !wakeLock.isHeld()) {
+                wakeLock.acquire();
+            } else if (!awake && wakeLock.isHeld()) {
+                wakeLock.release();
+            }
         }
     }
 

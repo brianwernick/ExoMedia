@@ -108,6 +108,7 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
 
     private EMListenerMux listenerMux;
     private boolean playRequested = false;
+    private boolean releaseOnDetachFromWindow = true;
 
     @Nullable
     private EMEventBus bus;
@@ -254,18 +255,10 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
     @Override
     protected void onDetachedFromWindow() {
         super.onDetachedFromWindow();
+        pause();
 
-        defaultControls = null;
-        stopPlayback();
-        overriddenPositionStopWatch.stop();
-
-        if (emExoPlayer != null) {
-            emExoPlayer.release();
-        }
-
-        if (audioCapabilitiesReceiver != null) {
-            audioCapabilitiesReceiver.unregister();
-            audioCapabilitiesReceiver = null;
+        if (releaseOnDetachFromWindow) {
+            release();
         }
     }
 
@@ -292,6 +285,40 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
     public void onAudioCapabilitiesChanged(AudioCapabilities audioCapabilities) {
         if (!audioCapabilities.equals(this.audioCapabilities)) {
             this.audioCapabilities = audioCapabilities;
+        }
+    }
+
+    /**
+     * <b><em>WARNING:</em></b> Use of this method may cause memory leaks.
+     * <p>
+     * Enables or disables the automatic release when the EMVideoView is detached
+     * from the window.  Normally this is expected to release all resources used
+     * by calling {@link #release()}.  If <code>releaseOnDetach</code> is disabled
+     * then {@link #release()} will need to be manually called.
+     *
+     * @param releaseOnDetach False to disable the automatic release in {@link #onDetachedFromWindow()}
+     */
+    public void setReleaseOnDetachFromWindow(boolean releaseOnDetach) {
+        this.releaseOnDetachFromWindow = releaseOnDetach;
+    }
+
+    /**
+     * Stops the playback and releases all resources attached to this
+     * EMVideoView.  This should not be called manually unless
+     * {@link #setReleaseOnDetachFromWindow(boolean)} has been set.
+     */
+    public void release() {
+        defaultControls = null;
+        stopPlayback();
+        overriddenPositionStopWatch.stop();
+
+        if (emExoPlayer != null) {
+            emExoPlayer.release();
+        }
+
+        if (audioCapabilitiesReceiver != null) {
+            audioCapabilitiesReceiver.unregister();
+            audioCapabilitiesReceiver = null;
         }
     }
 

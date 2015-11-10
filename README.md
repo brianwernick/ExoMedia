@@ -102,4 +102,4 @@ under [Attribution 4.0 International][2]
  [2]: http://creativecommons.org/licenses/by/4.0/
  [3]: https://bintray.com/brianwernick/maven/ExoMedia/view#files
  [4]: http://devbrackets.com/dev/libs/exomedia.html
- [5]: http://devbrackets.com/dev/libs/docs/exomedia/2.4.0/index.html
+ [5]: http://devbrackets.com/dev/libs/docs/exomedia/2.4.1/index.html

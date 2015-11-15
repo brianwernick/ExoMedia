@@ -22,10 +22,12 @@
         </activity>
         <activity
             android:name=".ui.activity.VideoPlayerActivity"
+            android:configChanges="orientation|keyboardHidden|screenSize"
             android:label="@string/title_activity_video_player">
         </activity>
         <activity
             android:name=".ui.activity.FullScreenVideoPlayerActivity"
+            android:configChanges="orientation|keyboardHidden|screenSize"
             android:label="@string/title_activity_video_player">
         </activity>
         <activity

@@ -1094,7 +1094,7 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
      * associated with the current playlist item.
      */
     protected void updateNotification() {
-        if (currentPlaylistItem == null || !notificationSetup) {
+        if (currentPlaylistItem == null || !notificationSetup || notificationHelper == null) {
             return;
         }
 
@@ -1128,7 +1128,7 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
      * (artwork) image displayed on the lock screen.
      */
     protected void updateLockScreen() {
-        if (currentPlaylistItem == null || !notificationSetup) {
+        if (currentPlaylistItem == null || !notificationSetup || lockScreenHelper == null) {
             return;
         }
 

@@ -77,6 +77,8 @@ public class FitsSystemWindowRelativeLayout extends RelativeLayout {
         if (originalPadding == null) {
             originalPadding = new Rect(getPaddingLeft(), getPaddingTop(), getPaddingRight(), getPaddingBottom());
         }
+
+        updatePadding(new Rect());
     }
 
     /**

@@ -138,6 +138,42 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
         setup(context, attrs);
     }
 
+    @Override
+    protected void onDetachedFromWindow() {
+        super.onDetachedFromWindow();
+        pause();
+
+        if (releaseOnDetachFromWindow) {
+            release();
+        }
+    }
+
+    @Override
+    public void setOnTouchListener(OnTouchListener listener) {
+        if (exoVideoSurfaceView != null) {
+            exoVideoSurfaceView.setOnTouchListener(listener);
+        }
+
+        if (videoView != null) {
+            videoView.setOnTouchListener(listener);
+        }
+
+        //Sets the onTouch listener for the shutters
+        shutterLeft.setOnTouchListener(listener);
+        shutterRight.setOnTouchListener(listener);
+        shutterTop.setOnTouchListener(listener);
+        shutterBottom.setOnTouchListener(listener);
+
+        super.setOnTouchListener(listener);
+    }
+
+    @Override
+    public void onAudioCapabilitiesChanged(AudioCapabilities audioCapabilities) {
+        if (!audioCapabilities.equals(this.audioCapabilities)) {
+            this.audioCapabilities = audioCapabilities;
+        }
+    }
+
     private void setup(Context context, @Nullable AttributeSet attrs) {
         useExo = Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN && EMDeviceUtil.isDeviceCTSCompliant();
         pollRepeater.setRepeatListener(new Repeater.RepeatListener() {
@@ -249,42 +285,6 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
                 return new HlsRenderBuilder(getContext(), getUserAgent(), uri.toString());
             default:
                 return new RenderBuilder(getContext(), getUserAgent(), uri.toString(), defaultMediaType);
-        }
-    }
-
-    @Override
-    protected void onDetachedFromWindow() {
-        super.onDetachedFromWindow();
-        pause();
-
-        if (releaseOnDetachFromWindow) {
-            release();
-        }
-    }
-
-    @Override
-    public void setOnTouchListener(OnTouchListener listener) {
-        if (exoVideoSurfaceView != null) {
-            exoVideoSurfaceView.setOnTouchListener(listener);
-        }
-
-        if (videoView != null) {
-            videoView.setOnTouchListener(listener);
-        }
-
-        //Sets the onTouch listener for the shutters
-        shutterLeft.setOnTouchListener(listener);
-        shutterRight.setOnTouchListener(listener);
-        shutterTop.setOnTouchListener(listener);
-        shutterBottom.setOnTouchListener(listener);
-
-        super.setOnTouchListener(listener);
-    }
-
-    @Override
-    public void onAudioCapabilitiesChanged(AudioCapabilities audioCapabilities) {
-        if (!audioCapabilities.equals(this.audioCapabilities)) {
-            this.audioCapabilities = audioCapabilities;
         }
     }
 

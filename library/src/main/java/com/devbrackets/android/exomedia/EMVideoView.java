@@ -862,6 +862,8 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
 
         playRequested = true;
         startProgressPoll();
+
+        listenerMux.setNotifiedCompleted(false);
     }
 
     /**

@@ -147,6 +147,11 @@ class EMListenerMux implements ExoPlayerListener, MediaPlayer.OnPreparedListener
         for (ExoPlayerListener listener : exoPlayerListeners) {
             listener.onStateChanged(playWhenReady, playbackState);
         }
+
+        //Updates the previewImage
+        if (playbackState == ExoPlayer.STATE_READY && playWhenReady) {
+            muxNotifier.onPreviewImageStateChanged(false);
+        }
     }
 
     @Override
@@ -274,7 +279,6 @@ class EMListenerMux implements ExoPlayerListener, MediaPlayer.OnPreparedListener
 
     private void performPreparedHandlerNotification(MediaPlayer mediaPlayer) {
         muxNotifier.onPrepared();
-        muxNotifier.onPreviewImageStateChanged(false);
 
         if (preparedListener != null) {
             preparedListener.onPrepared(mediaPlayer);
@@ -321,7 +325,7 @@ class EMListenerMux implements ExoPlayerListener, MediaPlayer.OnPreparedListener
             //Purposefully left blank
         }
 
-        public void onPreviewImageStateChanged(boolean visible) {
+        public void onPreviewImageStateChanged(boolean toVisible) {
             //Purposefully left blank
         }
 

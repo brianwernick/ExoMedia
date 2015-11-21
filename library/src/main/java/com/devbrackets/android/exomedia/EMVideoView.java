@@ -1151,9 +1151,9 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
         }
 
         @Override
-        public void onPreviewImageStateChanged(boolean visible) {
+        public void onPreviewImageStateChanged(boolean toVisible) {
             if (previewImageView != null) {
-                previewImageView.setVisibility(visible ? View.INVISIBLE : View.GONE);
+                previewImageView.setVisibility(toVisible ? View.VISIBLE : View.GONE);
             }
         }
 

@@ -222,7 +222,9 @@ public class EMNotification {
         customNotification.setTextViewText(R.id.exomedia_notification_title, notificationInfo.getTitle());
         customNotification.setTextViewText(R.id.exomedia_notification_album, notificationInfo.getAlbum());
         customNotification.setTextViewText(R.id.exomedia_notification_artist, notificationInfo.getArtist());
-        customNotification.setBitmap(R.id.exomedia_notification_large_image, "setImageBitmap", notificationInfo.getLargeImage());
+        if (notificationInfo.getLargeImage() != null) {
+            customNotification.setBitmap(R.id.exomedia_notification_large_image, "setImageBitmap", notificationInfo.getLargeImage());
+        }
 
         if (notificationInfo.getMediaState() != null) {
             updateCustomNotificationMediaState(customNotification);

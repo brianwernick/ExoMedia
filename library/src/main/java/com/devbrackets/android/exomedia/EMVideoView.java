@@ -1122,26 +1122,6 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
             //Makes sure we have the correct aspect ratio
             float videoAspectRatio = height == 0 ? 1 : (width * pixelWidthHeightRatio) / height;
             exoVideoSurfaceView.setAspectRatio(videoAspectRatio);
-
-            //Sets the horizontal shutter (top and bottom) sizes
-            int shutterHeight = calculateVerticalShutterSize(height);
-            if (shutterTop != null) {
-                shutterTop.getLayoutParams().height = shutterHeight;
-            }
-
-            if (shutterBottom != null) {
-                shutterBottom.getLayoutParams().height = shutterHeight;
-            }
-
-            //Sets the vertical shutter (left and right) sizes
-            int shutterWidth = calculateSideShutterSize(videoAspectRatio);
-            if (shutterLeft != null) {
-                shutterLeft.getLayoutParams().width = shutterWidth;
-            }
-
-            if (shutterRight != null) {
-                shutterRight.getLayoutParams().width = shutterWidth;
-            }
         }
 
         @Override

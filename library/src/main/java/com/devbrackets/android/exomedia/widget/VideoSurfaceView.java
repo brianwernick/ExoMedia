@@ -73,12 +73,7 @@ public class VideoSurfaceView extends SurfaceView {
             return;
         }
 
-        if (aspectDeformation > 0) {
-            height = (int) (width / videoAspectRatio);
-        } else {
-            width = (int) (height * videoAspectRatio);
-        }
-
+        height = (int)(width / videoAspectRatio);
         super.onMeasure(MeasureSpec.makeMeasureSpec(width, MeasureSpec.EXACTLY), MeasureSpec.makeMeasureSpec(height, MeasureSpec.EXACTLY));
     }
 }

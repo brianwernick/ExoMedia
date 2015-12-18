@@ -446,6 +446,13 @@ public class EMExoPlayer implements
     }
 
     @Override
+    public void onAudioTrackUnderrun(int bufferSize, long bufferSizeMs, long elapsedSinceLastFeedMs) {
+        if (internalErrorListener != null) {
+            internalErrorListener.onAudioTrackUnderrun(bufferSize, bufferSizeMs, elapsedSinceLastFeedMs);
+        }
+    }
+
+    @Override
     public void onCryptoError(MediaCodec.CryptoException e) {
         if (internalErrorListener != null) {
             internalErrorListener.onCryptoError(e);

@@ -38,6 +38,8 @@ public interface InternalErrorListener {
 
     void onAudioTrackWriteError(AudioTrack.WriteException e);
 
+    void onAudioTrackUnderrun(int bufferSize, long bufferSizeMs, long elapsedSinceLastFeedMs);
+
     void onDecoderInitializationError(MediaCodecTrackRenderer.DecoderInitializationException e);
 
     void onCryptoError(MediaCodec.CryptoException e);

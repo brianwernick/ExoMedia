@@ -38,6 +38,7 @@ import android.widget.VideoView;
 import com.devbrackets.android.exomedia.builder.DashRenderBuilder;
 import com.devbrackets.android.exomedia.builder.HlsRenderBuilder;
 import com.devbrackets.android.exomedia.builder.RenderBuilder;
+import com.devbrackets.android.exomedia.builder.SmoothStreamingRenderBuilder;
 import com.devbrackets.android.exomedia.event.EMMediaProgressEvent;
 import com.devbrackets.android.exomedia.event.EMVideoViewClickedEvent;
 import com.devbrackets.android.exomedia.exoplayer.EMExoPlayer;
@@ -73,6 +74,7 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
     public enum VideoType {
         HLS,
         DASH,
+        SMOOTH_STREAM,
         DEFAULT;
 
         public static VideoType get(Uri uri) {
@@ -80,6 +82,8 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
                 return VideoType.HLS;
             } else if (uri.toString().matches(".*mpd.*")) {
                 return VideoType.DASH;
+            } else if (uri.toString().matches(".*ism.*")) {
+                return VideoType.SMOOTH_STREAM;
             }
 
             return VideoType.DEFAULT;
@@ -289,6 +293,8 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
                 return new HlsRenderBuilder(getContext(), getUserAgent(), uri.toString());
             case DASH:
                 return new DashRenderBuilder(getContext(), getUserAgent(), uri.toString());
+            case SMOOTH_STREAM:
+                return new SmoothStreamingRenderBuilder(getContext(), getUserAgent(), uri.toString());
             default:
                 return new RenderBuilder(getContext(), getUserAgent(), uri.toString(), defaultMediaType);
         }

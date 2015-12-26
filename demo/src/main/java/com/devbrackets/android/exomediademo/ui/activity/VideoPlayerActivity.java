@@ -23,6 +23,8 @@ public class VideoPlayerActivity extends Activity implements MediaPlayer.OnPrepa
         //For now we just picked an arbitrary item to play.  More can be found at
         //https://archive.org/details/more_animation
         emVideoView.setVideoURI(Uri.parse("https://archive.org/download/Popeye_forPresident/Popeye_forPresident_512kb.mp4"));
+//        emVideoView.setVideoURI(Uri.parse("http://bitlivedemo-a.akamaihd.net/mpds/stream.php?streamkey=bitcodin")); // MPEG DASH
+//        emVideoView.setVideoURI(Uri.parse("http://playertest.longtailvideo.com/adaptive/wowzaid3/playlist.m3u8")); // HLS
     }
 
     @Override

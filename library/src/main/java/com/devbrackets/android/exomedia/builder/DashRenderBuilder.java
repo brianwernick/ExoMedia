@@ -168,15 +168,16 @@ public class DashRenderBuilder extends RenderBuilder {
             DefaultBandwidthMeter bandwidthMeter = new DefaultBandwidthMeter(mainHandler, player);
 
             //Create the Sample Source to be used by the Video Renderer
-            DataSource dataSource = new DefaultUriDataSource(context, bandwidthMeter, userAgent, true);
-            ChunkSource chunkSourceVideo = new DashChunkSource(manifestFetcher, DefaultDashTrackSelector.newVideoInstance(context, true, false), dataSource,
-                    new AdaptiveEvaluator(bandwidthMeter), LIVE_EDGE_LATENCY_MS, elapsedRealtimeOffset, mainHandler, player);
+            DataSource dataSourceVideo = new DefaultUriDataSource(context, bandwidthMeter, userAgent, true);
+            ChunkSource chunkSourceVideo = new DashChunkSource(manifestFetcher, DefaultDashTrackSelector.newVideoInstance(context, true, false),
+                    dataSourceVideo, new AdaptiveEvaluator(bandwidthMeter), LIVE_EDGE_LATENCY_MS, elapsedRealtimeOffset, mainHandler, player);
             ChunkSampleSource sampleSourceVideo = new ChunkSampleSource(chunkSourceVideo, loadControl, BUFFER_SEGMENTS_VIDEO * BUFFER_SEGMENT_SIZE,
                     mainHandler, player, EMExoPlayer.RENDER_VIDEO_INDEX);
 
             //Create the Sample Source to be used by the Audio Renderer
-            ChunkSource chunkSourceAudio = new DashChunkSource(manifestFetcher, DefaultDashTrackSelector.newAudioInstance(), dataSource,
-                    null, LIVE_EDGE_LATENCY_MS, elapsedRealtimeOffset, mainHandler, player);
+            DataSource dataSourceAudio = new DefaultUriDataSource(context, bandwidthMeter, userAgent, true);
+            ChunkSource chunkSourceAudio = new DashChunkSource(manifestFetcher, DefaultDashTrackSelector.newAudioInstance(),
+                    dataSourceAudio, null, LIVE_EDGE_LATENCY_MS, elapsedRealtimeOffset, mainHandler, player);
             ChunkSampleSource sampleSourceAudio = new ChunkSampleSource(chunkSourceAudio, loadControl, BUFFER_SEGMENTS_AUDIO * BUFFER_SEGMENT_SIZE,
                     mainHandler, player, EMExoPlayer.RENDER_AUDIO_INDEX);
 

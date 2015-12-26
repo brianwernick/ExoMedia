@@ -10,6 +10,7 @@ import android.support.annotation.Nullable;
 public enum MediaSourceType {
     HLS(".*m3u8.*"),
     DASH(".*mpd.*"),
+    SMOOTH_STREAM(".*ism.*"),
     DEFAULT(null);
 
     @Nullable

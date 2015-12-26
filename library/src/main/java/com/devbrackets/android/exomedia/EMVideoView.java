@@ -745,10 +745,24 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
     /**
      * Sets the Uri location for the video to play
      *
-     * @param uri The video's Uri
+     * @param uri              The video's Uri
      * @param defaultMediaType The MediaType to use when auto-detection fails
      */
     public void setVideoURI(Uri uri, MediaUtil.MediaType defaultMediaType) {
+        RenderBuilder renderBuilder = null;
+        if(uri != null) {
+            renderBuilder = getRendererBuilder(VideoType.get(uri), uri, defaultMediaType);
+        }
+        setVideoURI(uri, renderBuilder);
+    }
+
+    /**
+     * Sets the Uri location for the video to play
+     *
+     * @param uri              The video's Uri
+     * @param renderBuilder    RenderBuilder that should be used
+     */
+    public void setVideoURI(Uri uri, RenderBuilder renderBuilder) {
         videoUri = uri;
 
         if (!useExo) {
@@ -757,7 +771,7 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
             if (uri == null) {
                 emExoPlayer.replaceRenderBuilder(null);
             } else {
-                emExoPlayer.replaceRenderBuilder(getRendererBuilder(VideoType.get(uri), uri, defaultMediaType));
+                emExoPlayer.replaceRenderBuilder(renderBuilder);
                 listenerMux.setNotifiedCompleted(false);
             }
 

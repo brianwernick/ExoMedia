@@ -23,12 +23,14 @@ import android.os.Build;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
+import com.devbrackets.android.exomedia.builder.DashRenderBuilder;
 import com.devbrackets.android.exomedia.builder.HlsRenderBuilder;
 import com.devbrackets.android.exomedia.builder.RenderBuilder;
 import com.devbrackets.android.exomedia.event.EMMediaProgressEvent;
 import com.devbrackets.android.exomedia.exoplayer.EMExoPlayer;
 import com.devbrackets.android.exomedia.listener.EMProgressCallback;
 import com.devbrackets.android.exomedia.listener.ExoPlayerListener;
+import com.devbrackets.android.exomedia.type.MediaSourceType;
 import com.devbrackets.android.exomedia.util.EMDeviceUtil;
 import com.devbrackets.android.exomedia.util.EMEventBus;
 import com.devbrackets.android.exomedia.util.MediaUtil;
@@ -49,19 +51,6 @@ import com.google.android.exoplayer.audio.AudioCapabilitiesReceiver;
 public class EMAudioPlayer implements AudioCapabilitiesReceiver.Listener {
     private static final String TAG = EMAudioPlayer.class.getSimpleName();
     private static final String USER_AGENT_FORMAT = "EMAudioPlayer %s / Android %s / %s";
-
-    public enum AudioType {
-        HLS,
-        DEFAULT;
-
-        public static AudioType get(Uri uri) {
-            if (uri.toString().matches(".*\\.m3u8.*")) {
-                return AudioType.HLS;
-            }
-
-            return AudioType.DEFAULT;
-        }
-    }
 
     private Context context;
     private MediaPlayer mediaPlayer;
@@ -219,10 +208,12 @@ public class EMAudioPlayer implements AudioCapabilitiesReceiver.Listener {
      * @param defaultMediaType  The MediaType to use when auto-detection fails
      * @return                  The appropriate RenderBuilder
      */
-    private RenderBuilder getRendererBuilder(AudioType renderType, Uri uri, MediaUtil.MediaType defaultMediaType) {
+    private RenderBuilder getRendererBuilder(MediaSourceType renderType, Uri uri, MediaUtil.MediaType defaultMediaType) {
         switch (renderType) {
             case HLS:
                 return new HlsRenderBuilder(context, getUserAgent(), uri.toString());
+            case DASH:
+                return new DashRenderBuilder(context, getUserAgent(), uri.toString());
             default:
                 return new RenderBuilder(context, getUserAgent(), uri.toString(), defaultMediaType);
         }
@@ -296,7 +287,7 @@ public class EMAudioPlayer implements AudioCapabilitiesReceiver.Listener {
             }
         } else {
             if (uri != null) {
-                emExoPlayer.replaceRenderBuilder(getRendererBuilder(AudioType.get(uri), uri, defaultMediaType));
+                emExoPlayer.replaceRenderBuilder(getRendererBuilder(MediaSourceType.get(uri), uri, defaultMediaType));
                 listenerMux.setNotifiedCompleted(false);
             } else {
                 emExoPlayer.replaceRenderBuilder(null);

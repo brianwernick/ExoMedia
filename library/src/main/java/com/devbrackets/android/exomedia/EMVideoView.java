@@ -44,6 +44,7 @@ import com.devbrackets.android.exomedia.exoplayer.EMExoPlayer;
 import com.devbrackets.android.exomedia.listener.EMProgressCallback;
 import com.devbrackets.android.exomedia.listener.EMVideoViewControlsCallback;
 import com.devbrackets.android.exomedia.listener.ExoPlayerListener;
+import com.devbrackets.android.exomedia.type.MediaSourceType;
 import com.devbrackets.android.exomedia.util.EMDeviceUtil;
 import com.devbrackets.android.exomedia.util.EMEventBus;
 import com.devbrackets.android.exomedia.util.MediaUtil;
@@ -69,22 +70,6 @@ import com.google.android.exoplayer.audio.AudioCapabilitiesReceiver;
 public class EMVideoView extends RelativeLayout implements AudioCapabilitiesReceiver.Listener {
     private static final String TAG = EMVideoView.class.getSimpleName();
     private static final String USER_AGENT_FORMAT = "EMVideoView %s / Android %s / %s";
-
-    public enum VideoType {
-        HLS,
-        DASH,
-        DEFAULT;
-
-        public static VideoType get(Uri uri) {
-            if (uri.toString().matches(".*m3u8.*")) {
-                return VideoType.HLS;
-            } else if (uri.toString().matches(".*mpd.*")) {
-                return VideoType.DASH;
-            }
-
-            return VideoType.DEFAULT;
-        }
-    }
 
     private View shutterTop;
     private View shutterBottom;
@@ -283,7 +268,7 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
      * @param defaultMediaType  The MediaType to use when auto-detection fails
      * @return The appropriate RenderBuilder
      */
-    private RenderBuilder getRendererBuilder(VideoType renderType, Uri uri, MediaUtil.MediaType defaultMediaType) {
+    private RenderBuilder getRendererBuilder(MediaSourceType renderType, Uri uri, MediaUtil.MediaType defaultMediaType) {
         switch (renderType) {
             case HLS:
                 return new HlsRenderBuilder(getContext(), getUserAgent(), uri.toString());
@@ -757,8 +742,9 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
     public void setVideoURI(Uri uri, MediaUtil.MediaType defaultMediaType) {
         RenderBuilder renderBuilder = null;
         if(uri != null) {
-            renderBuilder = getRendererBuilder(VideoType.get(uri), uri, defaultMediaType);
+            renderBuilder = getRendererBuilder(MediaSourceType.get(uri), uri, defaultMediaType);
         }
+
         setVideoURI(uri, renderBuilder);
     }
 

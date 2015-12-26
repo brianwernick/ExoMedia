@@ -35,6 +35,7 @@ import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.VideoView;
 
+import com.devbrackets.android.exomedia.builder.DashRenderBuilder;
 import com.devbrackets.android.exomedia.builder.HlsRenderBuilder;
 import com.devbrackets.android.exomedia.builder.RenderBuilder;
 import com.devbrackets.android.exomedia.event.EMMediaProgressEvent;
@@ -71,11 +72,14 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
 
     public enum VideoType {
         HLS,
+        DASH,
         DEFAULT;
 
         public static VideoType get(Uri uri) {
             if (uri.toString().matches(".*m3u8.*")) {
                 return VideoType.HLS;
+            } else if (uri.toString().matches(".*mpd.*")) {
+                return VideoType.DASH;
             }
 
             return VideoType.DEFAULT;
@@ -283,6 +287,8 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
         switch (renderType) {
             case HLS:
                 return new HlsRenderBuilder(getContext(), getUserAgent(), uri.toString());
+            case DASH:
+                return new DashRenderBuilder(getContext(), getUserAgent(), uri.toString());
             default:
                 return new RenderBuilder(getContext(), getUserAgent(), uri.toString(), defaultMediaType);
         }

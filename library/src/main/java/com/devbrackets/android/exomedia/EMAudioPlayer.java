@@ -269,7 +269,6 @@ public class EMAudioPlayer implements AudioCapabilitiesReceiver.Listener {
         setDataSource(context, uri, MediaUtil.MediaType.MP3);
     }
 
-
     /**
      * Sets the source path for the audio item.  This path can be a web address (e.g. http://) or
      * an absolute local path (e.g. file://)
@@ -279,6 +278,23 @@ public class EMAudioPlayer implements AudioCapabilitiesReceiver.Listener {
      * @param defaultMediaType The MediaType to use when auto-detection fails
      */
     public void setDataSource(Context context, Uri uri, MediaUtil.MediaType defaultMediaType) {
+        RenderBuilder builder = null;
+        if (uri != null) {
+            builder = getRendererBuilder(MediaSourceType.get(uri), uri, defaultMediaType);
+        }
+
+        setDataSource(context, uri, builder);
+    }
+
+    /**
+     * Sets the source path for the audio item.  This path can be a web address (e.g. http://) or
+     * an absolute local path (e.g. file://)
+     *
+     * @param context The applications context that owns the media
+     * @param uri The Uri representing the path to the audio item
+     * @param renderBuilder The RenderBuilder to use for audio playback
+     */
+    public void setDataSource(Context context, Uri uri, RenderBuilder renderBuilder) {
         if (!useExo) {
             try {
                 mediaPlayer.setDataSource(context, uri);
@@ -287,7 +303,7 @@ public class EMAudioPlayer implements AudioCapabilitiesReceiver.Listener {
             }
         } else {
             if (uri != null) {
-                emExoPlayer.replaceRenderBuilder(getRendererBuilder(MediaSourceType.get(uri), uri, defaultMediaType));
+                emExoPlayer.replaceRenderBuilder(renderBuilder);
                 listenerMux.setNotifiedCompleted(false);
             } else {
                 emExoPlayer.replaceRenderBuilder(null);

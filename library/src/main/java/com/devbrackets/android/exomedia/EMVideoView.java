@@ -740,12 +740,12 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
      * @param defaultMediaType The MediaType to use when auto-detection fails
      */
     public void setVideoURI(Uri uri, MediaUtil.MediaType defaultMediaType) {
-        RenderBuilder renderBuilder = null;
+        RenderBuilder builder = null;
         if(uri != null) {
-            renderBuilder = getRendererBuilder(MediaSourceType.get(uri), uri, defaultMediaType);
+            builder = getRendererBuilder(MediaSourceType.get(uri), uri, defaultMediaType);
         }
 
-        setVideoURI(uri, renderBuilder);
+        setVideoURI(uri, builder);
     }
 
     /**

@@ -16,8 +16,10 @@
  */
 package com.devbrackets.android.exomedia.builder;
 
+import android.annotation.TargetApi;
 import android.content.Context;
 import android.media.MediaCodec;
+import android.os.Build;
 import android.os.Handler;
 import android.util.Log;
 
@@ -38,8 +40,6 @@ import com.google.android.exoplayer.dash.mpd.MediaPresentationDescriptionParser;
 import com.google.android.exoplayer.dash.mpd.UtcTimingElement;
 import com.google.android.exoplayer.dash.mpd.UtcTimingElementResolver;
 import com.google.android.exoplayer.dash.mpd.UtcTimingElementResolver.UtcTimingCallback;
-import com.google.android.exoplayer.drm.StreamingDrmSessionManager;
-import com.google.android.exoplayer.text.TextTrackRenderer;
 import com.google.android.exoplayer.upstream.DataSource;
 import com.google.android.exoplayer.upstream.DefaultAllocator;
 import com.google.android.exoplayer.upstream.DefaultBandwidthMeter;
@@ -53,19 +53,15 @@ import java.io.IOException;
  * A RenderBuilder for parsing and creating the renderers for
  * DASH streams.
  */
+@TargetApi(Build.VERSION_CODES.JELLY_BEAN)
 public class DashRenderBuilder extends RenderBuilder {
-
     private static final String TAG = "DashRendererBuilder";
 
     private static final int BUFFER_SEGMENT_SIZE = 64 * 1024;
-    private static final int VIDEO_BUFFER_SEGMENTS = 200;
-    private static final int AUDIO_BUFFER_SEGMENTS = 54;
-    private static final int TEXT_BUFFER_SEGMENTS = 2;
+    private static final int BUFFER_SEGMENTS_VIDEO = 200;
+    private static final int BUFFER_SEGMENTS_AUDIO = 54;
     private static final int LIVE_EDGE_LATENCY_MS = 30000;
 
-    private static final int SECURITY_LEVEL_UNKNOWN = -1;
-    private static final int SECURITY_LEVEL_1 = 1;
-    private static final int SECURITY_LEVEL_3 = 3;
 
     private final Context context;
     private final String userAgent;
@@ -75,6 +71,7 @@ public class DashRenderBuilder extends RenderBuilder {
 
     public DashRenderBuilder(Context context, String userAgent, String url) {
         super(context, userAgent, url);
+
         this.context = context;
         this.userAgent = userAgent;
         this.url = url;
@@ -94,9 +91,7 @@ public class DashRenderBuilder extends RenderBuilder {
         }
     }
 
-    private static final class AsyncRendererBuilder
-            implements ManifestFetcher.ManifestCallback<MediaPresentationDescription>, UtcTimingCallback {
-
+    private static final class AsyncRendererBuilder implements ManifestFetcher.ManifestCallback<MediaPresentationDescription>, UtcTimingCallback {
         private final Context context;
         private final String userAgent;
         private final EMExoPlayer player;
@@ -110,6 +105,7 @@ public class DashRenderBuilder extends RenderBuilder {
             this.context = context;
             this.userAgent = userAgent;
             this.player = player;
+
             MediaPresentationDescriptionParser parser = new MediaPresentationDescriptionParser();
             manifestDataSource = new DefaultUriDataSource(context, userAgent);
             manifestFetcher = new ManifestFetcher<>(url, manifestDataSource, parser);
@@ -130,8 +126,7 @@ public class DashRenderBuilder extends RenderBuilder {
             }
 
             if (manifest.dynamic && manifest.utcTiming != null) {
-                UtcTimingElementResolver.resolveTimingElement(manifestDataSource, manifest.utcTiming,
-                        manifestFetcher.getManifestLoadCompleteTimestamp(), this);
+                UtcTimingElementResolver.resolveTimingElement(manifestDataSource, manifest.utcTiming, manifestFetcher.getManifestLoadCompleteTimestamp(), this);
             } else {
                 buildRenderers();
             }
@@ -172,55 +167,31 @@ public class DashRenderBuilder extends RenderBuilder {
             LoadControl loadControl = new DefaultLoadControl(new DefaultAllocator(BUFFER_SEGMENT_SIZE));
             DefaultBandwidthMeter bandwidthMeter = new DefaultBandwidthMeter(mainHandler, player);
 
-            // Build the video renderer.
-            DataSource videoDataSource = new DefaultUriDataSource(context, bandwidthMeter, userAgent);
-            ChunkSource videoChunkSource = new DashChunkSource(manifestFetcher,
-                    DefaultDashTrackSelector.newVideoInstance(context, true, false),
-                    videoDataSource, new AdaptiveEvaluator(bandwidthMeter), LIVE_EDGE_LATENCY_MS,
-                    elapsedRealtimeOffset, mainHandler, player);
-            ChunkSampleSource videoSampleSource = new ChunkSampleSource(videoChunkSource, loadControl,
-                    VIDEO_BUFFER_SEGMENTS * BUFFER_SEGMENT_SIZE, mainHandler, player,
-                    EMExoPlayer.RENDER_VIDEO_INDEX);
-            TrackRenderer videoRenderer = new MediaCodecVideoTrackRenderer(context, videoSampleSource,
-                    MediaCodec.VIDEO_SCALING_MODE_SCALE_TO_FIT, 5000, null, true,
-                    mainHandler, player, 50);
+            //Create the Sample Source to be used by the Video Renderer
+            DataSource dataSource = new DefaultUriDataSource(context, bandwidthMeter, userAgent, true);
+            ChunkSource chunkSourceVideo = new DashChunkSource(manifestFetcher, DefaultDashTrackSelector.newVideoInstance(context, true, false), dataSource,
+                    new AdaptiveEvaluator(bandwidthMeter), LIVE_EDGE_LATENCY_MS, elapsedRealtimeOffset, mainHandler, player);
+            ChunkSampleSource sampleSourceVideo = new ChunkSampleSource(chunkSourceVideo, loadControl, BUFFER_SEGMENTS_VIDEO * BUFFER_SEGMENT_SIZE,
+                    mainHandler, player, EMExoPlayer.RENDER_VIDEO_INDEX);
 
-            // Build the audio renderer.
-            DataSource audioDataSource = new DefaultUriDataSource(context, bandwidthMeter, userAgent);
-            ChunkSource audioChunkSource = new DashChunkSource(manifestFetcher,
-                    DefaultDashTrackSelector.newAudioInstance(), audioDataSource, null, LIVE_EDGE_LATENCY_MS,
-                    elapsedRealtimeOffset, mainHandler, player);
-            ChunkSampleSource audioSampleSource = new ChunkSampleSource(audioChunkSource, loadControl,
-                    AUDIO_BUFFER_SEGMENTS * BUFFER_SEGMENT_SIZE, mainHandler, player,
-                    EMExoPlayer.RENDER_AUDIO_INDEX);
-            TrackRenderer audioRenderer = new MediaCodecAudioTrackRenderer(audioSampleSource,
+            //Create the Sample Source to be used by the Audio Renderer
+            ChunkSource chunkSourceAudio = new DashChunkSource(manifestFetcher, DefaultDashTrackSelector.newAudioInstance(), dataSource,
+                    null, LIVE_EDGE_LATENCY_MS, elapsedRealtimeOffset, mainHandler, player);
+            ChunkSampleSource sampleSourceAudio = new ChunkSampleSource(chunkSourceAudio, loadControl, BUFFER_SEGMENTS_AUDIO * BUFFER_SEGMENT_SIZE,
+                    mainHandler, player, EMExoPlayer.RENDER_AUDIO_INDEX);
+
+            //Create the renderers
+            MediaCodecVideoTrackRenderer videoRenderer = new MediaCodecVideoTrackRenderer(context, sampleSourceVideo,
+                    MediaCodec.VIDEO_SCALING_MODE_SCALE_TO_FIT, MAX_JOIN_TIME, mainHandler, player, DROPPED_FRAME_NOTIFICATION_AMOUNT);
+            MediaCodecAudioTrackRenderer audioRenderer = new MediaCodecAudioTrackRenderer(sampleSourceAudio,
                     null, true, mainHandler, player, AudioCapabilities.getCapabilities(context));
 
-            // Build the text renderer.
-            DataSource textDataSource = new DefaultUriDataSource(context, bandwidthMeter, userAgent);
-            ChunkSource textChunkSource = new DashChunkSource(manifestFetcher,
-                    DefaultDashTrackSelector.newTextInstance(), textDataSource, null, LIVE_EDGE_LATENCY_MS,
-                    elapsedRealtimeOffset, mainHandler, player);
-            ChunkSampleSource textSampleSource = new ChunkSampleSource(textChunkSource, loadControl,
-                    TEXT_BUFFER_SEGMENTS * BUFFER_SEGMENT_SIZE, mainHandler, player,
-                    EMExoPlayer.RENDER_CLOSED_CAPTION_INDEX);
-            TrackRenderer textRenderer = new TextTrackRenderer(textSampleSource, player,
-                    mainHandler.getLooper());
 
             // Invoke the callback.
             TrackRenderer[] renderers = new TrackRenderer[EMExoPlayer.RENDER_COUNT];
             renderers[EMExoPlayer.RENDER_VIDEO_INDEX] = videoRenderer;
             renderers[EMExoPlayer.RENDER_AUDIO_INDEX] = audioRenderer;
-            renderers[EMExoPlayer.RENDER_CLOSED_CAPTION_INDEX] = textRenderer;
             player.onRenderers(renderers, bandwidthMeter);
         }
-
-        private static int getWidevineSecurityLevel(StreamingDrmSessionManager sessionManager) {
-            String securityLevelProperty = sessionManager.getPropertyString("securityLevel");
-            return securityLevelProperty.equals("L1") ? SECURITY_LEVEL_1 : securityLevelProperty
-                    .equals("L3") ? SECURITY_LEVEL_3 : SECURITY_LEVEL_UNKNOWN;
-        }
-
     }
-
 }

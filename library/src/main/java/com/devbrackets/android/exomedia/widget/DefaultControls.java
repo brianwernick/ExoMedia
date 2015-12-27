@@ -60,11 +60,19 @@ public abstract class DefaultControls extends RelativeLayout {
 
     protected TextView currentTime;
     protected TextView endTime;
+
+    protected TextView titleView;
+    protected TextView subTitleView;
+    protected TextView descriptionView;
+
     protected ImageButton playPauseButton;
     protected ImageButton previousButton;
     protected ImageButton nextButton;
-    protected ViewGroup controlsContainer;
+
     protected ProgressBar loadingProgress;
+
+    protected ViewGroup controlsContainer;
+    protected ViewGroup textContainer;
 
     protected Drawable defaultPlayDrawable;
     protected Drawable defaultPauseDrawable;
@@ -151,6 +159,7 @@ public abstract class DefaultControls extends RelativeLayout {
     public void setLoading(boolean isLoading) {
         loadingProgress.setVisibility(isLoading ? View.VISIBLE : View.INVISIBLE);
         controlsContainer.setVisibility(isLoading ? View.GONE : View.VISIBLE);
+        textContainer.setVisibility(isLoading ? View.GONE : View.VISIBLE);
     }
 
     /**
@@ -168,6 +177,36 @@ public abstract class DefaultControls extends RelativeLayout {
      */
     public void restartLoading() {
         setLoading(true);
+    }
+
+    /**
+     * Sets the title to display for the current item in playback
+     *
+     * @param title The title to display
+     */
+    public void setTitle(@Nullable CharSequence title) {
+        titleView.setText(title);
+    }
+
+    /**
+     * Sets the subtitle to display for the current item in playback.  This will be displayed
+     * as the second line of text
+     *
+     * @param subTitle The sub title to display
+     */
+    public void setSubTitle(@Nullable CharSequence subTitle) {
+        subTitleView.setText(subTitle);
+    }
+
+    /**
+     * Sets the description text to display for the current item in playback.  This will be displayed
+     * as the third line of text and unlike the {@link #setTitle(CharSequence)} and {@link #setSubTitle(CharSequence)}
+     * this text wont be limited to a single line of text
+     *
+     * @param description The artist to display
+     */
+    public void setDescription(@Nullable CharSequence description) {
+        descriptionView.setText(description);
     }
 
     /**
@@ -437,11 +476,19 @@ public abstract class DefaultControls extends RelativeLayout {
     protected void retrieveViews() {
         currentTime = (TextView) findViewById(R.id.exomedia_controls_current_time);
         endTime = (TextView) findViewById(R.id.exomedia_controls_end_time);
+
+        titleView = (TextView) findViewById(R.id.exomedia_controls_title);
+        subTitleView = (TextView) findViewById(R.id.exomedia_controls_sub_title);
+        descriptionView = (TextView) findViewById(R.id.exomedia_controls_description);
+
         playPauseButton = (ImageButton) findViewById(R.id.exomedia_controls_play_pause_btn);
         previousButton = (ImageButton) findViewById(R.id.exomedia_controls_previous_btn);
         nextButton = (ImageButton) findViewById(R.id.exomedia_controls_next_btn);
+
         loadingProgress = (ProgressBar) findViewById(R.id.exomedia_controls_video_loading);
+
         controlsContainer = (ViewGroup) findViewById(R.id.exomedia_controls_interactive_container);
+        textContainer = (ViewGroup) findViewById(R.id.exomedia_controls_text_container);
     }
 
     /**
@@ -583,7 +630,6 @@ public abstract class DefaultControls extends RelativeLayout {
     /**
      * Performs the control visibility animation for showing or hiding
      * this view
-     *
      * @param toVisible True if the view should be visible at the end of the animation
      */
     protected void animateVisibility(boolean toVisible) {

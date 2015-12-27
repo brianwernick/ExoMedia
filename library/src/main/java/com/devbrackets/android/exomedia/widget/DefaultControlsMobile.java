@@ -25,6 +25,8 @@ import android.widget.SeekBar;
 import com.devbrackets.android.exomedia.R;
 import com.devbrackets.android.exomedia.event.EMMediaProgressEvent;
 import com.devbrackets.android.exomedia.util.TimeFormatUtil;
+import com.devbrackets.android.exomedia.widget.animation.BottomViewHideShowAnimation;
+import com.devbrackets.android.exomedia.widget.animation.TopViewHideShowAnimation;
 
 /**
  * Provides playback controls for the EMVideoView on Mobile
@@ -55,7 +57,7 @@ public class DefaultControlsMobile extends DefaultControls {
 
     @Override
     protected int getLayoutResource() {
-        return R.layout.exomedia_video_controls_overlay;
+        return R.layout.exomedia_default_controls_mobile;
     }
 
     /**
@@ -143,6 +145,19 @@ public class DefaultControlsMobile extends DefaultControls {
                 animateVisibility(false);
             }
         }, delay);
+    }
+
+    @Override
+    protected void animateVisibility(boolean toVisible) {
+        if (isVisible == toVisible) {
+            return;
+        }
+
+        textContainer.startAnimation(new TopViewHideShowAnimation(textContainer, toVisible, CONTROL_VISIBILITY_ANIMATION_LENGTH));
+        controlsContainer.startAnimation(new BottomViewHideShowAnimation(controlsContainer, toVisible, CONTROL_VISIBILITY_ANIMATION_LENGTH));
+
+        isVisible = toVisible;
+        onVisibilityChanged();
     }
 
     /**

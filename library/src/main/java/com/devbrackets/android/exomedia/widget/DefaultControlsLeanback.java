@@ -86,7 +86,7 @@ public class DefaultControlsLeanback extends DefaultControls {
 
     @Override
     protected int getLayoutResource() {
-        return R.layout.exomedia_video_controls_overlay_leanback;
+        return R.layout.exomedia_default_controls_leanback;
     }
 
     /**

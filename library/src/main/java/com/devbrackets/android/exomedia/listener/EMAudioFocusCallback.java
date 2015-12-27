@@ -22,18 +22,14 @@ package com.devbrackets.android.exomedia.listener;
  */
 public interface EMAudioFocusCallback {
     /**
-     * Occurs when the application gains audio focus.
-     * You can also catch this event with the EventBus event
-     * {@link com.devbrackets.android.exomedia.event.EMAudioFocusGainedEvent}
+     * Occurs when the application gains audio focus
      *
      * @return True if the event has been handled
      */
     boolean onAudioFocusGained();
 
     /**
-     * Occurs when the application looses audio focus.
-     * You can also catch this event with the EventBus event
-     * {@link com.devbrackets.android.exomedia.event.EMAudioFocusLostEvent}
+     * Occurs when the application looses audio focus
      *
      * @return True if the event has been handled
      */

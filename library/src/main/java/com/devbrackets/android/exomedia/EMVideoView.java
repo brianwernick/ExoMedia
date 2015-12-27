@@ -39,13 +39,11 @@ import com.devbrackets.android.exomedia.builder.DashRenderBuilder;
 import com.devbrackets.android.exomedia.builder.HlsRenderBuilder;
 import com.devbrackets.android.exomedia.builder.RenderBuilder;
 import com.devbrackets.android.exomedia.event.EMMediaProgressEvent;
-import com.devbrackets.android.exomedia.event.EMVideoViewClickedEvent;
 import com.devbrackets.android.exomedia.exoplayer.EMExoPlayer;
 import com.devbrackets.android.exomedia.listener.EMProgressCallback;
 import com.devbrackets.android.exomedia.listener.EMVideoViewControlsCallback;
 import com.devbrackets.android.exomedia.listener.ExoPlayerListener;
 import com.devbrackets.android.exomedia.util.EMDeviceUtil;
-import com.devbrackets.android.exomedia.util.EMEventBus;
 import com.devbrackets.android.exomedia.util.MediaUtil;
 import com.devbrackets.android.exomedia.util.Repeater;
 import com.devbrackets.android.exomedia.util.StopWatch;
@@ -113,9 +111,6 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
     private EMListenerMux listenerMux;
     private boolean playRequested = false;
     private boolean releaseOnDetachFromWindow = true;
-
-    @Nullable
-    private EMEventBus bus;
 
     private Uri videoUri;
     private EMMediaProgressEvent currentMediaProgressEvent = new EMMediaProgressEvent(0, 0, 0);
@@ -189,13 +184,10 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
                     defaultControls.setProgressEvent(currentMediaProgressEvent);
                 }
 
-                if (progressCallback != null && progressCallback.onProgressUpdated(currentMediaProgressEvent)) {
-                    return;
+                if (progressCallback != null) {
+                    progressCallback.onProgressUpdated(currentMediaProgressEvent);
                 }
 
-                if (bus != null) {
-                    bus.post(currentMediaProgressEvent);
-                }
             }
         });
 
@@ -425,32 +417,6 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
     }
 
     /**
-     * Sets the bus to use for dispatching Events that correspond to the callbacks
-     * listed in {@link com.devbrackets.android.exomedia.listener.EMVideoViewControlsCallback}
-     *
-     * @param bus The EventBus to dispatch events on
-     */
-    public void setBus(@Nullable EMEventBus bus) {
-        this.bus = bus;
-        listenerMux.setBus(bus);
-
-        if (defaultControls != null) {
-            defaultControls.setBus(bus);
-        }
-    }
-
-    /**
-     * Starts the progress poll.  If you have already called {@link #setBus(EMEventBus)} then
-     * you should use the {@link #startProgressPoll()} method instead.
-     *
-     * @param bus The EventBus event dispatcher that the listener is connected to
-     */
-    public void startProgressPoll(@Nullable EMEventBus bus) {
-        setBus(bus);
-        startProgressPoll();
-    }
-
-    /**
      * Starts the progress poll with the callback to be informed of the progress
      * events.
      *
@@ -462,12 +428,12 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
     }
 
     /**
-     * Starts the progress poll.  This should be called after you have set the bus with {@link #setBus(EMEventBus)}
-     * or previously called {@link #startProgressPoll(EMEventBus)}, otherwise you won't get notified
+     * Starts the progress poll.  This should be called after you have previously called
+     * {@link #startProgressPoll(EMProgressCallback)}, otherwise you won't get notified
      * of progress changes
      */
     public void startProgressPoll() {
-        if (bus != null || defaultControls != null || progressCallback != null) {
+        if (defaultControls != null || progressCallback != null) {
             pollRepeater.start();
         }
     }
@@ -496,17 +462,13 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
         if (defaultControls == null && enabled) {
             defaultControls = EMDeviceUtil.isDeviceTV(getContext()) ? new DefaultControlsLeanback(getContext()) : new DefaultControlsMobile(getContext());
             defaultControls.setVideoView(this);
-            defaultControls.setBus(bus);
 
             addView(defaultControls);
             startProgressPoll();
         } else if (defaultControls != null && !enabled) {
             removeView(defaultControls);
             defaultControls = null;
-
-            if (bus == null) {
-                stopProgressPoll();
-            }
+            stopProgressPoll();
         }
 
         //Sets the onTouch listener to show the default controls
@@ -888,7 +850,7 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
 
     /**
      * If a video is currently in playback, it will be paused and the progressPoll
-     * will be stopped (see {@link #startProgressPoll(EMEventBus)})
+     * will be stopped (see {@link #startProgressPoll(EMProgressCallback)})
      */
     public void pause() {
         if (!useExo) {
@@ -1072,8 +1034,7 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
 
 
     /**
-     * Sets the listener to inform of VideoPlayer prepared events.  This can also be
-     * accessed through the bus event {@link com.devbrackets.android.exomedia.event.EMMediaPreparedEvent}
+     * Sets the listener to inform of VideoPlayer prepared events
      *
      * @param listener The listener
      */
@@ -1082,8 +1043,7 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
     }
 
     /**
-     * Sets the listener to inform of VideoPlayer completion events.  This can also be
-     * accessed through the bus event {@link com.devbrackets.android.exomedia.event.EMMediaCompletionEvent}
+     * Sets the listener to inform of VideoPlayer completion events
      *
      * @param listener The listener
      */
@@ -1092,8 +1052,7 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
     }
 
     /**
-     * Sets the listener to inform of playback errors.  This can also be
-     * accessed through the bus event {@link com.devbrackets.android.exomedia.event.EMMediaErrorEvent}
+     * Sets the listener to inform of playback errors
      *
      * @param listener The listener
      */
@@ -1251,10 +1210,6 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
                 if (isPlaying()) {
                     defaultControls.hideDelayed(DefaultControls.DEFAULT_CONTROL_HIDE_DELAY);
                 }
-            }
-
-            if (bus != null) {
-                bus.post(new EMVideoViewClickedEvent());
             }
 
             return true;

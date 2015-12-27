@@ -19,13 +19,8 @@ package com.devbrackets.android.exomedia;
 import android.media.MediaPlayer;
 import android.os.Handler;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 
-import com.devbrackets.android.exomedia.event.EMMediaCompletionEvent;
-import com.devbrackets.android.exomedia.event.EMMediaErrorEvent;
-import com.devbrackets.android.exomedia.event.EMMediaPreparedEvent;
 import com.devbrackets.android.exomedia.listener.ExoPlayerListener;
-import com.devbrackets.android.exomedia.util.EMEventBus;
 import com.google.android.exoplayer.ExoPlayer;
 
 import java.util.LinkedList;
@@ -46,9 +41,6 @@ class EMListenerMux implements ExoPlayerListener, MediaPlayer.OnPreparedListener
 
     private Handler delayedHandler = new Handler();
     private EMListenerMuxNotifier muxNotifier;
-
-    @Nullable
-    private EMEventBus bus;
 
     private List<ExoPlayerListener> exoPlayerListeners = new LinkedList<>();
 
@@ -77,24 +69,11 @@ class EMListenerMux implements ExoPlayerListener, MediaPlayer.OnPreparedListener
         if (completionListener != null) {
             completionListener.onCompletion(null);
         }
-
-        if (bus != null) {
-            bus.post(new EMMediaCompletionEvent());
-        }
     }
 
     @Override
     public boolean onError(MediaPlayer mp, int what, int extra) {
-        if (errorListener != null && errorListener.onError(mp, what, extra)) {
-            return true;
-        }
-
-        if (bus != null) {
-            bus.post(new EMMediaErrorEvent(mp, what, extra));
-            return true;
-        }
-
-        return false;
+        return errorListener != null && errorListener.onError(mp, what, extra);
     }
 
     @Override
@@ -125,10 +104,6 @@ class EMListenerMux implements ExoPlayerListener, MediaPlayer.OnPreparedListener
 
         for (ExoPlayerListener listener : exoPlayerListeners) {
             listener.onError(e);
-        }
-
-        if (bus != null) {
-            bus.post(new EMMediaErrorEvent(null, 0, 0));
         }
     }
 
@@ -163,10 +138,6 @@ class EMListenerMux implements ExoPlayerListener, MediaPlayer.OnPreparedListener
         }
     }
 
-    public void setBus(@Nullable EMEventBus bus) {
-        this.bus = bus;
-    }
-
     /**
      * Sets the listener to inform of any exoPlayer events
      *
@@ -190,8 +161,7 @@ class EMListenerMux implements ExoPlayerListener, MediaPlayer.OnPreparedListener
     }
 
     /**
-     * Sets the listener to inform of VideoPlayer prepared events.  This can also be
-     * accessed through the bus event {@link com.devbrackets.android.exomedia.event.EMMediaPreparedEvent}
+     * Sets the listener to inform of VideoPlayer prepared events
      *
      * @param listener The listener
      */
@@ -200,8 +170,7 @@ class EMListenerMux implements ExoPlayerListener, MediaPlayer.OnPreparedListener
     }
 
     /**
-     * Sets the listener to inform of VideoPlayer completion events.  This can also be
-     * accessed through the bus event {@link com.devbrackets.android.exomedia.event.EMMediaCompletionEvent}
+     * Sets the listener to inform of VideoPlayer completion events
      *
      * @param listener The listener
      */
@@ -210,8 +179,7 @@ class EMListenerMux implements ExoPlayerListener, MediaPlayer.OnPreparedListener
     }
 
     /**
-     * Sets the listener to inform of playback errors.  This can also be
-     * accessed through the bus event {@link com.devbrackets.android.exomedia.event.EMMediaErrorEvent}
+     * Sets the listener to inform of playback errors
      *
      * @param listener The listener
      */
@@ -283,10 +251,6 @@ class EMListenerMux implements ExoPlayerListener, MediaPlayer.OnPreparedListener
         if (preparedListener != null) {
             preparedListener.onPrepared(mediaPlayer);
         }
-
-        if (bus != null) {
-            bus.post(new EMMediaPreparedEvent());
-        }
     }
 
     private void notifyCompletionListener() {
@@ -301,10 +265,6 @@ class EMListenerMux implements ExoPlayerListener, MediaPlayer.OnPreparedListener
             public void run() {
                 if (completionListener != null) {
                     completionListener.onCompletion(null);
-                }
-
-                if (bus != null) {
-                    bus.post(new EMMediaCompletionEvent());
                 }
             }
         });

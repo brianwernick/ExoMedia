@@ -27,27 +27,21 @@ import com.devbrackets.android.exomedia.service.EMPlaylistService;
 public interface EMPlaylistServiceCallback {
 
     /**
-     * Occurs when the currently playing item has changed.
-     * You can also catch this event with the EventBus event
-     * {@link com.devbrackets.android.exomedia.event.EMPlaylistItemChangedEvent}
+     * Occurs when the currently playing item has changed
      *
      * @return True if the event has been handled
      */
     boolean onPlaylistItemChanged(EMPlaylistManager.PlaylistItem currentItem, boolean hasNext, boolean hasPrevious);
 
     /**
-     * Occurs when the current media state changes.
-     * You can also catch this event with the EventBus event
-     * {@link com.devbrackets.android.exomedia.event.EMMediaStateEvent}
+     * Occurs when the current media state changes
      *
      * @return True if the event has been handled
      */
     boolean onMediaStateChanged(EMPlaylistService.MediaState mediaState);
 
     /**
-     * Occurs when the currently playing item has a progress change.
-     * You can also catch this event with the EventBus event
-     * {@link com.devbrackets.android.exomedia.event.EMMediaProgressEvent}
+     * Occurs when the currently playing item has a progress change
      *
      * @return True if the progress update has been handled
      */

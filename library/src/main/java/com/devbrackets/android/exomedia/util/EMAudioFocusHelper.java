@@ -20,8 +20,6 @@ import android.content.Context;
 import android.media.AudioManager;
 import android.support.annotation.Nullable;
 
-import com.devbrackets.android.exomedia.event.EMAudioFocusGainedEvent;
-import com.devbrackets.android.exomedia.event.EMAudioFocusLostEvent;
 import com.devbrackets.android.exomedia.listener.EMAudioFocusCallback;
 
 /**
@@ -36,8 +34,6 @@ public class EMAudioFocusHelper {
         FOCUSED             // have full audio focus
     }
 
-    @Nullable
-    private EMEventBus bus;
     private AudioManager audioManager;
     private EMAudioFocusCallback callbacks;
     private AudioFocusListener audioFocusListener = new AudioFocusListener();
@@ -46,23 +42,12 @@ public class EMAudioFocusHelper {
 
     /**
      * Creates and sets up the basic information for the AudioFocusHelper.  In order to
-     * be of any use you must call {@link #setBus(EMEventBus)} or
-     * {@link #setAudioFocusCallback(com.devbrackets.android.exomedia.listener.EMAudioFocusCallback)}
+     * be of any use you must call {@link #setAudioFocusCallback(EMAudioFocusCallback)}
      *
      * @param context The context for the AudioFocus (Generally Application)
      */
     public EMAudioFocusHelper(Context context) {
         audioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
-    }
-
-    /**
-     * Sets the bus to use for dispatching Events that correspond to the callbacks
-     * listed in {@link com.devbrackets.android.exomedia.listener.EMAudioFocusCallback}
-     *
-     * @param bus The EventBus to dispatch events on
-     */
-    public void setBus(@Nullable EMEventBus bus) {
-        this.bus = bus;
     }
 
     /**
@@ -141,22 +126,14 @@ public class EMAudioFocusHelper {
         }
 
         private void postAudioFocusGained() {
-            if (callbacks != null && callbacks.onAudioFocusGained()) {
-                return;
-            }
-
-            if (bus != null) {
-                bus.post(new EMAudioFocusGainedEvent());
+            if (callbacks != null) {
+                callbacks.onAudioFocusGained();
             }
         }
 
         private void postAudioFocusLost(boolean canDuck) {
-            if (callbacks != null && callbacks.onAudioFocusLost(canDuck)) {
-                return;
-            }
-
-            if (bus != null) {
-                bus.post(new EMAudioFocusLostEvent(canDuck));
+            if (callbacks != null) {
+                callbacks.onAudioFocusLost(canDuck);
             }
         }
     }

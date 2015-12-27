@@ -35,13 +35,8 @@ import android.widget.TextView;
 
 import com.devbrackets.android.exomedia.EMVideoView;
 import com.devbrackets.android.exomedia.R;
-import com.devbrackets.android.exomedia.event.EMMediaNextEvent;
-import com.devbrackets.android.exomedia.event.EMMediaPlayPauseEvent;
-import com.devbrackets.android.exomedia.event.EMMediaPreviousEvent;
 import com.devbrackets.android.exomedia.event.EMMediaProgressEvent;
-import com.devbrackets.android.exomedia.event.EMVideoViewControlVisibilityEvent;
 import com.devbrackets.android.exomedia.listener.EMVideoViewControlsCallback;
-import com.devbrackets.android.exomedia.util.EMEventBus;
 import com.devbrackets.android.exomedia.util.EMResourceUtil;
 
 /**
@@ -89,11 +84,6 @@ public abstract class DefaultControls extends RelativeLayout {
     protected boolean canViewHide = true;
     protected Handler visibilityHandler = new Handler();
 
-    protected boolean busPostHandlesEvent = false;
-
-    @Nullable
-    protected EMEventBus bus;
-
     protected EMVideoView videoView;
     protected SeekCallbacks seekCallbacks;
     protected EMVideoViewControlsCallback callback;
@@ -118,16 +108,6 @@ public abstract class DefaultControls extends RelativeLayout {
     public DefaultControls(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
         super(context, attrs, defStyleAttr, defStyleRes);
         setup(context);
-    }
-
-    /**
-     * Sets the bus to use for dispatching Events that correspond to the callbacks
-     * listed in {@link com.devbrackets.android.exomedia.listener.EMVideoViewControlsCallback}
-     *
-     * @param bus The EventBus to dispatch events on
-     */
-    public void setBus(@Nullable EMEventBus bus) {
-        this.bus = bus;
     }
 
     /**
@@ -460,17 +440,6 @@ public abstract class DefaultControls extends RelativeLayout {
     }
 
     /**
-     * Sets weather the control functionality should treat the button clicks
-     * as handled when a bus event is posted.  This is to make Bus events
-     * act like the callbacks set with {@link #setVideoViewControlsCallback(EMVideoViewControlsCallback)}
-     *
-     * @param finish True if the Bus events should act as handling the button clicks
-     */
-    public void setFinishOnBusEvents(boolean finish) {
-        busPostHandlesEvent = finish;
-    }
-
-    /**
      * Retrieves the view references from the xml layout
      */
     protected void retrieveViews() {
@@ -542,13 +511,6 @@ public abstract class DefaultControls extends RelativeLayout {
             return;
         }
 
-        if (bus != null) {
-            bus.post(new EMMediaPlayPauseEvent());
-            if (busPostHandlesEvent) {
-                return;
-            }
-        }
-
         //toggles the playback
         boolean playing = videoView.isPlaying();
         if (playing) {
@@ -563,12 +525,8 @@ public abstract class DefaultControls extends RelativeLayout {
      * button has been clicked
      */
     protected void onPreviousClick() {
-        if (callback != null && callback.onPreviousClicked()) {
-            return;
-        }
-
-        if (bus != null) {
-            bus.post(new EMMediaPreviousEvent());
+        if (callback != null) {
+            callback.onPreviousClicked();
         }
     }
 
@@ -577,12 +535,8 @@ public abstract class DefaultControls extends RelativeLayout {
      * button has been clicked
      */
     protected void onNextClick() {
-        if (callback != null && callback.onNextClicked()) {
-            return;
-        }
-
-        if (bus != null) {
-            bus.post(new EMMediaNextEvent());
+        if (callback != null) {
+            callback.onNextClicked();
         }
     }
 
@@ -613,17 +567,12 @@ public abstract class DefaultControls extends RelativeLayout {
      * that the DefaultControls visibility has changed
      */
     protected void onVisibilityChanged() {
-        boolean handled = false;
         if (callback != null) {
             if (isVisible) {
-                handled = callback.onControlsShown();
+                callback.onControlsShown();
             } else {
-                handled = callback.onControlsHidden();
+                callback.onControlsHidden();
             }
-        }
-
-        if (!handled && bus != null) {
-            bus.post(new EMVideoViewControlVisibilityEvent(isVisible));
         }
     }
 

@@ -39,14 +39,12 @@ import com.devbrackets.android.exomedia.EMRemoteActions;
 import com.devbrackets.android.exomedia.EMVideoView;
 import com.devbrackets.android.exomedia.R;
 import com.devbrackets.android.exomedia.event.EMMediaProgressEvent;
-import com.devbrackets.android.exomedia.event.EMMediaStateEvent;
 import com.devbrackets.android.exomedia.event.EMPlaylistItemChangedEvent;
 import com.devbrackets.android.exomedia.listener.EMAudioFocusCallback;
 import com.devbrackets.android.exomedia.listener.EMPlaylistServiceCallback;
 import com.devbrackets.android.exomedia.listener.EMProgressCallback;
 import com.devbrackets.android.exomedia.manager.EMPlaylistManager;
 import com.devbrackets.android.exomedia.util.EMAudioFocusHelper;
-import com.devbrackets.android.exomedia.util.EMEventBus;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -170,18 +168,6 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
      */
     @DrawableRes
     protected abstract int getLockScreenIconRes();
-
-    /**
-     * Retrieves the bus that will be used for posting events.  This can be used in
-     * conjunction with the {@link EMPlaylistServiceCallback} specified with {@link #registerCallback(EMPlaylistServiceCallback)}
-     * or it can be used in place of the callbacks.
-     *
-     * @return The bus to post events to or null
-     */
-    @Nullable
-    protected EMEventBus getBus() {
-        return null;
-    }
 
     /**
      * Retrieves the continuity bits associated with the service.  These
@@ -527,8 +513,7 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
      * Retrieves the current item change event which represents any media item changes.
      * This is intended as a utility method for initializing, or returning to, a media
      * playback UI.  In order to get the changed events you will need to register for
-     * callbacks through {@link #registerCallback(EMPlaylistServiceCallback)} or through
-     * Bus events by providing a bus with {@link #getBus()}
+     * callbacks through {@link #registerCallback(EMPlaylistServiceCallback)}
      *
      * @return The current PlaylistItem Changed event
      */
@@ -684,8 +669,7 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
 
     /**
      * Informs the callbacks specified with {@link #registerCallback(EMPlaylistServiceCallback)}
-     * and posts a Bus event if {@link #getBus()} has been specified, that the current playlist item
-     * has changed.
+     * that the current playlist item has changed.
      */
     protected void postPlaylistItemChanged() {
         boolean hasNext = getMediaPlaylistManager().isNextAvailable();
@@ -696,28 +680,17 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
                 return;
             }
         }
-
-        EMEventBus bus = getBus();
-        if (bus != null) {
-            bus.post(new EMPlaylistItemChangedEvent<>(currentPlaylistItem, hasPrevious, hasNext));
-        }
     }
 
     /**
      * Informs the callbacks specified with {@link #registerCallback(EMPlaylistServiceCallback)}
-     * and posts a Bus event if {@link #getBus()} has been specified, that the current media state
-     * has changed.
+     * that the current media state has changed.
      */
     protected void postMediaStateChanged() {
         for (EMPlaylistServiceCallback callback : callbackList) {
             if (callback.onMediaStateChanged(currentState)) {
                 return;
             }
-        }
-
-        EMEventBus bus = getBus();
-        if (bus != null) {
-            bus.post(new EMMediaStateEvent(currentState));
         }
     }
 
@@ -1239,7 +1212,6 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
         }
 
         audioPlayer = new EMAudioPlayer(getApplicationContext());
-        audioPlayer.setBus(getBus());
         audioPlayer.startProgressPoll(this);
         audioPlayer.setWakeMode(getApplicationContext(), PowerManager.PARTIAL_WAKE_LOCK);
 

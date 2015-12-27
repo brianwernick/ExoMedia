@@ -22,27 +22,21 @@ package com.devbrackets.android.exomedia.listener;
  */
 public interface EMVideoViewControlsCallback {
     /**
-     * Occurs when the PlayPause button on the VideoView is clicked.
-     * You can also catch this event with the EventBus event
-     * {@link com.devbrackets.android.exomedia.event.EMMediaPlayPauseEvent}
+     * Occurs when the PlayPause button on the VideoView is clicked
      *
      * @return True if the event has been handled
      */
     boolean onPlayPauseClicked();
 
     /**
-     * Occurs when the Previous button on the VideoView is clicked.
-     * You can also catch this event with the EventBus event
-     * {@link com.devbrackets.android.exomedia.event.EMMediaPreviousEvent}
+     * Occurs when the Previous button on the VideoView is clicked
      *
      * @return True if the event has been handled
      */
     boolean onPreviousClicked();
 
     /**
-     * Occurs when the Next button on the VideoView is clicked.
-     * You can also catch this event with the EventBus event
-     * {@link com.devbrackets.android.exomedia.event.EMMediaNextEvent}
+     * Occurs when the Next button on the VideoView is clicked
      *
      * @return True if the event has been handled
      */
@@ -50,8 +44,6 @@ public interface EMVideoViewControlsCallback {
 
     /**
      * Occurs when the DefaultControls becomes visible
-     * You can also catch this event with the EventBus event
-     * {@link com.devbrackets.android.exomedia.event.EMVideoViewControlVisibilityEvent}
      *
      * @return True if the event has been handled
      */
@@ -59,8 +51,6 @@ public interface EMVideoViewControlsCallback {
 
     /**
      * Occurs when the DefaultControls becomes hidden
-     * You can also catch this event with the EventBus event
-     * {@link com.devbrackets.android.exomedia.event.EMVideoViewControlVisibilityEvent}
      *
      * @return True if the event has been handled
      */

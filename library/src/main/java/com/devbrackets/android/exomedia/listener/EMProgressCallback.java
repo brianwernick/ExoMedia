@@ -26,9 +26,7 @@ import com.devbrackets.android.exomedia.event.EMMediaProgressEvent;
 public interface EMProgressCallback {
 
     /**
-     * Occurs when the currently playing item has a progress change.
-     * You can also catch this event with the EventBus event
-     * {@link com.devbrackets.android.exomedia.event.EMMediaProgressEvent}
+     * Occurs when the currently playing item has a progress change
      *
      * @return True if the progress update has been handled
      */

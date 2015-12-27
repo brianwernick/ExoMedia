@@ -20,7 +20,6 @@ import android.content.Context;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Build;
-import android.support.annotation.Nullable;
 import android.util.Log;
 
 import com.devbrackets.android.exomedia.builder.HlsRenderBuilder;
@@ -30,7 +29,6 @@ import com.devbrackets.android.exomedia.exoplayer.EMExoPlayer;
 import com.devbrackets.android.exomedia.listener.EMProgressCallback;
 import com.devbrackets.android.exomedia.listener.ExoPlayerListener;
 import com.devbrackets.android.exomedia.util.EMDeviceUtil;
-import com.devbrackets.android.exomedia.util.EMEventBus;
 import com.devbrackets.android.exomedia.util.MediaUtil;
 import com.devbrackets.android.exomedia.util.Repeater;
 import com.devbrackets.android.exomedia.util.StopWatch;
@@ -75,8 +73,6 @@ public class EMAudioPlayer implements AudioCapabilitiesReceiver.Listener {
 
     private boolean overridePosition = false;
 
-    @Nullable
-    private EMEventBus bus;
     private EMProgressCallback progressCallback;
 
     private Repeater pollRepeater = new Repeater();
@@ -102,12 +98,8 @@ public class EMAudioPlayer implements AudioCapabilitiesReceiver.Listener {
             public void onRepeat() {
                 currentMediaProgressEvent.update(getCurrentPosition(), getBufferPercentage(), getDuration());
 
-                if (progressCallback != null && progressCallback.onProgressUpdated(currentMediaProgressEvent)) {
-                    return;
-                }
-
-                if (bus != null) {
-                    bus.post(currentMediaProgressEvent);
+                if (progressCallback != null) {
+                    progressCallback.onProgressUpdated(currentMediaProgressEvent);
                 }
             }
         });
@@ -167,29 +159,6 @@ public class EMAudioPlayer implements AudioCapabilitiesReceiver.Listener {
     }
 
     /**
-     * Sets the bus to use for dispatching Events such as the poll progress
-     *
-     * @param bus The EventBus to dispatch events on
-     */
-    public void setBus(@Nullable EMEventBus bus) {
-        this.bus = bus;
-        listenerMux.setBus(bus);
-    }
-
-    /**
-     * Starts the progress poll.
-     *
-     * @param bus The EventBus event dispatcher that the listener is connected to
-     */
-    public void startProgressPoll(@Nullable EMEventBus bus) {
-        setBus(bus);
-
-        if (bus != null) {
-            pollRepeater.start();
-        }
-    }
-
-    /**
      * Starts the progress poll with the callback to be informed of the progress
      * events.
      *
@@ -205,7 +174,7 @@ public class EMAudioPlayer implements AudioCapabilitiesReceiver.Listener {
 
     /**
      * Stops the progress poll
-     * (see {@link #startProgressPoll(EMEventBus)})
+     * (see {@link #startProgressPoll(EMProgressCallback)})
      */
     public void stopProgressPoll() {
         pollRepeater.stop();
@@ -414,13 +383,12 @@ public class EMAudioPlayer implements AudioCapabilitiesReceiver.Listener {
             emExoPlayer.setPlayWhenReady(true);
         }
 
-        startProgressPoll(bus);
         startProgressPoll(progressCallback);
     }
 
     /**
      * If an audio item is currently in playback, it will be paused and the progressPoll
-     * will be stopped (see {@link #startProgressPoll(EMEventBus)})
+     * will be stopped (see {@link #startProgressPoll(EMProgressCallback)})
      */
     public void pause() {
         if (!useExo) {
@@ -434,7 +402,7 @@ public class EMAudioPlayer implements AudioCapabilitiesReceiver.Listener {
 
     /**
      * If an audio item is currently in playback then the playback will be stopped
-     * and the progressPoll will be stopped (see {@link #startProgressPoll(EMEventBus)})
+     * and the progressPoll will be stopped (see {@link #startProgressPoll(EMProgressCallback)})
      */
     public void stopPlayback() {
         if (!useExo) {
@@ -591,8 +559,7 @@ public class EMAudioPlayer implements AudioCapabilitiesReceiver.Listener {
     }
 
     /**
-     * Sets the listener to inform of VideoPlayer prepared events.  This can also be
-     * accessed through the bus event {@link com.devbrackets.android.exomedia.event.EMMediaPreparedEvent}
+     * Sets the listener to inform of VideoPlayer prepared events
      *
      * @param listener The listener
      */
@@ -601,8 +568,7 @@ public class EMAudioPlayer implements AudioCapabilitiesReceiver.Listener {
     }
 
     /**
-     * Sets the listener to inform of VideoPlayer completion events.  This can also be
-     * accessed through the bus event {@link com.devbrackets.android.exomedia.event.EMMediaCompletionEvent}
+     * Sets the listener to inform of VideoPlayer completion events
      *
      * @param listener The listener
      */
@@ -611,8 +577,7 @@ public class EMAudioPlayer implements AudioCapabilitiesReceiver.Listener {
     }
 
     /**
-     * Sets the listener to inform of playback errors.  This can also be
-     * accessed through the bus event {@link com.devbrackets.android.exomedia.event.EMMediaErrorEvent}
+     * Sets the listener to inform of playback errors
      *
      * @param listener The listener
      */

@@ -25,7 +25,9 @@ public class FullScreenVideoPlayerActivity extends VideoPlayerActivity {
         }
 
         goFullscreen();
-        emVideoView.setVideoViewControlsCallback(new DefaultControlsCallback());
+        if (emVideoView.getDefaultControls() != null) {
+            emVideoView.getDefaultControls().setVideoViewControlsCallback(new DefaultControlsCallback());
+        }
     }
 
     @Override

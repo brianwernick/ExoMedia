@@ -41,7 +41,6 @@ import com.devbrackets.android.exomedia.builder.RenderBuilder;
 import com.devbrackets.android.exomedia.event.EMMediaProgressEvent;
 import com.devbrackets.android.exomedia.exoplayer.EMExoPlayer;
 import com.devbrackets.android.exomedia.listener.EMProgressCallback;
-import com.devbrackets.android.exomedia.listener.EMVideoViewControlsCallback;
 import com.devbrackets.android.exomedia.listener.ExoPlayerListener;
 import com.devbrackets.android.exomedia.util.EMDeviceUtil;
 import com.devbrackets.android.exomedia.util.MediaUtil;
@@ -454,7 +453,8 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
 
 
     /**
-     * Enables and disables the media control overlay for the video view
+     * Enables and disables the media control overlay for the video view.  This can
+     * also be specified in the layout XML with the attribute <code>defaultControlsEnabled</code>
      *
      * @param enabled Weather the default video controls are enabled (default: false)
      */
@@ -491,207 +491,17 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
     }
 
     /**
-     * Sets the button state for the Previous button on the default controls; see
-     * {@link #setDefaultControlsEnabled(boolean)}.
-     * {@link #setDefaultControlsEnabled(boolean)} must be called prior to this.
-     * <p>
-     * This will just change the images specified with {@link #setPreviousImageResource(int)},
-     * or use the defaults if they haven't been set, and block any click events.
-     * <p>
-     * This method will NOT re-add buttons that have previously been removed with
-     * {@link #setPreviousButtonRemoved(boolean)}.
+     * Retrieves the default controls being used by this view.
+     * If the default controls haven't been enabled with {@link #setDefaultControlsEnabled(boolean)}
+     * or through the XML attribute <code>defaultControlsEnabled</code> this will return
+     * null
      *
-     * @param enabled If the Previous button is enabled [default: false]
+     * @return The default controls being used by this view or null
      */
-    public void setPreviousButtonEnabled(boolean enabled) {
-        if (defaultControls != null) {
-            defaultControls.setPreviousButtonEnabled(enabled);
-        }
+    @Nullable
+    public DefaultControls getDefaultControls() {
+        return defaultControls;
     }
-
-    /**
-     * Sets the button state for the Next button on the default controls; see
-     * {@link #setDefaultControlsEnabled(boolean)}.
-     * {@link #setDefaultControlsEnabled(boolean)} must be called prior to this.
-     * <p>
-     * This will just change the images specified with {@link #setNextImageResource(int)},
-     * or use the defaults if they haven't been set, and block any click events.
-     * <p>
-     * This method will NOT re-add buttons that have previously been removed with
-     * {@link #setNextButtonRemoved(boolean)}.
-     *
-     * @param enabled If the Next button is enabled [default: false]
-     */
-    public void setNextButtonEnabled(boolean enabled) {
-        if (defaultControls != null) {
-            defaultControls.setNextButtonEnabled(enabled);
-        }
-    }
-
-    /**
-     * Sets the button state for the Rewind button on the default controls; see
-     * {@link #setDefaultControlsEnabled(boolean)}.
-     * {@link #setDefaultControlsEnabled(boolean)} must be called prior to this.
-     * <p>
-     * This will just change the images specified with {@link #setRewindImageResource(int)},
-     * or use the defaults if they haven't been set, and block any click events.
-     * <p>
-     * This method will NOT re-add buttons that have previously been removed with
-     * {@link #setRewindButtonRemoved(boolean)}.
-     *
-     * @param enabled If the Rewind button is enabled [default: false]
-     */
-    public void setRewindButtonEnabled(boolean enabled) {
-        if (defaultControls != null) {
-            defaultControls.setRewindButtonEnabled(enabled);
-        }
-    }
-
-    /**
-     * Sets the button state for the Fast Forward button on the default controls; see
-     * {@link #setDefaultControlsEnabled(boolean)}.
-     * {@link #setDefaultControlsEnabled(boolean)} must be called prior to this.
-     * <p>
-     * This will just change the images specified with {@link #setFastForwardImageResource(int)},
-     * or use the defaults if they haven't been set, and block any click events.
-     * <p>
-     * This method will NOT re-add buttons that have previously been removed with
-     * {@link #setFastForwardButtonRemoved(boolean)}.
-     *
-     * @param enabled If the Fast Forward button is enabled [default: false]
-     */
-    public void setFastForwardButtonEnabled(boolean enabled) {
-        if (defaultControls != null) {
-            defaultControls.setFastForwardButtonEnabled(enabled);
-        }
-    }
-
-    /**
-     * Sets the EMVideoViewControlsCallback to be used.  {@link #setDefaultControlsEnabled(boolean)} must
-     * be called prior to this.
-     *
-     * @param callback The EMVideoViewControlsCallback to use
-     */
-    public void setVideoViewControlsCallback(EMVideoViewControlsCallback callback) {
-        if (defaultControls != null) {
-            defaultControls.setVideoViewControlsCallback(callback);
-        }
-    }
-
-    /**
-     * Sets the resource id's to use for the PlayPause button.
-     * {@link #setDefaultControlsEnabled(boolean)} must
-     * be called prior to this.
-     *
-     * @param playResourceId  The resourceId or 0
-     * @param pauseResourceId The resourceId or 0
-     */
-    public void setPlayPauseImages(@DrawableRes int playResourceId, @DrawableRes int pauseResourceId) {
-        if (defaultControls != null) {
-            defaultControls.setPlayPauseImages(playResourceId, pauseResourceId);
-        }
-    }
-
-    /**
-     * Sets the state list drawable resource id to use for the Previous button.
-     * {@link #setDefaultControlsEnabled(boolean)} must be called prior to this.
-     *
-     * @param resourceId The resourceId or 0
-     */
-    public void setPreviousImageResource(@DrawableRes int resourceId) {
-        if (defaultControls != null) {
-            defaultControls.setPreviousImageResource(resourceId);
-        }
-    }
-
-    /**
-     * Sets the state list drawable resource id to use for the Next button.
-     * {@link #setDefaultControlsEnabled(boolean)} must be called prior to this.
-     *
-     * @param resourceId The resourceId or 0
-     */
-    public void setNextImageResource(@DrawableRes int resourceId) {
-        if (defaultControls != null) {
-            defaultControls.setNextImageResource(resourceId);
-        }
-    }
-
-    /**
-     * Sets the state list drawable resource id to use for the Rewind button.
-     * {@link #setDefaultControlsEnabled(boolean)} must be called prior to this.
-     *
-     * @param resourceId The resourceId or 0
-     */
-    public void setRewindImageResource(@DrawableRes int resourceId) {
-        if (defaultControls != null) {
-            defaultControls.setRewindImageResource(resourceId);
-        }
-    }
-
-    /**
-     * Sets the state list drawable resource id to use for the Fast Forward button.
-     * {@link #setDefaultControlsEnabled(boolean)} must be called prior to this.
-     *
-     * @param resourceId The resourceId or 0
-     */
-    public void setFastForwardImageResource(@DrawableRes int resourceId) {
-        if (defaultControls != null) {
-            defaultControls.setFastForwardImageResource(resourceId);
-        }
-    }
-
-    /**
-     * Adds or removes the Previous button.  This will change the visibility
-     * of the button, if you want to change the enabled/disabled images see {@link #setPreviousButtonEnabled(boolean)}
-     * {@link #setDefaultControlsEnabled(boolean)} must be called prior to this.
-     *
-     * @param removed If the Previous button should be removed [default: true]
-     */
-    public void setPreviousButtonRemoved(boolean removed) {
-        if (defaultControls != null) {
-            defaultControls.setPreviousButtonRemoved(removed);
-        }
-    }
-
-    /**
-     * Adds or removes the Next button.  This will change the visibility
-     * of the button, if you want to change the enabled/disabled images see {@link #setNextButtonEnabled(boolean)}
-     * {@link #setDefaultControlsEnabled(boolean)} must be called prior to this.
-     *
-     * @param removed If the Next button should be removed [default: true]
-     */
-    public void setNextButtonRemoved(boolean removed) {
-        if (defaultControls != null) {
-            defaultControls.setNextButtonRemoved(removed);
-        }
-    }
-
-    /**
-     * Adds or removes the Rewind button.  This will change the visibility
-     * of the button, if you want to change the enabled/disabled images see {@link #setRewindButtonEnabled(boolean)}
-     * {@link #setDefaultControlsEnabled(boolean)} must be called prior to this.
-     *
-     * @param removed If the Rewind button should be removed [default: false]
-     */
-    public void setRewindButtonRemoved(boolean removed) {
-        if (defaultControls != null) {
-            defaultControls.setRewindButtonRemoved(removed);
-        }
-    }
-
-    /**
-     * Adds or removes the Fast Forward button.  This will change the visibility
-     * of the button, if you want to change the enabled/disabled images see {@link #setFastForwardButtonEnabled(boolean)}
-     * {@link #setDefaultControlsEnabled(boolean)} must be called prior to this.
-     *
-     * @param removed If the Fast Forward button should be removed [default: false]
-     */
-    public void setFastForwardButtonRemoved(boolean removed) {
-        if (defaultControls != null) {
-            defaultControls.setFastForwardButtonRemoved(removed);
-        }
-    }
-
 
     /**
      * *************************************

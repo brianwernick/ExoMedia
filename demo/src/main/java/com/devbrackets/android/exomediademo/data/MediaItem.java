@@ -2,16 +2,31 @@ package com.devbrackets.android.exomediademo.data;
 
 import com.devbrackets.android.exomedia.manager.EMPlaylistManager;
 import com.devbrackets.android.exomediademo.helper.AudioItems;
+import com.devbrackets.android.exomediademo.helper.VideoItems;
 
 /**
  * A custom {@link com.devbrackets.android.exomedia.manager.EMPlaylistManager.PlaylistItem}
- * to hold the information pertaining to the audio items ("The Count of Monte Cristo" chapters)
+ * to hold the information pertaining to the audio and video items
  */
 public class MediaItem implements EMPlaylistManager.PlaylistItem {
-    private AudioItems.AudioItem audioItem;
+
+    private String artworkUrl;
+    private String mediaUrl;
+    private String title;
+    boolean isAudio;
 
     public MediaItem(AudioItems.AudioItem audioItem) {
-        this.audioItem = audioItem;
+        artworkUrl = audioItem.getArtworkUrl();
+        mediaUrl = audioItem.getMediaUrl();
+        title = audioItem.getTitle();
+        isAudio = true;
+    }
+
+    public MediaItem(VideoItems.VideoItem videoItem) {
+        artworkUrl = null;
+        mediaUrl = videoItem.getMediaUrl();
+        title = videoItem.getTitle();
+        isAudio = false;
     }
 
     @Override
@@ -26,12 +41,12 @@ public class MediaItem implements EMPlaylistManager.PlaylistItem {
 
     @Override
     public EMPlaylistManager.MediaType getMediaType() {
-        return EMPlaylistManager.MediaType.AUDIO;
+        return isAudio ? EMPlaylistManager.MediaType.AUDIO : EMPlaylistManager.MediaType.VIDEO;
     }
 
     @Override
     public String getMediaUrl() {
-        return audioItem.getMediaUrl();
+        return mediaUrl;
     }
 
     @Override
@@ -41,17 +56,17 @@ public class MediaItem implements EMPlaylistManager.PlaylistItem {
 
     @Override
     public String getThumbnailUrl() {
-        return audioItem.getArtworkUrl();
+        return artworkUrl;
     }
 
     @Override
     public String getArtworkUrl() {
-        return audioItem.getArtworkUrl();
+        return artworkUrl;
     }
 
     @Override
     public String getTitle() {
-        return audioItem.getTitle();
+        return title;
     }
 
     @Override

@@ -4,4 +4,5 @@
     <string name="title_activity_audio_player">ExoMedia Audio Player</string>
 
     <string name="title_audio_selection_activity">The Count of Monte Cristo</string>
+    <string name="title_video_selection_activity">Demo Videos</string>
 </resources>

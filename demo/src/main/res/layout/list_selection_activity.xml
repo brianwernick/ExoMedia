@@ -9,7 +9,7 @@
                 tools:context=".AudioSelectionActivity">
 
     <ListView
-        android:id="@+id/audio_selection_activity_list"
+        android:id="@+id/selection_activity_list"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 

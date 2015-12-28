@@ -290,7 +290,7 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
             case DASH:
                 return new DashRenderBuilder(getContext(), getUserAgent(), uri.toString());
             default:
-                return new RenderBuilder(getContext(), getUserAgent(), uri.toString(), defaultMediaType);
+                return new RenderBuilder(getContext(), getUserAgent(), uri.toString());
         }
     }
 

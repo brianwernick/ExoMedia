@@ -24,6 +24,7 @@ import android.os.Build;
 import android.os.Handler;
 
 import com.devbrackets.android.exomedia.exoplayer.EMExoPlayer;
+import com.devbrackets.android.exomedia.renderer.EMMediaCodecAudioTrackRenderer;
 import com.google.android.exoplayer.DefaultLoadControl;
 import com.google.android.exoplayer.LoadControl;
 import com.google.android.exoplayer.MediaCodecAudioTrackRenderer;
@@ -158,7 +159,7 @@ public class HlsRenderBuilder extends RenderBuilder {
                     BUFFER_SEGMENTS * BUFFER_SEGMENT_SIZE, mainHandler, player, EMExoPlayer.RENDER_VIDEO_INDEX);
             MediaCodecVideoTrackRenderer videoRenderer = new MediaCodecVideoTrackRenderer(context,
                     sampleSource, MediaCodec.VIDEO_SCALING_MODE_SCALE_TO_FIT, 5000, mainHandler, player, 50);
-            MediaCodecAudioTrackRenderer audioRenderer = new MediaCodecAudioTrackRenderer(sampleSource,
+            MediaCodecAudioTrackRenderer audioRenderer = new EMMediaCodecAudioTrackRenderer(sampleSource,
                     null, true, player.getMainHandler(), player, AudioCapabilities.getCapabilities(context));
             MetadataTrackRenderer<Map<String, Object>> id3Renderer = new MetadataTrackRenderer<>(
                     sampleSource, new Id3Parser(), player, mainHandler.getLooper());

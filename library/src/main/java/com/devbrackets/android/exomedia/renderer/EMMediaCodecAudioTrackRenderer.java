@@ -20,6 +20,7 @@ import android.os.Handler;
 
 import com.google.android.exoplayer.MediaCodecAudioTrackRenderer;
 import com.google.android.exoplayer.SampleSource;
+import com.google.android.exoplayer.audio.AudioCapabilities;
 import com.google.android.exoplayer.drm.DrmSessionManager;
 
 /**
@@ -45,6 +46,14 @@ public class EMMediaCodecAudioTrackRenderer extends MediaCodecAudioTrackRenderer
         super(source, drmSessionManager, playClearSamplesWithoutKeys, eventHandler, eventListener);
     }
 
+    public EMMediaCodecAudioTrackRenderer(SampleSource source, DrmSessionManager drmSessionManager, boolean playClearSamplesWithoutKeys, Handler eventHandler, EventListener eventListener, AudioCapabilities audioCapabilities) {
+        super(source, drmSessionManager, playClearSamplesWithoutKeys, eventHandler, eventListener, audioCapabilities);
+    }
+
+    public EMMediaCodecAudioTrackRenderer(SampleSource source, DrmSessionManager drmSessionManager, boolean playClearSamplesWithoutKeys, Handler eventHandler, EventListener eventListener, AudioCapabilities audioCapabilities, int streamType) {
+        super(source, drmSessionManager, playClearSamplesWithoutKeys, eventHandler, eventListener, audioCapabilities, streamType);
+    }
+
     @Override
     protected void onAudioSessionId(int audioSessionId) {
         this.audioSessionId = audioSessionId;
@@ -54,4 +63,5 @@ public class EMMediaCodecAudioTrackRenderer extends MediaCodecAudioTrackRenderer
     public int getAudioSessionId() {
         return audioSessionId;
     }
+
 }

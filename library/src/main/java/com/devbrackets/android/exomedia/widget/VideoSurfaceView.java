@@ -16,6 +16,8 @@
 package com.devbrackets.android.exomedia.widget;
 
 import android.content.Context;
+import android.graphics.Point;
+import android.support.annotation.Nullable;
 import android.util.AttributeSet;
 import android.view.SurfaceView;
 
@@ -34,7 +36,15 @@ public class VideoSurfaceView extends SurfaceView {
      */
     private static final float MAX_ASPECT_RATIO_DEFORMATION_FRACTION  = 0.01f;
 
+    public interface OnSizeChangeListener {
+        void onVideoSurfaceSizeChange(int width, int height);
+    }
+
     private float videoAspectRatio;
+
+    @Nullable
+    private OnSizeChangeListener listener;
+    private Point oldSize = new Point(0, 0);
 
     public VideoSurfaceView(Context context) {
         super(context);
@@ -69,7 +79,8 @@ public class VideoSurfaceView extends SurfaceView {
         float viewAspectRatio = (float) width / height;
         float aspectDeformation = videoAspectRatio / viewAspectRatio - 1;
         if (Math.abs(aspectDeformation) <= MAX_ASPECT_RATIO_DEFORMATION_FRACTION) {
-            // We're within the allowed tolerance.
+            // We're within the allowed tolerance, so leave the values from super
+            notifyListener(width, height);
             return;
         }
 
@@ -80,5 +91,18 @@ public class VideoSurfaceView extends SurfaceView {
         }
 
         super.onMeasure(MeasureSpec.makeMeasureSpec(width, MeasureSpec.EXACTLY), MeasureSpec.makeMeasureSpec(height, MeasureSpec.EXACTLY));
+        notifyListener(width, height);
+    }
+
+    public void setOnSizeChangeListener(@Nullable OnSizeChangeListener listener) {
+        this.listener = listener;
+    }
+
+    private void notifyListener(int width, int height) {
+        if (listener != null && (oldSize.x != width || oldSize.y != height)) {
+            oldSize.x = width;
+            oldSize.y = height;
+            listener.onVideoSurfaceSizeChange(width, height);
+        }
     }
 }

@@ -18,6 +18,7 @@ package com.devbrackets.android.exomedia;
 
 import android.annotation.TargetApi;
 import android.content.Context;
+import android.content.res.Configuration;
 import android.content.res.TypedArray;
 import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
@@ -31,6 +32,7 @@ import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.View;
+import android.view.ViewTreeObserver;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.VideoView;
@@ -65,7 +67,7 @@ import com.google.android.exoplayer.audio.AudioCapabilitiesReceiver;
  * to help with quick implementations.
  */
 @SuppressWarnings("UnusedDeclaration")
-public class EMVideoView extends RelativeLayout implements AudioCapabilitiesReceiver.Listener {
+public class EMVideoView extends RelativeLayout implements AudioCapabilitiesReceiver.Listener, VideoSurfaceView.OnSizeChangeListener {
     private static final String TAG = EMVideoView.class.getSimpleName();
     private static final String USER_AGENT_FORMAT = "EMVideoView %s / Android %s / %s";
 
@@ -93,6 +95,7 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
     private int positionOffset = 0;
     private boolean overridePosition = false;
 
+    protected MuxNotifier muxNotifier = new MuxNotifier();
     private EMListenerMux listenerMux;
     private boolean playRequested = false;
     private boolean releaseOnDetachFromWindow = true;
@@ -130,6 +133,35 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
         if (releaseOnDetachFromWindow) {
             release();
         }
+    }
+
+    @Override
+    protected void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+
+        //Makes sure the shutters are the correct size
+        getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+            @Override
+            @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
+            public void onGlobalLayout() {
+                if (useExo) {
+                    muxNotifier.updateVideoShutters(getWidth(), getHeight(), exoVideoSurfaceView.getWidth(), exoVideoSurfaceView.getHeight());
+                    getViewTreeObserver().removeOnGlobalLayoutListener(this);
+                } else {
+                    muxNotifier.updateVideoShutters(getWidth(), getHeight(), videoView.getWidth(), videoView.getHeight());
+                    //noinspection deprecation
+                    getViewTreeObserver().removeGlobalOnLayoutListener(this);
+                }
+            }
+        });
+
+        forceLayout();
+        invalidate();
+    }
+
+    @Override
+    public void onVideoSurfaceSizeChange(int width, int height) {
+        muxNotifier.updateVideoShutters(getWidth(), getHeight(), width, height);
     }
 
     @Override
@@ -234,15 +266,16 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
         emExoPlayer = new EMExoPlayer(null);
 
         //Sets the internal listener
-        listenerMux = new EMListenerMux(new MuxNotifier());
+        listenerMux = new EMListenerMux(muxNotifier);
         emExoPlayer.addListener(listenerMux);
         emExoPlayer.setMetadataListener(null);
         emExoPlayer.setSurface(exoVideoSurfaceView.getHolder().getSurface());
         exoVideoSurfaceView.getHolder().addCallback(new EMExoVideoSurfaceCallback());
+        exoVideoSurfaceView.setOnSizeChangeListener(this);
     }
 
     private void setupVideoView() {
-        listenerMux = new EMListenerMux(new MuxNotifier());
+        listenerMux = new EMListenerMux(muxNotifier);
         videoView.setOnCompletionListener(listenerMux);
         videoView.setOnPreparedListener(listenerMux);
         videoView.setOnErrorListener(listenerMux);
@@ -263,13 +296,13 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
     private RenderBuilder getRendererBuilder(MediaSourceType renderType, Uri uri, MediaUtil.MediaType defaultMediaType) {
         switch (renderType) {
             case HLS:
-                return new HlsRenderBuilder(getContext(), getUserAgent(), uri.toString());
+                return new HlsRenderBuilder(getContext().getApplicationContext(), getUserAgent(), uri.toString());
             case DASH:
-                return new DashRenderBuilder(getContext(), getUserAgent(), uri.toString());
+                return new DashRenderBuilder(getContext().getApplicationContext(), getUserAgent(), uri.toString());
             case SMOOTH_STREAM:
-                return new SmoothStreamRenderBuilder(getContext(), getUserAgent(), uri.toString());
+                return new SmoothStreamRenderBuilder(getContext().getApplicationContext(), getUserAgent(), uri.toString());
             default:
-                return new RenderBuilder(getContext(), getUserAgent(), uri.toString());
+                return new RenderBuilder(getContext().getApplicationContext(), getUserAgent(), uri.toString());
         }
     }
 
@@ -901,25 +934,7 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
             float videoAspectRatio = height == 0 ? 1 : (width * pixelWidthHeightRatio) / height;
             exoVideoSurfaceView.setAspectRatio(videoAspectRatio);
 
-            //Sets the horizontal shutter (top and bottom) sizes
-            int shutterHeight = calculateVerticalShutterSize(height);
-            if (shutterTop != null) {
-                shutterTop.getLayoutParams().height = shutterHeight;
-            }
-
-            if (shutterBottom != null) {
-                shutterBottom.getLayoutParams().height = shutterHeight;
-            }
-
-            //Sets the vertical shutter (left and right) sizes
-            int shutterWidth = calculateSideShutterSize(videoAspectRatio);
-            if (shutterLeft != null) {
-                shutterLeft.getLayoutParams().width = shutterWidth;
-            }
-
-            if (shutterRight != null) {
-                shutterRight.getLayoutParams().width = shutterWidth;
-            }
+            updateVideoShutters(getWidth(), getHeight(), width, height);
         }
 
         @Override
@@ -937,24 +952,40 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
             }
         }
 
-        private int calculateVerticalShutterSize(int height) {
-            int shutterSize = (getHeight() - height) / 2;
-            return (getHeight() - height) % 2 == 0 ? shutterSize : shutterSize +1;
-        }
-
-        private int calculateSideShutterSize(float videoAspect) {
-            int width = getWidth();
-            int height = getHeight();
-            if(videoAspect != 0.0f) {
-                float viewAspectRatio = (float)width / (float)height;
-                float aspectDeformation = videoAspect / viewAspectRatio - 1.0f;
-                if(aspectDeformation < -0.01f) {
-                    width = (int)((float)height * videoAspect);
-                }
+        public void updateVideoShutters(int viewWidth, int viewHeight, int videoWidth, int videoHeight) {
+            //Sets the horizontal shutter (top and bottom) sizes
+            int shutterHeight = calculateVerticalShutterSize(viewHeight, videoHeight);
+            if (shutterTop != null) {
+                shutterTop.getLayoutParams().height = shutterHeight;
+                shutterTop.requestLayout();
             }
 
-            int shutterSize = (getWidth() - width) / 2;
-            return (getWidth() - width) % 2 == 0 ? shutterSize : shutterSize +1;
+            if (shutterBottom != null) {
+                shutterBottom.getLayoutParams().height = shutterHeight;
+                shutterBottom.requestLayout();
+            }
+
+            //Sets the vertical shutter (left and right) sizes
+            int shutterWidth = calculateSideShutterSize(viewWidth, videoWidth);
+            if (shutterLeft != null) {
+                shutterLeft.getLayoutParams().width = shutterWidth;
+                shutterLeft.requestLayout();
+            }
+
+            if (shutterRight != null) {
+                shutterRight.getLayoutParams().width = shutterWidth;
+                shutterRight.requestLayout();
+            }
+        }
+
+        private int calculateVerticalShutterSize(int viewHeight, int videoHeight) {
+            int shutterSize = (viewHeight - videoHeight) / 2;
+            return (viewHeight - videoHeight) % 2 == 0 ? shutterSize : shutterSize +1;
+        }
+
+        private int calculateSideShutterSize(int viewWidth, int videoWidth) {
+            int shutterSize = (viewWidth - videoWidth) / 2;
+            return (viewWidth - videoWidth) % 2 == 0 ? shutterSize : shutterSize +1;
         }
     }
 

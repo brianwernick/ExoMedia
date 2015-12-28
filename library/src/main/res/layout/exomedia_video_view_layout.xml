@@ -3,6 +3,12 @@
               android:layout_width="match_parent"
               android:layout_height="match_parent">
 
+    <view class="com.devbrackets.android.exomedia.EMVideoView$TouchVideoView"
+        android:id="@+id/exomedia_android_video_view"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"/>
+
     <View
         android:id="@+id/exomedia_video_shutter_top"
         android:layout_width="match_parent"
@@ -18,12 +24,6 @@
         android:layout_toLeftOf="@+id/exomedia_android_video_view"
         android:layout_alignParentLeft="true"
         android:background="@android:color/black"/>
-
-    <view class="com.devbrackets.android.exomedia.EMVideoView$TouchVideoView"
-        android:id="@+id/exomedia_android_video_view"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_centerInParent="true"/>
 
     <View
         android:id="@+id/exomedia_video_shutter_right"

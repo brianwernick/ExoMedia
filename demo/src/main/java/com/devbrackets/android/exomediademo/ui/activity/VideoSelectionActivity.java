@@ -8,14 +8,13 @@ import android.widget.AdapterView;
 import android.widget.ListView;
 
 import com.devbrackets.android.exomediademo.R;
-import com.devbrackets.android.exomediademo.adapter.AudioSelectionListAdapter;
+import com.devbrackets.android.exomediademo.adapter.VideoSelectionListAdapter;
 
 /**
  * A simple activity that allows the user to select a
- * chapter form "The Count of Monte Cristo" to play
- * (limited to chapters 1 - 4).
+ * video to play
  */
-public class AudioSelectionActivity extends AppCompatActivity implements AdapterView.OnItemClickListener {
+public class VideoSelectionActivity extends AppCompatActivity implements AdapterView.OnItemClickListener {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -23,22 +22,22 @@ public class AudioSelectionActivity extends AppCompatActivity implements Adapter
         setContentView(R.layout.list_selection_activity);
 
         if (getSupportActionBar() != null) {
-            getSupportActionBar().setTitle(getResources().getString(R.string.title_audio_selection_activity));
+            getSupportActionBar().setTitle(getResources().getString(R.string.title_video_selection_activity));
         }
 
         ListView exampleList = (ListView) findViewById(R.id.selection_activity_list);
-        exampleList.setAdapter(new AudioSelectionListAdapter(this));
+        exampleList.setAdapter(new VideoSelectionListAdapter(this));
         exampleList.setOnItemClickListener(this);
     }
 
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-        startAudioPlayerActivity(position);
+        startVideoPlayerActivity(position);
     }
 
-    private void startAudioPlayerActivity(int selectedIndex) {
-        Intent intent = new Intent(this, AudioPlayerActivity.class);
-        intent.putExtra(AudioPlayerActivity.EXTRA_INDEX, selectedIndex);
+    private void startVideoPlayerActivity(int selectedIndex) {
+        Intent intent = new Intent(this, FullScreenVideoPlayerActivity.class);
+        intent.putExtra(VideoPlayerActivity.EXTRA_INDEX, selectedIndex);
         startActivity(intent);
     }
 }

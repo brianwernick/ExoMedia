@@ -8,33 +8,29 @@ import android.widget.BaseAdapter;
 import android.widget.TextView;
 
 import com.devbrackets.android.exomediademo.R;
+import com.devbrackets.android.exomediademo.helper.VideoItems;
 
-import java.util.ArrayList;
 import java.util.List;
 
-public class StartupListAdapter extends BaseAdapter {
-    public static final int INDEX_VIDEO_PLAYBACK = 0;
-    public static final int INDEX_AUDIO_PLAYBACK = 1;
+public class VideoSelectionListAdapter extends BaseAdapter {
 
-    private List<String> examplePages;
+    private List<VideoItems.VideoItem> items;
     private LayoutInflater inflater;
 
-    public StartupListAdapter(Context context) {
-        examplePages = new ArrayList<>();
-        examplePages.add(INDEX_VIDEO_PLAYBACK, "Video Playback");
-        examplePages.add(INDEX_AUDIO_PLAYBACK, "Audio Playback");
+    public VideoSelectionListAdapter(Context context) {
+        items = VideoItems.getItems();
 
         inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
     }
 
     @Override
     public int getCount() {
-        return examplePages.size();
+        return items.size();
     }
 
     @Override
     public Object getItem(int position) {
-        return examplePages.get(position);
+        return items.get(position);
     }
 
     @Override
@@ -56,10 +52,9 @@ public class StartupListAdapter extends BaseAdapter {
             holder = (ViewHolder) convertView.getTag();
         }
 
-        holder.text.setText(examplePages.get(position));
+        holder.text.setText(items.get(position).getTitle());
         return convertView;
     }
-
 
     private static class ViewHolder {
         TextView text;

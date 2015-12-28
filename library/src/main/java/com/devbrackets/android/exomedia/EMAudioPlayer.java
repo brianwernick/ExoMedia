@@ -22,12 +22,14 @@ import android.net.Uri;
 import android.os.Build;
 import android.util.Log;
 
+import com.devbrackets.android.exomedia.builder.DashRenderBuilder;
 import com.devbrackets.android.exomedia.builder.HlsRenderBuilder;
 import com.devbrackets.android.exomedia.builder.RenderBuilder;
 import com.devbrackets.android.exomedia.event.EMMediaProgressEvent;
 import com.devbrackets.android.exomedia.exoplayer.EMExoPlayer;
 import com.devbrackets.android.exomedia.listener.EMProgressCallback;
 import com.devbrackets.android.exomedia.listener.ExoPlayerListener;
+import com.devbrackets.android.exomedia.type.MediaSourceType;
 import com.devbrackets.android.exomedia.util.EMDeviceUtil;
 import com.devbrackets.android.exomedia.util.MediaUtil;
 import com.devbrackets.android.exomedia.util.Repeater;
@@ -47,19 +49,6 @@ import com.google.android.exoplayer.audio.AudioCapabilitiesReceiver;
 public class EMAudioPlayer implements AudioCapabilitiesReceiver.Listener {
     private static final String TAG = EMAudioPlayer.class.getSimpleName();
     private static final String USER_AGENT_FORMAT = "EMAudioPlayer %s / Android %s / %s";
-
-    public enum AudioType {
-        HLS,
-        DEFAULT;
-
-        public static AudioType get(Uri uri) {
-            if (uri.toString().matches(".*\\.m3u8.*")) {
-                return AudioType.HLS;
-            }
-
-            return AudioType.DEFAULT;
-        }
-    }
 
     private Context context;
     private MediaPlayer mediaPlayer;
@@ -188,12 +177,14 @@ public class EMAudioPlayer implements AudioCapabilitiesReceiver.Listener {
      * @param defaultMediaType  The MediaType to use when auto-detection fails
      * @return                  The appropriate RenderBuilder
      */
-    private RenderBuilder getRendererBuilder(AudioType renderType, Uri uri, MediaUtil.MediaType defaultMediaType) {
+    private RenderBuilder getRendererBuilder(MediaSourceType renderType, Uri uri, MediaUtil.MediaType defaultMediaType) {
         switch (renderType) {
             case HLS:
                 return new HlsRenderBuilder(context, getUserAgent(), uri.toString());
+            case DASH:
+                return new DashRenderBuilder(context, getUserAgent(), uri.toString());
             default:
-                return new RenderBuilder(context, getUserAgent(), uri.toString(), defaultMediaType);
+                return new RenderBuilder(context, getUserAgent(), uri.toString());
         }
     }
 
@@ -247,7 +238,6 @@ public class EMAudioPlayer implements AudioCapabilitiesReceiver.Listener {
         setDataSource(context, uri, MediaUtil.MediaType.MP3);
     }
 
-
     /**
      * Sets the source path for the audio item.  This path can be a web address (e.g. http://) or
      * an absolute local path (e.g. file://)
@@ -257,6 +247,23 @@ public class EMAudioPlayer implements AudioCapabilitiesReceiver.Listener {
      * @param defaultMediaType The MediaType to use when auto-detection fails
      */
     public void setDataSource(Context context, Uri uri, MediaUtil.MediaType defaultMediaType) {
+        RenderBuilder builder = null;
+        if (uri != null) {
+            builder = getRendererBuilder(MediaSourceType.get(uri), uri, defaultMediaType);
+        }
+
+        setDataSource(context, uri, builder);
+    }
+
+    /**
+     * Sets the source path for the audio item.  This path can be a web address (e.g. http://) or
+     * an absolute local path (e.g. file://)
+     *
+     * @param context The applications context that owns the media
+     * @param uri The Uri representing the path to the audio item
+     * @param renderBuilder The RenderBuilder to use for audio playback
+     */
+    public void setDataSource(Context context, Uri uri, RenderBuilder renderBuilder) {
         if (!useExo) {
             try {
                 mediaPlayer.setDataSource(context, uri);
@@ -265,7 +272,7 @@ public class EMAudioPlayer implements AudioCapabilitiesReceiver.Listener {
             }
         } else {
             if (uri != null) {
-                emExoPlayer.replaceRenderBuilder(getRendererBuilder(AudioType.get(uri), uri, defaultMediaType));
+                emExoPlayer.replaceRenderBuilder(renderBuilder);
                 listenerMux.setNotifiedCompleted(false);
             } else {
                 emExoPlayer.replaceRenderBuilder(null);

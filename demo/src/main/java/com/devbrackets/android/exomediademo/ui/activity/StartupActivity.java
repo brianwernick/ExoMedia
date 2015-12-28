@@ -26,32 +26,23 @@ public class StartupActivity extends AppCompatActivity implements AdapterView.On
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         switch (position) {
             case StartupListAdapter.INDEX_VIDEO_PLAYBACK:
-                startVideoPlayerActivity();
-                break;
-
-            case StartupListAdapter.INDEX_VIDEO_PLAYBACK_FULLSCREEN:
-                startFullscreenVideoPlayerActivity();
+                showVideoSelectionActivity();
                 break;
 
             case StartupListAdapter.INDEX_AUDIO_PLAYBACK:
-                startAudioPlayerActivity();
+                showAudioSelectionActivity();
                 break;
 
             default:
         }
     }
 
-    private void startVideoPlayerActivity() {
-        Intent intent = new Intent(this, VideoPlayerActivity.class);
+    private void showVideoSelectionActivity() {
+        Intent intent = new Intent(this, VideoSelectionActivity.class);
         startActivity(intent);
     }
 
-    private void startFullscreenVideoPlayerActivity() {
-        Intent intent = new Intent(this, FullScreenVideoPlayerActivity.class);
-        startActivity(intent);
-    }
-
-    private void startAudioPlayerActivity() {
+    private void showAudioSelectionActivity() {
         Intent intent = new Intent(this, AudioSelectionActivity.class);
         startActivity(intent);
     }

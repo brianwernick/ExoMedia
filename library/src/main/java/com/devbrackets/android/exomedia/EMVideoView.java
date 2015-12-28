@@ -38,10 +38,12 @@ import android.widget.VideoView;
 import com.devbrackets.android.exomedia.builder.DashRenderBuilder;
 import com.devbrackets.android.exomedia.builder.HlsRenderBuilder;
 import com.devbrackets.android.exomedia.builder.RenderBuilder;
+import com.devbrackets.android.exomedia.builder.SmoothStreamRenderBuilder;
 import com.devbrackets.android.exomedia.event.EMMediaProgressEvent;
 import com.devbrackets.android.exomedia.exoplayer.EMExoPlayer;
 import com.devbrackets.android.exomedia.listener.EMProgressCallback;
 import com.devbrackets.android.exomedia.listener.ExoPlayerListener;
+import com.devbrackets.android.exomedia.type.MediaSourceType;
 import com.devbrackets.android.exomedia.util.EMDeviceUtil;
 import com.devbrackets.android.exomedia.util.MediaUtil;
 import com.devbrackets.android.exomedia.util.Repeater;
@@ -66,22 +68,6 @@ import com.google.android.exoplayer.audio.AudioCapabilitiesReceiver;
 public class EMVideoView extends RelativeLayout implements AudioCapabilitiesReceiver.Listener {
     private static final String TAG = EMVideoView.class.getSimpleName();
     private static final String USER_AGENT_FORMAT = "EMVideoView %s / Android %s / %s";
-
-    public enum VideoType {
-        HLS,
-        DASH,
-        DEFAULT;
-
-        public static VideoType get(Uri uri) {
-            if (uri.toString().matches(".*m3u8.*")) {
-                return VideoType.HLS;
-            } else if (uri.toString().matches(".*mpd.*")) {
-                return VideoType.DASH;
-            }
-
-            return VideoType.DEFAULT;
-        }
-    }
 
     private View shutterTop;
     private View shutterBottom;
@@ -274,14 +260,16 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
      * @param defaultMediaType  The MediaType to use when auto-detection fails
      * @return The appropriate RenderBuilder
      */
-    private RenderBuilder getRendererBuilder(VideoType renderType, Uri uri, MediaUtil.MediaType defaultMediaType) {
+    private RenderBuilder getRendererBuilder(MediaSourceType renderType, Uri uri, MediaUtil.MediaType defaultMediaType) {
         switch (renderType) {
             case HLS:
                 return new HlsRenderBuilder(getContext(), getUserAgent(), uri.toString());
             case DASH:
                 return new DashRenderBuilder(getContext(), getUserAgent(), uri.toString());
+            case SMOOTH_STREAM:
+                return new SmoothStreamRenderBuilder(getContext(), getUserAgent(), uri.toString());
             default:
-                return new RenderBuilder(getContext(), getUserAgent(), uri.toString(), defaultMediaType);
+                return new RenderBuilder(getContext(), getUserAgent(), uri.toString());
         }
     }
 
@@ -527,11 +515,12 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
      * @param defaultMediaType The MediaType to use when auto-detection fails
      */
     public void setVideoURI(Uri uri, MediaUtil.MediaType defaultMediaType) {
-        RenderBuilder renderBuilder = null;
+        RenderBuilder builder = null;
         if(uri != null) {
-            renderBuilder = getRendererBuilder(VideoType.get(uri), uri, defaultMediaType);
+            builder = getRendererBuilder(MediaSourceType.get(uri), uri, defaultMediaType);
         }
-        setVideoURI(uri, renderBuilder);
+
+        setVideoURI(uri, builder);
     }
 
     /**

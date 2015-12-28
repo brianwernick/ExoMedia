@@ -305,13 +305,13 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
     private RenderBuilder getRendererBuilder(MediaSourceType renderType, Uri uri, MediaUtil.MediaType defaultMediaType) {
         switch (renderType) {
             case HLS:
-                return new HlsRenderBuilder(getContext(), getUserAgent(), uri.toString());
+                return new HlsRenderBuilder(getContext().getApplicationContext(), getUserAgent(), uri.toString());
             case DASH:
-                return new DashRenderBuilder(getContext(), getUserAgent(), uri.toString());
+                return new DashRenderBuilder(getContext().getApplicationContext(), getUserAgent(), uri.toString());
             case SMOOTH_STREAM:
-                return new SmoothStreamRenderBuilder(getContext(), getUserAgent(), uri.toString());
+                return new SmoothStreamRenderBuilder(getContext().getApplicationContext(), getUserAgent(), uri.toString());
             default:
-                return new RenderBuilder(getContext(), getUserAgent(), uri.toString());
+                return new RenderBuilder(getContext().getApplicationContext(), getUserAgent(), uri.toString());
         }
     }
 

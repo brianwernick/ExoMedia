@@ -28,7 +28,6 @@ import com.devbrackets.android.exomedia.exoplayer.EMExoPlayer;
 import com.devbrackets.android.exomedia.renderer.EMMediaCodecAudioTrackRenderer;
 import com.google.android.exoplayer.DefaultLoadControl;
 import com.google.android.exoplayer.LoadControl;
-import com.google.android.exoplayer.MediaCodecAudioTrackRenderer;
 import com.google.android.exoplayer.MediaCodecVideoTrackRenderer;
 import com.google.android.exoplayer.TrackRenderer;
 import com.google.android.exoplayer.audio.AudioCapabilities;
@@ -42,6 +41,7 @@ import com.google.android.exoplayer.dash.mpd.MediaPresentationDescriptionParser;
 import com.google.android.exoplayer.dash.mpd.UtcTimingElement;
 import com.google.android.exoplayer.dash.mpd.UtcTimingElementResolver;
 import com.google.android.exoplayer.dash.mpd.UtcTimingElementResolver.UtcTimingCallback;
+import com.google.android.exoplayer.text.TextTrackRenderer;
 import com.google.android.exoplayer.upstream.DataSource;
 import com.google.android.exoplayer.upstream.DefaultAllocator;
 import com.google.android.exoplayer.upstream.DefaultBandwidthMeter;
@@ -58,10 +58,6 @@ import java.io.IOException;
 @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
 public class DashRenderBuilder extends RenderBuilder {
     private static final String TAG = "DashRendererBuilder";
-
-    private static final int BUFFER_SEGMENT_SIZE = 64 * 1024;
-    private static final int BUFFER_SEGMENTS_VIDEO = 200;
-    private static final int BUFFER_SEGMENTS_AUDIO = 54;
     private static final int LIVE_EDGE_LATENCY_MS = 30000;
 
 
@@ -169,12 +165,14 @@ public class DashRenderBuilder extends RenderBuilder {
             LoadControl loadControl = new DefaultLoadControl(new DefaultAllocator(BUFFER_SEGMENT_SIZE));
             DefaultBandwidthMeter bandwidthMeter = new DefaultBandwidthMeter(mainHandler, player);
 
+
             //Create the Sample Source to be used by the Video Renderer
             DataSource dataSourceVideo = new DefaultUriDataSource(context, bandwidthMeter, userAgent, true);
             ChunkSource chunkSourceVideo = new DashChunkSource(manifestFetcher, DefaultDashTrackSelector.newVideoInstance(context, true, false),
                     dataSourceVideo, new AdaptiveEvaluator(bandwidthMeter), LIVE_EDGE_LATENCY_MS, elapsedRealtimeOffset, mainHandler, player);
             ChunkSampleSource sampleSourceVideo = new ChunkSampleSource(chunkSourceVideo, loadControl, BUFFER_SEGMENTS_VIDEO * BUFFER_SEGMENT_SIZE,
                     mainHandler, player, EMExoPlayer.RENDER_VIDEO_INDEX);
+
 
             //Create the Sample Source to be used by the Audio Renderer
             DataSource dataSourceAudio = new DefaultUriDataSource(context, bandwidthMeter, userAgent, true);
@@ -183,17 +181,28 @@ public class DashRenderBuilder extends RenderBuilder {
             ChunkSampleSource sampleSourceAudio = new ChunkSampleSource(chunkSourceAudio, loadControl, BUFFER_SEGMENTS_AUDIO * BUFFER_SEGMENT_SIZE,
                     mainHandler, player, EMExoPlayer.RENDER_AUDIO_INDEX);
 
-            //Create the renderers
+
+            //Create the Sample Source to be used by the Closed Captions Renderer
+            DataSource dataSourceCC = new DefaultUriDataSource(context, bandwidthMeter, userAgent);
+            ChunkSource chunkSourceCC = new DashChunkSource(manifestFetcher, DefaultDashTrackSelector.newAudioInstance(),
+                    dataSourceCC, null, LIVE_EDGE_LATENCY_MS, elapsedRealtimeOffset, mainHandler, player);
+            ChunkSampleSource sampleSourceCC = new ChunkSampleSource(chunkSourceCC, loadControl, BUFFER_SEGMENTS_TEXT * BUFFER_SEGMENT_SIZE,
+                    mainHandler, player, EMExoPlayer.RENDER_CLOSED_CAPTION_INDEX);
+
+
+            //Build the renderers
             MediaCodecVideoTrackRenderer videoRenderer = new MediaCodecVideoTrackRenderer(context, sampleSourceVideo,
                     MediaCodec.VIDEO_SCALING_MODE_SCALE_TO_FIT, MAX_JOIN_TIME, mainHandler, player, DROPPED_FRAME_NOTIFICATION_AMOUNT);
-            MediaCodecAudioTrackRenderer audioRenderer = new MediaCodecAudioTrackRenderer(sampleSourceAudio,
+            EMMediaCodecAudioTrackRenderer audioRenderer = new EMMediaCodecAudioTrackRenderer(sampleSourceAudio,
                     null, true, mainHandler, player, AudioCapabilities.getCapabilities(context));
+            TextTrackRenderer captionsRenderer = new TextTrackRenderer(sampleSourceCC, player, mainHandler.getLooper());
 
 
             // Invoke the callback.
             TrackRenderer[] renderers = new TrackRenderer[EMExoPlayer.RENDER_COUNT];
             renderers[EMExoPlayer.RENDER_VIDEO_INDEX] = videoRenderer;
             renderers[EMExoPlayer.RENDER_AUDIO_INDEX] = audioRenderer;
+            renderers[EMExoPlayer.RENDER_CLOSED_CAPTION_INDEX] = captionsRenderer;
             player.onRenderers(renderers, bandwidthMeter);
         }
     }

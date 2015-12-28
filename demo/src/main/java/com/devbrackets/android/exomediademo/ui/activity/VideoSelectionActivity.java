@@ -12,21 +12,20 @@ import com.devbrackets.android.exomediademo.adapter.VideoSelectionListAdapter;
 
 /**
  * A simple activity that allows the user to select a
- * chapter form "The Count of Monte Cristo" to play
- * (limited to chapters 1 - 4).
+ * video to play
  */
 public class VideoSelectionActivity extends AppCompatActivity implements AdapterView.OnItemClickListener {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.audio_selection_activity);
+        setContentView(R.layout.list_selection_activity);
 
         if (getSupportActionBar() != null) {
             getSupportActionBar().setTitle(getResources().getString(R.string.title_video_selection_activity));
         }
 
-        ListView exampleList = (ListView) findViewById(R.id.audio_selection_activity_list);
+        ListView exampleList = (ListView) findViewById(R.id.selection_activity_list);
         exampleList.setAdapter(new VideoSelectionListAdapter(this));
         exampleList.setOnItemClickListener(this);
     }

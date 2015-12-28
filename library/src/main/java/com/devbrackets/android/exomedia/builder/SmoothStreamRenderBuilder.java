@@ -1,4 +1,5 @@
 /*
+ * Copyright (C) 2015 Brian Wernick,
  * Copyright (C) 2015 Sébastiaan Versteeg,
  * Copyright (C) 2015 The Android Open Source Project
  *
@@ -14,6 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.devbrackets.android.exomedia.builder;
 
 import android.annotation.TargetApi;
@@ -31,15 +33,15 @@ import com.google.android.exoplayer.TrackRenderer;
 import com.google.android.exoplayer.audio.AudioCapabilities;
 import com.google.android.exoplayer.chunk.ChunkSampleSource;
 import com.google.android.exoplayer.chunk.ChunkSource;
-import com.google.android.exoplayer.chunk.FormatEvaluator.AdaptiveEvaluator;
+import com.google.android.exoplayer.chunk.FormatEvaluator;
 import com.google.android.exoplayer.drm.DrmSessionManager;
 import com.google.android.exoplayer.drm.StreamingDrmSessionManager;
 import com.google.android.exoplayer.drm.UnsupportedDrmException;
 import com.google.android.exoplayer.smoothstreaming.DefaultSmoothStreamingTrackSelector;
 import com.google.android.exoplayer.smoothstreaming.SmoothStreamingChunkSource;
 import com.google.android.exoplayer.smoothstreaming.SmoothStreamingManifest;
-import com.google.android.exoplayer.smoothstreaming.SmoothStreamingManifest.StreamElement;
 import com.google.android.exoplayer.smoothstreaming.SmoothStreamingManifestParser;
+import com.google.android.exoplayer.smoothstreaming.SmoothStreamingTrackSelector;
 import com.google.android.exoplayer.text.TextTrackRenderer;
 import com.google.android.exoplayer.upstream.DataSource;
 import com.google.android.exoplayer.upstream.DefaultAllocator;
@@ -57,10 +59,6 @@ import java.io.IOException;
  */
 @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
 public class SmoothStreamRenderBuilder extends RenderBuilder {
-    private static final int BUFFER_SEGMENT_SIZE = 64 * 1024;
-    private static final int VIDEO_BUFFER_SEGMENTS = 200;
-    private static final int AUDIO_BUFFER_SEGMENTS = 54;
-    private static final int TEXT_BUFFER_SEGMENTS = 2;
     private static final int LIVE_EDGE_LATENCY_MS = 30000;
 
     private final Context context;
@@ -90,9 +88,7 @@ public class SmoothStreamRenderBuilder extends RenderBuilder {
         }
     }
 
-    private static final class AsyncRendererBuilder
-            implements ManifestFetcher.ManifestCallback<SmoothStreamingManifest> {
-
+    private static final class AsyncRendererBuilder implements ManifestFetcher.ManifestCallback<SmoothStreamingManifest> {
         private final Context context;
         private final String userAgent;
         private final EMExoPlayer player;
@@ -105,8 +101,7 @@ public class SmoothStreamRenderBuilder extends RenderBuilder {
             this.userAgent = userAgent;
             this.player = player;
             SmoothStreamingManifestParser parser = new SmoothStreamingManifestParser();
-            manifestFetcher = new ManifestFetcher<>(url, new DefaultHttpDataSource(userAgent, null),
-                    parser);
+            manifestFetcher = new ManifestFetcher<>(url, new DefaultHttpDataSource(userAgent, null), parser);
         }
 
         public void init() {
@@ -132,69 +127,70 @@ public class SmoothStreamRenderBuilder extends RenderBuilder {
                 return;
             }
 
-            Handler mainHandler = player.getMainHandler();
-            LoadControl loadControl = new DefaultLoadControl(new DefaultAllocator(BUFFER_SEGMENT_SIZE));
-            DefaultBandwidthMeter bandwidthMeter = new DefaultBandwidthMeter(mainHandler, player);
-
             // Check drm support if necessary.
             DrmSessionManager drmSessionManager = null;
             if (manifest.protectionElement != null) {
-                if (Util.SDK_INT < 18) {
-                    player.onRenderersError(
-                            new UnsupportedDrmException(UnsupportedDrmException.REASON_UNSUPPORTED_SCHEME));
+                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN_MR2) {
+                    player.onRenderersError(new UnsupportedDrmException(UnsupportedDrmException.REASON_UNSUPPORTED_SCHEME));
                     return;
                 }
+
                 try {
-                    drmSessionManager = new StreamingDrmSessionManager(manifest.protectionElement.uuid,
-                            player.getPlaybackLooper(), null, null, player.getMainHandler(), player);
+                    drmSessionManager = new StreamingDrmSessionManager(manifest.protectionElement.uuid, player.getPlaybackLooper(), null, null, player.getMainHandler(), player);
                 } catch (UnsupportedDrmException e) {
                     player.onRenderersError(e);
                     return;
                 }
             }
 
-            // Build the video renderer.
-            DataSource videoDataSource = new DefaultUriDataSource(context, bandwidthMeter, userAgent);
-            ChunkSource videoChunkSource = new SmoothStreamingChunkSource(manifestFetcher,
-                    new DefaultSmoothStreamingTrackSelector(context, StreamElement.TYPE_VIDEO),
-                    videoDataSource, new AdaptiveEvaluator(bandwidthMeter), LIVE_EDGE_LATENCY_MS);
-            ChunkSampleSource videoSampleSource = new ChunkSampleSource(videoChunkSource, loadControl,
-                    VIDEO_BUFFER_SEGMENTS * BUFFER_SEGMENT_SIZE, mainHandler, player,
-                    EMExoPlayer.RENDER_VIDEO_INDEX);
-            TrackRenderer videoRenderer = new MediaCodecVideoTrackRenderer(context, videoSampleSource,
-                    MediaCodec.VIDEO_SCALING_MODE_SCALE_TO_FIT, MAX_JOIN_TIME, drmSessionManager, true, mainHandler,
-                    player, DROPPED_FRAME_NOTIFICATION_AMOUNT);
+            buildRenderers(drmSessionManager);
+        }
 
-            // Build the audio renderer.
-            DataSource audioDataSource = new DefaultUriDataSource(context, bandwidthMeter, userAgent);
-            ChunkSource audioChunkSource = new SmoothStreamingChunkSource(manifestFetcher,
-                    new DefaultSmoothStreamingTrackSelector(context, StreamElement.TYPE_AUDIO),
-                    audioDataSource, null, LIVE_EDGE_LATENCY_MS);
-            ChunkSampleSource audioSampleSource = new ChunkSampleSource(audioChunkSource, loadControl,
-                    AUDIO_BUFFER_SEGMENTS * BUFFER_SEGMENT_SIZE, mainHandler, player,
-                    EMExoPlayer.RENDER_AUDIO_INDEX);
-            TrackRenderer audioRenderer = new EMMediaCodecAudioTrackRenderer(audioSampleSource,
-                    drmSessionManager, true, mainHandler, player, AudioCapabilities.getCapabilities(context));
+        private void buildRenderers(DrmSessionManager drmSessionManager) {
+            Handler mainHandler = player.getMainHandler();
+            LoadControl loadControl = new DefaultLoadControl(new DefaultAllocator(BUFFER_SEGMENT_SIZE));
+            DefaultBandwidthMeter bandwidthMeter = new DefaultBandwidthMeter(mainHandler, player);
 
-            // Build the text renderer.
-            DataSource textDataSource = new DefaultUriDataSource(context, bandwidthMeter, userAgent);
-            ChunkSource textChunkSource = new SmoothStreamingChunkSource(manifestFetcher,
-                    new DefaultSmoothStreamingTrackSelector(context, StreamElement.TYPE_TEXT),
-                    textDataSource, null, LIVE_EDGE_LATENCY_MS);
-            ChunkSampleSource textSampleSource = new ChunkSampleSource(textChunkSource, loadControl,
-                    TEXT_BUFFER_SEGMENTS * BUFFER_SEGMENT_SIZE, mainHandler, player,
-                    EMExoPlayer.RENDER_CLOSED_CAPTION_INDEX);
-            TrackRenderer textRenderer = new TextTrackRenderer(textSampleSource, player,
-                    mainHandler.getLooper());
 
-            // Invoke the callback.
+            //Create the Sample Source to be used by the Video Renderer
+            DataSource dataSourceVideo = new DefaultUriDataSource(context, bandwidthMeter, userAgent);
+            SmoothStreamingTrackSelector trackSelectorVideo = new DefaultSmoothStreamingTrackSelector(context, SmoothStreamingManifest.StreamElement.TYPE_VIDEO);
+            ChunkSource chunkSourceVideo = new SmoothStreamingChunkSource(manifestFetcher, trackSelectorVideo, dataSourceVideo,
+                    new FormatEvaluator.AdaptiveEvaluator(bandwidthMeter), LIVE_EDGE_LATENCY_MS);
+            ChunkSampleSource sampleSourceVideo = new ChunkSampleSource(chunkSourceVideo, loadControl, BUFFER_SEGMENTS_VIDEO * BUFFER_SEGMENT_SIZE,
+                    mainHandler, player, EMExoPlayer.RENDER_VIDEO_INDEX);
+
+
+            //Create the Sample Source to be used by the Audio Renderer
+            DataSource dataSourceAudio = new DefaultUriDataSource(context, bandwidthMeter, userAgent);
+            SmoothStreamingTrackSelector trackSelectorAudio = new DefaultSmoothStreamingTrackSelector(context, SmoothStreamingManifest.StreamElement.TYPE_AUDIO);
+            ChunkSource chunkSourceAudio = new SmoothStreamingChunkSource(manifestFetcher, trackSelectorAudio, dataSourceAudio, null, LIVE_EDGE_LATENCY_MS);
+            ChunkSampleSource sampleSourceAudio = new ChunkSampleSource(chunkSourceAudio, loadControl, BUFFER_SEGMENTS_AUDIO * BUFFER_SEGMENT_SIZE,
+                    mainHandler, player, EMExoPlayer.RENDER_AUDIO_INDEX);
+
+
+            //Create the Sample Source to be used by the Closed Captions Renderer
+            DataSource dataSourceCC = new DefaultUriDataSource(context, bandwidthMeter, userAgent);
+            SmoothStreamingTrackSelector trackSelectorCC = new DefaultSmoothStreamingTrackSelector(context, SmoothStreamingManifest.StreamElement.TYPE_TEXT);
+            ChunkSource chunkSourceCC = new SmoothStreamingChunkSource(manifestFetcher, trackSelectorCC, dataSourceCC, null, LIVE_EDGE_LATENCY_MS);
+            ChunkSampleSource sampleSourceCC = new ChunkSampleSource(chunkSourceCC, loadControl, BUFFER_SEGMENTS_TEXT * BUFFER_SEGMENT_SIZE,
+                    mainHandler, player, EMExoPlayer.RENDER_CLOSED_CAPTION_INDEX);
+
+
+            // Build the renderers
+            MediaCodecVideoTrackRenderer videoRenderer = new MediaCodecVideoTrackRenderer(context, sampleSourceVideo, MediaCodec.VIDEO_SCALING_MODE_SCALE_TO_FIT,
+                    MAX_JOIN_TIME, drmSessionManager, true, mainHandler, player, DROPPED_FRAME_NOTIFICATION_AMOUNT);
+            EMMediaCodecAudioTrackRenderer audioRenderer = new EMMediaCodecAudioTrackRenderer(sampleSourceAudio, drmSessionManager, true, mainHandler, player,
+                    AudioCapabilities.getCapabilities(context));
+            TextTrackRenderer captionsRenderer = new TextTrackRenderer(sampleSourceCC, player, mainHandler.getLooper());
+
+
+            // Invoke the callback
             TrackRenderer[] renderers = new TrackRenderer[EMExoPlayer.RENDER_COUNT];
             renderers[EMExoPlayer.RENDER_VIDEO_INDEX] = videoRenderer;
             renderers[EMExoPlayer.RENDER_AUDIO_INDEX] = audioRenderer;
-            renderers[EMExoPlayer.RENDER_CLOSED_CAPTION_INDEX] = textRenderer;
+            renderers[EMExoPlayer.RENDER_CLOSED_CAPTION_INDEX] = captionsRenderer;
             player.onRenderers(renderers, bandwidthMeter);
         }
-
     }
-
 }

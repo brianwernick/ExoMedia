@@ -38,7 +38,7 @@ import android.widget.VideoView;
 import com.devbrackets.android.exomedia.builder.DashRenderBuilder;
 import com.devbrackets.android.exomedia.builder.HlsRenderBuilder;
 import com.devbrackets.android.exomedia.builder.RenderBuilder;
-import com.devbrackets.android.exomedia.builder.SmoothStreamingRenderBuilder;
+import com.devbrackets.android.exomedia.builder.SmoothStreamRenderBuilder;
 import com.devbrackets.android.exomedia.event.EMMediaProgressEvent;
 import com.devbrackets.android.exomedia.event.EMVideoViewClickedEvent;
 import com.devbrackets.android.exomedia.exoplayer.EMExoPlayer;
@@ -276,7 +276,7 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
             case DASH:
                 return new DashRenderBuilder(getContext(), getUserAgent(), uri.toString());
             case SMOOTH_STREAM:
-                return new SmoothStreamingRenderBuilder(getContext(), getUserAgent(), uri.toString());
+                return new SmoothStreamRenderBuilder(getContext(), getUserAgent(), uri.toString());
             default:
                 return new RenderBuilder(getContext(), getUserAgent(), uri.toString());
         }

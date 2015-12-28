@@ -215,7 +215,7 @@ public class EMAudioPlayer implements AudioCapabilitiesReceiver.Listener {
             case DASH:
                 return new DashRenderBuilder(context, getUserAgent(), uri.toString());
             default:
-                return new RenderBuilder(context, getUserAgent(), uri.toString(), defaultMediaType);
+                return new RenderBuilder(context, getUserAgent(), uri.toString());
         }
     }
 

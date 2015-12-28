@@ -25,6 +25,7 @@ import android.os.Handler;
 import android.util.Log;
 
 import com.devbrackets.android.exomedia.exoplayer.EMExoPlayer;
+import com.devbrackets.android.exomedia.renderer.EMMediaCodecAudioTrackRenderer;
 import com.google.android.exoplayer.DefaultLoadControl;
 import com.google.android.exoplayer.LoadControl;
 import com.google.android.exoplayer.MediaCodecAudioTrackRenderer;

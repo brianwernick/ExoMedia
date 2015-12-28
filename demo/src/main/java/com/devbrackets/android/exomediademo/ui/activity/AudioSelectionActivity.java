@@ -20,13 +20,13 @@ public class AudioSelectionActivity extends AppCompatActivity implements Adapter
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.audio_selection_activity);
+        setContentView(R.layout.list_selection_activity);
 
         if (getSupportActionBar() != null) {
             getSupportActionBar().setTitle(getResources().getString(R.string.title_audio_selection_activity));
         }
 
-        ListView exampleList = (ListView) findViewById(R.id.audio_selection_activity_list);
+        ListView exampleList = (ListView) findViewById(R.id.selection_activity_list);
         exampleList.setAdapter(new AudioSelectionListAdapter(this));
         exampleList.setOnItemClickListener(this);
     }

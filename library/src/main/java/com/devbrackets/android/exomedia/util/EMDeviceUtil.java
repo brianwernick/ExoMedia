@@ -54,7 +54,7 @@ public class EMDeviceUtil {
         }
 
         for (String device: NON_CTS_COMPLIANT_DEVICES) {
-            if (Build.MANUFACTURER.equalsIgnoreCase(device)) {
+            if (Build.DEVICE.equalsIgnoreCase(device)) {
                 return false;
             }
         }

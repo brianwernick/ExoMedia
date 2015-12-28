@@ -7,9 +7,11 @@ import android.os.Bundle;
 
 import com.devbrackets.android.exomedia.EMVideoView;
 import com.devbrackets.android.exomediademo.R;
+import com.devbrackets.android.exomediademo.helper.VideoItems;
 
 
 public class VideoPlayerActivity extends Activity implements MediaPlayer.OnPreparedListener {
+    public static final String EXTRA_INDEX = "EXTRA_INDEX";
     protected EMVideoView emVideoView;
 
     @Override
@@ -22,7 +24,7 @@ public class VideoPlayerActivity extends Activity implements MediaPlayer.OnPrepa
 
         //For now we just picked an arbitrary item to play.  More can be found at
         //https://archive.org/details/more_animation
-        emVideoView.setVideoURI(Uri.parse("https://archive.org/download/Popeye_forPresident/Popeye_forPresident_512kb.mp4"));
+        emVideoView.setVideoURI(Uri.parse(VideoItems.getItems().get(getIntent().getIntExtra(EXTRA_INDEX, 0)).getMediaUrl()));
     }
 
     @Override

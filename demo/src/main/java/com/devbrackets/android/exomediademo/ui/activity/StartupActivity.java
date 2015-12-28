@@ -42,12 +42,14 @@ public class StartupActivity extends AppCompatActivity implements AdapterView.On
     }
 
     private void startVideoPlayerActivity() {
-        Intent intent = new Intent(this, VideoPlayerActivity.class);
+        Intent intent = new Intent(this, VideoSelectionActivity.class);
+        intent.putExtra(VideoSelectionActivity.FULLSCREEN_EXTRA, false);
         startActivity(intent);
     }
 
     private void startFullscreenVideoPlayerActivity() {
-        Intent intent = new Intent(this, FullScreenVideoPlayerActivity.class);
+        Intent intent = new Intent(this, VideoSelectionActivity.class);
+        intent.putExtra(VideoSelectionActivity.FULLSCREEN_EXTRA, true);
         startActivity(intent);
     }
 

@@ -26,6 +26,7 @@ import android.util.Log;
 import com.devbrackets.android.exomedia.builder.DashRenderBuilder;
 import com.devbrackets.android.exomedia.builder.HlsRenderBuilder;
 import com.devbrackets.android.exomedia.builder.RenderBuilder;
+import com.devbrackets.android.exomedia.builder.SmoothStreamRenderBuilder;
 import com.devbrackets.android.exomedia.event.EMMediaProgressEvent;
 import com.devbrackets.android.exomedia.exoplayer.EMExoPlayer;
 import com.devbrackets.android.exomedia.listener.EMProgressCallback;
@@ -214,6 +215,8 @@ public class EMAudioPlayer implements AudioCapabilitiesReceiver.Listener {
                 return new HlsRenderBuilder(context, getUserAgent(), uri.toString());
             case DASH:
                 return new DashRenderBuilder(context, getUserAgent(), uri.toString());
+            case SMOOTH_STREAM:
+                return new SmoothStreamRenderBuilder(context, getUserAgent(), uri.toString());
             default:
                 return new RenderBuilder(context, getUserAgent(), uri.toString());
         }

@@ -224,7 +224,7 @@ public class EMAudioPlayer implements AudioCapabilitiesReceiver.Listener {
             case HLS:
                 return new HlsRenderBuilder(context, getUserAgent(), uri.toString());
             default:
-                return new RenderBuilder(context, getUserAgent(), uri.toString(), defaultMediaType);
+                return new RenderBuilder(context, getUserAgent(), uri.toString());
         }
     }
 

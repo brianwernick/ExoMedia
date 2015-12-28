@@ -296,7 +296,7 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
             case SMOOTH_STREAM:
                 return new SmoothStreamingRenderBuilder(getContext(), getUserAgent(), uri.toString());
             default:
-                return new RenderBuilder(getContext(), getUserAgent(), uri.toString(), defaultMediaType);
+                return new RenderBuilder(getContext(), getUserAgent(), uri.toString());
         }
     }
 

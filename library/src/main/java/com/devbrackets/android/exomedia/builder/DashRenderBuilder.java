@@ -22,6 +22,7 @@ import android.os.Handler;
 import android.util.Log;
 
 import com.devbrackets.android.exomedia.exoplayer.EMExoPlayer;
+import com.devbrackets.android.exomedia.renderer.EMMediaCodecAudioTrackRenderer;
 import com.google.android.exoplayer.DefaultLoadControl;
 import com.google.android.exoplayer.LoadControl;
 import com.google.android.exoplayer.MediaCodecAudioTrackRenderer;
@@ -193,7 +194,7 @@ public class DashRenderBuilder extends RenderBuilder {
             ChunkSampleSource audioSampleSource = new ChunkSampleSource(audioChunkSource, loadControl,
                     AUDIO_BUFFER_SEGMENTS * BUFFER_SEGMENT_SIZE, mainHandler, player,
                     EMExoPlayer.RENDER_AUDIO_INDEX);
-            TrackRenderer audioRenderer = new MediaCodecAudioTrackRenderer(audioSampleSource,
+            TrackRenderer audioRenderer = new EMMediaCodecAudioTrackRenderer(audioSampleSource,
                     null, true, mainHandler, player, AudioCapabilities.getCapabilities(context));
 
             // Build the text renderer.

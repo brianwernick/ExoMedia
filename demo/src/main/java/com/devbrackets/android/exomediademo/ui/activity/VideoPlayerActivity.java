@@ -1,8 +1,10 @@
 package com.devbrackets.android.exomediademo.ui.activity;
 
 import android.app.Activity;
+import android.content.res.Configuration;
 import android.media.MediaPlayer;
 import android.os.Bundle;
+import android.widget.RelativeLayout;
 
 import com.devbrackets.android.exomedia.EMVideoView;
 import com.devbrackets.android.exomedia.manager.EMPlaylistManager;
@@ -32,6 +34,13 @@ public class VideoPlayerActivity extends Activity implements MediaPlayer.OnPrepa
 
         retrieveExtras();
         init();
+    }
+
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        emVideoView.setLayoutParams(new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.MATCH_PARENT));
+
     }
 
     @Override

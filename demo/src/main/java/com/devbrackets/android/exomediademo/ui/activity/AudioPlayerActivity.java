@@ -2,7 +2,6 @@ package com.devbrackets.android.exomediademo.ui.activity;
 
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
-import android.text.format.DateUtils;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -16,6 +15,7 @@ import com.devbrackets.android.exomedia.listener.EMPlaylistServiceCallback;
 import com.devbrackets.android.exomedia.listener.EMProgressCallback;
 import com.devbrackets.android.exomedia.manager.EMPlaylistManager;
 import com.devbrackets.android.exomedia.service.EMPlaylistService;
+import com.devbrackets.android.exomedia.util.TimeFormatUtil;
 import com.devbrackets.android.exomediademo.App;
 import com.devbrackets.android.exomediademo.R;
 import com.devbrackets.android.exomediademo.data.MediaItem;
@@ -23,10 +23,8 @@ import com.devbrackets.android.exomediademo.helper.AudioItems;
 import com.devbrackets.android.exomediademo.manager.PlaylistManager;
 import com.squareup.picasso.Picasso;
 
-import java.util.Formatter;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Locale;
 
 /**
  * An example activity to show how to implement and audio UI
@@ -53,9 +51,6 @@ public class AudioPlayerActivity extends AppCompatActivity implements EMPlaylist
 
     private PlaylistManager playlistManager;
     private int selectedIndex = 0;
-
-    private StringBuilder formatBuilder;
-    private Formatter formatter;
 
     private Picasso picasso;
 
@@ -135,7 +130,7 @@ public class AudioPlayerActivity extends AppCompatActivity implements EMPlaylist
         if (!userInteracting) {
             seekBar.setSecondaryProgress((int) (event.getDuration() * event.getBufferPercentFloat()));
             seekBar.setProgress((int)event.getPosition());
-            currentPositionView.setText(formatTime(event.getPosition()));
+            currentPositionView.setText(TimeFormatUtil.formatMs(event.getPosition()));
         }
 
         return true;
@@ -179,9 +174,6 @@ public class AudioPlayerActivity extends AppCompatActivity implements EMPlaylist
         setupListeners();
 
         picasso = Picasso.with(getApplicationContext());
-
-        formatBuilder = new StringBuilder();
-        formatter = new Formatter(formatBuilder, Locale.getDefault());
 
         boolean generatedPlaylist = setupPlaylistManager();
         startPlayback(generatedPlaylist);
@@ -241,7 +233,7 @@ public class AudioPlayerActivity extends AppCompatActivity implements EMPlaylist
      */
     private void setDuration(long duration) {
         seekBar.setMax((int)duration);
-        durationView.setText(formatTime(duration));
+        durationView.setText(TimeFormatUtil.formatMs(duration));
     }
 
     /**
@@ -331,26 +323,6 @@ public class AudioPlayerActivity extends AppCompatActivity implements EMPlaylist
     }
 
     /**
-     * Formats the specified millisecond time to a human readable format
-     * in the form of (Hours : Minutes : Seconds)
-     *
-     * @param time The time in milliseconds to format
-     * @return The human readable time
-     */
-    private String formatTime(long time) {
-        long seconds = (time % DateUtils.MINUTE_IN_MILLIS) / DateUtils.SECOND_IN_MILLIS;
-        long minutes = (time % DateUtils.HOUR_IN_MILLIS) / DateUtils.MINUTE_IN_MILLIS;
-        long hours = (time % DateUtils.DAY_IN_MILLIS) / DateUtils.HOUR_IN_MILLIS;
-
-        formatBuilder.setLength(0);
-        if (hours > 0) {
-            return formatter.format("%d:%02d:%02d", hours, minutes, seconds).toString();
-        }
-
-        return formatter.format("%02d:%02d", minutes, seconds).toString();
-    }
-
-    /**
      * Listens to the seek bar change events and correctly handles the changes
      */
     private class SeekBarChanged implements SeekBar.OnSeekBarChangeListener {
@@ -363,7 +335,7 @@ public class AudioPlayerActivity extends AppCompatActivity implements EMPlaylist
             }
 
             seekPosition = progress;
-            currentPositionView.setText(formatTime(progress));
+            currentPositionView.setText(TimeFormatUtil.formatMs(progress));
         }
 
         @Override

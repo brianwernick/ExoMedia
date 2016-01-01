@@ -43,11 +43,6 @@ public class AudioService extends EMPlaylistService<MediaItem, PlaylistManager> 
     }
 
     @Override
-    public void onDestroy() {
-        super.onDestroy();
-    }
-
-    @Override
     protected int getNotificationId() {
         return NOTIFICATION_ID;
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Brian Wernick,
+ * Copyright (C) 2016 Brian Wernick,
  * Copyright (C) 2015 Sébastiaan Versteeg,
  * Copyright (C) 2014 The Android Open Source Project
  *

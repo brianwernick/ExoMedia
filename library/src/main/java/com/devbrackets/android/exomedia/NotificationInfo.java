@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Brian Wernick
+ * Copyright (C) 2016 Brian Wernick
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,11 +26,16 @@ import android.support.annotation.Nullable;
  * An object to hold the information necessary to populate a notification
  */
 class NotificationInfo {
+    @Nullable
     private String title;
+    @Nullable
     private String album;
+    @Nullable
     private String artist;
 
+    @Nullable
     private Bitmap largeImage;
+    @Nullable
     private Bitmap secondaryImage;
 
     @DrawableRes
@@ -42,6 +47,19 @@ class NotificationInfo {
     private PendingIntent pendingIntent;
 
     private EMNotification.NotificationMediaState mediaState;
+
+    public void clean() {
+        appIcon = 0;
+        notificationId = 0;
+
+        title = null;
+        album = null;
+        artist = null;
+
+        largeImage = null;
+        secondaryImage = null;
+        pendingIntent = null;
+    }
 
     public void setTitle(@Nullable String title) {
         this.title = title;

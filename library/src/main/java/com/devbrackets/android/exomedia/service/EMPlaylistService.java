@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Brian Wernick
+ * Copyright (C) 2016 Brian Wernick
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1011,9 +1011,9 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
      * @param releaseAudioPlayer True if the audioPlayer should be released
      */
     protected void relaxResources(boolean releaseAudioPlayer) {
-        foregroundSetup = false;
         stopForeground(true);
-        notificationHelper.dismiss();
+        foregroundSetup = false;
+        notificationHelper.release();
         lockScreenHelper.release();
 
         if (releaseAudioPlayer) {

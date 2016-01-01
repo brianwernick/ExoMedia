@@ -32,8 +32,8 @@ import com.devbrackets.android.exomedia.util.TimeFormatUtil;
  */
 public class DefaultControlsMobile extends DefaultControls {
     private SeekBar seekBar;
-    private boolean pausedForSeek = false;
-    private boolean userInteracting = false;
+    boolean pausedForSeek = false;
+    boolean userInteracting = false;
 
     public DefaultControlsMobile(Context context) {
         super(context);
@@ -148,7 +148,7 @@ public class DefaultControlsMobile extends DefaultControls {
     /**
      * Listens to the seek bar change events and correctly handles the changes
      */
-    private class SeekBarChanged implements SeekBar.OnSeekBarChangeListener {
+    class SeekBarChanged implements SeekBar.OnSeekBarChangeListener {
         private int seekToTime;
 
         @Override

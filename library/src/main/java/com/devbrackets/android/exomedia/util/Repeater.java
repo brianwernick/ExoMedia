@@ -29,15 +29,15 @@ public class Repeater {
     private static final String HANDLER_THREAD_NAME = "ExoMedia_Repeater_HandlerThread";
     private static final int DEFAULT_REPEAT_DELAY = 33; // ~30 fps
 
-    private volatile boolean repeaterRunning = false;
-    private int repeatDelay = DEFAULT_REPEAT_DELAY;
+    volatile boolean repeaterRunning = false;
+    int repeatDelay = DEFAULT_REPEAT_DELAY;
 
-    private Handler delayedHandler;
+    Handler delayedHandler;
     private HandlerThread handlerThread;
     private boolean useHandlerThread = false;
 
-    private RepeatListener listener;
-    private PollRunnable pollRunnable = new PollRunnable();
+    RepeatListener listener;
+    PollRunnable pollRunnable = new PollRunnable();
 
     public Repeater() {
         this(true);
@@ -130,7 +130,7 @@ public class Repeater {
         void onRepeat();
     }
 
-    private class PollRunnable implements Runnable {
+    class PollRunnable implements Runnable {
         @Override
         public void run() {
             if (listener != null) {

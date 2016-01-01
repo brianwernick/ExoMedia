@@ -36,12 +36,12 @@ import com.devbrackets.android.exomedia.receiver.MediaControlsReceiver;
  * controls similar to how the {@link EMNotification} simplifies notifications
  */
 public class EMLockScreen {
-    private static final String TAG = "EMLockScreen";
+    static final String TAG = "EMLockScreen";
     public static final String SESSION_TAG = "EMLockScreen.Session";
     public static final String RECEIVER_EXTRA_CLASS = "com.devbrackets.android.exomedia.RECEIVER_EXTRA_CLASS";
 
     private Context context;
-    private Class<? extends Service> mediaServiceClass;
+    Class<? extends Service> mediaServiceClass;
 
     private boolean showLockScreen = true;
 
@@ -187,7 +187,7 @@ public class EMLockScreen {
      * @param serviceClass The service class to notify of intents
      * @return The resulting PendingIntent
      */
-    private PendingIntent createPendingIntent(String action, Class<? extends Service> serviceClass) {
+    PendingIntent createPendingIntent(String action, Class<? extends Service> serviceClass) {
         Intent intent = new Intent(context, serviceClass);
         intent.setAction(action);
 

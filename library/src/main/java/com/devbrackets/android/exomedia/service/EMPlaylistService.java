@@ -61,7 +61,7 @@ import java.util.List;
  */
 @SuppressWarnings("unused")
 public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem, M extends EMPlaylistManager<I>> extends Service implements EMAudioFocusCallback, EMProgressCallback {
-    private static final String TAG = "EMPlaylistService";
+    static final String TAG = "EMPlaylistService";
     public static final String START_SERVICE = "EMPlaylistService.start";
 
     public enum MediaState {
@@ -1256,7 +1256,7 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
      * devices where playback will fail due to a race condition
      * in the {@link MediaPlayer}
      */
-    private class AudioListener implements MediaPlayer.OnPreparedListener, MediaPlayer.OnCompletionListener, MediaPlayer.OnErrorListener {
+    class AudioListener implements MediaPlayer.OnPreparedListener, MediaPlayer.OnCompletionListener, MediaPlayer.OnErrorListener {
         private static final int MAX_RETRY_COUNT = 1;
         private int retryCount = 0;
 

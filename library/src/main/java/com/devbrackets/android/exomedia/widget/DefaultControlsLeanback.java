@@ -44,7 +44,7 @@ public class DefaultControlsLeanback extends DefaultControls {
 
     private ProgressBar progressBar;
 
-    private ImageView rippleIndicator;
+    ImageView rippleIndicator;
 
     private ImageButton fastForwardButton;
     private ImageButton rewindButton;
@@ -52,7 +52,7 @@ public class DefaultControlsLeanback extends DefaultControls {
     private Drawable defaultRewindDrawable;
     private Drawable defaultFastForwardDrawable;
 
-    private View currentFocus;
+    View currentFocus;
     private ButtonFocusChangeListener buttonFocusChangeListener = new ButtonFocusChangeListener();
 
     public DefaultControlsLeanback(Context context) {
@@ -285,7 +285,7 @@ public class DefaultControlsLeanback extends DefaultControls {
      * Performs the functionality to rewind the current video by
      * {@value #FAST_FORWARD_REWIND_AMOUNT} milliseconds.
      */
-    private void onRewindClick() {
+    void onRewindClick() {
         int newPosition = (int) videoView.getCurrentPosition() - FAST_FORWARD_REWIND_AMOUNT;
         if (newPosition < 0) {
             newPosition = 0;
@@ -298,7 +298,7 @@ public class DefaultControlsLeanback extends DefaultControls {
      * Performs the functionality to fast forward the current video by
      * {@value #FAST_FORWARD_REWIND_AMOUNT} milliseconds.
      */
-    private void onFastForwardClick() {
+    void onFastForwardClick() {
         int newPosition = (int) videoView.getCurrentPosition() + FAST_FORWARD_REWIND_AMOUNT;
         if (newPosition > progressBar.getMax()) {
             newPosition = progressBar.getMax();
@@ -326,7 +326,7 @@ public class DefaultControlsLeanback extends DefaultControls {
      * delay.  If the {@link #videoView} is not playing then the controls
      * will not be hidden.
      */
-    private void showTemporary() {
+    void showTemporary() {
         show();
 
         if (videoView.isPlaying()) {
@@ -355,7 +355,7 @@ public class DefaultControlsLeanback extends DefaultControls {
      *
      * @param view The view to find the next focus for
      */
-    private void focusNext(View view) {
+    void focusNext(View view) {
         int nextId = view.getNextFocusRightId();
         if (nextId == NO_ID) {
             return;
@@ -377,7 +377,7 @@ public class DefaultControlsLeanback extends DefaultControls {
      *
      * @param view The view to find the previous focus for
      */
-    private void focusPrevious(View view) {
+    void focusPrevious(View view) {
         int previousId = view.getNextFocusLeftId();
         if (previousId == NO_ID) {
             return;
@@ -398,7 +398,7 @@ public class DefaultControlsLeanback extends DefaultControls {
      * A listener to monitor the selected button and move the ripple
      * indicator when the focus shifts.
      */
-    private class ButtonFocusChangeListener implements OnFocusChangeListener {
+    class ButtonFocusChangeListener implements OnFocusChangeListener {
         @Override
         public void onFocusChange(View view, boolean hasFocus) {
             if (!hasFocus) {
@@ -426,7 +426,7 @@ public class DefaultControlsLeanback extends DefaultControls {
      * A listener to catch the key events so that we can correctly perform the
      * playback functionality and to hide/show the controls
      */
-    private class RemoteKeyListener implements OnKeyListener {
+    class RemoteKeyListener implements OnKeyListener {
         /**
          * NOTE: the view is not always the currently focused view, thus the
          * {@link #currentFocus} variable

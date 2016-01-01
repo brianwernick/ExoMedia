@@ -29,19 +29,19 @@ public class StopWatch {
     private static final String HANDLER_THREAD_NAME = "ExoMedia_StopWatch_HandlerThread";
     private static final int DEFAULT_TICK_DELAY = 33; // ~30 fps
 
-    private volatile boolean isRunning = false;
-    private int tickDelay = DEFAULT_TICK_DELAY;
+    volatile boolean isRunning = false;
+    int tickDelay = DEFAULT_TICK_DELAY;
 
-    private Handler delayedHandler;
+    Handler delayedHandler;
     private HandlerThread handlerThread;
     private boolean useHandlerThread = false;
 
-    private TickListener listener;
-    private TickRunnable tickRunnable = new TickRunnable();
+    TickListener listener;
+    TickRunnable tickRunnable = new TickRunnable();
 
-    private long startTime = 0;
-    private long currentTime = 0;
-    private long storedTime = 0;
+    long startTime = 0;
+    long currentTime = 0;
+    long storedTime = 0;
 
     public StopWatch() {
         this(true);
@@ -176,7 +176,7 @@ public class StopWatch {
         void onStopWatchTick(long currentTime);
     }
 
-    private class TickRunnable implements Runnable {
+    class TickRunnable implements Runnable {
         @Override
         public void run() {
             currentTime = System.currentTimeMillis() - startTime;

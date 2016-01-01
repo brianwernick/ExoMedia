@@ -225,13 +225,11 @@ public class EMNotification {
      * @return The resulting RemoteViews
      */
     private RemoteViews getCustomNotification() {
-        if (customNotification == null) {
-            customNotification = new RemoteViews(context.getPackageName(), R.layout.exomedia_notification_content);
+        customNotification = new RemoteViews(context.getPackageName(), R.layout.exomedia_notification_content);
 
-            customNotification.setOnClickPendingIntent(R.id.exomedia_notification_playpause, createPendingIntent(EMRemoteActions.ACTION_PLAY_PAUSE, mediaServiceClass));
-            customNotification.setOnClickPendingIntent(R.id.exomedia_notification_next, createPendingIntent(EMRemoteActions.ACTION_NEXT, mediaServiceClass));
-            customNotification.setOnClickPendingIntent(R.id.exomedia_notification_prev, createPendingIntent(EMRemoteActions.ACTION_PREVIOUS, mediaServiceClass));
-        }
+        customNotification.setOnClickPendingIntent(R.id.exomedia_notification_playpause, createPendingIntent(EMRemoteActions.ACTION_PLAY_PAUSE, mediaServiceClass));
+        customNotification.setOnClickPendingIntent(R.id.exomedia_notification_next, createPendingIntent(EMRemoteActions.ACTION_NEXT, mediaServiceClass));
+        customNotification.setOnClickPendingIntent(R.id.exomedia_notification_prev, createPendingIntent(EMRemoteActions.ACTION_PREVIOUS, mediaServiceClass));
 
         customNotification.setTextViewText(R.id.exomedia_notification_title, notificationInfo.getTitle());
         customNotification.setTextViewText(R.id.exomedia_notification_album, notificationInfo.getAlbum());
@@ -253,14 +251,12 @@ public class EMNotification {
      * @return The resulting RemoteViews
      */
     private RemoteViews getBigNotification() {
-        if (bigContent == null) {
-            bigContent = new RemoteViews(context.getPackageName(), R.layout.exomedia_big_notification_content);
+        bigContent = new RemoteViews(context.getPackageName(), R.layout.exomedia_big_notification_content);
 
-            bigContent.setOnClickPendingIntent(R.id.exomedia_big_notification_close, createPendingIntent(EMRemoteActions.ACTION_STOP, mediaServiceClass));
-            bigContent.setOnClickPendingIntent(R.id.exomedia_big_notification_playpause, createPendingIntent(EMRemoteActions.ACTION_PLAY_PAUSE, mediaServiceClass));
-            bigContent.setOnClickPendingIntent(R.id.exomedia_big_notification_next, createPendingIntent(EMRemoteActions.ACTION_NEXT, mediaServiceClass));
-            bigContent.setOnClickPendingIntent(R.id.exomedia_big_notification_prev, createPendingIntent(EMRemoteActions.ACTION_PREVIOUS, mediaServiceClass));
-        }
+        bigContent.setOnClickPendingIntent(R.id.exomedia_big_notification_close, createPendingIntent(EMRemoteActions.ACTION_STOP, mediaServiceClass));
+        bigContent.setOnClickPendingIntent(R.id.exomedia_big_notification_playpause, createPendingIntent(EMRemoteActions.ACTION_PLAY_PAUSE, mediaServiceClass));
+        bigContent.setOnClickPendingIntent(R.id.exomedia_big_notification_next, createPendingIntent(EMRemoteActions.ACTION_NEXT, mediaServiceClass));
+        bigContent.setOnClickPendingIntent(R.id.exomedia_big_notification_prev, createPendingIntent(EMRemoteActions.ACTION_PREVIOUS, mediaServiceClass));
 
         bigContent.setTextViewText(R.id.exomedia_big_notification_title, notificationInfo.getTitle());
         bigContent.setTextViewText(R.id.exomedia_big_notification_album, notificationInfo.getAlbum());

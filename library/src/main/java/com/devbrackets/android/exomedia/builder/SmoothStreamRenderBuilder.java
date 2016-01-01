@@ -59,7 +59,7 @@ import java.io.IOException;
  */
 @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
 public class SmoothStreamRenderBuilder extends RenderBuilder {
-    private static final int LIVE_EDGE_LATENCY_MS = 30000;
+    static final int LIVE_EDGE_LATENCY_MS = 30000;
 
     private final Context context;
     private final String userAgent;

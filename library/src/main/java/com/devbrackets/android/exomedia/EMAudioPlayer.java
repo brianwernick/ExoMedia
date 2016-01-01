@@ -55,19 +55,19 @@ public class EMAudioPlayer implements AudioCapabilitiesReceiver.Listener {
 
     private Context context;
     private MediaPlayer mediaPlayer;
-    private EMExoPlayer emExoPlayer;
+    EMExoPlayer emExoPlayer;
     private EMListenerMux listenerMux;
 
     private boolean useExo;
-    private int currentBufferPercent = 0;
+    int currentBufferPercent = 0;
     private int overriddenDuration = -1;
     private int positionOffset = 0;
 
     private boolean overridePosition = false;
 
     @Nullable
-    private EMEventBus bus;
-    private EMProgressCallback progressCallback;
+    EMEventBus bus;
+    EMProgressCallback progressCallback;
 
     private Repeater pollRepeater = new Repeater();
     private StopWatch overriddenPositionStopWatch = new StopWatch();
@@ -75,7 +75,7 @@ public class EMAudioPlayer implements AudioCapabilitiesReceiver.Listener {
     private AudioCapabilities audioCapabilities;
     private AudioCapabilitiesReceiver audioCapabilitiesReceiver;
 
-    private EMMediaProgressEvent currentMediaProgressEvent = new EMMediaProgressEvent(0, 0, 0);
+    EMMediaProgressEvent currentMediaProgressEvent = new EMMediaProgressEvent(0, 0, 0);
 
     public EMAudioPlayer(Context context) {
         this.context = context;
@@ -652,12 +652,12 @@ public class EMAudioPlayer implements AudioCapabilitiesReceiver.Listener {
      * Performs the functionality to stop the progress polling, and stop any other
      * procedures from running that we no longer need.
      */
-    private void onPlaybackEnded() {
+    void onPlaybackEnded() {
         stopPlayback();
         pollRepeater.stop();
     }
 
-    private class MuxNotifier extends EMListenerMux.EMListenerMuxNotifier {
+    class MuxNotifier extends EMListenerMux.EMListenerMuxNotifier {
         @Override
         public boolean shouldNotifyCompletion(long endLeeway) {
             return getCurrentPosition() + endLeeway >= getDuration();

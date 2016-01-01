@@ -74,40 +74,40 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
     private static final String TAG = EMVideoView.class.getSimpleName();
     private static final String USER_AGENT_FORMAT = "EMVideoView %s / Android %s / %s";
 
-    private View shutterTop;
-    private View shutterBottom;
-    private View shutterRight;
-    private View shutterLeft;
+    View shutterTop;
+    View shutterBottom;
+    View shutterRight;
+    View shutterLeft;
 
-    private ImageView previewImageView;
+    ImageView previewImageView;
 
-    private TouchVideoView videoView;
-    private VideoSurfaceView exoVideoSurfaceView;
-    private EMExoPlayer emExoPlayer;
+    TouchVideoView videoView;
+    VideoSurfaceView exoVideoSurfaceView;
+    EMExoPlayer emExoPlayer;
 
     protected DefaultControls defaultControls;
     protected Repeater pollRepeater = new Repeater();
-    private EMProgressCallback progressCallback;
+    EMProgressCallback progressCallback;
     private StopWatch overriddenPositionStopWatch = new StopWatch();
 
     private AudioCapabilities audioCapabilities;
     private AudioCapabilitiesReceiver audioCapabilitiesReceiver;
 
-    private boolean useExo = false;
+    boolean useExo = false;
     private int overriddenDuration = -1;
     private int positionOffset = 0;
     private boolean overridePosition = false;
 
     protected MuxNotifier muxNotifier = new MuxNotifier();
     private EMListenerMux listenerMux;
-    private boolean playRequested = false;
+    boolean playRequested = false;
     private boolean releaseOnDetachFromWindow = true;
 
     @Nullable
-    private EMEventBus bus;
+    EMEventBus bus;
 
     private Uri videoUri;
-    private EMMediaProgressEvent currentMediaProgressEvent = new EMMediaProgressEvent(0, 0, 0);
+    EMMediaProgressEvent currentMediaProgressEvent = new EMMediaProgressEvent(0, 0, 0);
 
     public EMVideoView(Context context) {
         super(context);
@@ -1136,12 +1136,12 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
      * Performs the functionality to stop the progress polling, and stop any other
      * procedures from running that we no longer need.
      */
-    private void onPlaybackEnded() {
+    void onPlaybackEnded() {
         stopPlayback();
         pollRepeater.stop();
     }
 
-    private class MuxNotifier extends EMListenerMux.EMListenerMuxNotifier {
+    class MuxNotifier extends EMListenerMux.EMListenerMuxNotifier {
         @Override
         public boolean shouldNotifyCompletion(long endLeeway) {
             return getCurrentPosition() + endLeeway >= getDuration();
@@ -1223,7 +1223,7 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
     /**
      * Makes sure that the EMExoPlayer has a reference to the surface *after* it is created
      */
-    private class EMExoVideoSurfaceCallback implements SurfaceHolder.Callback {
+    class EMExoVideoSurfaceCallback implements SurfaceHolder.Callback {
         @Override
         public void surfaceCreated(SurfaceHolder holder) {
             if (emExoPlayer != null) {

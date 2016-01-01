@@ -37,12 +37,12 @@ public class EMAudioFocusHelper {
     }
 
     @Nullable
-    private EMEventBus bus;
+    EMEventBus bus;
     private AudioManager audioManager;
-    private EMAudioFocusCallback callbacks;
+    EMAudioFocusCallback callbacks;
     private AudioFocusListener audioFocusListener = new AudioFocusListener();
 
-    private Focus currentFocus = Focus.NONE;
+    Focus currentFocus = Focus.NONE;
 
     /**
      * Creates and sets up the basic information for the AudioFocusHelper.  In order to
@@ -115,7 +115,7 @@ public class EMAudioFocusHelper {
         return AudioManager.AUDIOFOCUS_REQUEST_GRANTED == status;
     }
 
-    private class AudioFocusListener implements AudioManager.OnAudioFocusChangeListener {
+    class AudioFocusListener implements AudioManager.OnAudioFocusChangeListener {
         @Override
         public void onAudioFocusChange(int focusChange) {
             switch (focusChange) {

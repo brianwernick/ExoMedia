@@ -48,12 +48,12 @@ class EMListenerMux implements ExoPlayerListener, MediaPlayer.OnPreparedListener
     private EMListenerMuxNotifier muxNotifier;
 
     @Nullable
-    private EMEventBus bus;
+    EMEventBus bus;
 
     private List<ExoPlayerListener> exoPlayerListeners = new LinkedList<>();
 
     private MediaPlayer.OnBufferingUpdateListener bufferingUpdateListener;
-    private MediaPlayer.OnCompletionListener completionListener;
+    MediaPlayer.OnCompletionListener completionListener;
     private MediaPlayer.OnPreparedListener preparedListener;
     private MediaPlayer.OnErrorListener errorListener;
     private MediaPlayer.OnInfoListener infoListener;
@@ -277,7 +277,7 @@ class EMListenerMux implements ExoPlayerListener, MediaPlayer.OnPreparedListener
         });
     }
 
-    private void performPreparedHandlerNotification(MediaPlayer mediaPlayer) {
+    void performPreparedHandlerNotification(MediaPlayer mediaPlayer) {
         muxNotifier.onPrepared();
 
         if (preparedListener != null) {

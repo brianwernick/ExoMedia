@@ -60,7 +60,6 @@ public class DashRenderBuilder extends RenderBuilder {
     private static final String TAG = "DashRendererBuilder";
     private static final int LIVE_EDGE_LATENCY_MS = 30000;
 
-
     private final Context context;
     private final String userAgent;
     private final String url;

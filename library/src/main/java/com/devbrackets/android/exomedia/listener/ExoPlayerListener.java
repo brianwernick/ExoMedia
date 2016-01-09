@@ -25,5 +25,5 @@ public interface ExoPlayerListener {
 
     void onError(Exception e);
 
-    void onVideoSizeChanged(int width, int height, int unappliedRotationDegrees, float pixelWidthHeightRatio);
+    void onVideoSizeChanged(int width, int height, int unAppliedRotationDegrees, float pixelWidthHeightRatio);
 }

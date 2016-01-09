@@ -934,6 +934,17 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
             float videoAspectRatio = height == 0 ? 1 : (width * pixelWidthHeightRatio) / height;
             exoVideoSurfaceView.setAspectRatio(videoAspectRatio);
 
+            //Since the ExoPlayer will occasionally return an unscaled video size, we will make sure
+            // we are using scaled values when updating the shutters
+            if (width < getWidth() && height < getHeight()) {
+                width = getWidth();
+                height = (int)(width / videoAspectRatio);
+                if (height > getHeight()) {
+                    height = getHeight();
+                    width = (int)(height * videoAspectRatio);
+                }
+            }
+
             updateVideoShutters(getWidth(), getHeight(), width, height);
         }
 

@@ -2,7 +2,7 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
                 xmlns:tools="http://schemas.android.com/tools"
                 android:layout_width="match_parent"
-              android:layout_height="match_parent">
+                android:layout_height="match_parent">
 
     <com.devbrackets.android.exomedia.widget.VideoSurfaceView
         android:id="@+id/exomedia_exo_video_surface"
@@ -15,31 +15,28 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_alignParentTop="true"
-        android:layout_above="@+id/exomedia_exo_video_surface"
         android:background="@android:color/black"/>
-
 
     <View
         android:id="@+id/exomedia_video_shutter_left"
         android:layout_width="0dp"
         android:layout_height="match_parent"
-        android:layout_toLeftOf="@+id/exomedia_android_video_view"
         android:layout_alignParentLeft="true"
-        android:background="@android:color/black"/>
+        android:background="@android:color/black"
+        tools:ignore="RtlHardcoded"/>
 
     <View
         android:id="@+id/exomedia_video_shutter_right"
         android:layout_width="0dp"
         android:layout_height="match_parent"
-        android:layout_toRightOf="@+id/exomedia_android_video_view"
         android:layout_alignParentRight="true"
-        android:background="@android:color/black"/>
+        android:background="@android:color/black"
+        tools:ignore="RtlHardcoded"/>
 
     <View
         android:id="@+id/exomedia_video_shutter_bottom"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_below="@+id/exomedia_exo_video_surface"
         android:layout_alignParentBottom="true"
         android:background="@android:color/black"/>
 

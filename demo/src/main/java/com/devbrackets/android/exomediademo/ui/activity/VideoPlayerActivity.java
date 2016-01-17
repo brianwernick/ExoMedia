@@ -5,7 +5,7 @@ import android.media.MediaPlayer;
 import android.os.Bundle;
 
 import com.devbrackets.android.exomedia.EMVideoView;
-import com.devbrackets.android.exomedia.playlist.VideoApi;
+import com.devbrackets.android.exomediademo.playlist.VideoApi;
 import com.devbrackets.android.exomediademo.App;
 import com.devbrackets.android.exomediademo.R;
 import com.devbrackets.android.exomediademo.data.MediaItem;

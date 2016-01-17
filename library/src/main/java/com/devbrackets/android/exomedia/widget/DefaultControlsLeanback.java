@@ -21,6 +21,7 @@ import android.content.Context;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.support.annotation.DrawableRes;
+import android.support.annotation.IntRange;
 import android.util.AttributeSet;
 import android.view.KeyEvent;
 import android.view.View;
@@ -33,7 +34,7 @@ import android.widget.ProgressBar;
 import com.devbrackets.android.exomedia.R;
 import com.devbrackets.android.exomedia.util.EMResourceUtil;
 import com.devbrackets.android.exomedia.util.TimeFormatUtil;
-import com.devbrackets.android.playlistcore.event.EMMediaProgressEvent;
+import com.devbrackets.android.exomedia.widget.animation.BottomViewHideShowAnimation;
 
 /**
  * Provides playback controls for the EMVideoView on TV devices.
@@ -115,17 +116,11 @@ public class DefaultControlsLeanback extends DefaultControls {
         }
     }
 
-    /**
-     * Performs the progress update on the current time field,
-     * and the seek bar
-     *
-     * @param event The most recent progress
-     */
     @Override
-    public void setProgressEvent(EMMediaProgressEvent event) {
-        progressBar.setSecondaryProgress((int) (progressBar.getMax() * event.getBufferPercentFloat()));
-        progressBar.setProgress((int) event.getPosition());
-        currentTime.setText(TimeFormatUtil.formatMs(event.getPosition()));
+    public void updateProgress(@IntRange(from = 0) long position, @IntRange(from = 0) long duration, @IntRange(from = 0, to = 100) int bufferPercent) {
+        progressBar.setSecondaryProgress((int) (progressBar.getMax() * ((float)bufferPercent / 100)));
+        progressBar.setProgress((int) position);
+        currentTime.setText(TimeFormatUtil.formatMs(position));
     }
 
     /**
@@ -279,6 +274,20 @@ public class DefaultControlsLeanback extends DefaultControls {
 
         defaultFastForwardDrawable = EMResourceUtil.tintList(getContext(), R.drawable.exomedia_ic_fast_forward_white, R.color.exomedia_default_controls_button_selector);
         fastForwardButton.setImageDrawable(defaultFastForwardDrawable);
+    }
+
+    @Override
+    protected void animateVisibility(boolean toVisible) {
+        if (isVisible == toVisible) {
+            return;
+        }
+
+        //TODO: make sure these are correct... (views exist, and animation looks ok)
+        textContainer.startAnimation(new BottomViewHideShowAnimation(textContainer, toVisible, CONTROL_VISIBILITY_ANIMATION_LENGTH));
+        controlsContainer.startAnimation(new BottomViewHideShowAnimation(controlsContainer, toVisible, CONTROL_VISIBILITY_ANIMATION_LENGTH));
+
+        isVisible = toVisible;
+        onVisibilityChanged();
     }
 
     /**

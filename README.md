@@ -1,37 +1,34 @@
 ExoMedia
 ============
-A Utility class that wraps the ExoPlayer in to a standardized
-View and API much like the built in Android VideoView and MediaPlayer.
-Additionally, to simplify playback of media lists a playlist manager
-and playlist service have been provided.
+ExoMedia is a media playback library with similar APIs to the Android MediaPlayer
+and VideoView that uses the [ExoPlayer][ExoPlayer] as a backing when possible, 
+otherwise the default Android MediaPlayer and VideoView are used.
 
-Since the ExoPlayer is only supported on JellyBean or greater devices that
-pass the Android Compatibility Test Suite (CTS), the EMVideoView will gracefully
-fall back to using the Android VideoView.  Similarly the EMAudioPlayer will fall
-back to the MediaPlayer.
-
-This is useful for supporting Http Live Streaming (HLS) and full HD (1080p +) playback
-since the Android VideoView struggles with those.
-
-**NOTE:** HLS, DASH, and other streaming protocols are not supported on Android 4.0.* and below
-due to constraints with the Android MediaPlayer and VideoView
+The [ExoPlayer][ExoPlayer] is only supported on devices that pass the [compatibility Test Suite][CTS]
+and that are JellyBean (API 16) or greater.  The [ExoPlayer][ExoPlayer] provides 
+additional support for streaming (HLS, DASH, etc.) and full HD (1080p +) 
 
 
 Website And Documentation
 -------
-The ExoMedia website can be found [here][4]
-
-The ExoMedia documentation website can be found on the website linked above or [here][5]
+The ExoMedia website can be found [here][Website]  
+The ExoMedia documentation website can be found on the website linked above or [here][Java Docs]
 
 
 Use
 -------
-The latest AAR (Android Archive) files can be downloaded from JCenter [ExoMedia][3]
-
+The latest AAR (Android Archive) files can be downloaded from [JCenter][JCenter]  
 Or included in your gradle dependencies
 
-```groovy
-compile 'com.devbrackets.android:exomedia:2.5.1'
+```gradle
+repositories {
+    jcenter();
+}
+
+dependencies {
+    //...
+    compile 'com.devbrackets.android:exomedia:3.0.0'
+}
 ```
 
 Example
@@ -50,7 +47,6 @@ The EMVideoView (EM for ExoMedia) can be added in your layout files like any oth
         android:layout_height="match_parent"
         EMVideoView:defaultControlsEnabled="true"/>
 </RelativeLayout>
-
 ```
 
 While in your Activity or Fragment you treat it like a standard Android VideoView
@@ -91,15 +87,16 @@ License
     limitations under the License.
 
 
-Additionally, the media playback icons are from the google Material
-design icons without any changes.  The full set of icons can be found
-at [https://github.com/google/material-design-icons][1] which are licensed
-under [Attribution 4.0 International][2]
+Attribution
+-----------
+Uses [Material Design icons][Design Icons] icons by Google  
+licensed under [Creative Commons 4.0][CC 4.0]
 
 
-
- [1]: https://github.com/google/material-design-icons
- [2]: http://creativecommons.org/licenses/by/4.0/
- [3]: https://bintray.com/brianwernick/maven/ExoMedia/view#files
- [4]: http://devbrackets.com/dev/libs/exomedia.html
- [5]: http://devbrackets.com/dev/libs/docs/exomedia/2.5.0/index.html
+ [Design Icons]: https://github.com/google/material-design-icons
+ [CC 4.0]: http://creativecommons.org/licenses/by/4.0/
+ [ExoPlayer]:https://github.com/google/ExoPlayer
+ [CTS]:https://source.android.com/compatibility/cts/index.html
+ [JCenter]: https://bintray.com/brianwernick/maven/ExoMedia/view#files
+ [Website]: http://devbrackets.com/dev/libs/exomedia.html
+ [Java Docs]: http://devbrackets.com/dev/libs/docs/exomedia/3.0.0/index.html

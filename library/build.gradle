@@ -2,9 +2,9 @@ apply plugin: 'com.android.library'
 apply plugin: 'maven'
 apply plugin: 'bintray-release'
 
-def versionMajor = 2
-def versionMinor = 5
-def versionPatch = 1
+def versionMajor = 3
+def versionMinor = 0
+def versionPatch = 0
 
 def libraryGroupId = 'com.devbrackets.android'
 def libraryBaseName = 'exomedia'
@@ -16,9 +16,6 @@ dependencies {
 
     // ExoPlayer
     compile 'com.google.android.exoplayer:exoplayer:r1.5.3'
-
-    // Playlist support
-    compile 'com.devbrackets.android:playlistcore:1.0.0-SNAPSHOT'
 }
 
 android {

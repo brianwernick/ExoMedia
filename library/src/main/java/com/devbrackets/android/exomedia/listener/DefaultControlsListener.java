@@ -20,7 +20,7 @@ package com.devbrackets.android.exomedia.listener;
  * Basic VideoView callbacks.  These can also be accessed through
  * their corresponding EventBus events.
  */
-public interface EMVideoViewControlsCallback {
+public interface DefaultControlsListener {
     /**
      * Occurs when the PlayPause button on the VideoView is clicked
      *

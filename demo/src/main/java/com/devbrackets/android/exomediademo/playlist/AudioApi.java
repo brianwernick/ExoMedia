@@ -1,84 +1,100 @@
-package com.devbrackets.android.exomedia.playlist;
+package com.devbrackets.android.exomediademo.playlist;
 
+import android.content.Context;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.support.annotation.FloatRange;
 import android.support.annotation.IntRange;
 import android.support.annotation.NonNull;
 
-import com.devbrackets.android.exomedia.EMVideoView;
-import com.devbrackets.android.playlistcore.api.VideoPlayerApi;
+import com.devbrackets.android.exomedia.EMAudioPlayer;
+import com.devbrackets.android.playlistcore.api.AudioPlayerApi;
 
-public class VideoApi implements VideoPlayerApi {
-    private EMVideoView videoView;
+public class AudioApi implements AudioPlayerApi {
+    private EMAudioPlayer audioPlayer;
 
-    public VideoApi(EMVideoView videoView) {
-        this.videoView = videoView;
+    public AudioApi(EMAudioPlayer audioPlayer) {
+        this.audioPlayer = audioPlayer;
     }
 
     @Override
     public boolean isPlaying() {
-        return videoView.isPlaying();
+        return audioPlayer.isPlaying();
     }
 
     @Override
     public void play() {
-        videoView.start();
+        audioPlayer.start();
     }
 
     @Override
     public void pause() {
-        videoView.pause();
+        audioPlayer.pause();
     }
 
     @Override
     public void stop() {
-        videoView.stopPlayback();
+        audioPlayer.stopPlayback();
     }
 
     @Override
     public void reset() {
-        videoView.reset();
+        audioPlayer.reset();
     }
 
     @Override
     public void release() {
-        videoView.release();
+        audioPlayer.release();
     }
 
     @Override
     public void setVolume(@FloatRange(from = 0.0, to = 1.0) float left, @FloatRange(from = 0.0, to = 1.0) float right) {
-        videoView.setVolume(left + right / 2);
+        audioPlayer.setVolume(left, right);
     }
 
     @Override
     public void seekTo(@IntRange(from = 0L) long milliseconds) {
-        videoView.seekTo((int)milliseconds);
+        audioPlayer.seekTo((int)milliseconds);
     }
 
     @Override
-    public void setDataSource(@NonNull Uri uri) {
-        videoView.setVideoURI(uri);
+    public void setStreamType(int streamType) {
+        audioPlayer.setAudioStreamType(streamType);
+    }
+
+    @Override
+    public void setWakeMode(Context context, int mode) {
+        audioPlayer.setWakeMode(context, mode);
+    }
+
+    @Override
+    public void setDataSource(@NonNull Context context, @NonNull Uri uri) {
+        audioPlayer.setDataSource(context, uri);
+    }
+
+    @Override
+    public void prepareAsync() {
+        audioPlayer.prepareAsync();
     }
 
     @Override
     public long getCurrentPosition() {
-        return videoView.getCurrentPosition();
+        return audioPlayer.getCurrentPosition();
     }
 
     @Override
     public long getDuration() {
-        return videoView.getDuration();
+        return audioPlayer.getDuration();
     }
 
     @Override
     public int getBufferedPercent() {
-        return videoView.getBufferPercentage();
+        return audioPlayer.getBufferPercentage();
     }
 
     @Override
     public void setOnPreparedListener(MediaPlayer.OnPreparedListener onPreparedListener) {
-        videoView.setOnPreparedListener(onPreparedListener);
+        audioPlayer.setOnPreparedListener(onPreparedListener);
     }
 
     @Override
@@ -93,16 +109,16 @@ public class VideoApi implements VideoPlayerApi {
 
     @Override
     public void setOnInfoListener(MediaPlayer.OnInfoListener onInfoListener) {
-        videoView.setOnInfoListener(onInfoListener);
+        audioPlayer.setOnInfoListener(onInfoListener);
     }
 
     @Override
     public void setOnCompletionListener(MediaPlayer.OnCompletionListener onCompletionListener) {
-        videoView.setOnCompletionListener(onCompletionListener);
+        audioPlayer.setOnCompletionListener(onCompletionListener);
     }
 
     @Override
     public void setOnErrorListener(MediaPlayer.OnErrorListener onErrorListener) {
-        videoView.setOnErrorListener(onErrorListener);
+        audioPlayer.setOnErrorListener(onErrorListener);
     }
 }

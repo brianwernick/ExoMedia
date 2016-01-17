@@ -52,7 +52,6 @@ import com.devbrackets.android.exomedia.widget.DefaultControls;
 import com.devbrackets.android.exomedia.widget.DefaultControlsLeanback;
 import com.devbrackets.android.exomedia.widget.DefaultControlsMobile;
 import com.devbrackets.android.exomedia.widget.VideoSurfaceView;
-import com.devbrackets.android.playlistcore.event.EMMediaProgressEvent;
 import com.google.android.exoplayer.audio.AudioCapabilities;
 import com.google.android.exoplayer.audio.AudioCapabilitiesReceiver;
 
@@ -99,7 +98,6 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
     private boolean releaseOnDetachFromWindow = true;
 
     private Uri videoUri;
-    private EMMediaProgressEvent currentMediaProgressEvent = new EMMediaProgressEvent(0, 0, 0);
 
     public EMVideoView(Context context) {
         super(context);

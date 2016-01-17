@@ -15,8 +15,8 @@ import com.devbrackets.android.exomediademo.R;
 import com.devbrackets.android.exomediademo.data.MediaItem;
 import com.devbrackets.android.exomediademo.helper.AudioItems;
 import com.devbrackets.android.exomediademo.manager.PlaylistManager;
-import com.devbrackets.android.playlistcore.event.EMMediaProgressEvent;
-import com.devbrackets.android.playlistcore.event.EMPlaylistItemChangedEvent;
+import com.devbrackets.android.playlistcore.event.MediaProgress;
+import com.devbrackets.android.playlistcore.event.PlaylistItemChange;
 import com.devbrackets.android.playlistcore.listener.PlaylistListener;
 import com.devbrackets.android.playlistcore.listener.ProgressListener;
 import com.devbrackets.android.playlistcore.manager.IPlaylistItem;
@@ -123,7 +123,7 @@ public class AudioPlayerActivity extends AppCompatActivity implements PlaylistLi
     }
 
     @Override
-    public boolean onProgressUpdated(EMMediaProgressEvent event) {
+    public boolean onProgressUpdated(MediaProgress event) {
         if (shouldSetDuration && event.getDuration() > 0) {
             shouldSetDuration = false;
             setDuration(event.getDuration());
@@ -142,7 +142,7 @@ public class AudioPlayerActivity extends AppCompatActivity implements PlaylistLi
      * Makes sure to update the UI to the current playback item.
      */
     private void updateCurrentPlaybackInformation() {
-        EMPlaylistItemChangedEvent itemChangedEvent = playlistManager.getCurrentItemChangedEvent();
+        PlaylistItemChange itemChangedEvent = playlistManager.getCurrentItemChangedEvent();
         if (itemChangedEvent != null) {
             onPlaylistItemChanged(itemChangedEvent.getCurrentItem(), itemChangedEvent.hasNext(), itemChangedEvent.hasPrevious());
         }
@@ -152,7 +152,7 @@ public class AudioPlayerActivity extends AppCompatActivity implements PlaylistLi
             onPlaybackStateChanged(currentPlaybackState);
         }
 
-        EMMediaProgressEvent progressEvent = playlistManager.getCurrentProgress();
+        MediaProgress progressEvent = playlistManager.getCurrentProgress();
         if (progressEvent != null) {
             onProgressUpdated(progressEvent);
         }

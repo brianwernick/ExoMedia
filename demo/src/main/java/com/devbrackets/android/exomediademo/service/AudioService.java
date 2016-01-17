@@ -9,7 +9,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
 import com.devbrackets.android.exomedia.EMAudioPlayer;
-import com.devbrackets.android.exomedia.playlist.AudioApi;
+import com.devbrackets.android.exomediademo.playlist.AudioApi;
 import com.devbrackets.android.exomediademo.App;
 import com.devbrackets.android.exomediademo.R;
 import com.devbrackets.android.exomediademo.data.MediaItem;

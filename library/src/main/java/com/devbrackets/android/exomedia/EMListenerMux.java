@@ -20,7 +20,7 @@ import android.media.MediaPlayer;
 import android.os.Handler;
 import android.support.annotation.NonNull;
 
-import com.devbrackets.android.exomedia.listener.ExoPlayerListener;
+import com.devbrackets.android.exomedia.core.listener.ExoPlayerListener;
 import com.google.android.exoplayer.ExoPlayer;
 
 import java.util.LinkedList;

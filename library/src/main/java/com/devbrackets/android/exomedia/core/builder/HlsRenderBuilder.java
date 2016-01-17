@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package com.devbrackets.android.exomedia.builder;
+package com.devbrackets.android.exomedia.core.builder;
 
 import android.annotation.TargetApi;
 import android.content.Context;
@@ -24,8 +24,8 @@ import android.media.MediaCodec;
 import android.os.Build;
 import android.os.Handler;
 
-import com.devbrackets.android.exomedia.exoplayer.EMExoPlayer;
-import com.devbrackets.android.exomedia.renderer.EMMediaCodecAudioTrackRenderer;
+import com.devbrackets.android.exomedia.core.exoplayer.EMExoPlayer;
+import com.devbrackets.android.exomedia.core.renderer.EMMediaCodecAudioTrackRenderer;
 import com.google.android.exoplayer.DefaultLoadControl;
 import com.google.android.exoplayer.LoadControl;
 import com.google.android.exoplayer.MediaCodecUtil;

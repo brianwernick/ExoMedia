@@ -35,9 +35,9 @@ import android.widget.TextView;
 
 import com.devbrackets.android.exomedia.EMVideoView;
 import com.devbrackets.android.exomedia.R;
-import com.devbrackets.android.exomedia.event.EMMediaProgressEvent;
 import com.devbrackets.android.exomedia.listener.EMVideoViewControlsCallback;
 import com.devbrackets.android.exomedia.util.EMResourceUtil;
+import com.devbrackets.android.playlistcore.event.EMMediaProgressEvent;
 
 /**
  * This is a simple abstraction for the EMVideoView to have a single "View" to add

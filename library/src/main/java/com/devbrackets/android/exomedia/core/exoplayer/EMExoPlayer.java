@@ -15,23 +15,26 @@
  * limitations under the License.
  */
 
-package com.devbrackets.android.exomedia.exoplayer;
+package com.devbrackets.android.exomedia.core.exoplayer;
 
+import android.Manifest;
 import android.content.Context;
+import android.content.pm.PackageManager;
 import android.media.MediaCodec;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.PowerManager;
 import android.support.annotation.Nullable;
+import android.util.Log;
 import android.view.Surface;
 
-import com.devbrackets.android.exomedia.builder.RenderBuilder;
-import com.devbrackets.android.exomedia.listener.CaptionListener;
-import com.devbrackets.android.exomedia.listener.ExoPlayerListener;
-import com.devbrackets.android.exomedia.listener.Id3MetadataListener;
-import com.devbrackets.android.exomedia.listener.InfoListener;
-import com.devbrackets.android.exomedia.listener.InternalErrorListener;
-import com.devbrackets.android.exomedia.renderer.EMMediaCodecAudioTrackRenderer;
+import com.devbrackets.android.exomedia.core.builder.RenderBuilder;
+import com.devbrackets.android.exomedia.core.listener.CaptionListener;
+import com.devbrackets.android.exomedia.core.listener.ExoPlayerListener;
+import com.devbrackets.android.exomedia.core.listener.Id3MetadataListener;
+import com.devbrackets.android.exomedia.core.listener.InfoListener;
+import com.devbrackets.android.exomedia.core.listener.InternalErrorListener;
+import com.devbrackets.android.exomedia.core.renderer.EMMediaCodecAudioTrackRenderer;
 import com.google.android.exoplayer.DummyTrackRenderer;
 import com.google.android.exoplayer.ExoPlaybackException;
 import com.google.android.exoplayer.ExoPlayer;
@@ -70,7 +73,7 @@ public class EMExoPlayer implements
         DashChunkSource.EventListener,
         MetadataTrackRenderer.MetadataRenderer<Map<String, Object>>,
         TextRenderer {
-
+    private static final String TAG = "EMExoPlayer";
     public static final int DISABLED_TRACK = -1;
 
     public static final int RENDER_COUNT = 4;
@@ -330,15 +333,20 @@ public class EMExoPlayer implements
                 wasHeld = true;
                 wakeLock.release();
             }
+
             wakeLock = null;
         }
 
-        PowerManager pm = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
-        wakeLock = pm.newWakeLock(mode | PowerManager.ON_AFTER_RELEASE, EMExoPlayer.class.getName());
-        wakeLock.setReferenceCounted(false);
-        if (wasHeld) {
-            wakeLock.acquire();
+        //Acquires the wakelock if we have permissions to
+        if (context.getPackageManager().checkPermission(Manifest.permission.WAKE_LOCK, context.getPackageName()) == PackageManager.PERMISSION_GRANTED) {
+            PowerManager pm = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
+            wakeLock = pm.newWakeLock(mode | PowerManager.ON_AFTER_RELEASE, EMExoPlayer.class.getName());
+            wakeLock.setReferenceCounted(false);
+        } else {
+            Log.w(TAG, "Unable to acquire WAKE_LOCK due to missing manifest permission");
         }
+
+        stayAwake(wasHeld);
     }
 
     /**
@@ -349,12 +357,14 @@ public class EMExoPlayer implements
      * @param awake True if the wakelock should be acquired
      */
     protected void stayAwake(boolean awake) {
-        if (wakeLock != null) {
-            if (awake && !wakeLock.isHeld()) {
-                wakeLock.acquire();
-            } else if (!awake && wakeLock.isHeld()) {
-                wakeLock.release();
-            }
+        if (wakeLock == null) {
+            return;
+        }
+
+        if (awake && !wakeLock.isHeld()) {
+            wakeLock.acquire();
+        } else if (!awake && wakeLock.isHeld()) {
+            wakeLock.release();
         }
     }
 

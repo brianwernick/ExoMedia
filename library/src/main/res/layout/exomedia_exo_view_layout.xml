@@ -18,7 +18,6 @@
         android:layout_above="@+id/exomedia_exo_video_surface"
         android:background="@android:color/black"/>
 
-
     <View
         android:id="@+id/exomedia_video_shutter_left"
         android:layout_width="0dp"

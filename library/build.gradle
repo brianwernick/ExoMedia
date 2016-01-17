@@ -16,6 +16,9 @@ dependencies {
 
     // ExoPlayer
     compile 'com.google.android.exoplayer:exoplayer:r1.5.3'
+
+    // Playlist support
+    compile 'com.devbrackets.android:playlistcore:1.0.0-SNAPSHOT'
 }
 
 android {

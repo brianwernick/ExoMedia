@@ -5,23 +5,26 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.Drawable;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
-import com.devbrackets.android.exomedia.listener.EMAudioFocusCallback;
-import com.devbrackets.android.exomedia.service.EMPlaylistService;
+import com.devbrackets.android.exomedia.EMAudioPlayer;
+import com.devbrackets.android.exomedia.playlist.AudioApi;
 import com.devbrackets.android.exomediademo.App;
 import com.devbrackets.android.exomediademo.R;
-import com.devbrackets.android.exomediademo.ui.activity.StartupActivity;
 import com.devbrackets.android.exomediademo.data.MediaItem;
 import com.devbrackets.android.exomediademo.manager.PlaylistManager;
+import com.devbrackets.android.exomediademo.ui.activity.StartupActivity;
+import com.devbrackets.android.playlistcore.api.AudioPlayerApi;
+import com.devbrackets.android.playlistcore.service.PlaylistServiceBase;
 import com.squareup.picasso.Picasso;
 import com.squareup.picasso.Target;
 
 /**
- * A simple service that extends {@link EMPlaylistService} in order to provide
+ * A simple service that extends {@link PlaylistServiceBase} in order to provide
  * the application specific information required.
  */
-public class AudioService extends EMPlaylistService<MediaItem, PlaylistManager> implements EMAudioFocusCallback {
+public class AudioService extends PlaylistServiceBase<MediaItem, PlaylistManager> {
     private static final int NOTIFICATION_ID = 1564; //Arbitrary
     private static final int FOREGROUND_REQUEST_CODE = 332; //Arbitrary
     private static final float AUDIO_DUCK_VOLUME = 0.1f;
@@ -42,6 +45,12 @@ public class AudioService extends EMPlaylistService<MediaItem, PlaylistManager> 
         picasso = Picasso.with(getApplicationContext());
     }
 
+    @NonNull
+    @Override
+    protected AudioPlayerApi getNewAudioPlayer() {
+        return new AudioApi(new EMAudioPlayer(getApplicationContext()));
+    }
+
     @Override
     protected int getNotificationId() {
         return NOTIFICATION_ID;
@@ -52,11 +61,13 @@ public class AudioService extends EMPlaylistService<MediaItem, PlaylistManager> 
         return AUDIO_DUCK_VOLUME;
     }
 
+    @NonNull
     @Override
     protected PlaylistManager getMediaPlaylistManager() {
         return App.getPlaylistManager();
     }
 
+    @NonNull
     @Override
     protected PendingIntent getNotificationClickPendingIntent() {
         Intent intent = new Intent(getApplicationContext(), StartupActivity.class);

@@ -1,14 +1,15 @@
 package com.devbrackets.android.exomediademo.data;
 
-import com.devbrackets.android.exomedia.manager.EMPlaylistManager;
 import com.devbrackets.android.exomediademo.helper.AudioItems;
 import com.devbrackets.android.exomediademo.helper.VideoItems;
+import com.devbrackets.android.playlistcore.manager.IPlaylistItem;
+import com.devbrackets.android.playlistcore.manager.PlaylistManagerBase;
 
 /**
- * A custom {@link com.devbrackets.android.exomedia.manager.EMPlaylistManager.PlaylistItem}
+ * A custom {@link IPlaylistItem}
  * to hold the information pertaining to the audio and video items
  */
-public class MediaItem implements EMPlaylistManager.PlaylistItem {
+public class MediaItem implements IPlaylistItem {
 
     private String artworkUrl;
     private String mediaUrl;
@@ -40,8 +41,8 @@ public class MediaItem implements EMPlaylistManager.PlaylistItem {
     }
 
     @Override
-    public EMPlaylistManager.MediaType getMediaType() {
-        return isAudio ? EMPlaylistManager.MediaType.AUDIO : EMPlaylistManager.MediaType.VIDEO;
+    public PlaylistManagerBase.MediaType getMediaType() {
+        return isAudio ? PlaylistManagerBase.MediaType.AUDIO : PlaylistManagerBase.MediaType.VIDEO;
     }
 
     @Override

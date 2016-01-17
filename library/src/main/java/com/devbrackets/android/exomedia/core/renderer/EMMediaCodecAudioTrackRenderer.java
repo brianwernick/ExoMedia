@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.devbrackets.android.exomedia.renderer;
+package com.devbrackets.android.exomedia.core.renderer;
 
 import android.os.Handler;
 

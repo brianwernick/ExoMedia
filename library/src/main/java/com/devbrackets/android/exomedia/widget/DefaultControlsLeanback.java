@@ -31,9 +31,9 @@ import android.widget.ImageView;
 import android.widget.ProgressBar;
 
 import com.devbrackets.android.exomedia.R;
-import com.devbrackets.android.exomedia.event.EMMediaProgressEvent;
 import com.devbrackets.android.exomedia.util.EMResourceUtil;
 import com.devbrackets.android.exomedia.util.TimeFormatUtil;
+import com.devbrackets.android.playlistcore.event.EMMediaProgressEvent;
 
 /**
  * Provides playback controls for the EMVideoView on TV devices.

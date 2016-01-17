@@ -1,5 +1,6 @@
 /*
- * Copyright (C) 2016 Brian Wernick
+ * Copyright (C) 2016 Brian Wernick,
+ * Copyright (C) 2014 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,24 +15,15 @@
  * limitations under the License.
  */
 
-package com.devbrackets.android.exomedia.listener;
+package com.devbrackets.android.exomedia.core.listener;
 
 /**
- * Basic AudioFocus callbacks.  These can also be accessed through
- * their corresponding EventBus events.
+ * A listener for core EMExoPlayer events
  */
-public interface EMAudioFocusCallback {
-    /**
-     * Occurs when the application gains audio focus
-     *
-     * @return True if the event has been handled
-     */
-    boolean onAudioFocusGained();
+public interface ExoPlayerListener {
+    void onStateChanged(boolean playWhenReady, int playbackState);
 
-    /**
-     * Occurs when the application looses audio focus
-     *
-     * @return True if the event has been handled
-     */
-    boolean onAudioFocusLost(boolean canDuckAudio);
+    void onError(Exception e);
+
+    void onVideoSizeChanged(int width, int height, int unAppliedRotationDegrees, float pixelWidthHeightRatio);
 }

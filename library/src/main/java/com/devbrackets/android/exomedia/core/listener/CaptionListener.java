@@ -1,6 +1,5 @@
 /*
- * Copyright (C) 2016 Brian Wernick,
- * Copyright (C) 2014 The Android Open Source Project
+ * Copyright (C) 2016 Brian Wernick
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,15 +14,15 @@
  * limitations under the License.
  */
 
-package com.devbrackets.android.exomedia.listener;
+package com.devbrackets.android.exomedia.core.listener;
+
+import com.google.android.exoplayer.text.Cue;
+
+import java.util.List;
 
 /**
- * A listener for core EMExoPlayer events
+ * A listener for receiving notifications of timed text.
  */
-public interface ExoPlayerListener {
-    void onStateChanged(boolean playWhenReady, int playbackState);
-
-    void onError(Exception e);
-
-    void onVideoSizeChanged(int width, int height, int unAppliedRotationDegrees, float pixelWidthHeightRatio);
+public interface CaptionListener {
+    void onCues(List<Cue> cues);
 }

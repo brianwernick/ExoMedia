@@ -37,14 +37,12 @@ import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.VideoView;
 
-import com.devbrackets.android.exomedia.builder.DashRenderBuilder;
-import com.devbrackets.android.exomedia.builder.HlsRenderBuilder;
-import com.devbrackets.android.exomedia.builder.RenderBuilder;
-import com.devbrackets.android.exomedia.builder.SmoothStreamRenderBuilder;
-import com.devbrackets.android.exomedia.event.EMMediaProgressEvent;
-import com.devbrackets.android.exomedia.exoplayer.EMExoPlayer;
-import com.devbrackets.android.exomedia.listener.EMProgressCallback;
-import com.devbrackets.android.exomedia.listener.ExoPlayerListener;
+import com.devbrackets.android.exomedia.core.builder.DashRenderBuilder;
+import com.devbrackets.android.exomedia.core.builder.HlsRenderBuilder;
+import com.devbrackets.android.exomedia.core.builder.RenderBuilder;
+import com.devbrackets.android.exomedia.core.builder.SmoothStreamRenderBuilder;
+import com.devbrackets.android.exomedia.core.exoplayer.EMExoPlayer;
+import com.devbrackets.android.exomedia.core.listener.ExoPlayerListener;
 import com.devbrackets.android.exomedia.type.MediaSourceType;
 import com.devbrackets.android.exomedia.util.EMDeviceUtil;
 import com.devbrackets.android.exomedia.util.MediaUtil;
@@ -54,6 +52,7 @@ import com.devbrackets.android.exomedia.widget.DefaultControls;
 import com.devbrackets.android.exomedia.widget.DefaultControlsLeanback;
 import com.devbrackets.android.exomedia.widget.DefaultControlsMobile;
 import com.devbrackets.android.exomedia.widget.VideoSurfaceView;
+import com.devbrackets.android.playlistcore.event.EMMediaProgressEvent;
 import com.google.android.exoplayer.audio.AudioCapabilities;
 import com.google.android.exoplayer.audio.AudioCapabilitiesReceiver;
 
@@ -84,7 +83,6 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
 
     protected DefaultControls defaultControls;
     protected Repeater pollRepeater = new Repeater();
-    private EMProgressCallback progressCallback;
     private StopWatch overriddenPositionStopWatch = new StopWatch();
 
     private AudioCapabilities audioCapabilities;
@@ -192,21 +190,18 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
 
     private void setup(Context context, @Nullable AttributeSet attrs) {
         useExo = Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN && EMDeviceUtil.isDeviceCTSCompliant();
-        pollRepeater.setRepeatListener(new Repeater.RepeatListener() {
-            @Override
-            public void onRepeat() {
-                currentMediaProgressEvent.update(getCurrentPosition(), getBufferPercentage(), getDuration());
 
-                if (defaultControls != null) {
-                    defaultControls.setProgressEvent(currentMediaProgressEvent);
-                }
-
-                if (progressCallback != null) {
-                    progressCallback.onProgressUpdated(currentMediaProgressEvent);
-                }
-
-            }
-        });
+        //TODO: we need this in the DefaultControls
+//        pollRepeater.setRepeatListener(new Repeater.RepeatListener() {
+//            @Override
+//            public void onRepeat() {
+//                currentMediaProgressEvent.update(getCurrentPosition(), getBufferPercentage(), getDuration());
+//
+//                if (defaultControls != null) {
+//                    defaultControls.setProgressEvent(currentMediaProgressEvent);
+//                }
+//            }
+//        });
 
         initView(context);
         readAttributes(context, attrs);
@@ -426,48 +421,6 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
         }
     }
 
-    /**
-     * Sets the delay to use when notifying of progress.  The
-     * default is 33 milliseconds, or 30 frames-per-second
-     *
-     * @param milliSeconds The millisecond delay to use
-     */
-    public void setProgressPollDelay(int milliSeconds) {
-        pollRepeater.setRepeaterDelay(milliSeconds);
-    }
-
-    /**
-     * Starts the progress poll with the callback to be informed of the progress
-     * events.
-     *
-     * @param callback The Callback to inform of progress events
-     */
-    public void startProgressPoll(EMProgressCallback callback) {
-        progressCallback = callback;
-        startProgressPoll();
-    }
-
-    /**
-     * Starts the progress poll.  This should be called after you have previously called
-     * {@link #startProgressPoll(EMProgressCallback)}, otherwise you won't get notified
-     * of progress changes
-     */
-    public void startProgressPoll() {
-        if (defaultControls != null || progressCallback != null) {
-            pollRepeater.start();
-        }
-    }
-
-    /**
-     * Stops the progress poll
-     * (see {@link #startProgressPoll()})
-     */
-    public void stopProgressPoll() {
-        if (defaultControls == null) {
-            pollRepeater.stop();
-        }
-    }
-
     /***********************************
      * Start of the media control APIs *
      ***********************************/
@@ -485,11 +438,9 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
             defaultControls.setVideoView(this);
 
             addView(defaultControls);
-            startProgressPoll();
         } else if (defaultControls != null && !enabled) {
             removeView(defaultControls);
             defaultControls = null;
-            stopProgressPoll();
         }
 
         //Sets the onTouch listener to show the default controls
@@ -675,14 +626,12 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
         }
 
         playRequested = true;
-        startProgressPoll();
 
         listenerMux.setNotifiedCompleted(false);
     }
 
     /**
-     * If a video is currently in playback, it will be paused and the progressPoll
-     * will be stopped (see {@link #startProgressPoll(EMProgressCallback)})
+     * If a video is currently in playback, it will be paused
      */
     public void pause() {
         if (!useExo) {
@@ -697,12 +646,10 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
         }
 
         playRequested = false;
-        stopProgressPoll();
     }
 
     /**
      * If a video is currently in playback then the playback will be stopped
-     * and the progressPoll will be stopped (see {@link #startProgressPoll()})
      */
     public void stopPlayback() {
         if (!useExo) {
@@ -717,12 +664,10 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
         }
 
         playRequested = false;
-        stopProgressPoll();
     }
 
     /**
-     * If a video is currently in playback then the playback will be suspended and
-     * and the progressPoll will be stopped (see {@link #startProgressPoll()})
+     * If a video is currently in playback then the playback will be suspended
      */
     public void suspend() {
         if (!useExo) {
@@ -737,7 +682,6 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
         }
 
         playRequested = false;
-        stopProgressPoll();
     }
 
     /**

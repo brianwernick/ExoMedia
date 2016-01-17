@@ -85,7 +85,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:background="@android:color/transparent"
-                android:src="@drawable/exomedia_ic_skip_previous_black"
+                android:src="@drawable/playlistcore_ic_skip_previous_black"
                 android:scaleType="centerInside"
                 android:visibility="invisible"
                 tools:visibility="visible"
@@ -100,7 +100,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:background="@android:color/transparent"
-                android:src="@drawable/exomedia_ic_play_arrow_black"
+                android:src="@drawable/playlistcore_ic_play_arrow_black"
                 android:scaleType="centerInside"
                 tools:ignore="ContentDescription"/>
 
@@ -113,7 +113,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:background="@android:color/transparent"
-                android:src="@drawable/exomedia_ic_skip_next_black"
+                android:src="@drawable/playlistcore_ic_skip_next_black"
                 android:scaleType="centerInside"
                 android:visibility="invisible"
                 tools:visibility="visible"

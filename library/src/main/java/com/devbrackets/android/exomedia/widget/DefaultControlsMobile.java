@@ -23,10 +23,10 @@ import android.util.AttributeSet;
 import android.widget.SeekBar;
 
 import com.devbrackets.android.exomedia.R;
-import com.devbrackets.android.exomedia.event.EMMediaProgressEvent;
 import com.devbrackets.android.exomedia.util.TimeFormatUtil;
 import com.devbrackets.android.exomedia.widget.animation.BottomViewHideShowAnimation;
 import com.devbrackets.android.exomedia.widget.animation.TopViewHideShowAnimation;
+import com.devbrackets.android.playlistcore.event.EMMediaProgressEvent;
 
 /**
  * Provides playback controls for the EMVideoView on Mobile

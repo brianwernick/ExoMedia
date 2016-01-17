@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package com.devbrackets.android.exomedia.listener;
+package com.devbrackets.android.exomedia.core.listener;
 
 import com.google.android.exoplayer.TimeRange;
 import com.google.android.exoplayer.chunk.Format;

@@ -1,5 +1,6 @@
 /*
- * Copyright (C) 2016 Brian Wernick
+ * Copyright (C) 2016 Brian Wernick,
+ * Copyright (C) 2014 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,15 +15,13 @@
  * limitations under the License.
  */
 
-package com.devbrackets.android.exomedia.listener;
+package com.devbrackets.android.exomedia.core.listener;
 
-import com.google.android.exoplayer.text.Cue;
-
-import java.util.List;
+import java.util.Map;
 
 /**
- * A listener for receiving notifications of timed text.
+ * A listener for receiving ID3 metadata parsed from the media stream.
  */
-public interface CaptionListener {
-    void onCues(List<Cue> cues);
+public interface Id3MetadataListener {
+    void onId3Metadata(Map<String, Object> metadata);
 }

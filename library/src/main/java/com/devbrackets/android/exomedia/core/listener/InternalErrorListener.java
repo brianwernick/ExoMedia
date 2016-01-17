@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.devbrackets.android.exomedia.listener;
+package com.devbrackets.android.exomedia.core.listener;
 
 import android.media.MediaCodec;
 

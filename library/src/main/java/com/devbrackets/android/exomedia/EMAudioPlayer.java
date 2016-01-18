@@ -30,6 +30,7 @@ import com.devbrackets.android.exomedia.core.exoplayer.EMExoPlayer;
 import com.devbrackets.android.exomedia.core.listener.ExoPlayerListener;
 import com.devbrackets.android.exomedia.type.MediaSourceType;
 import com.devbrackets.android.exomedia.util.EMDeviceUtil;
+import com.devbrackets.android.exomedia.util.MediaType;
 import com.devbrackets.android.exomedia.util.MediaUtil;
 import com.google.android.exoplayer.audio.AudioCapabilities;
 import com.google.android.exoplayer.audio.AudioCapabilitiesReceiver;
@@ -121,7 +122,7 @@ public class EMAudioPlayer implements AudioCapabilitiesReceiver.Listener {
      * @param defaultMediaType  The MediaType to use when auto-detection fails
      * @return                  The appropriate RenderBuilder
      */
-    private RenderBuilder getRendererBuilder(MediaSourceType renderType, Uri uri, MediaUtil.MediaType defaultMediaType) {
+    private RenderBuilder getRendererBuilder(MediaSourceType renderType, Uri uri, MediaType defaultMediaType) {
         switch (renderType) {
             case HLS:
                 return new HlsRenderBuilder(context, getUserAgent(), uri.toString());
@@ -181,7 +182,7 @@ public class EMAudioPlayer implements AudioCapabilitiesReceiver.Listener {
      * @param uri The Uri representing the path to the audio item
      */
     public void setDataSource(Context context, Uri uri) {
-        setDataSource(context, uri, MediaUtil.MediaType.MP3);
+        setDataSource(context, uri, MediaType.MP3);
     }
 
     /**
@@ -192,7 +193,7 @@ public class EMAudioPlayer implements AudioCapabilitiesReceiver.Listener {
      * @param uri The Uri representing the path to the audio item
      * @param defaultMediaType The MediaType to use when auto-detection fails
      */
-    public void setDataSource(Context context, Uri uri, MediaUtil.MediaType defaultMediaType) {
+    public void setDataSource(Context context, Uri uri, MediaType defaultMediaType) {
         RenderBuilder builder = null;
         if (uri != null) {
             builder = getRendererBuilder(MediaSourceType.get(uri), uri, defaultMediaType);

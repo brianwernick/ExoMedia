@@ -45,7 +45,7 @@ import com.devbrackets.android.exomedia.core.exoplayer.EMExoPlayer;
 import com.devbrackets.android.exomedia.core.listener.ExoPlayerListener;
 import com.devbrackets.android.exomedia.type.MediaSourceType;
 import com.devbrackets.android.exomedia.util.EMDeviceUtil;
-import com.devbrackets.android.exomedia.util.MediaUtil;
+import com.devbrackets.android.exomedia.util.MediaType;
 import com.devbrackets.android.exomedia.util.Repeater;
 import com.devbrackets.android.exomedia.util.StopWatch;
 import com.devbrackets.android.exomedia.widget.DefaultControls;
@@ -286,7 +286,7 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
      * @param defaultMediaType  The MediaType to use when auto-detection fails
      * @return The appropriate RenderBuilder
      */
-    private RenderBuilder getRendererBuilder(MediaSourceType renderType, Uri uri, MediaUtil.MediaType defaultMediaType) {
+    private RenderBuilder getRendererBuilder(MediaSourceType renderType, Uri uri, MediaType defaultMediaType) {
         switch (renderType) {
             case HLS:
                 return new HlsRenderBuilder(getContext().getApplicationContext(), getUserAgent(), uri.toString());
@@ -482,12 +482,12 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
     /**
      * Sets the Uri location for the video to play.  If the media format cannot be determine
      * MP4 will be assumed.  You can also manually specify the media format with
-     * {@link #setVideoURI(Uri, MediaUtil.MediaType)}
+     * {@link #setVideoURI(Uri, MediaType)}
      *
      * @param uri The video's Uri
      */
     public void setVideoURI(Uri uri) {
-        setVideoURI(uri, MediaUtil.MediaType.MP4);
+        setVideoURI(uri, MediaType.MP4);
     }
 
     /**
@@ -496,7 +496,7 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
      * @param uri              The video's Uri
      * @param defaultMediaType The MediaType to use when auto-detection fails
      */
-    public void setVideoURI(Uri uri, MediaUtil.MediaType defaultMediaType) {
+    public void setVideoURI(Uri uri, MediaType defaultMediaType) {
         RenderBuilder builder = null;
         if(uri != null) {
             builder = getRendererBuilder(MediaSourceType.get(uri), uri, defaultMediaType);

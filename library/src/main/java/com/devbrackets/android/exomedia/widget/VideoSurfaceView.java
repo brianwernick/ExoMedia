@@ -23,7 +23,7 @@ import android.util.AttributeSet;
 import android.view.SurfaceView;
 
 /**
- * A SurfaceView that resizes itself to match a specified aspect ratio.
+ * A SurfaceView that reSizes itself to match a specified aspect ratio.
  */
 public class VideoSurfaceView extends SurfaceView {
     /**

@@ -42,7 +42,7 @@ The EMVideoView (EM for ExoMedia) can be added in your layout files like any oth
                 android:layout_height="match_parent">
 
     <com.devbrackets.android.exomedia.EMVideoView
-        android:id="@+id/video_play_activity_video_view"
+        android:id="@+id/video_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         EMVideoView:defaultControlsEnabled="true"/>
@@ -53,7 +53,7 @@ While in your Activity or Fragment you treat it like a standard Android VideoVie
 
 ```java
 private void setupVideoView() {
-	EMVideoView emVideoView = (EMVideoView)findViewById(R.id.video_play_activity_video_view);
+	EMVideoView emVideoView = (EMVideoView)findViewById(R.id.video_view);
 	emVideoView.setOnPreparedListener(this);
 
     //For now we just picked an arbitrary item to play.  More can be found at

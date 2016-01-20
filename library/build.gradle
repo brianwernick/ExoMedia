@@ -4,7 +4,7 @@ apply plugin: 'bintray-release'
 
 def versionMajor = 2
 def versionMinor = 5
-def versionPatch = 1
+def versionPatch = 2
 
 def libraryGroupId = 'com.devbrackets.android'
 def libraryBaseName = 'exomedia'

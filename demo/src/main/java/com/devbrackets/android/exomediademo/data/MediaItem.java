@@ -2,8 +2,8 @@ package com.devbrackets.android.exomediademo.data;
 
 import com.devbrackets.android.exomediademo.helper.AudioItems;
 import com.devbrackets.android.exomediademo.helper.VideoItems;
+import com.devbrackets.android.playlistcore.manager.BasePlaylistManager;
 import com.devbrackets.android.playlistcore.manager.IPlaylistItem;
-import com.devbrackets.android.playlistcore.manager.PlaylistManagerBase;
 
 /**
  * A custom {@link IPlaylistItem}
@@ -41,8 +41,8 @@ public class MediaItem implements IPlaylistItem {
     }
 
     @Override
-    public PlaylistManagerBase.MediaType getMediaType() {
-        return isAudio ? PlaylistManagerBase.MediaType.AUDIO : PlaylistManagerBase.MediaType.VIDEO;
+    public int getMediaType() {
+        return isAudio ? BasePlaylistManager.AUDIO_SUPPORT_FLAG : BasePlaylistManager.VIDEO_SUPPORT_FLAG;
     }
 
     @Override

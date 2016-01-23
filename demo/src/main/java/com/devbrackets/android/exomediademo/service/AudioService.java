@@ -9,22 +9,22 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
 import com.devbrackets.android.exomedia.EMAudioPlayer;
-import com.devbrackets.android.exomediademo.playlist.AudioApi;
 import com.devbrackets.android.exomediademo.App;
 import com.devbrackets.android.exomediademo.R;
 import com.devbrackets.android.exomediademo.data.MediaItem;
 import com.devbrackets.android.exomediademo.manager.PlaylistManager;
+import com.devbrackets.android.exomediademo.playlist.AudioApi;
 import com.devbrackets.android.exomediademo.ui.activity.StartupActivity;
 import com.devbrackets.android.playlistcore.api.AudioPlayerApi;
-import com.devbrackets.android.playlistcore.service.PlaylistServiceBase;
+import com.devbrackets.android.playlistcore.service.BasePlaylistService;
 import com.squareup.picasso.Picasso;
 import com.squareup.picasso.Target;
 
 /**
- * A simple service that extends {@link PlaylistServiceBase} in order to provide
+ * A simple service that extends {@link BasePlaylistService} in order to provide
  * the application specific information required.
  */
-public class AudioService extends PlaylistServiceBase<MediaItem, PlaylistManager> {
+public class AudioService extends BasePlaylistService<MediaItem, PlaylistManager> {
     private static final int NOTIFICATION_ID = 1564; //Arbitrary
     private static final int FOREGROUND_REQUEST_CODE = 332; //Arbitrary
     private static final float AUDIO_DUCK_VOLUME = 0.1f;
@@ -63,9 +63,10 @@ public class AudioService extends PlaylistServiceBase<MediaItem, PlaylistManager
 
     @NonNull
     @Override
-    protected PlaylistManager getMediaPlaylistManager() {
+    protected PlaylistManager getPlaylistManager() {
         return App.getPlaylistManager();
     }
+
 
     @NonNull
     @Override
@@ -95,7 +96,7 @@ public class AudioService extends PlaylistServiceBase<MediaItem, PlaylistManager
     }
 
     @Override
-    protected int getLockScreenIconRes() {
+    protected int getRemoteViewIconRes() {
         return R.mipmap.ic_launcher;
     }
 
@@ -105,13 +106,13 @@ public class AudioService extends PlaylistServiceBase<MediaItem, PlaylistManager
     }
 
     @Override
-    protected void updateLockScreenArtwork(MediaItem playlistItem) {
+    protected void updateRemoteViewArtwork(MediaItem playlistItem) {
         picasso.load(playlistItem.getArtworkUrl()).into(lockScreenImageTarget);
     }
 
     @Nullable
     @Override
-    protected Bitmap getLockScreenArtwork() {
+    protected Bitmap getRemoteViewArtwork() {
         return lockScreenArtwork;
     }
 

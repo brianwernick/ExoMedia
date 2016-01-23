@@ -20,7 +20,7 @@ import com.devbrackets.android.playlistcore.event.PlaylistItemChange;
 import com.devbrackets.android.playlistcore.listener.PlaylistListener;
 import com.devbrackets.android.playlistcore.listener.ProgressListener;
 import com.devbrackets.android.playlistcore.manager.IPlaylistItem;
-import com.devbrackets.android.playlistcore.service.PlaylistServiceBase;
+import com.devbrackets.android.playlistcore.service.PlaylistServiceCore;
 import com.squareup.picasso.Picasso;
 
 import java.util.LinkedList;
@@ -28,8 +28,8 @@ import java.util.List;
 
 /**
  * An example activity to show how to implement and audio UI
- * that interacts with the {@link com.devbrackets.android.playlistcore.service.PlaylistServiceBase}
- * and {@link com.devbrackets.android.playlistcore.manager.PlaylistManagerBase} classes.
+ * that interacts with the {@link com.devbrackets.android.playlistcore.service.BasePlaylistService}
+ * and {@link com.devbrackets.android.playlistcore.manager.BasePlaylistManager} classes.
  */
 public class AudioPlayerActivity extends AppCompatActivity implements PlaylistListener, ProgressListener {
     public static final String EXTRA_INDEX = "EXTRA_INDEX";
@@ -96,7 +96,7 @@ public class AudioPlayerActivity extends AppCompatActivity implements PlaylistLi
     }
 
     @Override
-    public boolean onPlaybackStateChanged(PlaylistServiceBase.PlaybackState playbackState) {
+    public boolean onPlaybackStateChanged(PlaylistServiceCore.PlaybackState playbackState) {
         switch (playbackState) {
             case STOPPED:
                 finish();
@@ -147,8 +147,8 @@ public class AudioPlayerActivity extends AppCompatActivity implements PlaylistLi
             onPlaylistItemChanged(itemChangedEvent.getCurrentItem(), itemChangedEvent.hasNext(), itemChangedEvent.hasPrevious());
         }
 
-        PlaylistServiceBase.PlaybackState currentPlaybackState = playlistManager.getCurrentMediaState();
-        if (currentPlaybackState != PlaylistServiceBase.PlaybackState.STOPPED) {
+        PlaylistServiceCore.PlaybackState currentPlaybackState = playlistManager.getCurrentMediaState();
+        if (currentPlaybackState != PlaylistServiceCore.PlaybackState.STOPPED) {
             onPlaybackStateChanged(currentPlaybackState);
         }
 
@@ -248,7 +248,7 @@ public class AudioPlayerActivity extends AppCompatActivity implements PlaylistLi
         playlistManager = App.getPlaylistManager();
 
         //There is nothing to do if the currently playing values are the same
-        if (playlistManager.getPlayListId() == PLAYLIST_ID) {
+        if (playlistManager.getId() == PLAYLIST_ID) {
             return false;
         }
 
@@ -259,7 +259,7 @@ public class AudioPlayerActivity extends AppCompatActivity implements PlaylistLi
         }
 
         playlistManager.setParameters(mediaItems, selectedIndex);
-        playlistManager.setPlaylistId(PLAYLIST_ID);
+        playlistManager.setId(PLAYLIST_ID);
 
         return true;
     }
@@ -319,7 +319,7 @@ public class AudioPlayerActivity extends AppCompatActivity implements PlaylistLi
      */
     private void startPlayback(boolean forceStart) {
         //If we are changing audio files, or we haven't played before then start the playback
-        if (forceStart || playlistManager.getCurrentIndex() != selectedIndex) {
+        if (forceStart || playlistManager.getCurrentPosition() != selectedIndex) {
             playlistManager.play(0, false);
         }
     }
@@ -352,6 +352,7 @@ public class AudioPlayerActivity extends AppCompatActivity implements PlaylistLi
         public void onStopTrackingTouch(SeekBar seekBar) {
             userInteracting = false;
 
+            //noinspection Range - seekPosition won't be less than 0
             playlistManager.invokeSeekEnded(seekPosition);
             seekPosition = -1;
         }

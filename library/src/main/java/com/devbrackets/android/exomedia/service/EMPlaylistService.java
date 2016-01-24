@@ -613,9 +613,8 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
 
     /**
      * Performs the functionality for when a media item
-     * has finished playback.  By default the completion
-     * will seek to the next available media item.  This is
-     * called from the Audio listener.
+     * has finished playback.  By default no functionality
+     * is performed
      */
     protected void performMediaCompletion() {
         //Left for the extending class to implement
@@ -1093,6 +1092,7 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
         String title = currentPlaylistItem.getTitle();
         String album = currentPlaylistItem.getAlbum();
         String artist = currentPlaylistItem.getArtist();
+        notificationHelper.setClickPendingIntent(getNotificationClickPendingIntent());
         notificationHelper.updateNotificationInformation(title, album, artist, bitmap, secondaryImage, mediaState);
     }
 

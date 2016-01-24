@@ -38,5 +38,5 @@ public interface InfoListener {
 
     void onDecoderInitialized(String decoderName, long elapsedRealtimeMs, long initializationDurationMs);
 
-    void onAvailableRangeChanged(TimeRange availableRange);
+    void onAvailableRangeChanged(int sourceId, TimeRange availableRange);
 }

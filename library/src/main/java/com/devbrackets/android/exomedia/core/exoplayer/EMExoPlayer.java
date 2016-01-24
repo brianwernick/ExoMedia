@@ -77,10 +77,10 @@ public class EMExoPlayer implements
     public static final int DISABLED_TRACK = -1;
 
     public static final int RENDER_COUNT = 4;
-    public static final int RENDER_VIDEO_INDEX = 0;
-    public static final int RENDER_AUDIO_INDEX = 1;
-    public static final int RENDER_CLOSED_CAPTION_INDEX = 2;
-    public static final int RENDER_TIMED_METADATA_INDEX = 3;
+    public static final int RENDER_VIDEO = 0;
+    public static final int RENDER_AUDIO = 1;
+    public static final int RENDER_CLOSED_CAPTION = 2;
+    public static final int RENDER_TIMED_METADATA = 3;
 
     public static final int BUFFER_LENGTH_MIN = 1000;
     public static final int REBUFFER_LENGTH_MIN = 5000;
@@ -128,7 +128,7 @@ public class EMExoPlayer implements
         listeners = new CopyOnWriteArrayList<>();
         lastReportedPlaybackState = ExoPlayer.STATE_IDLE;
         rendererBuildingState = RenderBuildingState.IDLE;
-        player.setSelectedTrack(RENDER_CLOSED_CAPTION_INDEX, DISABLED_TRACK);
+        player.setSelectedTrack(RENDER_CLOSED_CAPTION, DISABLED_TRACK);
     }
 
     public void replaceRenderBuilder(RenderBuilder renderBuilder) {
@@ -194,7 +194,7 @@ public class EMExoPlayer implements
 
     public void setSelectedTrack(int type, int index) {
         player.setSelectedTrack(type, index);
-        if (type == RENDER_CLOSED_CAPTION_INDEX && index == DISABLED_TRACK && captionListener != null) {
+        if (type == RENDER_CLOSED_CAPTION && index == DISABLED_TRACK && captionListener != null) {
             captionListener.onCues(Collections.<Cue>emptyList());
         }
     }
@@ -233,8 +233,8 @@ public class EMExoPlayer implements
         }
 
         // Complete preparation.
-        this.videoRenderer = renderers[RENDER_VIDEO_INDEX];
-        this.audioRenderer = renderers[RENDER_AUDIO_INDEX];
+        this.videoRenderer = renderers[RENDER_VIDEO];
+        this.audioRenderer = renderers[RENDER_AUDIO];
 
         pushSurface(false);
         player.prepare(renderers);
@@ -408,9 +408,9 @@ public class EMExoPlayer implements
             return;
         }
 
-        if (sourceId == RENDER_VIDEO_INDEX) {
+        if (sourceId == RENDER_VIDEO) {
             infoListener.onVideoFormatEnabled(format, trigger, mediaTimeMs);
-        } else if (sourceId == RENDER_AUDIO_INDEX) {
+        } else if (sourceId == RENDER_AUDIO) {
             infoListener.onAudioFormatEnabled(format, trigger, mediaTimeMs);
         }
     }
@@ -478,22 +478,22 @@ public class EMExoPlayer implements
 
     @Override
     public void onCues(List<Cue> cues) {
-        if (captionListener != null && getSelectedTrack(RENDER_CLOSED_CAPTION_INDEX) != DISABLED_TRACK) {
+        if (captionListener != null && getSelectedTrack(RENDER_CLOSED_CAPTION) != DISABLED_TRACK) {
             captionListener.onCues(cues);
         }
     }
 
     @Override
     public void onMetadata(Map<String, Object> metadata) {
-        if (id3MetadataListener != null && getSelectedTrack(RENDER_TIMED_METADATA_INDEX) != DISABLED_TRACK) {
+        if (id3MetadataListener != null && getSelectedTrack(RENDER_TIMED_METADATA) != DISABLED_TRACK) {
             id3MetadataListener.onId3Metadata(metadata);
         }
     }
 
     @Override
-    public void onAvailableRangeChanged(TimeRange availableRange) {
+    public void onAvailableRangeChanged(int sourceId, TimeRange availableRange) {
         if (infoListener != null) {
-            infoListener.onAvailableRangeChanged(availableRange);
+            infoListener.onAvailableRangeChanged(sourceId, availableRange);
         }
     }
 

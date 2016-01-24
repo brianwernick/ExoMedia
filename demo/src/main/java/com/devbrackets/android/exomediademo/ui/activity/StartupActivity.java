@@ -25,12 +25,12 @@ public class StartupActivity extends AppCompatActivity implements AdapterView.On
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         switch (position) {
-            case StartupListAdapter.INDEX_VIDEO_PLAYBACK:
-                showVideoSelectionActivity();
-                break;
-
             case StartupListAdapter.INDEX_AUDIO_PLAYBACK:
                 showAudioSelectionActivity();
+                break;
+
+            case StartupListAdapter.INDEX_VIDEO_PLAYBACK:
+                showVideoSelectionActivity();
                 break;
 
             default:

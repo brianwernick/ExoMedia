@@ -27,6 +27,7 @@ import android.os.Build;
 import com.devbrackets.android.exomedia.exoplayer.EMExoPlayer;
 import com.devbrackets.android.exomedia.renderer.EMMediaCodecAudioTrackRenderer;
 import com.devbrackets.android.exomedia.util.MediaUtil;
+import com.google.android.exoplayer.MediaCodecSelector;
 import com.google.android.exoplayer.MediaCodecVideoTrackRenderer;
 import com.google.android.exoplayer.TrackRenderer;
 import com.google.android.exoplayer.extractor.ExtractorSampleSource;
@@ -72,17 +73,17 @@ public class RenderBuilder {
                allocator, BUFFER_SEGMENT_SIZE * BUFFER_SEGMENTS_TOTAL);
 
         //Create the Renderers
-        MediaCodecVideoTrackRenderer videoRenderer = new MediaCodecVideoTrackRenderer(context, sampleSource, MediaCodec.VIDEO_SCALING_MODE_SCALE_TO_FIT,
-                MAX_JOIN_TIME, null, true, player.getMainHandler(), player, DROPPED_FRAME_NOTIFICATION_AMOUNT);
-        EMMediaCodecAudioTrackRenderer audioRenderer = new EMMediaCodecAudioTrackRenderer(sampleSource, null, true, player.getMainHandler(), player);
+        MediaCodecVideoTrackRenderer videoRenderer = new MediaCodecVideoTrackRenderer(context, sampleSource, MediaCodecSelector.DEFAULT,
+                MediaCodec.VIDEO_SCALING_MODE_SCALE_TO_FIT, MAX_JOIN_TIME, null, true, player.getMainHandler(), player, DROPPED_FRAME_NOTIFICATION_AMOUNT);
+        EMMediaCodecAudioTrackRenderer audioRenderer = new EMMediaCodecAudioTrackRenderer(sampleSource, MediaCodecSelector.DEFAULT, null, true, player.getMainHandler(), player);
         TrackRenderer captionsRenderer = new TextTrackRenderer(sampleSource, player, player.getMainHandler().getLooper());
 
 
         //Create the Render list to send to the callback
         TrackRenderer[] renderers = new TrackRenderer[EMExoPlayer.RENDER_COUNT];
-        renderers[EMExoPlayer.RENDER_VIDEO_INDEX] = videoRenderer;
-        renderers[EMExoPlayer.RENDER_AUDIO_INDEX] = audioRenderer;
-        renderers[EMExoPlayer.RENDER_CLOSED_CAPTION_INDEX] = captionsRenderer;
+        renderers[EMExoPlayer.RENDER_VIDEO] = videoRenderer;
+        renderers[EMExoPlayer.RENDER_AUDIO] = audioRenderer;
+        renderers[EMExoPlayer.RENDER_CLOSED_CAPTION] = captionsRenderer;
         player.onRenderers(renderers, bandwidthMeter);
     }
 

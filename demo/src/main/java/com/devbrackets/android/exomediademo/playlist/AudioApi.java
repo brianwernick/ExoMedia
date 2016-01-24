@@ -108,11 +108,6 @@ public class AudioApi implements AudioPlayerApi {
     }
 
     @Override
-    public void setOnInfoListener(MediaPlayer.OnInfoListener onInfoListener) {
-        audioPlayer.setOnInfoListener(onInfoListener);
-    }
-
-    @Override
     public void setOnCompletionListener(MediaPlayer.OnCompletionListener onCompletionListener) {
         audioPlayer.setOnCompletionListener(onCompletionListener);
     }

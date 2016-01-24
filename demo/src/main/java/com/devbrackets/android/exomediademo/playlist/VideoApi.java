@@ -92,11 +92,6 @@ public class VideoApi implements VideoPlayerApi {
     }
 
     @Override
-    public void setOnInfoListener(MediaPlayer.OnInfoListener onInfoListener) {
-        videoView.setOnInfoListener(onInfoListener);
-    }
-
-    @Override
     public void setOnCompletionListener(MediaPlayer.OnCompletionListener onCompletionListener) {
         videoView.setOnCompletionListener(onCompletionListener);
     }

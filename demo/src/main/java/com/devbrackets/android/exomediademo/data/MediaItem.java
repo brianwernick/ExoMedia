@@ -42,7 +42,7 @@ public class MediaItem implements IPlaylistItem {
 
     @Override
     public int getMediaType() {
-        return isAudio ? BasePlaylistManager.AUDIO_SUPPORT_FLAG : BasePlaylistManager.VIDEO_SUPPORT_FLAG;
+        return isAudio ? BasePlaylistManager.AUDIO : BasePlaylistManager.VIDEO;
     }
 
     @Override

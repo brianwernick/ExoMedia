@@ -79,7 +79,7 @@ public class VideoPlayerActivity extends Activity implements MediaPlayer.OnPrepa
             mediaItems.add(mediaItem);
         }
 
-        playlistManager.setAllowedMediaType(BasePlaylistManager.AUDIO_SUPPORT_FLAG | BasePlaylistManager.VIDEO_SUPPORT_FLAG);
+        playlistManager.setAllowedMediaType(BasePlaylistManager.AUDIO | BasePlaylistManager.VIDEO);
         playlistManager.setParameters(mediaItems, selectedIndex);
         playlistManager.setId( PLAYLIST_ID);
     }

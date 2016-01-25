@@ -1015,6 +1015,8 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
         notificationHelper.release();
         lockScreenHelper.release();
 
+        notificationSetup = false;
+
         if (releaseAudioPlayer) {
             if (audioPlayer != null) {
                 audioPlayer.reset();

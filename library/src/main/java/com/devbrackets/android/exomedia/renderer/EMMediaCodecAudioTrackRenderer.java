@@ -19,6 +19,7 @@ package com.devbrackets.android.exomedia.renderer;
 import android.os.Handler;
 
 import com.google.android.exoplayer.MediaCodecAudioTrackRenderer;
+import com.google.android.exoplayer.MediaCodecSelector;
 import com.google.android.exoplayer.SampleSource;
 import com.google.android.exoplayer.audio.AudioCapabilities;
 import com.google.android.exoplayer.drm.DrmSessionManager;
@@ -29,29 +30,24 @@ import com.google.android.exoplayer.drm.DrmSessionManager;
 public class EMMediaCodecAudioTrackRenderer extends MediaCodecAudioTrackRenderer {
     private int audioSessionId = 0;
 
-    public EMMediaCodecAudioTrackRenderer(SampleSource source) {
-        super(source);
+    public EMMediaCodecAudioTrackRenderer(SampleSource source, MediaCodecSelector mediaCodecSelector) {
+        super(source, mediaCodecSelector);
     }
 
-    public EMMediaCodecAudioTrackRenderer(SampleSource source, DrmSessionManager drmSessionManager, boolean playClearSamplesWithoutKeys) {
-        super(source, drmSessionManager, playClearSamplesWithoutKeys);
+    public EMMediaCodecAudioTrackRenderer(SampleSource source, MediaCodecSelector mediaCodecSelector, DrmSessionManager drmSessionManager, boolean playClearSamplesWithoutKeys) {
+        super(source, mediaCodecSelector, drmSessionManager, playClearSamplesWithoutKeys);
     }
 
-    public EMMediaCodecAudioTrackRenderer(SampleSource source, Handler eventHandler, EventListener eventListener) {
-        super(source, eventHandler, eventListener);
+    public EMMediaCodecAudioTrackRenderer(SampleSource source, MediaCodecSelector mediaCodecSelector, Handler eventHandler, EventListener eventListener) {
+        super(source, mediaCodecSelector, eventHandler, eventListener);
     }
 
-    public EMMediaCodecAudioTrackRenderer(SampleSource source, DrmSessionManager drmSessionManager, boolean playClearSamplesWithoutKeys,
-                                          Handler eventHandler, EventListener eventListener) {
-        super(source, drmSessionManager, playClearSamplesWithoutKeys, eventHandler, eventListener);
+    public EMMediaCodecAudioTrackRenderer(SampleSource source, MediaCodecSelector mediaCodecSelector, DrmSessionManager drmSessionManager, boolean playClearSamplesWithoutKeys, Handler eventHandler, EventListener eventListener) {
+        super(source, mediaCodecSelector, drmSessionManager, playClearSamplesWithoutKeys, eventHandler, eventListener);
     }
 
-    public EMMediaCodecAudioTrackRenderer(SampleSource source, DrmSessionManager drmSessionManager, boolean playClearSamplesWithoutKeys, Handler eventHandler, EventListener eventListener, AudioCapabilities audioCapabilities) {
-        super(source, drmSessionManager, playClearSamplesWithoutKeys, eventHandler, eventListener, audioCapabilities);
-    }
-
-    public EMMediaCodecAudioTrackRenderer(SampleSource source, DrmSessionManager drmSessionManager, boolean playClearSamplesWithoutKeys, Handler eventHandler, EventListener eventListener, AudioCapabilities audioCapabilities, int streamType) {
-        super(source, drmSessionManager, playClearSamplesWithoutKeys, eventHandler, eventListener, audioCapabilities, streamType);
+    public EMMediaCodecAudioTrackRenderer(SampleSource source, MediaCodecSelector mediaCodecSelector, DrmSessionManager drmSessionManager, boolean playClearSamplesWithoutKeys, Handler eventHandler, EventListener eventListener, AudioCapabilities audioCapabilities, int streamType) {
+        super(source, mediaCodecSelector, drmSessionManager, playClearSamplesWithoutKeys, eventHandler, eventListener, audioCapabilities, streamType);
     }
 
     @Override

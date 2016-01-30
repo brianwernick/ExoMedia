@@ -461,6 +461,16 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
     }
 
     /**
+     * Sets the callback to be informed of progress events.  This takes precedence over
+     * the bus events.
+     *
+     * @param progressCallback The callback to be notified of progress events or null
+     */
+    public void setProgressCallback(@Nullable EMProgressCallback progressCallback) {
+        this.progressCallback = progressCallback;
+    }
+
+    /**
      * Starts the progress poll.  If you have already called {@link #setBus(EMEventBus)} then
      * you should use the {@link #startProgressPoll()} method instead.
      *
@@ -478,7 +488,7 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
      * @param callback The Callback to inform of progress events
      */
     public void startProgressPoll(EMProgressCallback callback) {
-        progressCallback = callback;
+        setProgressCallback(callback);
         startProgressPoll();
     }
 

@@ -167,6 +167,16 @@ public class EMAudioPlayer implements AudioCapabilitiesReceiver.Listener {
     }
 
     /**
+     * Sets the callback to be informed of progress events.  This takes precedence over
+     * the bus events.
+     *
+     * @param progressCallback The callback to be notified of progress events or null
+     */
+    public void setProgressCallback(@Nullable EMProgressCallback progressCallback) {
+        this.progressCallback = progressCallback;
+    }
+
+    /**
      * Starts the progress poll.
      *
      * @param bus The EventBus event dispatcher that the listener is connected to
@@ -189,6 +199,17 @@ public class EMAudioPlayer implements AudioCapabilitiesReceiver.Listener {
         progressCallback = callback;
 
         if (progressCallback != null) {
+            pollRepeater.start();
+        }
+    }
+
+    /**
+     * Starts the progress poll.  This should be called after you have set the bus with {@link #setBus(EMEventBus)}
+     * or previously called {@link #startProgressPoll(EMEventBus)}, otherwise you won't get notified
+     * of progress changes
+     */
+    public void startProgressPoll() {
+        if (bus != null || progressCallback != null) {
             pollRepeater.start();
         }
     }

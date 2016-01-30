@@ -24,7 +24,7 @@ import com.squareup.picasso.Target;
  * A simple service that extends {@link BasePlaylistService} in order to provide
  * the application specific information required.
  */
-public class AudioService extends BasePlaylistService<MediaItem, PlaylistManager> {
+public class MediaService extends BasePlaylistService<MediaItem, PlaylistManager> {
     private static final int NOTIFICATION_ID = 1564; //Arbitrary
     private static final int FOREGROUND_REQUEST_CODE = 332; //Arbitrary
     private static final float AUDIO_DUCK_VOLUME = 0.1f;

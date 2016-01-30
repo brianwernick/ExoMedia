@@ -10,7 +10,7 @@ public class VideoItems {
         items = new ArrayList<>();
 
         items.add(new VideoItem("3GP - Big Buck Bunny by Blender", "http://www.sample-videos.com/video/3gp/240/big_buck_bunny_240p_10mb.3gp"));
-        items.add(new VideoItem("FLV - Big Buck Bunny by Blender", "http://www.sample-videos.com/video/flv/480/big_buck_bunny_480p_10mb.flv"));
+//        items.add(new VideoItem("FLV - Big Buck Bunny by Blender", "http://www.sample-videos.com/video/flv/480/big_buck_bunny_480p_10mb.flv"));
         items.add(new VideoItem("HLS - Wildlife", "http://playertest.longtailvideo.com/adaptive/wowzaid3/playlist.m3u8"));
         items.add(new VideoItem("MKV - Big Buck Bunny by Blender", "http://www.sample-videos.com/video/mkv/480/big_buck_bunny_480p_10mb.mkv"));
         items.add(new VideoItem("MP4 - Big Buck Bunny by Blender", "http://www.sample-videos.com/video/mp4/480/big_buck_bunny_480p_10mb.mp4"));

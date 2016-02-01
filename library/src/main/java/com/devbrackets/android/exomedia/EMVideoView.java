@@ -1245,13 +1245,10 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
 
     private class EMExoVideoSurfaceTextureListener implements TextureView.SurfaceTextureListener {
 
-        Surface mSurface;
-
         @Override
         public void onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height) {
             if (emExoPlayer != null) {
-                mSurface = new Surface(surface);
-                emExoPlayer.setSurface(mSurface);
+                emExoPlayer.setSurface(new Surface(surface));
                 if (playRequested) {
                     emExoPlayer.setPlayWhenReady(true);
                 }
@@ -1265,7 +1262,6 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
 
         @Override
         public boolean onSurfaceTextureDestroyed(SurfaceTexture surface) {
-            mSurface.release();
             if (emExoPlayer != null) {
                 emExoPlayer.blockingClearSurface();
             }

@@ -75,6 +75,7 @@ public class DashRenderBuilder extends RenderBuilder {
     private final Context context;
     private final String userAgent;
     private final String url;
+    private final int streamType;
 
     private AsyncRendererBuilder currentAsyncBuilder;
 
@@ -84,11 +85,22 @@ public class DashRenderBuilder extends RenderBuilder {
         this.context = context;
         this.userAgent = userAgent;
         this.url = url;
+        this.streamType = AudioManager.STREAM_MUSIC;
+    }
+
+    @SuppressWarnings("UnusedDeclaration")
+    public DashRenderBuilder(Context context, String userAgent, String url, int streamType) {
+        super(context, userAgent, url);
+
+        this.context = context;
+        this.userAgent = userAgent;
+        this.url = url;
+        this.streamType = streamType;
     }
 
     @Override
     public void buildRenderers(EMExoPlayer player) {
-        currentAsyncBuilder = new AsyncRendererBuilder(context, userAgent, url, player);
+        currentAsyncBuilder = new AsyncRendererBuilder(context, userAgent, url, player, streamType);
         currentAsyncBuilder.init();
     }
 
@@ -103,6 +115,7 @@ public class DashRenderBuilder extends RenderBuilder {
     private final class AsyncRendererBuilder implements ManifestFetcher.ManifestCallback<MediaPresentationDescription>, UtcTimingCallback {
         private final Context context;
         private final String userAgent;
+        private final int streamType;
         private final EMExoPlayer player;
         private final ManifestFetcher<MediaPresentationDescription> manifestFetcher;
         private MediaPresentationDescription currentManifest;
@@ -111,9 +124,10 @@ public class DashRenderBuilder extends RenderBuilder {
         private boolean canceled;
         private long elapsedRealtimeOffset;
 
-        public AsyncRendererBuilder(Context context, String userAgent, String url, EMExoPlayer player) {
+        public AsyncRendererBuilder(Context context, String userAgent, String url, EMExoPlayer player, int streamType) {
             this.context = context;
             this.userAgent = userAgent;
+            this.streamType = streamType;
             this.player = player;
 
             MediaPresentationDescriptionParser parser = new MediaPresentationDescriptionParser();
@@ -239,7 +253,7 @@ public class DashRenderBuilder extends RenderBuilder {
             MediaCodecVideoTrackRenderer videoRenderer = new MediaCodecVideoTrackRenderer(context, sampleSourceVideo, MediaCodecSelector.DEFAULT,
                     MediaCodec.VIDEO_SCALING_MODE_SCALE_TO_FIT, MAX_JOIN_TIME, mainHandler, player, DROPPED_FRAME_NOTIFICATION_AMOUNT);
             EMMediaCodecAudioTrackRenderer audioRenderer = new EMMediaCodecAudioTrackRenderer(sampleSourceAudio, MediaCodecSelector.DEFAULT,
-                    drmSessionManager, true, mainHandler, player, AudioCapabilities.getCapabilities(context), AudioManager.STREAM_MUSIC);
+                    drmSessionManager, true, mainHandler, player, AudioCapabilities.getCapabilities(context), streamType);
             TextTrackRenderer captionsRenderer = new TextTrackRenderer(sampleSourceCC, player, mainHandler.getLooper());
 
 

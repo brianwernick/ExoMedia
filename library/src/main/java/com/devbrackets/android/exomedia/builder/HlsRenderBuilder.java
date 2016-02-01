@@ -69,15 +69,9 @@ public class HlsRenderBuilder extends RenderBuilder {
     private AsyncRendererBuilder currentAsyncBuilder;
 
     public HlsRenderBuilder(Context context, String userAgent, String url) {
-        super(context, userAgent, url);
-
-        this.context = context;
-        this.userAgent = userAgent;
-        this.url = url;
-        this.streamType = AudioManager.STREAM_MUSIC;
+        this(context, userAgent, url, AudioManager.STREAM_MUSIC);
     }
 
-    @SuppressWarnings("UnusedDeclaration")
     public HlsRenderBuilder(Context context, String userAgent, String url, int streamType) {
         super(context, userAgent, url);
 

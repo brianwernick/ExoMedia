@@ -80,15 +80,9 @@ public class DashRenderBuilder extends RenderBuilder {
     private AsyncRendererBuilder currentAsyncBuilder;
 
     public DashRenderBuilder(Context context, String userAgent, String url) {
-        super(context, userAgent, url);
-
-        this.context = context;
-        this.userAgent = userAgent;
-        this.url = url;
-        this.streamType = AudioManager.STREAM_MUSIC;
+        this(context, userAgent, url, AudioManager.STREAM_MUSIC);
     }
 
-    @SuppressWarnings("UnusedDeclaration")
     public DashRenderBuilder(Context context, String userAgent, String url, int streamType) {
         super(context, userAgent, url);
 

@@ -71,14 +71,9 @@ public class SmoothStreamRenderBuilder extends RenderBuilder {
     private AsyncRendererBuilder currentAsyncBuilder;
 
     public SmoothStreamRenderBuilder(Context context, String userAgent, String url) {
-        super(context, userAgent, url);
-        this.context = context;
-        this.userAgent = userAgent;
-        this.url = Util.toLowerInvariant(url).endsWith("/manifest") ? url : url + "/Manifest";
-        this.streamType = AudioManager.STREAM_MUSIC;
+        this(context, userAgent, url, AudioManager.STREAM_MUSIC);
     }
 
-    @SuppressWarnings("UnusedDeclaration")
     public SmoothStreamRenderBuilder(Context context, String userAgent, String url, int streamType) {
         super(context, userAgent, url);
         this.context = context;

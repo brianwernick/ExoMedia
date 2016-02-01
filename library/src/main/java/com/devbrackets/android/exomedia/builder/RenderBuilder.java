@@ -61,13 +61,9 @@ public class RenderBuilder {
     private final int streamType;
 
     public RenderBuilder(Context context, String userAgent, String uri) {
-        this.uri = uri;
-        this.userAgent = userAgent;
-        this.context = context;
-        this.streamType = AudioManager.STREAM_MUSIC;
+        this(context, userAgent, uri, AudioManager.STREAM_MUSIC);
     }
 
-    @SuppressWarnings("UnusedDeclaration")
     public RenderBuilder(Context context, String userAgent, String uri, int streamType) {
         this.uri = uri;
         this.userAgent = userAgent;

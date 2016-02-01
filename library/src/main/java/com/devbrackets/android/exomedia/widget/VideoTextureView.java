@@ -20,12 +20,12 @@ import android.content.Context;
 import android.graphics.Point;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
-import android.view.SurfaceView;
+import android.view.TextureView;
 
 /**
  * A SurfaceView that resizes itself to match a specified aspect ratio.
  */
-public class VideoSurfaceView extends SurfaceView {
+public class VideoTextureView extends TextureView {
     /**
      * The surface view will not resize itself if the fractional difference between its default
      * aspect ratio and the aspect ratio of the video falls below this threshold.
@@ -47,16 +47,16 @@ public class VideoSurfaceView extends SurfaceView {
     private OnSizeChangeListener listener;
     private Point oldSize = new Point(0, 0);
 
-    public VideoSurfaceView(Context context) {
+    public VideoTextureView(Context context) {
         super(context);
     }
 
-    public VideoSurfaceView(Context context, AttributeSet attrs) {
+    public VideoTextureView(Context context, AttributeSet attrs) {
         super(context, attrs);
     }
 
     /**
-     * Set the aspect ratio that this {@link VideoSurfaceView} should satisfy.
+     * Set the aspect ratio that this {@link VideoTextureView} should satisfy.
      *
      * @param widthHeightRatio The width to height ratio.
      */

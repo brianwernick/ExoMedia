@@ -272,6 +272,7 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
         }
     }
 
+    @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
     private void setupExoPlayer() {
         audioCapabilitiesReceiver = new AudioCapabilitiesReceiver(getContext().getApplicationContext(), this);
         audioCapabilitiesReceiver.register();
@@ -1243,6 +1244,7 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
         }
     }
 
+    @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
     private class EMExoVideoSurfaceTextureListener implements TextureView.SurfaceTextureListener {
 
         @Override
@@ -1265,6 +1267,7 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
             if (emExoPlayer != null) {
                 emExoPlayer.blockingClearSurface();
             }
+
             return true;
         }
 

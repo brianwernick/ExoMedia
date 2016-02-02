@@ -21,7 +21,6 @@ import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Build;
-import android.support.annotation.Nullable;
 import android.util.Log;
 
 import com.devbrackets.android.exomedia.core.builder.DashRenderBuilder;
@@ -33,7 +32,6 @@ import com.devbrackets.android.exomedia.core.listener.ExoPlayerListener;
 import com.devbrackets.android.exomedia.type.MediaSourceType;
 import com.devbrackets.android.exomedia.util.EMDeviceUtil;
 import com.devbrackets.android.exomedia.util.MediaType;
-import com.devbrackets.android.exomedia.util.MediaUtil;
 import com.google.android.exoplayer.audio.AudioCapabilities;
 import com.google.android.exoplayer.audio.AudioCapabilitiesReceiver;
 
@@ -59,6 +57,7 @@ public class EMAudioPlayer implements AudioCapabilitiesReceiver.Listener {
     private int currentBufferPercent = 0;
     private int overriddenDuration = -1;
 
+    private int audioStreamType = AudioManager.STREAM_MUSIC;
     private AudioCapabilities audioCapabilities;
     private AudioCapabilitiesReceiver audioCapabilitiesReceiver;
 

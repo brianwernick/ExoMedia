@@ -439,21 +439,6 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
     }
 
     /**
-     * Sets the bus to use for dispatching Events that correspond to the callbacks
-     * listed in {@link com.devbrackets.android.exomedia.listener.EMVideoViewControlsCallback}
-     *
-     * @param bus The EventBus to dispatch events on
-     */
-    public void setBus(@Nullable EMEventBus bus) {
-        this.bus = bus;
-        listenerMux.setBus(bus);
-
-        if (defaultControls != null) {
-            defaultControls.setBus(bus);
-        }
-    }
-
-    /**
      * Sets the callback to be informed of progress events.  This takes precedence over
      * the bus events.
      *
@@ -461,17 +446,6 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
      */
     public void setProgressCallback(@Nullable EMProgressCallback progressCallback) {
         this.progressCallback = progressCallback;
-    }
-
-    /**
-     * Starts the progress poll.  If you have already called {@link #setBus(EMEventBus)} then
-     * you should use the {@link #startProgressPoll()} method instead.
-     *
-     * @param bus The EventBus event dispatcher that the listener is connected to
-     */
-    public void startProgressPoll(@Nullable EMEventBus bus) {
-        setBus(bus);
-        startProgressPoll();
     }
 
     /**

@@ -21,6 +21,7 @@ import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Build;
+import android.support.annotation.Nullable;
 import android.util.Log;
 
 import com.devbrackets.android.exomedia.builder.DashRenderBuilder;
@@ -151,16 +152,6 @@ public class EMAudioPlayer implements AudioCapabilitiesReceiver.Listener {
     }
 
     /**
-     * Sets the bus to use for dispatching Events such as the poll progress
-     *
-     * @param bus The EventBus to dispatch events on
-     */
-    public void setBus(@Nullable EMEventBus bus) {
-        this.bus = bus;
-        listenerMux.setBus(bus);
-    }
-
-    /**
      * Sets the callback to be informed of progress events.  This takes precedence over
      * the bus events.
      *
@@ -168,19 +159,6 @@ public class EMAudioPlayer implements AudioCapabilitiesReceiver.Listener {
      */
     public void setProgressCallback(@Nullable EMProgressCallback progressCallback) {
         this.progressCallback = progressCallback;
-    }
-
-    /**
-     * Starts the progress poll.
-     *
-     * @param bus The EventBus event dispatcher that the listener is connected to
-     */
-    public void startProgressPoll(@Nullable EMEventBus bus) {
-        setBus(bus);
-
-        if (bus != null) {
-            pollRepeater.start();
-        }
     }
 
     /**
@@ -198,12 +176,12 @@ public class EMAudioPlayer implements AudioCapabilitiesReceiver.Listener {
     }
 
     /**
-     * Starts the progress poll.  This should be called after you have set the bus with {@link #setBus(EMEventBus)}
-     * or previously called {@link #startProgressPoll(EMEventBus)}, otherwise you won't get notified
+     * Starts the progress poll.  This should be called after you have set the callbacks with {@link #setProgressCallback(EMProgressCallback)}
+     * or previously called {@link #startProgressPoll(EMProgressCallback)}, otherwise you won't get notified
      * of progress changes
      */
     public void startProgressPoll() {
-        if (bus != null || progressCallback != null) {
+        if (progressCallback != null) {
             pollRepeater.start();
         }
     }

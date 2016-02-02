@@ -1247,10 +1247,13 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
     @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
     private class EMExoVideoSurfaceTextureListener implements TextureView.SurfaceTextureListener {
 
+        private Surface surface;
+
         @Override
-        public void onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height) {
+        public void onSurfaceTextureAvailable(SurfaceTexture surfaceTexture, int width, int height) {
             if (emExoPlayer != null) {
-                emExoPlayer.setSurface(new Surface(surface));
+                surface = new Surface(surfaceTexture);
+                emExoPlayer.setSurface(surface);
                 if (playRequested) {
                     emExoPlayer.setPlayWhenReady(true);
                 }
@@ -1258,12 +1261,13 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
         }
 
         @Override
-        public void onSurfaceTextureSizeChanged(SurfaceTexture surface, int width, int height) {
+        public void onSurfaceTextureSizeChanged(SurfaceTexture surfaceTexture, int width, int height) {
             // Purposefully left blank
         }
 
         @Override
-        public boolean onSurfaceTextureDestroyed(SurfaceTexture surface) {
+        public boolean onSurfaceTextureDestroyed(SurfaceTexture surfaceTexture) {
+            surface.release();
             if (emExoPlayer != null) {
                 emExoPlayer.blockingClearSurface();
             }
@@ -1272,7 +1276,7 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
         }
 
         @Override
-        public void onSurfaceTextureUpdated(SurfaceTexture surface) {
+        public void onSurfaceTextureUpdated(SurfaceTexture surfaceTexture) {
             // Purposefully left blank
         }
     }

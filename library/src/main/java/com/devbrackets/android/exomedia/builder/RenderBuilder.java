@@ -20,6 +20,7 @@ package com.devbrackets.android.exomedia.builder;
 
 import android.annotation.TargetApi;
 import android.content.Context;
+import android.media.AudioManager;
 import android.media.MediaCodec;
 import android.net.Uri;
 import android.os.Build;
@@ -30,6 +31,7 @@ import com.devbrackets.android.exomedia.util.MediaUtil;
 import com.google.android.exoplayer.MediaCodecSelector;
 import com.google.android.exoplayer.MediaCodecVideoTrackRenderer;
 import com.google.android.exoplayer.TrackRenderer;
+import com.google.android.exoplayer.audio.AudioCapabilities;
 import com.google.android.exoplayer.extractor.ExtractorSampleSource;
 import com.google.android.exoplayer.text.TextTrackRenderer;
 import com.google.android.exoplayer.upstream.Allocator;
@@ -56,12 +58,19 @@ public class RenderBuilder {
     private final Context context;
     private final String userAgent;
     private final String uri;
+    private final int streamType;
 
     public RenderBuilder(Context context, String userAgent, String uri) {
+        this(context, userAgent, uri, AudioManager.STREAM_MUSIC);
+    }
+
+    public RenderBuilder(Context context, String userAgent, String uri, int streamType) {
         this.uri = uri;
         this.userAgent = userAgent;
         this.context = context;
+        this.streamType = streamType;
     }
+
 
     public void buildRenderers(EMExoPlayer player) {
         //Create the Sample Source to be used by the renderers
@@ -75,7 +84,8 @@ public class RenderBuilder {
         //Create the Renderers
         MediaCodecVideoTrackRenderer videoRenderer = new MediaCodecVideoTrackRenderer(context, sampleSource, MediaCodecSelector.DEFAULT,
                 MediaCodec.VIDEO_SCALING_MODE_SCALE_TO_FIT, MAX_JOIN_TIME, null, true, player.getMainHandler(), player, DROPPED_FRAME_NOTIFICATION_AMOUNT);
-        EMMediaCodecAudioTrackRenderer audioRenderer = new EMMediaCodecAudioTrackRenderer(sampleSource, MediaCodecSelector.DEFAULT, null, true, player.getMainHandler(), player);
+        EMMediaCodecAudioTrackRenderer audioRenderer = new EMMediaCodecAudioTrackRenderer(sampleSource, MediaCodecSelector.DEFAULT, null, true,
+                player.getMainHandler(), player, AudioCapabilities.getCapabilities(context), streamType);
         TrackRenderer captionsRenderer = new TextTrackRenderer(sampleSource, player, player.getMainHandler().getLooper());
 
 

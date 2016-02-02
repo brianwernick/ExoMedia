@@ -17,6 +17,7 @@
 package com.devbrackets.android.exomedia;
 
 import android.content.Context;
+import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Build;
@@ -61,6 +62,7 @@ public class EMAudioPlayer implements AudioCapabilitiesReceiver.Listener {
     private int overriddenDuration = -1;
     private int positionOffset = 0;
 
+    private int audioStreamType = AudioManager.STREAM_MUSIC;
     private boolean overridePosition = false;
 
     private EMProgressCallback progressCallback;
@@ -149,6 +151,39 @@ public class EMAudioPlayer implements AudioCapabilitiesReceiver.Listener {
     }
 
     /**
+     * Sets the bus to use for dispatching Events such as the poll progress
+     *
+     * @param bus The EventBus to dispatch events on
+     */
+    public void setBus(@Nullable EMEventBus bus) {
+        this.bus = bus;
+        listenerMux.setBus(bus);
+    }
+
+    /**
+     * Sets the callback to be informed of progress events.  This takes precedence over
+     * the bus events.
+     *
+     * @param progressCallback The callback to be notified of progress events or null
+     */
+    public void setProgressCallback(@Nullable EMProgressCallback progressCallback) {
+        this.progressCallback = progressCallback;
+    }
+
+    /**
+     * Starts the progress poll.
+     *
+     * @param bus The EventBus event dispatcher that the listener is connected to
+     */
+    public void startProgressPoll(@Nullable EMEventBus bus) {
+        setBus(bus);
+
+        if (bus != null) {
+            pollRepeater.start();
+        }
+    }
+
+    /**
      * Starts the progress poll with the callback to be informed of the progress
      * events.
      *
@@ -158,6 +193,17 @@ public class EMAudioPlayer implements AudioCapabilitiesReceiver.Listener {
         progressCallback = callback;
 
         if (progressCallback != null) {
+            pollRepeater.start();
+        }
+    }
+
+    /**
+     * Starts the progress poll.  This should be called after you have set the bus with {@link #setBus(EMEventBus)}
+     * or previously called {@link #startProgressPoll(EMEventBus)}, otherwise you won't get notified
+     * of progress changes
+     */
+    public void startProgressPoll() {
+        if (bus != null || progressCallback != null) {
             pollRepeater.start();
         }
     }
@@ -181,13 +227,13 @@ public class EMAudioPlayer implements AudioCapabilitiesReceiver.Listener {
     private RenderBuilder getRendererBuilder(MediaSourceType renderType, Uri uri, MediaUtil.MediaType defaultMediaType) {
         switch (renderType) {
             case HLS:
-                return new HlsRenderBuilder(context, getUserAgent(), uri.toString());
+                return new HlsRenderBuilder(context, getUserAgent(), uri.toString(), audioStreamType);
             case DASH:
-                return new DashRenderBuilder(context, getUserAgent(), uri.toString());
+                return new DashRenderBuilder(context, getUserAgent(), uri.toString(), audioStreamType);
             case SMOOTH_STREAM:
-                return new SmoothStreamRenderBuilder(context, getUserAgent(), uri.toString());
+                return new SmoothStreamRenderBuilder(context, getUserAgent(), uri.toString(), audioStreamType);
             default:
-                return new RenderBuilder(context, getUserAgent(), uri.toString());
+                return new RenderBuilder(context, getUserAgent(), uri.toString(), audioStreamType);
         }
     }
 
@@ -222,12 +268,12 @@ public class EMAudioPlayer implements AudioCapabilitiesReceiver.Listener {
         return emExoPlayer.getAudioSessionId();
     }
 
-    public void setAudioStreamType(int steamType) {
+    public void setAudioStreamType(int streamType) {
         if (!useExo) {
-            mediaPlayer.setAudioStreamType(steamType);
+            mediaPlayer.setAudioStreamType(streamType);
         }
 
-        //The ExoPlayer doesn't need this information
+        this.audioStreamType = streamType;
     }
 
     /**

@@ -64,20 +64,26 @@ public class HlsRenderBuilder extends RenderBuilder {
     private final Context context;
     private final String userAgent;
     private final String url;
+    private final int streamType;
 
     private AsyncRendererBuilder currentAsyncBuilder;
 
     public HlsRenderBuilder(Context context, String userAgent, String url) {
+        this(context, userAgent, url, AudioManager.STREAM_MUSIC);
+    }
+
+    public HlsRenderBuilder(Context context, String userAgent, String url, int streamType) {
         super(context, userAgent, url);
 
         this.context = context;
         this.userAgent = userAgent;
         this.url = url;
+        this.streamType = streamType;
     }
 
     @Override
     public void buildRenderers(EMExoPlayer player) {
-        currentAsyncBuilder = new AsyncRendererBuilder(context, userAgent, url, player);
+        currentAsyncBuilder = new AsyncRendererBuilder(context, userAgent, url, player, streamType);
         currentAsyncBuilder.init();
     }
 
@@ -93,15 +99,17 @@ public class HlsRenderBuilder extends RenderBuilder {
         private final Context context;
         private final String userAgent;
         private final String url;
+        private final int streamType;
         private final EMExoPlayer player;
         private final ManifestFetcher<HlsPlaylist> playlistFetcher;
 
         private boolean canceled;
 
-        public AsyncRendererBuilder(Context context, String userAgent, String url, EMExoPlayer player) {
+        public AsyncRendererBuilder(Context context, String userAgent, String url, EMExoPlayer player, int streamType) {
             this.context = context;
             this.userAgent = userAgent;
             this.url = url;
+            this.streamType = streamType;
             this.player = player;
 
             HlsPlaylistParser parser = new HlsPlaylistParser();
@@ -141,7 +149,7 @@ public class HlsRenderBuilder extends RenderBuilder {
             PtsTimestampAdjusterProvider timestampAdjusterProvider = new PtsTimestampAdjusterProvider();
 
             //Calculates the Chunk variant indices
-            int[] variantIndices = null;
+            int[] variantIndices;
             if (playlist instanceof HlsMasterPlaylist) {
                 HlsMasterPlaylist masterPlaylist = (HlsMasterPlaylist) playlist;
 
@@ -170,7 +178,7 @@ public class HlsRenderBuilder extends RenderBuilder {
             MediaCodecVideoTrackRenderer videoRenderer = new MediaCodecVideoTrackRenderer(context, sampleSource, MediaCodecSelector.DEFAULT,
                     MediaCodec.VIDEO_SCALING_MODE_SCALE_TO_FIT, MAX_JOIN_TIME, mainHandler, player, DROPPED_FRAME_NOTIFICATION_AMOUNT);
             EMMediaCodecAudioTrackRenderer audioRenderer = new EMMediaCodecAudioTrackRenderer(sampleSource, MediaCodecSelector.DEFAULT, null, true,
-                    player.getMainHandler(), player, AudioCapabilities.getCapabilities(context), AudioManager.STREAM_MUSIC);
+                    player.getMainHandler(), player, AudioCapabilities.getCapabilities(context), streamType);
             TextTrackRenderer captionsRenderer = new TextTrackRenderer(sampleSource, player, mainHandler.getLooper());
             MetadataTrackRenderer<Map<String, Object>> id3Renderer = new MetadataTrackRenderer<>(sampleSource, new Id3Parser(),
                     player, mainHandler.getLooper());

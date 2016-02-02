@@ -17,9 +17,11 @@
 package com.devbrackets.android.exomedia;
 
 import android.content.Context;
+import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Build;
+import android.support.annotation.Nullable;
 import android.util.Log;
 
 import com.devbrackets.android.exomedia.core.builder.DashRenderBuilder;
@@ -125,13 +127,13 @@ public class EMAudioPlayer implements AudioCapabilitiesReceiver.Listener {
     private RenderBuilder getRendererBuilder(MediaSourceType renderType, Uri uri, MediaType defaultMediaType) {
         switch (renderType) {
             case HLS:
-                return new HlsRenderBuilder(context, getUserAgent(), uri.toString());
+                return new HlsRenderBuilder(context, getUserAgent(), uri.toString(), audioStreamType);
             case DASH:
-                return new DashRenderBuilder(context, getUserAgent(), uri.toString());
+                return new DashRenderBuilder(context, getUserAgent(), uri.toString(), audioStreamType);
             case SMOOTH_STREAM:
-                return new SmoothStreamRenderBuilder(context, getUserAgent(), uri.toString());
+                return new SmoothStreamRenderBuilder(context, getUserAgent(), uri.toString(), audioStreamType);
             default:
-                return new RenderBuilder(context, getUserAgent(), uri.toString());
+                return new RenderBuilder(context, getUserAgent(), uri.toString(), audioStreamType);
         }
     }
 
@@ -166,12 +168,12 @@ public class EMAudioPlayer implements AudioCapabilitiesReceiver.Listener {
         return emExoPlayer.getAudioSessionId();
     }
 
-    public void setAudioStreamType(int steamType) {
+    public void setAudioStreamType(int streamType) {
         if (!useExo) {
-            mediaPlayer.setAudioStreamType(steamType);
+            mediaPlayer.setAudioStreamType(streamType);
         }
 
-        //The ExoPlayer doesn't need this information
+        this.audioStreamType = streamType;
     }
 
     /**

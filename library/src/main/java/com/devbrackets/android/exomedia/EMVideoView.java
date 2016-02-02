@@ -84,7 +84,7 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
     private ImageView previewImageView;
 
     private TouchVideoView videoView;
-    private VideoTextureView mExoVideoTextureView;
+    private VideoTextureView exoVideoTextureView;
     private EMExoPlayer emExoPlayer;
 
     protected DefaultControls defaultControls;
@@ -153,7 +153,7 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
             @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
             public void onGlobalLayout() {
                 if (useExo) {
-                    muxNotifier.updateVideoShutters(getWidth(), getHeight(), mExoVideoTextureView.getWidth(), mExoVideoTextureView
+                    muxNotifier.updateVideoShutters(getWidth(), getHeight(), exoVideoTextureView.getWidth(), exoVideoTextureView
                             .getHeight());
                     getViewTreeObserver().removeOnGlobalLayoutListener(this);
                 } else {
@@ -175,8 +175,8 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
 
     @Override
     public void setOnTouchListener(OnTouchListener listener) {
-        if (mExoVideoTextureView != null) {
-            mExoVideoTextureView.setOnTouchListener(listener);
+        if (exoVideoTextureView != null) {
+            exoVideoTextureView.setOnTouchListener(listener);
         }
 
         if (videoView != null) {
@@ -261,11 +261,11 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
 
         previewImageView = (ImageView) findViewById(R.id.exomedia_video_preview_image);
 
-        mExoVideoTextureView = (VideoTextureView) findViewById(R.id.exomedia_exo_video_surface);
+        exoVideoTextureView = (VideoTextureView) findViewById(R.id.exomedia_exo_video_surface);
         videoView = (TouchVideoView) findViewById(R.id.exomedia_android_video_view);
 
         //If we are using the exo player set it up
-        if (mExoVideoTextureView != null) {
+        if (exoVideoTextureView != null) {
             setupExoPlayer();
         } else {
             setupVideoView();
@@ -281,8 +281,8 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
         listenerMux = new EMListenerMux(muxNotifier);
         emExoPlayer.addListener(listenerMux);
         emExoPlayer.setMetadataListener(null);
-        mExoVideoTextureView.setSurfaceTextureListener(new EMExoVideoSurfaceTextureListener());
-        mExoVideoTextureView.setOnSizeChangeListener(this);
+        exoVideoTextureView.setSurfaceTextureListener(new EMExoVideoSurfaceTextureListener());
+        exoVideoTextureView.setOnSizeChangeListener(this);
     }
 
     private void setupVideoView() {
@@ -1175,7 +1175,7 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
         public void onVideoSizeChanged(int width, int height, float pixelWidthHeightRatio) {
             //Makes sure we have the correct aspect ratio
             float videoAspectRatio = height == 0 ? 1 : (width * pixelWidthHeightRatio) / height;
-            mExoVideoTextureView.setAspectRatio(videoAspectRatio);
+            exoVideoTextureView.setAspectRatio(videoAspectRatio);
 
             //Since the ExoPlayer will occasionally return an unscaled video size, we will make sure
             // we are using scaled values when updating the shutters

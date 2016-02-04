@@ -1,6 +1,7 @@
 package com.devbrackets.android.exomediademo.ui.activity;
 
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.ImageButton;
@@ -96,7 +97,7 @@ public class AudioPlayerActivity extends AppCompatActivity implements PlaylistLi
     }
 
     @Override
-    public boolean onPlaybackStateChanged(PlaylistServiceCore.PlaybackState playbackState) {
+    public boolean onPlaybackStateChanged(@NonNull PlaylistServiceCore.PlaybackState playbackState) {
         switch (playbackState) {
             case STOPPED:
                 finish();
@@ -123,16 +124,16 @@ public class AudioPlayerActivity extends AppCompatActivity implements PlaylistLi
     }
 
     @Override
-    public boolean onProgressUpdated(MediaProgress event) {
-        if (shouldSetDuration && event.getDuration() > 0) {
+    public boolean onProgressUpdated(@NonNull MediaProgress progress) {
+        if (shouldSetDuration && progress.getDuration() > 0) {
             shouldSetDuration = false;
-            setDuration(event.getDuration());
+            setDuration(progress.getDuration());
         }
 
         if (!userInteracting) {
-            seekBar.setSecondaryProgress((int) (event.getDuration() * event.getBufferPercentFloat()));
-            seekBar.setProgress((int)event.getPosition());
-            currentPositionView.setText(TimeFormatUtil.formatMs(event.getPosition()));
+            seekBar.setSecondaryProgress((int) (progress.getDuration() * progress.getBufferPercentFloat()));
+            seekBar.setProgress((int)progress.getPosition());
+            currentPositionView.setText(TimeFormatUtil.formatMs(progress.getPosition()));
         }
 
         return true;
@@ -142,12 +143,12 @@ public class AudioPlayerActivity extends AppCompatActivity implements PlaylistLi
      * Makes sure to update the UI to the current playback item.
      */
     private void updateCurrentPlaybackInformation() {
-        PlaylistItemChange itemChangedEvent = playlistManager.getCurrentItemChangedEvent();
+        PlaylistItemChange itemChangedEvent = playlistManager.getCurrentItemChange();
         if (itemChangedEvent != null) {
             onPlaylistItemChanged(itemChangedEvent.getCurrentItem(), itemChangedEvent.hasNext(), itemChangedEvent.hasPrevious());
         }
 
-        PlaylistServiceCore.PlaybackState currentPlaybackState = playlistManager.getCurrentMediaState();
+        PlaylistServiceCore.PlaybackState currentPlaybackState = playlistManager.getCurrentPlaybackState();
         if (currentPlaybackState != PlaylistServiceCore.PlaybackState.STOPPED) {
             onPlaybackStateChanged(currentPlaybackState);
         }

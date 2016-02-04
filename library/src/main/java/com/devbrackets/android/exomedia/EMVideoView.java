@@ -21,6 +21,7 @@ import android.content.Context;
 import android.content.res.Configuration;
 import android.content.res.TypedArray;
 import android.graphics.Bitmap;
+import android.graphics.SurfaceTexture;
 import android.graphics.drawable.Drawable;
 import android.media.MediaPlayer;
 import android.net.Uri;
@@ -30,7 +31,8 @@ import android.support.annotation.Nullable;
 import android.util.AttributeSet;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
-import android.view.SurfaceHolder;
+import android.view.Surface;
+import android.view.TextureView;
 import android.view.View;
 import android.view.ViewTreeObserver;
 import android.widget.ImageView;
@@ -51,7 +53,7 @@ import com.devbrackets.android.exomedia.util.StopWatch;
 import com.devbrackets.android.exomedia.widget.DefaultControls;
 import com.devbrackets.android.exomedia.widget.DefaultControlsLeanback;
 import com.devbrackets.android.exomedia.widget.DefaultControlsMobile;
-import com.devbrackets.android.exomedia.widget.VideoSurfaceView;
+import com.devbrackets.android.exomedia.widget.VideoTextureView;
 import com.google.android.exoplayer.audio.AudioCapabilities;
 import com.google.android.exoplayer.audio.AudioCapabilitiesReceiver;
 
@@ -65,7 +67,7 @@ import com.google.android.exoplayer.audio.AudioCapabilitiesReceiver;
  * to help with quick implementations.
  */
 @SuppressWarnings("UnusedDeclaration")
-public class EMVideoView extends RelativeLayout implements AudioCapabilitiesReceiver.Listener, VideoSurfaceView.OnSizeChangeListener {
+public class EMVideoView extends RelativeLayout implements AudioCapabilitiesReceiver.Listener, VideoTextureView.OnSizeChangeListener {
     private static final String TAG = EMVideoView.class.getSimpleName();
     private static final String USER_AGENT_FORMAT = "EMVideoView %s / Android %s / %s";
 
@@ -77,7 +79,7 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
     private ImageView previewImageView;
 
     private TouchVideoView videoView;
-    private VideoSurfaceView exoVideoSurfaceView;
+    private VideoTextureView exoVideoTextureView;
     private EMExoPlayer emExoPlayer;
 
     protected DefaultControls defaultControls;
@@ -141,7 +143,8 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
             @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
             public void onGlobalLayout() {
                 if (useExo) {
-                    muxNotifier.updateVideoShutters(getWidth(), getHeight(), exoVideoSurfaceView.getWidth(), exoVideoSurfaceView.getHeight());
+                    muxNotifier.updateVideoShutters(getWidth(), getHeight(), exoVideoTextureView.getWidth(), exoVideoTextureView
+                            .getHeight());
                     getViewTreeObserver().removeOnGlobalLayoutListener(this);
                 } else {
                     muxNotifier.updateVideoShutters(getWidth(), getHeight(), videoView.getWidth(), videoView.getHeight());
@@ -162,8 +165,8 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
 
     @Override
     public void setOnTouchListener(OnTouchListener listener) {
-        if (exoVideoSurfaceView != null) {
-            exoVideoSurfaceView.setOnTouchListener(listener);
+        if (exoVideoTextureView != null) {
+            exoVideoTextureView.setOnTouchListener(listener);
         }
 
         if (videoView != null) {
@@ -242,17 +245,18 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
 
         previewImageView = (ImageView) findViewById(R.id.exomedia_video_preview_image);
 
-        exoVideoSurfaceView = (VideoSurfaceView) findViewById(R.id.exomedia_exo_video_surface);
+        exoVideoTextureView = (VideoTextureView) findViewById(R.id.exomedia_exo_video_surface);
         videoView = (TouchVideoView) findViewById(R.id.exomedia_android_video_view);
 
         //If we are using the exo player set it up
-        if (exoVideoSurfaceView != null) {
+        if (exoVideoTextureView != null) {
             setupExoPlayer();
         } else {
             setupVideoView();
         }
     }
 
+    @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
     private void setupExoPlayer() {
         audioCapabilitiesReceiver = new AudioCapabilitiesReceiver(getContext().getApplicationContext(), this);
         audioCapabilitiesReceiver.register();
@@ -262,9 +266,8 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
         listenerMux = new EMListenerMux(muxNotifier);
         emExoPlayer.addListener(listenerMux);
         emExoPlayer.setMetadataListener(null);
-        emExoPlayer.setSurface(exoVideoSurfaceView.getHolder().getSurface());
-        exoVideoSurfaceView.getHolder().addCallback(new EMExoVideoSurfaceCallback());
-        exoVideoSurfaceView.setOnSizeChangeListener(this);
+        exoVideoTextureView.setSurfaceTextureListener(new EMExoVideoSurfaceTextureListener());
+        exoVideoTextureView.setOnSizeChangeListener(this);
     }
 
     private void setupVideoView() {
@@ -874,7 +877,7 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
         public void onVideoSizeChanged(int width, int height, float pixelWidthHeightRatio) {
             //Makes sure we have the correct aspect ratio
             float videoAspectRatio = height == 0 ? 1 : (width * pixelWidthHeightRatio) / height;
-            exoVideoSurfaceView.setAspectRatio(videoAspectRatio);
+            exoVideoTextureView.setAspectRatio(videoAspectRatio);
 
             //Since the ExoPlayer will occasionally return an unscaled video size, we will make sure
             // we are using scaled values when updating the shutters
@@ -942,14 +945,13 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
         }
     }
 
-    /**
-     * Makes sure that the EMExoPlayer has a reference to the surface *after* it is created
-     */
-    private class EMExoVideoSurfaceCallback implements SurfaceHolder.Callback {
+    @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
+    private class EMExoVideoSurfaceTextureListener implements TextureView.SurfaceTextureListener {
+
         @Override
-        public void surfaceCreated(SurfaceHolder holder) {
+        public void onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height) {
             if (emExoPlayer != null) {
-                emExoPlayer.setSurface(holder.getSurface());
+                emExoPlayer.setSurface(new Surface(surface));
                 if (playRequested) {
                     emExoPlayer.setPlayWhenReady(true);
                 }
@@ -957,15 +959,22 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
         }
 
         @Override
-        public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
-            //Purposefully left blank
+        public void onSurfaceTextureSizeChanged(SurfaceTexture surface, int width, int height) {
+            // Purposefully left blank
         }
 
         @Override
-        public void surfaceDestroyed(SurfaceHolder holder) {
+        public boolean onSurfaceTextureDestroyed(SurfaceTexture surface) {
             if (emExoPlayer != null) {
                 emExoPlayer.blockingClearSurface();
             }
+
+            return true;
+        }
+
+        @Override
+        public void onSurfaceTextureUpdated(SurfaceTexture surface) {
+            // Purposefully left blank
         }
     }
 

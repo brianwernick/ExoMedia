@@ -17,6 +17,7 @@
 package com.devbrackets.android.exomedia;
 
 import android.content.Context;
+import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Build;
@@ -31,7 +32,6 @@ import com.devbrackets.android.exomedia.core.listener.ExoPlayerListener;
 import com.devbrackets.android.exomedia.type.MediaSourceType;
 import com.devbrackets.android.exomedia.util.EMDeviceUtil;
 import com.devbrackets.android.exomedia.util.MediaType;
-import com.devbrackets.android.exomedia.util.MediaUtil;
 import com.google.android.exoplayer.audio.AudioCapabilities;
 import com.google.android.exoplayer.audio.AudioCapabilitiesReceiver;
 
@@ -57,6 +57,7 @@ public class EMAudioPlayer implements AudioCapabilitiesReceiver.Listener {
     private int currentBufferPercent = 0;
     private int overriddenDuration = -1;
 
+    private int audioStreamType = AudioManager.STREAM_MUSIC;
     private AudioCapabilities audioCapabilities;
     private AudioCapabilitiesReceiver audioCapabilitiesReceiver;
 
@@ -125,13 +126,13 @@ public class EMAudioPlayer implements AudioCapabilitiesReceiver.Listener {
     private RenderBuilder getRendererBuilder(MediaSourceType renderType, Uri uri, MediaType defaultMediaType) {
         switch (renderType) {
             case HLS:
-                return new HlsRenderBuilder(context, getUserAgent(), uri.toString());
+                return new HlsRenderBuilder(context, getUserAgent(), uri.toString(), audioStreamType);
             case DASH:
-                return new DashRenderBuilder(context, getUserAgent(), uri.toString());
+                return new DashRenderBuilder(context, getUserAgent(), uri.toString(), audioStreamType);
             case SMOOTH_STREAM:
-                return new SmoothStreamRenderBuilder(context, getUserAgent(), uri.toString());
+                return new SmoothStreamRenderBuilder(context, getUserAgent(), uri.toString(), audioStreamType);
             default:
-                return new RenderBuilder(context, getUserAgent(), uri.toString());
+                return new RenderBuilder(context, getUserAgent(), uri.toString(), audioStreamType);
         }
     }
 
@@ -166,12 +167,12 @@ public class EMAudioPlayer implements AudioCapabilitiesReceiver.Listener {
         return emExoPlayer.getAudioSessionId();
     }
 
-    public void setAudioStreamType(int steamType) {
+    public void setAudioStreamType(int streamType) {
         if (!useExo) {
-            mediaPlayer.setAudioStreamType(steamType);
+            mediaPlayer.setAudioStreamType(streamType);
         }
 
-        //The ExoPlayer doesn't need this information
+        this.audioStreamType = streamType;
     }
 
     /**

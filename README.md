@@ -1,3 +1,43 @@
+<code>
+<style>
+    .website-link {
+        color: white;
+        padding: 0.5em 1em;
+        margin-right: 1em;
+        text-decoration: none;
+        
+        background: #63cc39; /* For browsers that do not support gradients */
+        background: -webkit-linear-gradient(#a0f74a, #63cc39); /* For Safari 5.1 to 6.0 */
+        background: -o-linear-gradient(#a0f74a, #63cc39); /* For Opera 11.1 to 12.0 */
+        background: -moz-linear-gradient(#a0f74a, #63cc39); /* For Firefox 3.6 to 15 */
+        background: linear-gradient(#a0f74a, #63cc39); /* Standard syntax */
+    }
+    
+    .javadoc-link {
+        color: white;
+        padding: 0.5em 1em;
+        text-decoration: none;
+        
+        background: #1b73d1; /* For browsers that do not support gradients */
+        background: -webkit-linear-gradient(#78bdfa, #1b73d1); /* For Safari 5.1 to 6.0 */
+        background: -o-linear-gradient(#78bdfa, #1b73d1); /* For Opera 11.1 to 12.0 */
+        background: -moz-linear-gradient(#78bdfa, #1b73d1); /* For Firefox 3.6 to 15 */
+        background: linear-gradient(#78bdfa, #1b73d1); /* Standard syntax */
+    }
+</style>
+
+
+<div style="padding-top:0.5em;" align="right">
+    <a class="website-link" href="http://www.devbrackets.com/dev/libs/exomedia.html">
+        Website
+    </a>
+    <a class="javadoc-link" href="http://www.devbrackets.com/dev/libs/docs/exomedia/3.0.0/index.html">
+        Java Doc
+    </a>
+</div>
+</code>
+
+
 ExoMedia
 ============
 ExoMedia is a media playback library with similar APIs to the Android MediaPlayer
@@ -7,13 +47,6 @@ otherwise the default Android MediaPlayer and VideoView are used.
 The [ExoPlayer][ExoPlayer] is only supported on devices that pass the [compatibility Test Suite][CTS]
 and that are JellyBean (API 16) or greater.  The [ExoPlayer][ExoPlayer] provides 
 additional support for streaming (HLS, DASH, etc.) and full HD (1080p +) 
-
-
-Website And Documentation
--------
-The ExoMedia website can be found [here][Website]  
-The ExoMedia documentation website can be found on the website linked above or [here][Java Docs]
-
 
 Use
 -------

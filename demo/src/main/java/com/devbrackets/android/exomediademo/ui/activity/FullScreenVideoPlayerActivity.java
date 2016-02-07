@@ -5,7 +5,8 @@ import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
 
-import com.devbrackets.android.exomedia.widget.DefaultControls;
+import com.devbrackets.android.exomedia.ui.widget.DefaultControls;
+import com.devbrackets.android.exomedia.ui.widget.EMVideoView;
 
 /**
  * A simple example of making a fullscreen video player activity.
@@ -83,7 +84,7 @@ public class FullScreenVideoPlayerActivity extends VideoPlayerActivity {
 
     /**
      * Listens to the system to determine when to show the default controls
-     * for the {@link com.devbrackets.android.exomedia.EMVideoView}
+     * for the {@link EMVideoView}
      */
     @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     private class FullScreenListener implements View.OnSystemUiVisibilityChangeListener {

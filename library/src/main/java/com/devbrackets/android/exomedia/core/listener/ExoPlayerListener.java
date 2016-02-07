@@ -17,13 +17,15 @@
 
 package com.devbrackets.android.exomedia.core.listener;
 
+import com.devbrackets.android.exomedia.core.exoplayer.EMExoPlayer;
+
 /**
  * A listener for core EMExoPlayer events
  */
 public interface ExoPlayerListener {
     void onStateChanged(boolean playWhenReady, int playbackState);
 
-    void onError(Exception e);
+    void onError(EMExoPlayer emExoPlayer, Exception e);
 
     void onVideoSizeChanged(int width, int height, int unAppliedRotationDegrees, float pixelWidthHeightRatio);
 }

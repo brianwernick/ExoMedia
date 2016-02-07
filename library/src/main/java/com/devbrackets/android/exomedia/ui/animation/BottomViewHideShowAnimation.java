@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.devbrackets.android.exomedia.widget.animation;
+package com.devbrackets.android.exomedia.ui.animation;
 
 import android.content.Context;
 import android.util.DisplayMetrics;

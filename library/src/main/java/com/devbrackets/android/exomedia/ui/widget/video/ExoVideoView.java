@@ -1,0 +1,230 @@
+/*
+ * Copyright (C) 2016 Brian Wernick
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.devbrackets.android.exomedia.ui.widget.video;
+
+import android.annotation.TargetApi;
+import android.content.Context;
+import android.graphics.SurfaceTexture;
+import android.net.Uri;
+import android.os.Build;
+import android.support.annotation.FloatRange;
+import android.support.annotation.IntRange;
+import android.support.annotation.Nullable;
+import android.util.AttributeSet;
+import android.view.Surface;
+import android.view.TextureView;
+
+import com.devbrackets.android.exomedia.core.EMListenerMux;
+import com.devbrackets.android.exomedia.core.builder.RenderBuilder;
+import com.devbrackets.android.exomedia.core.exoplayer.EMExoPlayer;
+import com.devbrackets.android.exomedia.ui.util.VideoViewApi;
+import com.google.android.exoplayer.audio.AudioCapabilities;
+import com.google.android.exoplayer.audio.AudioCapabilitiesReceiver;
+
+/**
+ * A {@link VideoViewApi} implementation that uses the ExoPlayer
+ * as the backing media player.
+ */
+@TargetApi(Build.VERSION_CODES.JELLY_BEAN)
+public class ExoVideoView extends VideoTextureView implements VideoViewApi, AudioCapabilitiesReceiver.Listener, VideoTextureView.OnSizeChangeListener  {
+
+    protected EMExoPlayer emExoPlayer;
+    protected AudioCapabilities audioCapabilities;
+    protected AudioCapabilitiesReceiver audioCapabilitiesReceiver;
+
+    protected EMListenerMux listenerMux;
+    protected boolean playRequested = false;
+
+    @Nullable
+    protected OnSurfaceSizeChanged onSurfaceSizeChangedListener;
+
+    public ExoVideoView(Context context) {
+        super(context);
+        setup();
+    }
+
+    public ExoVideoView(Context context, AttributeSet attrs) {
+        super(context, attrs);
+        setup();
+    }
+
+    public ExoVideoView(Context context, AttributeSet attrs, int defStyleAttr) {
+        super(context, attrs, defStyleAttr);
+        setup();
+    }
+
+    public ExoVideoView(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
+        super(context, attrs, defStyleAttr, defStyleRes);
+        setup();
+    }
+
+    @Override
+    public void setVideoUri(@Nullable Uri uri, @Nullable RenderBuilder renderBuilder) {
+        if (uri == null) {
+            emExoPlayer.replaceRenderBuilder(null);
+        } else {
+            emExoPlayer.replaceRenderBuilder(renderBuilder);
+            listenerMux.setNotifiedCompleted(false);
+        }
+
+        //Makes sure the listeners get the onPrepared callback
+        listenerMux.setNotifiedPrepared(false);
+        emExoPlayer.seekTo(0);
+    }
+
+    @Override
+    public boolean setVolume(@FloatRange(from = 0.0, to = 1.0) float volume) {
+        emExoPlayer.setVolume(volume);
+        return true;
+    }
+
+    @Override
+    public void seekTo(@IntRange(from = 0) int milliseconds) {
+        emExoPlayer.seekTo(milliseconds);
+    }
+
+    @Override
+    public boolean isPlaying() {
+        return emExoPlayer.getPlayWhenReady();
+    }
+
+    @Override
+    public void start() {
+        emExoPlayer.setPlayWhenReady(true);
+        listenerMux.setNotifiedCompleted(false);
+        playRequested = true;
+    }
+
+    @Override
+    public void pause() {
+        emExoPlayer.setPlayWhenReady(false);
+        playRequested = false;
+    }
+
+    @Override
+    public void stopPlayback() {
+        emExoPlayer.setPlayWhenReady(false);
+        playRequested = false;
+    }
+
+    @Override
+    public void suspend() {
+        emExoPlayer.release();
+        playRequested = false;
+    }
+
+    @Override
+    public int getDuration() {
+        if (!listenerMux.isPrepared()) {
+            return 0;
+        }
+
+        return (int)emExoPlayer.getDuration();
+    }
+
+    @Override
+    public int getCurrentPosition() {
+        if (!listenerMux.isPrepared()) {
+            return 0;
+        }
+
+        return (int)emExoPlayer.getCurrentPosition();
+    }
+
+    @Override
+    public int getBufferedPercent() {
+        return emExoPlayer.getBufferedPercentage();
+    }
+
+    @Override
+    public void onVideoSurfaceSizeChange(int width, int height) {
+        if (onSurfaceSizeChangedListener != null) {
+            onSurfaceSizeChangedListener.onSurfaceSizeChanged(width, height);
+        }
+    }
+
+    @Override
+    public void onAudioCapabilitiesChanged(AudioCapabilities audioCapabilities) {
+        if (!audioCapabilities.equals(this.audioCapabilities)) {
+            this.audioCapabilities = audioCapabilities;
+        }
+    }
+
+    @Override
+    public void release() {
+        emExoPlayer.release();
+
+        if (audioCapabilitiesReceiver != null) {
+            audioCapabilitiesReceiver.unregister();
+            audioCapabilitiesReceiver = null;
+        }
+    }
+
+    @Override
+    public void setListenerMux(EMListenerMux listenerMux) {
+        emExoPlayer.addListener(listenerMux);
+    }
+
+    @Override
+    public void updateAspectRatio(float aspectRatio) {
+        setAspectRatio(aspectRatio);
+    }
+
+    @Override
+    public void setOnSizeChangedListener(@Nullable OnSurfaceSizeChanged listener) {
+        onSurfaceSizeChangedListener = listener;
+    }
+
+    protected void setup() {
+        audioCapabilitiesReceiver = new AudioCapabilitiesReceiver(getContext().getApplicationContext(), this);
+        audioCapabilitiesReceiver.register();
+        emExoPlayer = new EMExoPlayer(null);
+
+        //Sets the internal listener
+        emExoPlayer.setMetadataListener(null);
+        setSurfaceTextureListener(new EMExoVideoSurfaceTextureListener());
+        setOnSizeChangeListener(this);
+    }
+
+    protected class EMExoVideoSurfaceTextureListener implements TextureView.SurfaceTextureListener {
+        @Override
+        public void onSurfaceTextureAvailable(SurfaceTexture surfaceTexture, int width, int height) {
+            emExoPlayer.setSurface(new Surface(surfaceTexture));
+            if (playRequested) {
+                emExoPlayer.setPlayWhenReady(true);
+            }
+        }
+
+        @Override
+        public boolean onSurfaceTextureDestroyed(SurfaceTexture surfaceTexture) {
+            surfaceTexture.release();
+            emExoPlayer.blockingClearSurface();
+
+            return true;
+        }
+
+        @Override
+        public void onSurfaceTextureSizeChanged(SurfaceTexture surfaceTexture, int width, int height) {
+            // Purposefully left blank
+        }
+
+        @Override
+        public void onSurfaceTextureUpdated(SurfaceTexture surfaceTexture) {
+            // Purposefully left blank
+        }
+    }
+}

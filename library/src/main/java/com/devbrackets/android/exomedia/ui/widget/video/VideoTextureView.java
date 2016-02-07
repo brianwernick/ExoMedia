@@ -14,17 +14,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.devbrackets.android.exomedia.widget;
 
+package com.devbrackets.android.exomedia.ui.widget.video;
+
+import android.annotation.TargetApi;
 import android.content.Context;
 import android.graphics.Point;
+import android.os.Build;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
 import android.view.TextureView;
 
 /**
- * A SurfaceView that reSizes itself to match a specified aspect ratio.
+ * A VideoTextureView that reSizes itself to match a specified aspect
+ * ratio for videos.
  */
+@TargetApi(Build.VERSION_CODES.JELLY_BEAN)
 public class VideoTextureView extends TextureView {
     /**
      * The surface view will not resize itself if the fractional difference between its default
@@ -53,6 +58,15 @@ public class VideoTextureView extends TextureView {
 
     public VideoTextureView(Context context, AttributeSet attrs) {
         super(context, attrs);
+    }
+
+    public VideoTextureView(Context context, AttributeSet attrs, int defStyleAttr) {
+        super(context, attrs, defStyleAttr);
+    }
+
+    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+    public VideoTextureView(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
+        super(context, attrs, defStyleAttr, defStyleRes);
     }
 
     /**

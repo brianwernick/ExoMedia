@@ -23,6 +23,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.util.Log;
 
+import com.devbrackets.android.exomedia.core.EMListenerMux;
 import com.devbrackets.android.exomedia.core.builder.DashRenderBuilder;
 import com.devbrackets.android.exomedia.core.builder.HlsRenderBuilder;
 import com.devbrackets.android.exomedia.core.builder.RenderBuilder;
@@ -523,7 +524,7 @@ public class EMAudioPlayer implements AudioCapabilitiesReceiver.Listener {
         }
 
         @Override
-        public void onExoPlayerError(Exception e) {
+        public void onExoPlayerError(EMExoPlayer emExoPlayer, Exception e) {
             if (emExoPlayer != null) {
                 emExoPlayer.forcePrepare();
             }

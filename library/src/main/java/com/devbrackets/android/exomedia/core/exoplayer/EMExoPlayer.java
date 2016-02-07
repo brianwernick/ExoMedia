@@ -247,7 +247,7 @@ public class EMExoPlayer implements
         }
 
         for (ExoPlayerListener listener : listeners) {
-            listener.onError(e);
+            listener.onError(this, e);
         }
 
         rendererBuildingState = RenderBuildingState.IDLE;
@@ -377,7 +377,7 @@ public class EMExoPlayer implements
     public void onPlayerError(ExoPlaybackException exception) {
         rendererBuildingState = RenderBuildingState.IDLE;
         for (ExoPlayerListener listener : listeners) {
-            listener.onError(exception);
+            listener.onError(this, exception);
         }
     }
 

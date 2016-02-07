@@ -1,4 +1,4 @@
-package com.devbrackets.android.exomedia.widget;
+package com.devbrackets.android.exomedia.ui.widget;
 
 import android.annotation.TargetApi;
 import android.content.Context;

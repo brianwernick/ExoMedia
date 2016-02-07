@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.devbrackets.android.exomedia.widget;
+package com.devbrackets.android.exomedia.ui.widget;
 
 import android.annotation.TargetApi;
 import android.content.Context;
@@ -33,7 +33,6 @@ import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-import com.devbrackets.android.exomedia.EMVideoView;
 import com.devbrackets.android.exomedia.R;
 import com.devbrackets.android.exomedia.listener.DefaultControlsListener;
 import com.devbrackets.android.exomedia.util.EMResourceUtil;

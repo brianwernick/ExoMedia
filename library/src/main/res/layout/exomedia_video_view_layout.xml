@@ -4,9 +4,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent">
 
-    <view
-        android:id="@+id/exomedia_android_video_view"
-        class="com.devbrackets.android.exomedia.EMVideoView$TouchVideoView"
+    <com.devbrackets.android.exomedia.ui.widget.video.NativeVideoView
+        android:id="@+id/exomedia_video_view"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_centerInParent="true"/>

@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-package com.devbrackets.android.exomedia;
+package com.devbrackets.android.exomedia.core;
 
 import android.media.MediaPlayer;
 import android.os.Handler;
 import android.support.annotation.NonNull;
 
+import com.devbrackets.android.exomedia.core.exoplayer.EMExoPlayer;
 import com.devbrackets.android.exomedia.core.listener.ExoPlayerListener;
 import com.google.android.exoplayer.ExoPlayer;
 
@@ -31,7 +32,7 @@ import java.util.List;
  * Android VideoView, and the Android MediaPlayer to output to the correct
  * error listeners.
  */
-class EMListenerMux implements ExoPlayerListener, MediaPlayer.OnPreparedListener, MediaPlayer.OnCompletionListener, MediaPlayer.OnErrorListener,
+public class EMListenerMux implements ExoPlayerListener, MediaPlayer.OnPreparedListener, MediaPlayer.OnCompletionListener, MediaPlayer.OnErrorListener,
         MediaPlayer.OnInfoListener, MediaPlayer.OnBufferingUpdateListener {
 
     //The amount of time the current position can be off the duration to call the onCompletion listener
@@ -51,7 +52,7 @@ class EMListenerMux implements ExoPlayerListener, MediaPlayer.OnPreparedListener
     private MediaPlayer.OnInfoListener infoListener;
 
 
-    EMListenerMux(@NonNull EMListenerMuxNotifier notifier) {
+    public EMListenerMux(@NonNull EMListenerMuxNotifier notifier) {
         muxNotifier = notifier;
     }
 
@@ -94,8 +95,8 @@ class EMListenerMux implements ExoPlayerListener, MediaPlayer.OnPreparedListener
     }
 
     @Override
-    public void onError(Exception e) {
-        muxNotifier.onExoPlayerError(e);
+    public void onError(EMExoPlayer emExoPlayer, Exception e) {
+        muxNotifier.onExoPlayerError(emExoPlayer, e);
         muxNotifier.onMediaPlaybackEnded();
 
         if (errorListener != null && errorListener.onError(null, 0, 0)) {
@@ -103,7 +104,7 @@ class EMListenerMux implements ExoPlayerListener, MediaPlayer.OnPreparedListener
         }
 
         for (ExoPlayerListener listener : exoPlayerListeners) {
-            listener.onError(e);
+            listener.onError(emExoPlayer, e);
         }
     }
 
@@ -131,7 +132,7 @@ class EMListenerMux implements ExoPlayerListener, MediaPlayer.OnPreparedListener
 
     @Override
     public void onVideoSizeChanged(int width, int height, int unAppliedRotationDegrees, float pixelWidthHeightRatio) {
-        muxNotifier.onVideoSizeChanged(width, height, pixelWidthHeightRatio);
+        muxNotifier.onVideoSizeChanged(width, height, unAppliedRotationDegrees, pixelWidthHeightRatio);
 
         for (ExoPlayerListener listener : exoPlayerListeners) {
             listener.onVideoSizeChanged(width, height, unAppliedRotationDegrees, pixelWidthHeightRatio);
@@ -277,7 +278,7 @@ class EMListenerMux implements ExoPlayerListener, MediaPlayer.OnPreparedListener
             //Purposefully left blank
         }
 
-        public void onVideoSizeChanged(int width, int height, float pixelWidthHeightRatio) {
+        public void onVideoSizeChanged(int width, int height, int unAppliedRotationDegrees, float pixelWidthHeightRatio) {
             //Purposefully left blank
         }
 
@@ -291,7 +292,7 @@ class EMListenerMux implements ExoPlayerListener, MediaPlayer.OnPreparedListener
 
         public abstract boolean shouldNotifyCompletion(long endLeeway);
 
-        public abstract void onExoPlayerError(Exception e);
+        public abstract void onExoPlayerError(EMExoPlayer emExoPlayer, Exception e);
 
         public abstract void onMediaPlaybackEnded();
     }

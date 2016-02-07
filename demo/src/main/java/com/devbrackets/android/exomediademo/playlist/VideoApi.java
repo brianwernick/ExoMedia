@@ -6,7 +6,7 @@ import android.support.annotation.FloatRange;
 import android.support.annotation.IntRange;
 import android.support.annotation.NonNull;
 
-import com.devbrackets.android.exomedia.EMVideoView;
+import com.devbrackets.android.exomedia.ui.widget.EMVideoView;
 import com.devbrackets.android.playlistcore.api.VideoPlayerApi;
 
 public class VideoApi implements VideoPlayerApi {

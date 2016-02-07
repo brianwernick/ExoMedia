@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.devbrackets.android.exomedia.widget;
+package com.devbrackets.android.exomedia.ui.widget;
 
 import android.annotation.TargetApi;
 import android.content.Context;
@@ -25,8 +25,8 @@ import android.widget.SeekBar;
 
 import com.devbrackets.android.exomedia.R;
 import com.devbrackets.android.exomedia.util.TimeFormatUtil;
-import com.devbrackets.android.exomedia.widget.animation.BottomViewHideShowAnimation;
-import com.devbrackets.android.exomedia.widget.animation.TopViewHideShowAnimation;
+import com.devbrackets.android.exomedia.ui.animation.BottomViewHideShowAnimation;
+import com.devbrackets.android.exomedia.ui.animation.TopViewHideShowAnimation;
 
 /**
  * Provides playback controls for the EMVideoView on Mobile

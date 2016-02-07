@@ -40,7 +40,7 @@ import com.devbrackets.android.exomedia.ui.animation.BottomViewHideShowAnimation
  * Provides playback controls for the EMVideoView on TV devices.
  */
 @TargetApi(Build.VERSION_CODES.LOLLIPOP)
-public class DefaultControlsLeanback extends DefaultControls {
+public class VideoControlsLeanback extends VideoControls {
     private static final int FAST_FORWARD_REWIND_AMOUNT = 10000; //10 seconds
 
     private ProgressBar progressBar;
@@ -56,19 +56,19 @@ public class DefaultControlsLeanback extends DefaultControls {
     private View currentFocus;
     private ButtonFocusChangeListener buttonFocusChangeListener = new ButtonFocusChangeListener();
 
-    public DefaultControlsLeanback(Context context) {
+    public VideoControlsLeanback(Context context) {
         super(context);
     }
 
-    public DefaultControlsLeanback(Context context, AttributeSet attrs) {
+    public VideoControlsLeanback(Context context, AttributeSet attrs) {
         super(context, attrs);
     }
 
-    public DefaultControlsLeanback(Context context, AttributeSet attrs, int defStyleAttr) {
+    public VideoControlsLeanback(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
     }
 
-    public DefaultControlsLeanback(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
+    public VideoControlsLeanback(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
         super(context, attrs, defStyleAttr, defStyleRes);
     }
 

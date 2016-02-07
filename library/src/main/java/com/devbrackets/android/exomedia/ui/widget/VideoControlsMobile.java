@@ -32,26 +32,26 @@ import com.devbrackets.android.exomedia.ui.animation.TopViewHideShowAnimation;
  * Provides playback controls for the EMVideoView on Mobile
  * (Phone, Tablet, etc.) devices.
  */
-public class DefaultControlsMobile extends DefaultControls {
+public class VideoControlsMobile extends VideoControls {
     private SeekBar seekBar;
     private boolean pausedForSeek = false;
     private boolean userInteracting = false;
 
-    public DefaultControlsMobile(Context context) {
+    public VideoControlsMobile(Context context) {
         super(context);
     }
 
-    public DefaultControlsMobile(Context context, AttributeSet attrs) {
+    public VideoControlsMobile(Context context, AttributeSet attrs) {
         super(context, attrs);
     }
 
     @TargetApi(Build.VERSION_CODES.HONEYCOMB)
-    public DefaultControlsMobile(Context context, AttributeSet attrs, int defStyleAttr) {
+    public VideoControlsMobile(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
     }
 
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
-    public DefaultControlsMobile(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
+    public VideoControlsMobile(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
         super(context, attrs, defStyleAttr, defStyleRes);
     }
 

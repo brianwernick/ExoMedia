@@ -41,7 +41,7 @@ import com.devbrackets.android.exomedia.util.EMResourceUtil;
  * This is a simple abstraction for the EMVideoView to have a single "View" to add
  * or remove for the Default Video Controls.
  */
-public abstract class DefaultControls extends RelativeLayout {
+public abstract class VideoControls extends RelativeLayout {
     public static final int DEFAULT_CONTROL_HIDE_DELAY = 2000;
     protected static final long CONTROL_VISIBILITY_ANIMATION_LENGTH = 300;
     protected static final int INVALID_RESOURCE_ID = 0;
@@ -86,24 +86,24 @@ public abstract class DefaultControls extends RelativeLayout {
     protected SeekCallbacks seekCallbacks;
     protected DefaultControlsListener callback;
 
-    public DefaultControls(Context context) {
+    public VideoControls(Context context) {
         super(context);
         setup(context);
     }
 
-    public DefaultControls(Context context, AttributeSet attrs) {
+    public VideoControls(Context context, AttributeSet attrs) {
         super(context, attrs);
         setup(context);
     }
 
     @TargetApi(Build.VERSION_CODES.HONEYCOMB)
-    public DefaultControls(Context context, AttributeSet attrs, int defStyleAttr) {
+    public VideoControls(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         setup(context);
     }
 
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
-    public DefaultControls(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
+    public VideoControls(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
         super(context, attrs, defStyleAttr, defStyleRes);
         setup(context);
     }

@@ -71,7 +71,8 @@ public class EMVideoView extends RelativeLayout {
     protected View shutterRight;
     protected View shutterLeft;
 
-    protected DefaultControls defaultControls; //TODO: change how this is created and added (allow the user to specify their own controls)
+    @Nullable
+    protected VideoControls videoControls;
     protected ImageView previewImageView;
 
     protected Uri videoUri;
@@ -190,9 +191,11 @@ public class EMVideoView extends RelativeLayout {
             return;
         }
 
-        //Updates the DefaultControls
-        boolean enableDefaultControls = typedArray.getBoolean(R.styleable.EMVideoView_defaultControlsEnabled, false);
-        setDefaultControlsEnabled(enableDefaultControls);
+        //Updates the VideoControls if specified
+        boolean useDefaultControls = typedArray.getBoolean(R.styleable.EMVideoView_useDefaultControls, false);
+        if (useDefaultControls) {
+            setControls(EMDeviceUtil.isDeviceTV(getContext()) ? new VideoControlsLeanback(getContext()) : new VideoControlsMobile(getContext()));
+        }
 
         typedArray.recycle();
     }
@@ -260,7 +263,7 @@ public class EMVideoView extends RelativeLayout {
      * {@link #setReleaseOnDetachFromWindow(boolean)} has been set.
      */
     public void release() {
-        defaultControls = null;
+        videoControls = null;
         stopPlayback();
         overriddenPositionStopWatch.stop();
 
@@ -353,53 +356,47 @@ public class EMVideoView extends RelativeLayout {
         }
     }
 
-    /**
-     * Enables and disables the media control overlay for the video view.  This can
-     * also be specified in the layout XML with the attribute <code>defaultControlsEnabled</code>
-     *
-     * @param enabled Weather the default video controls are enabled (default: false)
-     */
-    public void setDefaultControlsEnabled(boolean enabled) {
-        if (defaultControls == null && enabled) {
-            defaultControls = EMDeviceUtil.isDeviceTV(getContext()) ? new DefaultControlsLeanback(getContext()) : new DefaultControlsMobile(getContext());
-            defaultControls.setVideoView(this);
-
-            addView(defaultControls);
-        } else if (defaultControls != null && !enabled) {
-            removeView(defaultControls);
-            defaultControls = null;
+    public void setControls(@Nullable VideoControls controls) {
+        if (videoControls != null && videoControls != controls) {
+            removeView(videoControls);
         }
 
-        //Sets the onTouch listener to show the default controls
+        if (controls != null) {
+            videoControls = controls;
+            controls.setVideoView(this);
+            addView(controls);
+        }
+
+        //Sets the onTouch listener to show the controls
         TouchListener listener = new TouchListener(getContext());
-        setOnTouchListener(enabled ? listener : null);
+        setOnTouchListener(videoControls != null ? listener : null);
     }
 
     /**
-     * Requests the DefaultControls to become visible.  This should only be called after
-     * {@link #setDefaultControlsEnabled(boolean)}.
+     * Requests the {@link VideoControls} to become visible.  This should only be called after
+     * {@link #setControls(VideoControls)}.
      */
-    public void showDefaultControls() {
-        if (defaultControls != null) {
-            defaultControls.show();
+    public void showControls() {
+        if (videoControls != null) {
+            videoControls.show();
 
             if (isPlaying()) {
-                defaultControls.hideDelayed(DefaultControls.DEFAULT_CONTROL_HIDE_DELAY);
+                videoControls.hideDelayed(VideoControls.DEFAULT_CONTROL_HIDE_DELAY);
             }
         }
     }
 
     /**
-     * Retrieves the default controls being used by this view.
-     * If the default controls haven't been enabled with {@link #setDefaultControlsEnabled(boolean)}
-     * or through the XML attribute <code>defaultControlsEnabled</code> this will return
+     * Retrieves the video controls being used by this view.
+     * If the controls haven't been specified with {@link #setControls(VideoControls)}
+     * or through the XML attribute <code>useDefaultControls</code> this will return
      * null
      *
-     * @return The default controls being used by this view or null
+     * @return The video controls being used by this view or null
      */
     @Nullable
-    public DefaultControls getDefaultControls() {
-        return defaultControls;
+    public VideoControls getVideoControls() {
+        return videoControls;
     }
 
     /**
@@ -438,8 +435,8 @@ public class EMVideoView extends RelativeLayout {
         videoUri = uri;
         videoViewImpl.setVideoUri(uri, renderBuilder);
 
-        if (defaultControls != null) {
-            defaultControls.restartLoading();
+        if (videoControls != null) {
+            videoControls.restartLoading();
         }
     }
 
@@ -510,9 +507,9 @@ public class EMVideoView extends RelativeLayout {
     public void start() {
         videoViewImpl.start();
 
-        if (defaultControls != null) {
-            defaultControls.updatePlayPauseImage(true);
-            defaultControls.hideDelayed(DefaultControls.DEFAULT_CONTROL_HIDE_DELAY);
+        if (videoControls != null) {
+            videoControls.updatePlayPauseImage(true);
+            videoControls.hideDelayed(VideoControls.DEFAULT_CONTROL_HIDE_DELAY);
         }
     }
 
@@ -522,9 +519,9 @@ public class EMVideoView extends RelativeLayout {
     public void pause() {
         videoViewImpl.pause();
 
-        if (defaultControls != null) {
-            defaultControls.updatePlayPauseImage(false);
-            defaultControls.show();
+        if (videoControls != null) {
+            videoControls.updatePlayPauseImage(false);
+            videoControls.show();
         }
     }
 
@@ -534,9 +531,9 @@ public class EMVideoView extends RelativeLayout {
     public void stopPlayback() {
         videoViewImpl.stopPlayback();
 
-        if (defaultControls != null) {
-            defaultControls.updatePlayPauseImage(false);
-            defaultControls.show();
+        if (videoControls != null) {
+            videoControls.updatePlayPauseImage(false);
+            videoControls.show();
         }
     }
 
@@ -546,9 +543,9 @@ public class EMVideoView extends RelativeLayout {
     public void suspend() {
         videoViewImpl.suspend();
 
-        if (defaultControls != null) {
-            defaultControls.updatePlayPauseImage(false);
-            defaultControls.show();
+        if (videoControls != null) {
+            videoControls.updatePlayPauseImage(false);
+            videoControls.show();
         }
     }
 
@@ -783,9 +780,9 @@ public class EMVideoView extends RelativeLayout {
 
         @Override
         public void onPrepared() {
-            if (defaultControls != null) {
-                defaultControls.setDuration(getDuration());
-                defaultControls.loadCompleted();
+            if (videoControls != null) {
+                videoControls.setDuration(getDuration());
+                videoControls.loadCompleted();
             }
         }
 
@@ -798,7 +795,7 @@ public class EMVideoView extends RelativeLayout {
     }
 
     /**
-     * Monitors the view click events to show the default controls if they are enabled.
+     * Monitors the view click events to show the video controls if they have been specified.
      */
     private class TouchListener extends GestureDetector.SimpleOnGestureListener implements OnTouchListener {
         private GestureDetector gestureDetector;
@@ -815,11 +812,11 @@ public class EMVideoView extends RelativeLayout {
 
         @Override
         public boolean onSingleTapConfirmed(MotionEvent e) {
-            if (defaultControls != null) {
-                defaultControls.show();
+            if (videoControls != null) {
+                videoControls.show();
 
                 if (isPlaying()) {
-                    defaultControls.hideDelayed(DefaultControls.DEFAULT_CONTROL_HIDE_DELAY);
+                    videoControls.hideDelayed(VideoControls.DEFAULT_CONTROL_HIDE_DELAY);
                 }
             }
 

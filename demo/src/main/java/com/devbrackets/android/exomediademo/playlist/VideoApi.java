@@ -1,6 +1,5 @@
 package com.devbrackets.android.exomediademo.playlist;
 
-import android.media.MediaPlayer;
 import android.net.Uri;
 import android.support.annotation.FloatRange;
 import android.support.annotation.IntRange;
@@ -8,6 +7,11 @@ import android.support.annotation.NonNull;
 
 import com.devbrackets.android.exomedia.ui.widget.EMVideoView;
 import com.devbrackets.android.playlistcore.api.VideoPlayerApi;
+import com.devbrackets.android.playlistcore.listener.OnMediaBufferUpdateListener;
+import com.devbrackets.android.playlistcore.listener.OnMediaCompletionListener;
+import com.devbrackets.android.playlistcore.listener.OnMediaErrorListener;
+import com.devbrackets.android.playlistcore.listener.OnMediaPreparedListener;
+import com.devbrackets.android.playlistcore.listener.OnMediaSeekCompletionListener;
 
 public class VideoApi implements VideoPlayerApi {
     private EMVideoView videoView;
@@ -77,27 +81,27 @@ public class VideoApi implements VideoPlayerApi {
     }
 
     @Override
-    public void setOnPreparedListener(MediaPlayer.OnPreparedListener onPreparedListener) {
-        videoView.setOnPreparedListener(onPreparedListener);
+    public void setOnMediaPreparedListener(OnMediaPreparedListener onMediaPreparedListener) {
+
     }
 
     @Override
-    public void setOnBufferingUpdateListener(MediaPlayer.OnBufferingUpdateListener onBufferingUpdateListener) {
-        //Purposefully left blank
+    public void setOnMediaBufferUpdateListener(OnMediaBufferUpdateListener onMediaBufferUpdateListener) {
+
     }
 
     @Override
-    public void setOnSeekCompleteListener(MediaPlayer.OnSeekCompleteListener onSeekCompleteListener) {
-        //Purposefully left blank
+    public void setOnMediaSeekCompletionListener(OnMediaSeekCompletionListener onMediaSeekCompletionListener) {
+
     }
 
     @Override
-    public void setOnCompletionListener(MediaPlayer.OnCompletionListener onCompletionListener) {
-        videoView.setOnCompletionListener(onCompletionListener);
+    public void setOnMediaCompletionListener(OnMediaCompletionListener onMediaCompletionListener) {
+
     }
 
     @Override
-    public void setOnErrorListener(MediaPlayer.OnErrorListener onErrorListener) {
-        videoView.setOnErrorListener(onErrorListener);
+    public void setOnMediaErrorListener(OnMediaErrorListener onMediaErrorListener) {
+
     }
 }

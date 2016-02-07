@@ -5,7 +5,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
 
-import com.devbrackets.android.exomedia.ui.widget.DefaultControls;
+import com.devbrackets.android.exomedia.ui.widget.VideoControls;
 import com.devbrackets.android.exomedia.ui.widget.EMVideoView;
 
 /**
@@ -25,8 +25,8 @@ public class FullScreenVideoPlayerActivity extends VideoPlayerActivity {
         }
 
         goFullscreen();
-        if (emVideoView.getDefaultControls() != null) {
-            emVideoView.getDefaultControls().setVideoViewControlsCallback(new DefaultControlsListener());
+        if (emVideoView.getVideoControls() != null) {
+            emVideoView.getVideoControls().setVideoViewControlsCallback(new DefaultControlsListener());
         }
     }
 
@@ -91,13 +91,13 @@ public class FullScreenVideoPlayerActivity extends VideoPlayerActivity {
         @Override
         public void onSystemUiVisibilityChange(int visibility) {
             if ((visibility & View.SYSTEM_UI_FLAG_FULLSCREEN) == 0) {
-                emVideoView.showDefaultControls();
+                emVideoView.showControls();
             }
         }
     }
 
     /**
-     * A Listener for the {@link DefaultControls}
+     * A Listener for the {@link VideoControls}
      * so that we can re-enter fullscreen mode when the controls are hidden.
      */
     private class DefaultControlsListener implements com.devbrackets.android.exomedia.listener.DefaultControlsListener {

@@ -19,11 +19,11 @@ package com.devbrackets.android.exomedia.widget;
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.os.Build;
+import android.support.annotation.IntRange;
 import android.util.AttributeSet;
 import android.widget.SeekBar;
 
 import com.devbrackets.android.exomedia.R;
-import com.devbrackets.android.exomedia.event.EMMediaProgressEvent;
 import com.devbrackets.android.exomedia.util.TimeFormatUtil;
 import com.devbrackets.android.exomedia.widget.animation.BottomViewHideShowAnimation;
 import com.devbrackets.android.exomedia.widget.animation.TopViewHideShowAnimation;
@@ -86,18 +86,12 @@ public class DefaultControlsMobile extends DefaultControls {
         }
     }
 
-    /**
-     * Performs the progress update on the current time field,
-     * and the seek bar
-     *
-     * @param event The most recent progress
-     */
     @Override
-    public void setProgressEvent(EMMediaProgressEvent event) {
+    public void updateProgress(@IntRange(from = 0) long position, @IntRange(from = 0) long duration, @IntRange(from = 0, to = 100) int bufferPercent) {
         if (!userInteracting) {
-            seekBar.setSecondaryProgress((int) (seekBar.getMax() * event.getBufferPercentFloat()));
-            seekBar.setProgress((int) event.getPosition());
-            currentTime.setText(TimeFormatUtil.formatMs(event.getPosition()));
+            seekBar.setSecondaryProgress((int) (seekBar.getMax() * ((float)bufferPercent / 100)));
+            seekBar.setProgress((int) position);
+            currentTime.setText(TimeFormatUtil.formatMs(position));
         }
     }
 

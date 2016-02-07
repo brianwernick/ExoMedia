@@ -21,22 +21,17 @@ import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Build;
-import android.support.annotation.Nullable;
 import android.util.Log;
 
-import com.devbrackets.android.exomedia.builder.DashRenderBuilder;
-import com.devbrackets.android.exomedia.builder.HlsRenderBuilder;
-import com.devbrackets.android.exomedia.builder.RenderBuilder;
-import com.devbrackets.android.exomedia.builder.SmoothStreamRenderBuilder;
-import com.devbrackets.android.exomedia.event.EMMediaProgressEvent;
-import com.devbrackets.android.exomedia.exoplayer.EMExoPlayer;
-import com.devbrackets.android.exomedia.listener.EMProgressCallback;
-import com.devbrackets.android.exomedia.listener.ExoPlayerListener;
+import com.devbrackets.android.exomedia.core.builder.DashRenderBuilder;
+import com.devbrackets.android.exomedia.core.builder.HlsRenderBuilder;
+import com.devbrackets.android.exomedia.core.builder.RenderBuilder;
+import com.devbrackets.android.exomedia.core.builder.SmoothStreamRenderBuilder;
+import com.devbrackets.android.exomedia.core.exoplayer.EMExoPlayer;
+import com.devbrackets.android.exomedia.core.listener.ExoPlayerListener;
 import com.devbrackets.android.exomedia.type.MediaSourceType;
 import com.devbrackets.android.exomedia.util.EMDeviceUtil;
-import com.devbrackets.android.exomedia.util.MediaUtil;
-import com.devbrackets.android.exomedia.util.Repeater;
-import com.devbrackets.android.exomedia.util.StopWatch;
+import com.devbrackets.android.exomedia.util.MediaType;
 import com.google.android.exoplayer.audio.AudioCapabilities;
 import com.google.android.exoplayer.audio.AudioCapabilitiesReceiver;
 
@@ -61,20 +56,10 @@ public class EMAudioPlayer implements AudioCapabilitiesReceiver.Listener {
     private boolean useExo;
     private int currentBufferPercent = 0;
     private int overriddenDuration = -1;
-    private int positionOffset = 0;
 
     private int audioStreamType = AudioManager.STREAM_MUSIC;
-    private boolean overridePosition = false;
-
-    private EMProgressCallback progressCallback;
-
-    private Repeater pollRepeater = new Repeater();
-    private StopWatch overriddenPositionStopWatch = new StopWatch();
-
     private AudioCapabilities audioCapabilities;
     private AudioCapabilitiesReceiver audioCapabilitiesReceiver;
-
-    private EMMediaProgressEvent currentMediaProgressEvent = new EMMediaProgressEvent(0, 0, 0);
 
     public EMAudioPlayer(Context context) {
         this.context = context;
@@ -85,17 +70,6 @@ public class EMAudioPlayer implements AudioCapabilitiesReceiver.Listener {
         } else if (useExo && emExoPlayer == null) {
             setupEMExoPlayer();
         }
-
-        pollRepeater.setRepeatListener(new Repeater.RepeatListener() {
-            @Override
-            public void onRepeat() {
-                currentMediaProgressEvent.update(getCurrentPosition(), getBufferPercentage(), getDuration());
-
-                if (progressCallback != null) {
-                    progressCallback.onProgressUpdated(currentMediaProgressEvent);
-                }
-            }
-        });
     }
 
     /**
@@ -142,59 +116,6 @@ public class EMAudioPlayer implements AudioCapabilitiesReceiver.Listener {
     }
 
     /**
-     * Sets the delay to use when notifying of progress.  The
-     * default is 33 milliseconds, or 30 frames-per-second
-     *
-     * @param milliSeconds The millisecond delay to use
-     */
-    public void setProgressPollDelay(int milliSeconds) {
-        pollRepeater.setRepeaterDelay(milliSeconds);
-    }
-
-    /**
-     * Sets the callback to be informed of progress events.  This takes precedence over
-     * the bus events.
-     *
-     * @param progressCallback The callback to be notified of progress events or null
-     */
-    public void setProgressCallback(@Nullable EMProgressCallback progressCallback) {
-        this.progressCallback = progressCallback;
-    }
-
-    /**
-     * Starts the progress poll with the callback to be informed of the progress
-     * events.
-     *
-     * @param callback The Callback to inform of progress events
-     */
-    public void startProgressPoll(EMProgressCallback callback) {
-        progressCallback = callback;
-
-        if (progressCallback != null) {
-            pollRepeater.start();
-        }
-    }
-
-    /**
-     * Starts the progress poll.  This should be called after you have set the callbacks with {@link #setProgressCallback(EMProgressCallback)}
-     * or previously called {@link #startProgressPoll(EMProgressCallback)}, otherwise you won't get notified
-     * of progress changes
-     */
-    public void startProgressPoll() {
-        if (progressCallback != null) {
-            pollRepeater.start();
-        }
-    }
-
-    /**
-     * Stops the progress poll
-     * (see {@link #startProgressPoll(EMProgressCallback)})
-     */
-    public void stopProgressPoll() {
-        pollRepeater.stop();
-    }
-
-    /**
      * Creates and returns the correct render builder for the specified AudioType and uri.
      *
      * @param renderType        The RenderType to use for creating the correct RenderBuilder
@@ -202,7 +123,7 @@ public class EMAudioPlayer implements AudioCapabilitiesReceiver.Listener {
      * @param defaultMediaType  The MediaType to use when auto-detection fails
      * @return                  The appropriate RenderBuilder
      */
-    private RenderBuilder getRendererBuilder(MediaSourceType renderType, Uri uri, MediaUtil.MediaType defaultMediaType) {
+    private RenderBuilder getRendererBuilder(MediaSourceType renderType, Uri uri, MediaType defaultMediaType) {
         switch (renderType) {
             case HLS:
                 return new HlsRenderBuilder(context, getUserAgent(), uri.toString(), audioStreamType);
@@ -262,7 +183,7 @@ public class EMAudioPlayer implements AudioCapabilitiesReceiver.Listener {
      * @param uri The Uri representing the path to the audio item
      */
     public void setDataSource(Context context, Uri uri) {
-        setDataSource(context, uri, MediaUtil.MediaType.MP3);
+        setDataSource(context, uri, MediaType.MP3);
     }
 
     /**
@@ -273,7 +194,7 @@ public class EMAudioPlayer implements AudioCapabilitiesReceiver.Listener {
      * @param uri The Uri representing the path to the audio item
      * @param defaultMediaType The MediaType to use when auto-detection fails
      */
-    public void setDataSource(Context context, Uri uri, MediaUtil.MediaType defaultMediaType) {
+    public void setDataSource(Context context, Uri uri, MediaType defaultMediaType) {
         RenderBuilder builder = null;
         if (uri != null) {
             builder = getRendererBuilder(MediaSourceType.get(uri), uri, defaultMediaType);
@@ -310,7 +231,6 @@ public class EMAudioPlayer implements AudioCapabilitiesReceiver.Listener {
 
         listenerMux.setNotifiedPrepared(false);
         overrideDuration(-1);
-        setPositionOffset(0);
     }
 
     public void prepareAsync() {
@@ -416,13 +336,10 @@ public class EMAudioPlayer implements AudioCapabilitiesReceiver.Listener {
         } else {
             emExoPlayer.setPlayWhenReady(true);
         }
-
-        startProgressPoll(progressCallback);
     }
 
     /**
-     * If an audio item is currently in playback, it will be paused and the progressPoll
-     * will be stopped (see {@link #startProgressPoll(EMProgressCallback)})
+     * If an audio item is currently in playback, it will be paused
      */
     public void pause() {
         if (!useExo) {
@@ -430,13 +347,10 @@ public class EMAudioPlayer implements AudioCapabilitiesReceiver.Listener {
         } else {
             emExoPlayer.setPlayWhenReady(false);
         }
-
-        stopProgressPoll();
     }
 
     /**
      * If an audio item is currently in playback then the playback will be stopped
-     * and the progressPoll will be stopped (see {@link #startProgressPoll(EMProgressCallback)})
      */
     public void stopPlayback() {
         if (!useExo) {
@@ -444,8 +358,6 @@ public class EMAudioPlayer implements AudioCapabilitiesReceiver.Listener {
         } else {
             emExoPlayer.setPlayWhenReady(false);
         }
-
-        stopProgressPoll();
     }
 
     public void release() {
@@ -454,9 +366,6 @@ public class EMAudioPlayer implements AudioCapabilitiesReceiver.Listener {
         } else {
             emExoPlayer.release();
         }
-
-        stopProgressPoll();
-        overriddenPositionStopWatch.stop();
 
         if (audioCapabilitiesReceiver != null) {
             audioCapabilitiesReceiver.unregister();
@@ -506,53 +415,15 @@ public class EMAudioPlayer implements AudioCapabilitiesReceiver.Listener {
      * @return The millisecond value for the current position
      */
     public long getCurrentPosition() {
-        if (overridePosition) {
-            return positionOffset + overriddenPositionStopWatch.getTime();
-        }
-
         if (!listenerMux.isPrepared()) {
             return 0;
         }
 
         if (!useExo) {
-            return positionOffset + mediaPlayer.getCurrentPosition();
+            return mediaPlayer.getCurrentPosition();
         }
 
-        return positionOffset + emExoPlayer.getCurrentPosition();
-    }
-
-    /**
-     * Sets the amount of time to change the return value from {@link #getCurrentPosition()}.
-     * This value will be reset when a new audio item is selected.
-     *
-     * @param offset The millisecond value to offset the position
-     */
-    public void setPositionOffset(int offset) {
-        positionOffset = offset;
-    }
-
-    /**
-     * Restarts the audio position to the start if the position is being overridden (see {@link #overridePosition(boolean)}).
-     * This will be the value specified with {@link #setPositionOffset(int)} or 0 if it hasn't been set.
-     */
-    public void restartOverridePosition() {
-        overriddenPositionStopWatch.reset();
-    }
-
-    /**
-     * Sets if the audio position should be overridden, allowing the time to be restarted at will.  This
-     * is useful for streaming audio where the audio doesn't have breaks between songs.
-     *
-     * @param override True if the position should be overridden
-     */
-    public void overridePosition(boolean override) {
-        if (override) {
-            overriddenPositionStopWatch.start();
-        } else {
-            overriddenPositionStopWatch.stop();
-        }
-
-        overridePosition = override;
+        return emExoPlayer.getCurrentPosition();
     }
 
     /**
@@ -643,7 +514,6 @@ public class EMAudioPlayer implements AudioCapabilitiesReceiver.Listener {
      */
     private void onPlaybackEnded() {
         stopPlayback();
-        pollRepeater.stop();
     }
 
     private class MuxNotifier extends EMListenerMux.EMListenerMuxNotifier {

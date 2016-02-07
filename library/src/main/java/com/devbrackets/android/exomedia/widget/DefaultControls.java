@@ -22,12 +22,12 @@ import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Handler;
 import android.support.annotation.DrawableRes;
+import android.support.annotation.IntRange;
 import android.support.annotation.LayoutRes;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.animation.AlphaAnimation;
 import android.widget.ImageButton;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
@@ -35,8 +35,7 @@ import android.widget.TextView;
 
 import com.devbrackets.android.exomedia.EMVideoView;
 import com.devbrackets.android.exomedia.R;
-import com.devbrackets.android.exomedia.event.EMMediaProgressEvent;
-import com.devbrackets.android.exomedia.listener.EMVideoViewControlsCallback;
+import com.devbrackets.android.exomedia.listener.DefaultControlsListener;
 import com.devbrackets.android.exomedia.util.EMResourceUtil;
 
 /**
@@ -86,7 +85,7 @@ public abstract class DefaultControls extends RelativeLayout {
 
     protected EMVideoView videoView;
     protected SeekCallbacks seekCallbacks;
-    protected EMVideoViewControlsCallback callback;
+    protected DefaultControlsListener callback;
 
     public DefaultControls(Context context) {
         super(context);
@@ -125,7 +124,7 @@ public abstract class DefaultControls extends RelativeLayout {
      *
      * @param callback The callback
      */
-    public void setVideoViewControlsCallback(EMVideoViewControlsCallback callback) {
+    public void setVideoViewControlsCallback(DefaultControlsListener callback) {
         this.callback = callback;
     }
 
@@ -217,10 +216,8 @@ public abstract class DefaultControls extends RelativeLayout {
     /**
      * Performs the progress update on the current time field,
      * and the seek bar
-     *
-     * @param event The most recent progress
      */
-    public abstract void setProgressEvent(EMMediaProgressEvent event);
+    public abstract void updateProgress(@IntRange(from = 0) long position, @IntRange(from = 0) long duration, @IntRange(from = 0, to = 100) int bufferPercent);
 
     /**
      * Sets the resource id's to use for the PlayPause button.
@@ -581,20 +578,5 @@ public abstract class DefaultControls extends RelativeLayout {
      * this view
      * @param toVisible True if the view should be visible at the end of the animation
      */
-    protected void animateVisibility(boolean toVisible) {
-        if (isVisible == toVisible) {
-            return;
-        }
-
-        float startAlpha = toVisible ? 0 : 1;
-        float endAlpha = toVisible ? 1 : 0;
-
-        AlphaAnimation animation = new AlphaAnimation(startAlpha, endAlpha);
-        animation.setDuration(CONTROL_VISIBILITY_ANIMATION_LENGTH);
-        animation.setFillAfter(true);
-        startAnimation(animation);
-
-        isVisible = toVisible;
-        onVisibilityChanged();
-    }
+    protected abstract void animateVisibility(boolean toVisible);
 }

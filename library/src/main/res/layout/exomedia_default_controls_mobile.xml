@@ -55,7 +55,6 @@
 
         <!--TODO link up-->
         <LinearLayout
-            android:id="@+id/exomedia_controls_interactive_extra_container"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="right|end"

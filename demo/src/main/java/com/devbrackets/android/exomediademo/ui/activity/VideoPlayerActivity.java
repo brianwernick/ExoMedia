@@ -5,12 +5,13 @@ import android.media.MediaPlayer;
 import android.os.Bundle;
 
 import com.devbrackets.android.exomedia.EMVideoView;
-import com.devbrackets.android.exomedia.manager.EMPlaylistManager;
 import com.devbrackets.android.exomediademo.App;
 import com.devbrackets.android.exomediademo.R;
 import com.devbrackets.android.exomediademo.data.MediaItem;
 import com.devbrackets.android.exomediademo.helper.VideoItems;
 import com.devbrackets.android.exomediademo.manager.PlaylistManager;
+import com.devbrackets.android.exomediademo.playlist.VideoApi;
+import com.devbrackets.android.playlistcore.manager.BasePlaylistManager;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -61,7 +62,7 @@ public class VideoPlayerActivity extends Activity implements MediaPlayer.OnPrepa
         emVideoView = (EMVideoView)findViewById(R.id.video_play_activity_video_view);
         emVideoView.setOnPreparedListener(this);
 
-        playlistManager.setVideoView(emVideoView);
+        playlistManager.setVideoPlayer(new VideoApi(emVideoView));
         playlistManager.play(0, false);
     }
 
@@ -78,8 +79,8 @@ public class VideoPlayerActivity extends Activity implements MediaPlayer.OnPrepa
             mediaItems.add(mediaItem);
         }
 
-        playlistManager.setAllowedMediaType(EMPlaylistManager.MediaType.AUDIO_AND_VIDEO);
+        playlistManager.setAllowedMediaType(BasePlaylistManager.AUDIO | BasePlaylistManager.VIDEO);
         playlistManager.setParameters(mediaItems, selectedIndex);
-        playlistManager.setPlaylistId(PLAYLIST_ID);
+        playlistManager.setId( PLAYLIST_ID);
     }
 }

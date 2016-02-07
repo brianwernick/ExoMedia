@@ -53,7 +53,7 @@
         android:background="@drawable/exomedia_default_controls_interactive_background"
         android:orientation="vertical">
 
-        <!--TODO link up-->
+        <!--TODO link up... also, maybe to the end of the progress views?-->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

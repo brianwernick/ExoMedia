@@ -108,8 +108,8 @@ Uses [ExoPlayer][ExoPlayer] by Google
 
  [Design Icons]: https://github.com/google/material-design-icons
  [CC 4.0]: http://creativecommons.org/licenses/by/4.0/
- [ExoPlayer]:https://github.com/google/ExoPlayer
- [CTS]:https://source.android.com/compatibility/cts/index.html
+ [ExoPlayer]: https://github.com/google/ExoPlayer
+ [CTS]: https://source.android.com/compatibility/cts/index.html
  [JCenter]: https://bintray.com/brianwernick/maven/ExoMedia/view#files
- [Website]: http://devbrackets.com/dev/libs/exomedia.html
- [Java Docs]: http://devbrackets.com/dev/libs/docs/exomedia/3.0.0/index.html
+ [Website]: https://devbrackets.com/dev/libs/exomedia.html
+ [Java Docs]: https://devbrackets.com/dev/libs/docs/exomedia/3.0.0/index.html

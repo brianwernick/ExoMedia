@@ -16,7 +16,7 @@ public enum MediaSourceType {
     @Nullable
     private String regex;
 
-    MediaSourceType(@Nullable  String regex) {
+    MediaSourceType(@Nullable String regex) {
         this.regex = regex;
     }
 

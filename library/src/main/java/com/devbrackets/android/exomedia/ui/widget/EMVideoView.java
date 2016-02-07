@@ -214,6 +214,7 @@ public class EMVideoView extends RelativeLayout {
 
         muxNotifier = new MuxNotifier();
         listenerMux = new EMListenerMux(muxNotifier);
+
         videoViewImpl.setListenerMux(listenerMux);
         videoViewImpl.setOnSizeChangedListener(muxNotifier);
     }

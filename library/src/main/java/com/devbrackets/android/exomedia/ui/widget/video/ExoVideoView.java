@@ -176,6 +176,7 @@ public class ExoVideoView extends VideoTextureView implements VideoViewApi, Audi
 
     @Override
     public void setListenerMux(EMListenerMux listenerMux) {
+        this.listenerMux = listenerMux;
         emExoPlayer.addListener(listenerMux);
     }
 

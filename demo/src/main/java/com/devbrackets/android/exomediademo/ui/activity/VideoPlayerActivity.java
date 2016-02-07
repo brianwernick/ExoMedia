@@ -25,6 +25,7 @@ public class VideoPlayerActivity extends Activity implements MediaPlayer.OnPrepa
     protected PlaylistManager playlistManager;
 
     protected int selectedIndex;
+    protected boolean pausedInOnStop = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,6 +39,25 @@ public class VideoPlayerActivity extends Activity implements MediaPlayer.OnPrepa
     @Override
     protected void onStop() {
         super.onStop();
+        if (emVideoView.isPlaying()) {
+            pausedInOnStop = true;
+            emVideoView.pause();
+        }
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+
+        if (pausedInOnStop) {
+            emVideoView.start();
+            pausedInOnStop = false;
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
         playlistManager.invokeStop();
     }
 

@@ -37,7 +37,6 @@ import com.devbrackets.android.exomedia.core.builder.SmoothStreamRenderBuilder;
 import com.devbrackets.android.exomedia.core.exoplayer.EMExoPlayer;
 import com.devbrackets.android.exomedia.core.type.VideoViewApi;
 import com.devbrackets.android.exomedia.type.MediaSourceType;
-import com.devbrackets.android.exomedia.util.MediaType;
 import com.google.android.exoplayer.audio.AudioCapabilities;
 import com.google.android.exoplayer.audio.AudioCapabilitiesReceiver;
 
@@ -80,12 +79,8 @@ public class ExoVideoView extends VideoTextureView implements VideoViewApi, Audi
     }
 
     @Override
-    public void setVideoUri(@Nullable Uri uri, MediaType defaultMediaType) {
-        RenderBuilder builder = null;
-        if(uri != null) {
-            builder = getRendererBuilder(MediaSourceType.get(uri), uri, defaultMediaType);
-        }
-
+    public void setVideoUri(@Nullable Uri uri) {
+        RenderBuilder builder = uri == null ? null : getRendererBuilder(MediaSourceType.get(uri), uri);
         setVideoUri(uri, builder);
     }
 
@@ -223,10 +218,9 @@ public class ExoVideoView extends VideoTextureView implements VideoViewApi, Audi
      *
      * @param renderType The RenderType to use for creating the correct RenderBuilder
      * @param uri The video's Uri
-     * @param defaultMediaType  The MediaType to use when auto-detection fails
      * @return The appropriate RenderBuilder
      */
-    protected RenderBuilder getRendererBuilder(MediaSourceType renderType, Uri uri, MediaType defaultMediaType) {
+    protected RenderBuilder getRendererBuilder(MediaSourceType renderType, Uri uri) {
         switch (renderType) {
             case HLS:
                 return new HlsRenderBuilder(getContext().getApplicationContext(), getUserAgent(), uri.toString());

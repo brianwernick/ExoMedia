@@ -17,7 +17,6 @@
 package com.devbrackets.android.exomedia.util;
 
 import android.net.Uri;
-import android.support.annotation.Nullable;
 
 /**
  * A Utility class to help with determining information about media
@@ -52,42 +51,5 @@ public class MediaUtil {
         }
 
         return uri;
-    }
-
-    /**
-     * Determines the media type based on the mediaUri
-     *
-     * @param mediaUri The uri for the media to determine the MediaType for
-     * @return The resulting MediaType
-     */
-    public static MediaType getMediaType(String mediaUri) {
-        String extension = getExtension(mediaUri);
-        if (extension == null) {
-            return MediaType.UNKNOWN;
-        }
-
-        //Finds the MediaType with the same extension
-        for (MediaType type : MediaType.values()) {
-            if (type.getExtension().equals(extension)) {
-                return type;
-            }
-        }
-
-        return MediaType.UNKNOWN;
-    }
-
-    @Nullable
-    private static String getExtension(String mediaUri) {
-        if (mediaUri == null || mediaUri.trim().isEmpty()) {
-            return null;
-        }
-
-        int periodIndex = mediaUri.lastIndexOf('.');
-        if (periodIndex == -1 || periodIndex >= mediaUri.length()) {
-            return null;
-        }
-
-        String rawExtension = mediaUri.substring(periodIndex);
-        return rawExtension.toLowerCase();
     }
 }

@@ -29,7 +29,6 @@ import com.devbrackets.android.exomedia.core.exoplayer.EMExoPlayer;
 import com.devbrackets.android.exomedia.core.listener.ExoPlayerListener;
 import com.devbrackets.android.exomedia.core.type.MediaPlayerApi;
 import com.devbrackets.android.exomedia.util.EMDeviceUtil;
-import com.devbrackets.android.exomedia.util.MediaType;
 
 /**
  * An AudioPlayer that uses the ExoPlayer as the backing architecture.  If the current device
@@ -74,25 +73,13 @@ public class EMAudioPlayer {
 
     /**
      * Sets the source path for the audio item.  This path can be a web address (e.g. http://) or
-     * an absolute local path (e.g. file://). Uses MP3 as the default for media type.
+     * an absolute local path (e.g. file://)
      *
      * @param context The applications context that owns the media
      * @param uri The Uri representing the path to the audio item
      */
     public void setDataSource(Context context, Uri uri) {
-        setDataSource(context, uri, MediaType.MP3);
-    }
-
-    /**
-     * Sets the source path for the audio item.  This path can be a web address (e.g. http://) or
-     * an absolute local path (e.g. file://)
-     *
-     * @param context The applications context that owns the media
-     * @param uri The Uri representing the path to the audio item
-     * @param defaultMediaType The MediaType to use when auto-detection fails
-     */
-    public void setDataSource(Context context, Uri uri, MediaType defaultMediaType) {
-        mediaPlayerImpl.setDataSource(context, uri, defaultMediaType);
+        mediaPlayerImpl.setDataSource(context, uri);
         overrideDuration(-1);
     }
 

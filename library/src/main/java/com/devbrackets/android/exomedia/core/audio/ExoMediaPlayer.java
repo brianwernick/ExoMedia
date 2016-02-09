@@ -1,3 +1,19 @@
+/*
+ * Copyright (C) 2016 Brian Wernick
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.devbrackets.android.exomedia.core.audio;
 
 import android.annotation.TargetApi;
@@ -17,7 +33,6 @@ import com.devbrackets.android.exomedia.core.builder.SmoothStreamRenderBuilder;
 import com.devbrackets.android.exomedia.core.exoplayer.EMExoPlayer;
 import com.devbrackets.android.exomedia.core.type.MediaPlayerApi;
 import com.devbrackets.android.exomedia.type.MediaSourceType;
-import com.devbrackets.android.exomedia.util.MediaType;
 import com.google.android.exoplayer.audio.AudioCapabilities;
 import com.google.android.exoplayer.audio.AudioCapabilitiesReceiver;
 
@@ -51,12 +66,8 @@ public class ExoMediaPlayer implements MediaPlayerApi, AudioCapabilitiesReceiver
     }
 
     @Override
-    public void setDataSource(Context context, Uri uri, MediaType defaultMediaType) {
-        RenderBuilder builder = null;
-        if (uri != null) {
-            builder = getRendererBuilder(MediaSourceType.get(uri), uri, defaultMediaType);
-        }
-
+    public void setDataSource(Context context, Uri uri) {
+        RenderBuilder builder = uri == null ? null : getRendererBuilder(MediaSourceType.get(uri), uri);
         setDataSource(context, uri, builder);
     }
 
@@ -184,12 +195,11 @@ public class ExoMediaPlayer implements MediaPlayerApi, AudioCapabilitiesReceiver
     /**
      * Creates and returns the correct render builder for the specified AudioType and uri.
      *
-     * @param renderType        The RenderType to use for creating the correct RenderBuilder
-     * @param uri               The audio item's Uri
-     * @param defaultMediaType  The MediaType to use when auto-detection fails
-     * @return                  The appropriate RenderBuilder
+     * @param renderType The RenderType to use for creating the correct RenderBuilder
+     * @param uri The audio item's Uri
+     * @return The appropriate RenderBuilder
      */
-    protected RenderBuilder getRendererBuilder(MediaSourceType renderType, Uri uri, MediaType defaultMediaType) {
+    protected RenderBuilder getRendererBuilder(MediaSourceType renderType, Uri uri) {
         switch (renderType) {
             case HLS:
                 return new HlsRenderBuilder(context, getUserAgent(), uri.toString(), audioStreamType);

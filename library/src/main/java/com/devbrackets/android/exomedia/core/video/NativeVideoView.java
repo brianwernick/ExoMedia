@@ -29,7 +29,6 @@ import android.widget.VideoView;
 import com.devbrackets.android.exomedia.core.EMListenerMux;
 import com.devbrackets.android.exomedia.core.builder.RenderBuilder;
 import com.devbrackets.android.exomedia.core.type.VideoViewApi;
-import com.devbrackets.android.exomedia.util.MediaType;
 
 /**
  * A {@link VideoViewApi} implementation that uses the
@@ -77,13 +76,13 @@ public class NativeVideoView extends VideoView implements VideoViewApi {
     }
 
     @Override
-    public void setVideoUri(@Nullable Uri uri, MediaType defaultMediaType) {
-        setVideoUri(uri, (RenderBuilder)null);
+    public void setVideoUri(@Nullable Uri uri) {
+        setVideoUri(uri, null);
     }
 
     @Override
     public void setVideoUri(@Nullable Uri uri, @Nullable RenderBuilder renderBuilder) {
-        setVideoURI(uri);
+        super.setVideoURI(uri);
     }
 
     @Override

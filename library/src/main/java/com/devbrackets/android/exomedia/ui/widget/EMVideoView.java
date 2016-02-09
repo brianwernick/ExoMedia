@@ -43,7 +43,6 @@ import com.devbrackets.android.exomedia.core.exoplayer.EMExoPlayer;
 import com.devbrackets.android.exomedia.core.listener.ExoPlayerListener;
 import com.devbrackets.android.exomedia.core.type.VideoViewApi;
 import com.devbrackets.android.exomedia.util.EMDeviceUtil;
-import com.devbrackets.android.exomedia.util.MediaType;
 import com.devbrackets.android.exomedia.util.Repeater;
 import com.devbrackets.android.exomedia.util.StopWatch;
 
@@ -363,25 +362,13 @@ public class EMVideoView extends RelativeLayout {
     }
 
     /**
-     * Sets the Uri location for the video to play.  If the media format cannot be determine
-     * MP4 will be assumed.  You can also manually specify the media format with
-     * {@link #setVideoURI(Uri, MediaType)}
+     * Sets the Uri location for the video to play
      *
      * @param uri The video's Uri
      */
     public void setVideoURI(@Nullable Uri uri) {
-        setVideoURI(uri, MediaType.MP4);
-    }
-
-    /**
-     * Sets the Uri location for the video to play
-     *
-     * @param uri The video's Uri
-     * @param defaultMediaType The MediaType to use when auto-detection fails
-     */
-    public void setVideoURI(@Nullable Uri uri, MediaType defaultMediaType) {
         videoUri = uri;
-        videoViewImpl.setVideoUri(uri, defaultMediaType);
+        videoViewImpl.setVideoUri(uri);
 
         if (videoControls != null) {
             videoControls.restartLoading();

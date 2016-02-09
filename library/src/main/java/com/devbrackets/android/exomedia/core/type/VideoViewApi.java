@@ -24,7 +24,6 @@ import android.view.View;
 
 import com.devbrackets.android.exomedia.core.EMListenerMux;
 import com.devbrackets.android.exomedia.core.builder.RenderBuilder;
-import com.devbrackets.android.exomedia.util.MediaType;
 
 /**
  * The basic APIs expected in the backing video view
@@ -42,7 +41,7 @@ public interface VideoViewApi {
 
     int getWidth();
 
-    void setVideoUri(@Nullable Uri uri,  MediaType defaultMediaType);
+    void setVideoUri(@Nullable Uri uri);
 
     void setVideoUri(@Nullable Uri uri, @Nullable RenderBuilder renderBuilder);
 

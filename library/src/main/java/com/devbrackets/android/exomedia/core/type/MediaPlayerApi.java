@@ -23,7 +23,6 @@ import android.support.annotation.IntRange;
 
 import com.devbrackets.android.exomedia.core.EMListenerMux;
 import com.devbrackets.android.exomedia.core.builder.RenderBuilder;
-import com.devbrackets.android.exomedia.util.MediaType;
 
 /**
  * The basic APIs expected in the backing media player
@@ -32,7 +31,7 @@ import com.devbrackets.android.exomedia.util.MediaType;
  * using the ExoPlayer.
  */
 public interface MediaPlayerApi {
-    void setDataSource(Context context, Uri uri, MediaType defaultMediaType);
+    void setDataSource(Context context, Uri uri);
 
     void setDataSource(Context context, Uri uri, RenderBuilder renderBuilder);
 

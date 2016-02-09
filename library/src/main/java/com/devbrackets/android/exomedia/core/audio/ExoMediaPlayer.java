@@ -103,6 +103,10 @@ public class ExoMediaPlayer implements MediaPlayerApi, AudioCapabilitiesReceiver
 
     @Override
     public void seekTo(@IntRange(from = 0) int milliseconds) {
+        if (!listenerMux.isPrepared()) {
+            return;
+        }
+
         emExoPlayer.seekTo(milliseconds);
     }
 

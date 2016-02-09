@@ -95,6 +95,15 @@ public class NativeMediaPlayer extends MediaPlayer implements MediaPlayerApi, Me
     }
 
     @Override
+    public void seekTo(int msec) {
+        if (!listenerMux.isPrepared()) {
+            return;
+        }
+
+        super.seekTo(msec);
+    }
+
+    @Override
     public void setListenerMux(EMListenerMux listenerMux) {
         this.listenerMux = listenerMux;
 

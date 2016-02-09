@@ -20,6 +20,7 @@ import android.content.Context;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Build;
+import android.support.annotation.FloatRange;
 
 import com.devbrackets.android.exomedia.core.EMListenerMux;
 import com.devbrackets.android.exomedia.core.audio.ExoMediaPlayer;
@@ -36,7 +37,7 @@ import com.devbrackets.android.exomedia.util.EMDeviceUtil;
  * will fall back to using the default Android MediaPlayer.
  * <p>
  * To help with quick conversions from the Android MediaPlayer this class follows the APIs
- * the MediaPlayer provides.
+ * the Android MediaPlayer provides.
  */
 @SuppressWarnings("UnusedDeclaration")
 public class EMAudioPlayer {
@@ -106,7 +107,7 @@ public class EMAudioPlayer {
      * @param leftVolume The volume range [0.0 - 1.0]
      * @param rightVolume The volume range [0.0 - 1.0]
      */
-    public void setVolume(float leftVolume, float rightVolume) {
+    public void setVolume(@FloatRange(from = 0.0, to = 1.0) float leftVolume, @FloatRange(from = 0.0, to = 1.0) float rightVolume) {
         mediaPlayerImpl.setVolume(leftVolume, rightVolume);
     }
 
@@ -147,10 +148,6 @@ public class EMAudioPlayer {
      * @param milliSeconds The time to move the playback to
      */
     public void seekTo(int milliSeconds) {
-        if (!listenerMux.isPrepared()) {
-            return;
-        }
-
         if (milliSeconds > getDuration()) {
             milliSeconds = (int)getDuration();
         }

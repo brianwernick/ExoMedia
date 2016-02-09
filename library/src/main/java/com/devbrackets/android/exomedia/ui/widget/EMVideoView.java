@@ -138,6 +138,17 @@ public class EMVideoView extends RelativeLayout {
         invalidate();
     }
 
+
+
+    @Override
+    protected void onLayout(boolean changed, int l, int t, int r, int b) {
+        super.onLayout(changed, l, t, r, b);
+
+        if (changed) {
+            updateVideoShutters(r, b, videoViewImpl.getWidth(), videoViewImpl.getHeight());
+        }
+    }
+
     @Override
     public void setOnTouchListener(OnTouchListener listener) {
         videoViewImpl.setOnTouchListener(listener);

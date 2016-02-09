@@ -169,6 +169,19 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
     }
 
     @Override
+    protected void onLayout(boolean changed, int l, int t, int r, int b) {
+        super.onLayout(changed, l, t, r, b);
+
+        if (changed) {
+            if (useExo) {
+                muxNotifier.updateVideoShutters(r, b, exoVideoTextureView.getWidth(), exoVideoTextureView.getHeight());
+            } else {
+                muxNotifier.updateVideoShutters(r, b, videoView.getWidth(), videoView.getHeight());
+            }
+        }
+    }
+
+    @Override
     public void onVideoSurfaceSizeChange(int width, int height) {
         muxNotifier.updateVideoShutters(getWidth(), getHeight(), width, height);
     }

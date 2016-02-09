@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.devbrackets.android.exomedia.ui.widget.video;
+package com.devbrackets.android.exomedia.core.video;
 
 import android.annotation.TargetApi;
 import android.content.Context;
@@ -28,10 +28,16 @@ import android.util.AttributeSet;
 import android.view.Surface;
 import android.view.TextureView;
 
+import com.devbrackets.android.exomedia.BuildConfig;
 import com.devbrackets.android.exomedia.core.EMListenerMux;
+import com.devbrackets.android.exomedia.core.builder.DashRenderBuilder;
+import com.devbrackets.android.exomedia.core.builder.HlsRenderBuilder;
 import com.devbrackets.android.exomedia.core.builder.RenderBuilder;
+import com.devbrackets.android.exomedia.core.builder.SmoothStreamRenderBuilder;
 import com.devbrackets.android.exomedia.core.exoplayer.EMExoPlayer;
-import com.devbrackets.android.exomedia.ui.util.VideoViewApi;
+import com.devbrackets.android.exomedia.core.type.VideoViewApi;
+import com.devbrackets.android.exomedia.type.MediaSourceType;
+import com.devbrackets.android.exomedia.util.MediaType;
 import com.google.android.exoplayer.audio.AudioCapabilities;
 import com.google.android.exoplayer.audio.AudioCapabilitiesReceiver;
 
@@ -41,6 +47,7 @@ import com.google.android.exoplayer.audio.AudioCapabilitiesReceiver;
  */
 @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
 public class ExoVideoView extends VideoTextureView implements VideoViewApi, AudioCapabilitiesReceiver.Listener, VideoTextureView.OnSizeChangeListener  {
+    protected static final String USER_AGENT_FORMAT = "EMVideoView %s / Android %s / %s";
 
     protected EMExoPlayer emExoPlayer;
     protected AudioCapabilities audioCapabilities;
@@ -70,6 +77,16 @@ public class ExoVideoView extends VideoTextureView implements VideoViewApi, Audi
     public ExoVideoView(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
         super(context, attrs, defStyleAttr, defStyleRes);
         setup();
+    }
+
+    @Override
+    public void setVideoUri(@Nullable Uri uri, MediaType defaultMediaType) {
+        RenderBuilder builder = null;
+        if(uri != null) {
+            builder = getRendererBuilder(MediaSourceType.get(uri), uri, defaultMediaType);
+        }
+
+        setVideoUri(uri, builder);
     }
 
     @Override
@@ -199,6 +216,37 @@ public class ExoVideoView extends VideoTextureView implements VideoViewApi, Audi
         emExoPlayer.setMetadataListener(null);
         setSurfaceTextureListener(new EMExoVideoSurfaceTextureListener());
         setOnSizeChangeListener(this);
+    }
+
+    /**
+     * Creates and returns the correct render builder for the specified VideoType and uri.
+     *
+     * @param renderType The RenderType to use for creating the correct RenderBuilder
+     * @param uri The video's Uri
+     * @param defaultMediaType  The MediaType to use when auto-detection fails
+     * @return The appropriate RenderBuilder
+     */
+    protected RenderBuilder getRendererBuilder(MediaSourceType renderType, Uri uri, MediaType defaultMediaType) {
+        switch (renderType) {
+            case HLS:
+                return new HlsRenderBuilder(getContext().getApplicationContext(), getUserAgent(), uri.toString());
+            case DASH:
+                return new DashRenderBuilder(getContext().getApplicationContext(), getUserAgent(), uri.toString());
+            case SMOOTH_STREAM:
+                return new SmoothStreamRenderBuilder(getContext().getApplicationContext(), getUserAgent(), uri.toString());
+            default:
+                return new RenderBuilder(getContext().getApplicationContext(), getUserAgent(), uri.toString());
+        }
+    }
+
+    /**
+     * Retrieves the user agent that the EMVideoView will use when communicating
+     * with media servers
+     *
+     * @return The String user agent for the EMVideoView
+     */
+    public String getUserAgent() {
+        return String.format(USER_AGENT_FORMAT, BuildConfig.VERSION_NAME + " (" + BuildConfig.VERSION_CODE + ")", Build.VERSION.RELEASE, Build.MODEL);
     }
 
     protected class EMExoVideoSurfaceTextureListener implements TextureView.SurfaceTextureListener {

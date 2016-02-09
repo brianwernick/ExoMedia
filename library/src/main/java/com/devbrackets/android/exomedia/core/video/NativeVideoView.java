@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.devbrackets.android.exomedia.ui.widget.video;
+package com.devbrackets.android.exomedia.core.video;
 
 import android.annotation.TargetApi;
 import android.content.Context;
@@ -28,7 +28,8 @@ import android.widget.VideoView;
 
 import com.devbrackets.android.exomedia.core.EMListenerMux;
 import com.devbrackets.android.exomedia.core.builder.RenderBuilder;
-import com.devbrackets.android.exomedia.ui.util.VideoViewApi;
+import com.devbrackets.android.exomedia.core.type.VideoViewApi;
+import com.devbrackets.android.exomedia.util.MediaType;
 
 /**
  * A {@link VideoViewApi} implementation that uses the
@@ -73,6 +74,11 @@ public class NativeVideoView extends VideoView implements VideoViewApi {
     public void setOnTouchListener(OnTouchListener listener) {
         touchListener = listener;
         super.setOnTouchListener(listener);
+    }
+
+    @Override
+    public void setVideoUri(@Nullable Uri uri, MediaType defaultMediaType) {
+        setVideoUri(uri, (RenderBuilder)null);
     }
 
     @Override

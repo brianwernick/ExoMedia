@@ -17,24 +17,19 @@
 package com.devbrackets.android.exomedia;
 
 import android.content.Context;
-import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Build;
-import android.util.Log;
 
 import com.devbrackets.android.exomedia.core.EMListenerMux;
-import com.devbrackets.android.exomedia.core.builder.DashRenderBuilder;
-import com.devbrackets.android.exomedia.core.builder.HlsRenderBuilder;
+import com.devbrackets.android.exomedia.core.audio.ExoMediaPlayer;
+import com.devbrackets.android.exomedia.core.audio.NativeMediaPlayer;
 import com.devbrackets.android.exomedia.core.builder.RenderBuilder;
-import com.devbrackets.android.exomedia.core.builder.SmoothStreamRenderBuilder;
 import com.devbrackets.android.exomedia.core.exoplayer.EMExoPlayer;
 import com.devbrackets.android.exomedia.core.listener.ExoPlayerListener;
-import com.devbrackets.android.exomedia.type.MediaSourceType;
+import com.devbrackets.android.exomedia.core.type.MediaPlayerApi;
 import com.devbrackets.android.exomedia.util.EMDeviceUtil;
 import com.devbrackets.android.exomedia.util.MediaType;
-import com.google.android.exoplayer.audio.AudioCapabilities;
-import com.google.android.exoplayer.audio.AudioCapabilitiesReceiver;
 
 /**
  * An AudioPlayer that uses the ExoPlayer as the backing architecture.  If the current device
@@ -45,113 +40,22 @@ import com.google.android.exoplayer.audio.AudioCapabilitiesReceiver;
  * the MediaPlayer provides.
  */
 @SuppressWarnings("UnusedDeclaration")
-public class EMAudioPlayer implements AudioCapabilitiesReceiver.Listener {
-    private static final String TAG = EMAudioPlayer.class.getSimpleName();
-    private static final String USER_AGENT_FORMAT = "EMAudioPlayer %s / Android %s / %s";
-
-    private Context context;
-    private MediaPlayer mediaPlayer;
-    private EMExoPlayer emExoPlayer;
+public class EMAudioPlayer {
     private EMListenerMux listenerMux;
 
-    private boolean useExo;
-    private int currentBufferPercent = 0;
+    protected MediaPlayerApi mediaPlayerImpl;
     private int overriddenDuration = -1;
 
-    private int audioStreamType = AudioManager.STREAM_MUSIC;
-    private AudioCapabilities audioCapabilities;
-    private AudioCapabilitiesReceiver audioCapabilitiesReceiver;
-
     public EMAudioPlayer(Context context) {
-        this.context = context;
-        useExo = Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN  && EMDeviceUtil.isDeviceCTSCompliant();
-
-        if (!useExo && mediaPlayer == null) {
-            setupMediaPlayer();
-        } else if (useExo && emExoPlayer == null) {
-            setupEMExoPlayer();
-        }
-    }
-
-    /**
-     * Creates the ExoPlayer and sets the listeners
-     */
-    private void setupEMExoPlayer() {
-        if (audioCapabilitiesReceiver == null) {
-            audioCapabilitiesReceiver = new AudioCapabilitiesReceiver(context.getApplicationContext(), this);
-            audioCapabilitiesReceiver.register();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN  && EMDeviceUtil.isDeviceCTSCompliant()) {
+            mediaPlayerImpl = new ExoMediaPlayer(context);
+        } else {
+            mediaPlayerImpl = new NativeMediaPlayer(context);
         }
 
-        if (emExoPlayer == null) {
-            emExoPlayer = new EMExoPlayer();
-
-            //Sets the internal listener
-            listenerMux = new EMListenerMux(new MuxNotifier());
-            emExoPlayer.addListener(listenerMux);
-
-            emExoPlayer.setMetadataListener(null);
-        }
-    }
-
-    /**
-     * Initializes the MediaPlayer and sets the listeners
-     */
-    private void setupMediaPlayer() {
         listenerMux = new EMListenerMux(new MuxNotifier());
-
-        mediaPlayer = new MediaPlayer();
-        mediaPlayer.setOnCompletionListener(listenerMux);
-        mediaPlayer.setOnPreparedListener(listenerMux);
-        mediaPlayer.setOnErrorListener(listenerMux);
-        mediaPlayer.setOnBufferingUpdateListener(listenerMux);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
-            mediaPlayer.setOnInfoListener(listenerMux);
-        }
+        mediaPlayerImpl.setListenerMux(listenerMux);
     }
-
-    @Override
-    public void onAudioCapabilitiesChanged(AudioCapabilities audioCapabilities) {
-        if (!audioCapabilities.equals(this.audioCapabilities)) {
-            this.audioCapabilities = audioCapabilities;
-        }
-    }
-
-    /**
-     * Creates and returns the correct render builder for the specified AudioType and uri.
-     *
-     * @param renderType        The RenderType to use for creating the correct RenderBuilder
-     * @param uri               The audio item's Uri
-     * @param defaultMediaType  The MediaType to use when auto-detection fails
-     * @return                  The appropriate RenderBuilder
-     */
-    private RenderBuilder getRendererBuilder(MediaSourceType renderType, Uri uri, MediaType defaultMediaType) {
-        switch (renderType) {
-            case HLS:
-                return new HlsRenderBuilder(context, getUserAgent(), uri.toString(), audioStreamType);
-            case DASH:
-                return new DashRenderBuilder(context, getUserAgent(), uri.toString(), audioStreamType);
-            case SMOOTH_STREAM:
-                return new SmoothStreamRenderBuilder(context, getUserAgent(), uri.toString(), audioStreamType);
-            default:
-                return new RenderBuilder(context, getUserAgent(), uri.toString(), audioStreamType);
-        }
-    }
-
-    /**
-     * Retrieves the user agent that the EMAudioPlayer will use when communicating
-     * with media servers
-     *
-     * @return The String user agent for the EMAudioPlayer
-     */
-    public String getUserAgent() {
-        return String.format(USER_AGENT_FORMAT, BuildConfig.VERSION_NAME + " (" + BuildConfig.VERSION_CODE + ")", Build.VERSION.RELEASE, Build.MODEL);
-    }
-
-    /**
-     * ***************************************
-     * Start of the standard MediaPlayer APIs *
-     * ****************************************
-     */
 
     /**
      * Returns the audio session ID.
@@ -161,19 +65,11 @@ public class EMAudioPlayer implements AudioCapabilitiesReceiver.Listener {
      * instantiated.
      */
     public int getAudioSessionId() {
-        if (!useExo) {
-            return mediaPlayer.getAudioSessionId();
-        }
-
-        return emExoPlayer.getAudioSessionId();
+        return mediaPlayerImpl.getAudioSessionId();
     }
 
     public void setAudioStreamType(int streamType) {
-        if (!useExo) {
-            mediaPlayer.setAudioStreamType(streamType);
-        }
-
-        this.audioStreamType = streamType;
+        mediaPlayerImpl.setAudioStreamType(streamType);
     }
 
     /**
@@ -196,12 +92,8 @@ public class EMAudioPlayer implements AudioCapabilitiesReceiver.Listener {
      * @param defaultMediaType The MediaType to use when auto-detection fails
      */
     public void setDataSource(Context context, Uri uri, MediaType defaultMediaType) {
-        RenderBuilder builder = null;
-        if (uri != null) {
-            builder = getRendererBuilder(MediaSourceType.get(uri), uri, defaultMediaType);
-        }
-
-        setDataSource(context, uri, builder);
+        mediaPlayerImpl.setDataSource(context, uri, defaultMediaType);
+        overrideDuration(-1);
     }
 
     /**
@@ -213,33 +105,12 @@ public class EMAudioPlayer implements AudioCapabilitiesReceiver.Listener {
      * @param renderBuilder The RenderBuilder to use for audio playback
      */
     public void setDataSource(Context context, Uri uri, RenderBuilder renderBuilder) {
-        if (!useExo) {
-            try {
-                mediaPlayer.setDataSource(context, uri);
-            } catch (Exception e) {
-                Log.d(TAG, "MediaPlayer: error setting data source", e);
-            }
-        } else {
-            if (uri != null) {
-                emExoPlayer.replaceRenderBuilder(renderBuilder);
-                listenerMux.setNotifiedCompleted(false);
-            } else {
-                emExoPlayer.replaceRenderBuilder(null);
-            }
-
-            emExoPlayer.seekTo(0);
-        }
-
-        listenerMux.setNotifiedPrepared(false);
+        mediaPlayerImpl.setDataSource(context, uri, renderBuilder);
         overrideDuration(-1);
     }
 
     public void prepareAsync() {
-        if (!useExo) {
-            mediaPlayer.prepareAsync();
-        } else {
-            emExoPlayer.prepare();
-        }
+        mediaPlayerImpl.prepareAsync();
     }
 
     /**
@@ -249,11 +120,7 @@ public class EMAudioPlayer implements AudioCapabilitiesReceiver.Listener {
      * @param rightVolume The volume range [0.0 - 1.0]
      */
     public void setVolume(float leftVolume, float rightVolume) {
-        if (!useExo) {
-            mediaPlayer.setVolume(leftVolume, rightVolume);
-        } else {
-            emExoPlayer.setVolume(leftVolume);
-        }
+        mediaPlayerImpl.setVolume(leftVolume, rightVolume);
     }
 
     /**
@@ -271,11 +138,7 @@ public class EMAudioPlayer implements AudioCapabilitiesReceiver.Listener {
      * @see android.os.PowerManager
      */
     public void setWakeMode(Context context, int mode) {
-        if (!useExo) {
-            mediaPlayer.setWakeMode(context, mode);
-        } else {
-            emExoPlayer.setWakeMode(context, mode);
-        }
+        mediaPlayerImpl.setWakeMode(context, mode);
     }
 
     /**
@@ -286,9 +149,7 @@ public class EMAudioPlayer implements AudioCapabilitiesReceiver.Listener {
         stopPlayback();
         setDataSource(null, null);
 
-        if (!useExo) {
-            mediaPlayer.reset();
-        }
+        mediaPlayerImpl.reset();
     }
 
     /**
@@ -307,11 +168,7 @@ public class EMAudioPlayer implements AudioCapabilitiesReceiver.Listener {
             milliSeconds = (int)getDuration();
         }
 
-        if (!useExo) {
-            mediaPlayer.seekTo(milliSeconds);
-        } else {
-            emExoPlayer.seekTo(milliSeconds);
-        }
+        mediaPlayerImpl.seekTo(milliSeconds);
     }
 
     /**
@@ -320,11 +177,7 @@ public class EMAudioPlayer implements AudioCapabilitiesReceiver.Listener {
      * @return True if an audio item is playing
      */
     public boolean isPlaying() {
-        if (!useExo) {
-            return mediaPlayer.isPlaying();
-        }
-
-        return emExoPlayer.getPlayWhenReady();
+        return mediaPlayerImpl.isPlaying();
     }
 
     /**
@@ -332,46 +185,25 @@ public class EMAudioPlayer implements AudioCapabilitiesReceiver.Listener {
      * This should be called after the AudioPlayer is correctly prepared (see {@link #setOnPreparedListener(android.media.MediaPlayer.OnPreparedListener)})
      */
     public void start() {
-        if (!useExo) {
-            mediaPlayer.start();
-        } else {
-            emExoPlayer.setPlayWhenReady(true);
-        }
+        mediaPlayerImpl.start();
     }
 
     /**
      * If an audio item is currently in playback, it will be paused
      */
     public void pause() {
-        if (!useExo) {
-            mediaPlayer.pause();
-        } else {
-            emExoPlayer.setPlayWhenReady(false);
-        }
+        mediaPlayerImpl.pause();
     }
 
     /**
      * If an audio item is currently in playback then the playback will be stopped
      */
     public void stopPlayback() {
-        if (!useExo) {
-            mediaPlayer.stop();
-        } else {
-            emExoPlayer.setPlayWhenReady(false);
-        }
+        mediaPlayerImpl.stopPlayback();
     }
 
     public void release() {
-        if (!useExo) {
-            mediaPlayer.release();
-        } else {
-            emExoPlayer.release();
-        }
-
-        if (audioCapabilitiesReceiver != null) {
-            audioCapabilitiesReceiver.unregister();
-            audioCapabilitiesReceiver = null;
-        }
+        mediaPlayerImpl.release();
     }
 
     /**
@@ -386,15 +218,7 @@ public class EMAudioPlayer implements AudioCapabilitiesReceiver.Listener {
             return overriddenDuration;
         }
 
-        if (!listenerMux.isPrepared()) {
-            return 0;
-        }
-
-        if (!useExo) {
-            return mediaPlayer.getDuration();
-        }
-
-        return emExoPlayer.getDuration();
+        return mediaPlayerImpl.getDuration();
     }
 
     /**
@@ -416,15 +240,7 @@ public class EMAudioPlayer implements AudioCapabilitiesReceiver.Listener {
      * @return The millisecond value for the current position
      */
     public long getCurrentPosition() {
-        if (!listenerMux.isPrepared()) {
-            return 0;
-        }
-
-        if (!useExo) {
-            return mediaPlayer.getCurrentPosition();
-        }
-
-        return emExoPlayer.getCurrentPosition();
+        return mediaPlayerImpl.getCurrentPosition();
     }
 
     /**
@@ -435,15 +251,7 @@ public class EMAudioPlayer implements AudioCapabilitiesReceiver.Listener {
      * @return The integer percent that is buffered [0, 100] inclusive
      */
     public int getBufferPercentage() {
-        if (!listenerMux.isPrepared()) {
-            return 0;
-        }
-
-        if (!useExo) {
-            return currentBufferPercent;
-        }
-
-        return emExoPlayer.getBufferedPercentage();
+        return mediaPlayerImpl.getBufferedPercent();
     }
 
     /**
@@ -537,7 +345,7 @@ public class EMAudioPlayer implements AudioCapabilitiesReceiver.Listener {
 
         @Override
         public void onBufferUpdated(int percent) {
-            currentBufferPercent = percent;
+            //purposefully left blank
         }
     }
 }

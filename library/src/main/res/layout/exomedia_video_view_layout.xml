@@ -4,7 +4,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent">
 
-    <com.devbrackets.android.exomedia.ui.widget.video.NativeVideoView
+    <com.devbrackets.android.exomedia.core.video.NativeVideoView
         android:id="@+id/exomedia_video_view"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

@@ -14,38 +14,29 @@
  * limitations under the License.
  */
 
-package com.devbrackets.android.exomedia.ui.util;
+package com.devbrackets.android.exomedia.core.type;
 
+import android.content.Context;
 import android.net.Uri;
 import android.support.annotation.FloatRange;
 import android.support.annotation.IntRange;
-import android.support.annotation.Nullable;
-import android.view.View;
 
 import com.devbrackets.android.exomedia.core.EMListenerMux;
 import com.devbrackets.android.exomedia.core.builder.RenderBuilder;
+import com.devbrackets.android.exomedia.util.MediaType;
 
 /**
- * The basic APIs expected in the backing video view
+ * The basic APIs expected in the backing media player
  * implementations to allow us to create an abstraction
- * between the Native (Android) VideoView and the VideoView
+ * between the Native (Android) MediaPlayer and the AudioPlayer
  * using the ExoPlayer.
  */
-public interface VideoViewApi {
+public interface MediaPlayerApi {
+    void setDataSource(Context context, Uri uri, MediaType defaultMediaType);
 
-    interface OnSurfaceSizeChanged {
-        void onSurfaceSizeChanged(int width, int height);
-    }
+    void setDataSource(Context context, Uri uri, RenderBuilder renderBuilder);
 
-    int getHeight();
-
-    int getWidth();
-
-    void setVideoUri(@Nullable Uri uri, @Nullable RenderBuilder renderBuilder);
-
-    boolean setVolume(@FloatRange(from = 0.0, to = 1.0) float volume);
-
-    void seekTo(@IntRange(from = 0) int milliseconds);
+    void prepareAsync();
 
     boolean isPlaying();
 
@@ -55,9 +46,9 @@ public interface VideoViewApi {
 
     void stopPlayback();
 
-    void suspend();
-
     void release();
+
+    void reset();
 
     @IntRange(from = 0)
     int getDuration();
@@ -68,11 +59,15 @@ public interface VideoViewApi {
     @IntRange(from = 0, to = 100)
     int getBufferedPercent();
 
-    void setOnTouchListener(View.OnTouchListener listener);
+    int getAudioSessionId();
+
+    void setAudioStreamType(int streamType);
+
+    void setVolume(@FloatRange(from = 0.0, to = 1.0) float left, @FloatRange(from = 0.0, to = 1.0) float right);
+
+    void seekTo(@IntRange(from = 0) int milliseconds);
+
+    void setWakeMode(Context context, int mode);
 
     void setListenerMux(EMListenerMux listenerMux);
-
-    void updateAspectRatio(float aspectRatio);
-
-    void setOnSizeChangedListener(@Nullable OnSurfaceSizeChanged listener);
 }

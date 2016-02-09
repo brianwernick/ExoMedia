@@ -36,17 +36,12 @@ import android.view.ViewTreeObserver;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 
-import com.devbrackets.android.exomedia.BuildConfig;
 import com.devbrackets.android.exomedia.R;
 import com.devbrackets.android.exomedia.core.EMListenerMux;
-import com.devbrackets.android.exomedia.core.builder.DashRenderBuilder;
-import com.devbrackets.android.exomedia.core.builder.HlsRenderBuilder;
 import com.devbrackets.android.exomedia.core.builder.RenderBuilder;
-import com.devbrackets.android.exomedia.core.builder.SmoothStreamRenderBuilder;
 import com.devbrackets.android.exomedia.core.exoplayer.EMExoPlayer;
 import com.devbrackets.android.exomedia.core.listener.ExoPlayerListener;
-import com.devbrackets.android.exomedia.type.MediaSourceType;
-import com.devbrackets.android.exomedia.ui.util.VideoViewApi;
+import com.devbrackets.android.exomedia.core.type.VideoViewApi;
 import com.devbrackets.android.exomedia.util.EMDeviceUtil;
 import com.devbrackets.android.exomedia.util.MediaType;
 import com.devbrackets.android.exomedia.util.Repeater;
@@ -64,7 +59,6 @@ import com.devbrackets.android.exomedia.util.StopWatch;
 @SuppressWarnings("UnusedDeclaration")
 public class EMVideoView extends RelativeLayout {
     private static final String TAG = EMVideoView.class.getSimpleName();
-    protected static final String USER_AGENT_FORMAT = "EMVideoView %s / Android %s / %s";
 
     protected View shutterTop;
     protected View shutterBottom;
@@ -223,27 +217,6 @@ public class EMVideoView extends RelativeLayout {
     }
 
     /**
-     * Creates and returns the correct render builder for the specified VideoType and uri.
-     *
-     * @param renderType The RenderType to use for creating the correct RenderBuilder
-     * @param uri The video's Uri
-     * @param defaultMediaType  The MediaType to use when auto-detection fails
-     * @return The appropriate RenderBuilder
-     */
-    private RenderBuilder getRendererBuilder(MediaSourceType renderType, Uri uri, MediaType defaultMediaType) {
-        switch (renderType) {
-            case HLS:
-                return new HlsRenderBuilder(getContext().getApplicationContext(), getUserAgent(), uri.toString());
-            case DASH:
-                return new DashRenderBuilder(getContext().getApplicationContext(), getUserAgent(), uri.toString());
-            case SMOOTH_STREAM:
-                return new SmoothStreamRenderBuilder(getContext().getApplicationContext(), getUserAgent(), uri.toString());
-            default:
-                return new RenderBuilder(getContext().getApplicationContext(), getUserAgent(), uri.toString());
-        }
-    }
-
-    /**
      * <b><em>WARNING:</em></b> Use of this method may cause memory leaks.
      * <p>
      * Enables or disables the automatic release when the EMVideoView is detached
@@ -268,16 +241,6 @@ public class EMVideoView extends RelativeLayout {
         overriddenPositionStopWatch.stop();
 
         videoViewImpl.release();
-    }
-
-    /**
-     * Retrieves the user agent that the EMVideoView will use when communicating
-     * with media servers
-     *
-     * @return The String user agent for the EMVideoView
-     */
-    public String getUserAgent() {
-        return String.format(USER_AGENT_FORMAT, BuildConfig.VERSION_NAME + " (" + BuildConfig.VERSION_CODE + ")", Build.VERSION.RELEASE, Build.MODEL);
     }
 
     /**
@@ -417,18 +380,18 @@ public class EMVideoView extends RelativeLayout {
      * @param defaultMediaType The MediaType to use when auto-detection fails
      */
     public void setVideoURI(@Nullable Uri uri, MediaType defaultMediaType) {
-        RenderBuilder builder = null;
-        if(uri != null) {
-            builder = getRendererBuilder(MediaSourceType.get(uri), uri, defaultMediaType);
-        }
+        videoUri = uri;
+        videoViewImpl.setVideoUri(uri, defaultMediaType);
 
-        setVideoURI(uri, builder);
+        if (videoControls != null) {
+            videoControls.restartLoading();
+        }
     }
 
     /**
      * Sets the Uri location for the video to play
      *
-     * @param uri              The video's Uri
+     * @param uri The video's Uri
      * @param renderBuilder    RenderBuilder that should be used
      */
     public void setVideoURI(@Nullable Uri uri, @Nullable RenderBuilder renderBuilder) {

@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package com.devbrackets.android.exomedia.ui.widget.video;
+package com.devbrackets.android.exomedia.core.video;
 
 import android.annotation.TargetApi;
 import android.content.Context;

@@ -14,28 +14,40 @@
  * limitations under the License.
  */
 
-package com.devbrackets.android.exomedia.core.type;
+package com.devbrackets.android.exomedia.core.api;
 
-import android.content.Context;
 import android.net.Uri;
 import android.support.annotation.FloatRange;
 import android.support.annotation.IntRange;
+import android.support.annotation.Nullable;
+import android.view.View;
 
 import com.devbrackets.android.exomedia.core.EMListenerMux;
 import com.devbrackets.android.exomedia.core.builder.RenderBuilder;
 
 /**
- * The basic APIs expected in the backing media player
+ * The basic APIs expected in the backing video view
  * implementations to allow us to create an abstraction
- * between the Native (Android) MediaPlayer and the AudioPlayer
+ * between the Native (Android) VideoView and the VideoView
  * using the ExoPlayer.
  */
-public interface MediaPlayerApi {
-    void setDataSource(Context context, Uri uri);
+public interface VideoViewApi {
 
-    void setDataSource(Context context, Uri uri, RenderBuilder renderBuilder);
+    interface OnSurfaceSizeChanged {
+        void onSurfaceSizeChanged(int width, int height);
+    }
 
-    void prepareAsync();
+    int getHeight();
+
+    int getWidth();
+
+    void setVideoUri(@Nullable Uri uri);
+
+    void setVideoUri(@Nullable Uri uri, @Nullable RenderBuilder renderBuilder);
+
+    boolean setVolume(@FloatRange(from = 0.0, to = 1.0) float volume);
+
+    void seekTo(@IntRange(from = 0) int milliseconds);
 
     boolean isPlaying();
 
@@ -45,9 +57,9 @@ public interface MediaPlayerApi {
 
     void stopPlayback();
 
-    void release();
+    void suspend();
 
-    void reset();
+    void release();
 
     @IntRange(from = 0)
     int getDuration();
@@ -58,15 +70,11 @@ public interface MediaPlayerApi {
     @IntRange(from = 0, to = 100)
     int getBufferedPercent();
 
-    int getAudioSessionId();
-
-    void setAudioStreamType(int streamType);
-
-    void setVolume(@FloatRange(from = 0.0, to = 1.0) float left, @FloatRange(from = 0.0, to = 1.0) float right);
-
-    void seekTo(@IntRange(from = 0) int milliseconds);
-
-    void setWakeMode(Context context, int mode);
+    void setOnTouchListener(View.OnTouchListener listener);
 
     void setListenerMux(EMListenerMux listenerMux);
+
+    void updateAspectRatio(float aspectRatio);
+
+    void setOnSizeChangedListener(@Nullable OnSurfaceSizeChanged listener);
 }

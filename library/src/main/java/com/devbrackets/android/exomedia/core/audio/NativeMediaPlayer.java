@@ -24,7 +24,7 @@ import android.util.Log;
 
 import com.devbrackets.android.exomedia.core.EMListenerMux;
 import com.devbrackets.android.exomedia.core.builder.RenderBuilder;
-import com.devbrackets.android.exomedia.core.type.MediaPlayerApi;
+import com.devbrackets.android.exomedia.core.api.MediaPlayerApi;
 
 public class NativeMediaPlayer extends MediaPlayer implements MediaPlayerApi, MediaPlayer.OnBufferingUpdateListener {
     private static final String TAG = "NativeMediaPlayer";

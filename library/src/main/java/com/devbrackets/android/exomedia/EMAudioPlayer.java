@@ -27,7 +27,7 @@ import com.devbrackets.android.exomedia.core.audio.NativeMediaPlayer;
 import com.devbrackets.android.exomedia.core.builder.RenderBuilder;
 import com.devbrackets.android.exomedia.core.exoplayer.EMExoPlayer;
 import com.devbrackets.android.exomedia.core.listener.ExoPlayerListener;
-import com.devbrackets.android.exomedia.core.type.MediaPlayerApi;
+import com.devbrackets.android.exomedia.core.api.MediaPlayerApi;
 import com.devbrackets.android.exomedia.util.EMDeviceUtil;
 
 /**

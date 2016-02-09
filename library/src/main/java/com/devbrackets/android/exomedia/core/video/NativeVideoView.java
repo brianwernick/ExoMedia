@@ -28,7 +28,7 @@ import android.widget.VideoView;
 
 import com.devbrackets.android.exomedia.core.EMListenerMux;
 import com.devbrackets.android.exomedia.core.builder.RenderBuilder;
-import com.devbrackets.android.exomedia.core.type.VideoViewApi;
+import com.devbrackets.android.exomedia.core.api.VideoViewApi;
 
 /**
  * A {@link VideoViewApi} implementation that uses the

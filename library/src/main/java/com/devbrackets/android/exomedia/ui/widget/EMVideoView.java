@@ -207,12 +207,7 @@ public class EMVideoView extends RelativeLayout {
     }
 
     private void initView(Context context, @Nullable AttributeSet attrs) {
-        final boolean useLegacy = Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN || !EMDeviceUtil.isDeviceCTSCompliant();
-        if (useLegacy) {
-            View.inflate(context, R.layout.exomedia_video_view_layout, this);
-        } else {
-            View.inflate(context, R.layout.exomedia_exo_view_layout, this);
-        }
+        View.inflate(context, R.layout.exomedia_video_view_layout, this);
 
         shutterBottom = findViewById(R.id.exomedia_video_shutter_bottom);
         shutterTop = findViewById(R.id.exomedia_video_shutter_top);
@@ -221,7 +216,7 @@ public class EMVideoView extends RelativeLayout {
 
         previewImageView = (ImageView) findViewById(R.id.exomedia_video_preview_image);
 
-        inflateVideoViewImpl(context, attrs, useLegacy);
+        inflateVideoViewImpl(context, attrs);
 
         videoViewImpl = (VideoViewApi) findViewById(R.id.exomedia_video_view);
 
@@ -232,7 +227,9 @@ public class EMVideoView extends RelativeLayout {
         videoViewImpl.setOnSizeChangedListener(muxNotifier);
     }
 
-    private void inflateVideoViewImpl(Context context, @Nullable AttributeSet attrs, boolean useLegacy) {
+    private void inflateVideoViewImpl(Context context, @Nullable AttributeSet attrs) {
+        final boolean useLegacy = Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN || !EMDeviceUtil.isDeviceCTSCompliant();
+
         ViewStub videoViewImplStub = (ViewStub) findViewById(R.id.video_view_api_impl_stub);
 
         final @LayoutRes int defaultVideoViewApiImplRes;

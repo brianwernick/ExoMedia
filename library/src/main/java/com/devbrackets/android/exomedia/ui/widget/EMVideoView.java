@@ -27,11 +27,13 @@ import android.net.Uri;
 import android.os.Build;
 import android.support.annotation.DrawableRes;
 import android.support.annotation.FloatRange;
+import android.support.annotation.LayoutRes;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewStub;
 import android.view.ViewTreeObserver;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
@@ -175,7 +177,7 @@ public class EMVideoView extends RelativeLayout {
 //            }
 //        });
 
-        initView(context);
+        initView(context, attrs);
         readAttributes(context, attrs);
     }
 
@@ -204,11 +206,12 @@ public class EMVideoView extends RelativeLayout {
         typedArray.recycle();
     }
 
-    private void initView(Context context) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN && EMDeviceUtil.isDeviceCTSCompliant()) {
-            View.inflate(context, R.layout.exomedia_exo_view_layout, this);
-        } else {
+    private void initView(Context context, @Nullable AttributeSet attrs) {
+        final boolean useLegacy = Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN || !EMDeviceUtil.isDeviceCTSCompliant();
+        if (useLegacy) {
             View.inflate(context, R.layout.exomedia_video_view_layout, this);
+        } else {
+            View.inflate(context, R.layout.exomedia_exo_view_layout, this);
         }
 
         shutterBottom = findViewById(R.id.exomedia_video_shutter_bottom);
@@ -217,6 +220,9 @@ public class EMVideoView extends RelativeLayout {
         shutterRight = findViewById(R.id.exomedia_video_shutter_right);
 
         previewImageView = (ImageView) findViewById(R.id.exomedia_video_preview_image);
+
+        inflateVideoViewImpl(context, attrs, useLegacy);
+
         videoViewImpl = (VideoViewApi) findViewById(R.id.exomedia_video_view);
 
         muxNotifier = new MuxNotifier();
@@ -224,6 +230,39 @@ public class EMVideoView extends RelativeLayout {
 
         videoViewImpl.setListenerMux(listenerMux);
         videoViewImpl.setOnSizeChangedListener(muxNotifier);
+    }
+
+    private void inflateVideoViewImpl(Context context, @Nullable AttributeSet attrs, boolean useLegacy) {
+        ViewStub videoViewImplStub = (ViewStub) findViewById(R.id.video_view_api_impl_stub);
+
+        final @LayoutRes int defaultVideoViewApiImplRes;
+        if(useLegacy) {
+            defaultVideoViewApiImplRes = R.layout.exomedia_default_native_video_view;
+        }
+        else {
+            defaultVideoViewApiImplRes = R.layout.exomedia_default_exo_video_view;
+        }
+
+        final @LayoutRes int videoViewApiImplRes;
+        if(attrs == null || isInEditMode()) {
+            videoViewApiImplRes = defaultVideoViewApiImplRes;
+        } else {
+            TypedArray typedArray = context.obtainStyledAttributes(attrs, R.styleable.EMVideoView);
+            if (typedArray == null) {
+                videoViewApiImplRes = defaultVideoViewApiImplRes;
+            } else {
+                if(useLegacy) {
+                    videoViewApiImplRes = typedArray.getResourceId(R.styleable.EMVideoView_videoViewApiImplLegacy, defaultVideoViewApiImplRes);
+                } else {
+                    videoViewApiImplRes = typedArray.getResourceId(R.styleable.EMVideoView_videoViewApiImpl, defaultVideoViewApiImplRes);
+                }
+
+                typedArray.recycle();
+            }
+        }
+
+        videoViewImplStub.setLayoutResource(videoViewApiImplRes);
+        videoViewImplStub.inflate();
     }
 
     /**

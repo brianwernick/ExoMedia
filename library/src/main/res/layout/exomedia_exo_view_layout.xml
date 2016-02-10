@@ -5,8 +5,9 @@
                 android:layout_height="match_parent"
                 android:background="@android:color/black">
 
-    <com.devbrackets.android.exomedia.core.video.ExoVideoView
-        android:id="@+id/exomedia_video_view"
+    <ViewStub
+        android:id="@+id/video_view_api_impl_stub"
+        android:inflatedId="@+id/exomedia_video_view"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_centerInParent="true"/>

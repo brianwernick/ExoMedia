@@ -2,5 +2,7 @@
 <resources>
     <declare-styleable name="EMVideoView">
         <attr name="useDefaultControls" format="boolean" />
+        <attr name="videoViewApiImpl" format="reference" />
+        <attr name="videoViewApiImplLegacy" format="reference" />
     </declare-styleable>
 </resources>

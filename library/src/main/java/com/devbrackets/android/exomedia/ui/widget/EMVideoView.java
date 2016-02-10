@@ -28,11 +28,13 @@ import android.os.Build;
 import android.support.annotation.DrawableRes;
 import android.support.annotation.FloatRange;
 import android.support.annotation.LayoutRes;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.ViewStub;
 import android.view.ViewTreeObserver;
 import android.widget.ImageView;
@@ -87,24 +89,24 @@ public class EMVideoView extends RelativeLayout {
 
     public EMVideoView(Context context) {
         super(context);
-        setup(context, null);
+        setup(null);
     }
 
     public EMVideoView(Context context, AttributeSet attrs) {
         super(context, attrs);
-        setup(context, attrs);
+        setup(attrs);
     }
 
     @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     public EMVideoView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
-        setup(context, attrs);
+        setup(attrs);
     }
 
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     public EMVideoView(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
         super(context, attrs, defStyleAttr, defStyleRes);
-        setup(context, attrs);
+        setup(attrs);
     }
 
     @Override
@@ -156,15 +158,26 @@ public class EMVideoView extends RelativeLayout {
         videoViewImpl.setOnTouchListener(listener);
 
         //Sets the onTouch listener for the shutters
-        shutterLeft.setOnTouchListener(listener);
-        shutterRight.setOnTouchListener(listener);
-        shutterTop.setOnTouchListener(listener);
-        shutterBottom.setOnTouchListener(listener);
+        if(shutterLeft != null) {
+            shutterLeft.setOnTouchListener(listener);
+        }
+
+        if(shutterRight != null) {
+            shutterRight.setOnTouchListener(listener);
+        }
+
+        if(shutterTop != null) {
+            shutterTop.setOnTouchListener(listener);
+        }
+
+        if(shutterBottom != null) {
+            shutterBottom.setOnTouchListener(listener);
+        }
 
         super.setOnTouchListener(listener);
     }
 
-    private void setup(Context context, @Nullable AttributeSet attrs) {
+    private void setup(@Nullable AttributeSet attrs) {
         //TODO: we need this in the DefaultControls
 //        pollRepeater.setRepeatListener(new Repeater.RepeatListener() {
 //            @Override
@@ -177,48 +190,36 @@ public class EMVideoView extends RelativeLayout {
 //            }
 //        });
 
-        initView(context, attrs);
-        readAttributes(context, attrs);
+        TypedArray typedArray = null;
+        if (attrs != null && !isInEditMode()) {
+            typedArray = getContext().obtainStyledAttributes(attrs, R.styleable.EMVideoView);
+        }
+
+        initView(typedArray);
+        if(typedArray != null) {
+            initDefaultControls(typedArray);
+            typedArray.recycle();
+        }
     }
 
-    /**
-     * Reads the attributes associated with this view, setting any values found
-     *
-     * @param context The context to retrieve the styled attributes with
-     * @param attrs The {@link AttributeSet} to retrieve the values from
-     */
-    private void readAttributes(Context context, @Nullable AttributeSet attrs) {
-        if (attrs == null || isInEditMode()) {
-            return;
-        }
-
-        TypedArray typedArray = context.obtainStyledAttributes(attrs, R.styleable.EMVideoView);
-        if (typedArray == null) {
-            return;
-        }
-
+    private void initDefaultControls(@NonNull TypedArray typedArray) {
         //Updates the VideoControls if specified
         boolean useDefaultControls = typedArray.getBoolean(R.styleable.EMVideoView_useDefaultControls, false);
         if (useDefaultControls) {
             setControls(EMDeviceUtil.isDeviceTV(getContext()) ? new VideoControlsLeanback(getContext()) : new VideoControlsMobile(getContext()));
         }
-
-        typedArray.recycle();
     }
 
-    private void initView(Context context, @Nullable AttributeSet attrs) {
-        View.inflate(context, R.layout.exomedia_video_view_layout, this);
-
-        shutterBottom = findViewById(R.id.exomedia_video_shutter_bottom);
-        shutterTop = findViewById(R.id.exomedia_video_shutter_top);
-        shutterLeft = findViewById(R.id.exomedia_video_shutter_left);
-        shutterRight = findViewById(R.id.exomedia_video_shutter_right);
+    private void initView(@Nullable TypedArray typedArray) {
+        View.inflate(getContext(), R.layout.exomedia_video_view_layout, this);
 
         previewImageView = (ImageView) findViewById(R.id.exomedia_video_preview_image);
 
-        inflateVideoViewImpl(context, attrs);
+        inflateVideoViewImpl(typedArray);
 
         videoViewImpl = (VideoViewApi) findViewById(R.id.exomedia_video_view);
+
+        initShutterViews(typedArray);
 
         muxNotifier = new MuxNotifier();
         listenerMux = new EMListenerMux(muxNotifier);
@@ -227,7 +228,33 @@ public class EMVideoView extends RelativeLayout {
         videoViewImpl.setOnSizeChangedListener(muxNotifier);
     }
 
-    private void inflateVideoViewImpl(Context context, @Nullable AttributeSet attrs) {
+    private void initShutterViews(@Nullable TypedArray typedArray) {
+        shutterBottom = findViewById(R.id.exomedia_video_shutter_bottom);
+        shutterTop = findViewById(R.id.exomedia_video_shutter_top);
+        shutterLeft = findViewById(R.id.exomedia_video_shutter_left);
+        shutterRight = findViewById(R.id.exomedia_video_shutter_right);
+
+        if(typedArray != null) {
+            boolean hideShutters = typedArray.getBoolean(R.styleable.EMVideoView_videoViewHideShutters, false);
+
+            if(hideShutters) {
+                ViewGroup.LayoutParams lp = ((View) videoViewImpl).getLayoutParams();
+                lp.height = ViewGroup.LayoutParams.MATCH_PARENT;
+
+                removeView(shutterBottom);
+                removeView(shutterTop);
+                removeView(shutterLeft);
+                removeView(shutterRight);
+
+                shutterBottom = null;
+                shutterTop = null;
+                shutterLeft = null;
+                shutterRight = null;
+            }
+        }
+    }
+
+    private void inflateVideoViewImpl(@Nullable TypedArray typedArray) {
         final boolean useLegacy = Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN || !EMDeviceUtil.isDeviceCTSCompliant();
 
         ViewStub videoViewImplStub = (ViewStub) findViewById(R.id.video_view_api_impl_stub);
@@ -241,20 +268,13 @@ public class EMVideoView extends RelativeLayout {
         }
 
         final @LayoutRes int videoViewApiImplRes;
-        if(attrs == null || isInEditMode()) {
+        if (typedArray == null) {
             videoViewApiImplRes = defaultVideoViewApiImplRes;
         } else {
-            TypedArray typedArray = context.obtainStyledAttributes(attrs, R.styleable.EMVideoView);
-            if (typedArray == null) {
-                videoViewApiImplRes = defaultVideoViewApiImplRes;
+            if(useLegacy) {
+                videoViewApiImplRes = typedArray.getResourceId(R.styleable.EMVideoView_videoViewApiImplLegacy, defaultVideoViewApiImplRes);
             } else {
-                if(useLegacy) {
-                    videoViewApiImplRes = typedArray.getResourceId(R.styleable.EMVideoView_videoViewApiImplLegacy, defaultVideoViewApiImplRes);
-                } else {
-                    videoViewApiImplRes = typedArray.getResourceId(R.styleable.EMVideoView_videoViewApiImpl, defaultVideoViewApiImplRes);
-                }
-
-                typedArray.recycle();
+                videoViewApiImplRes = typedArray.getResourceId(R.styleable.EMVideoView_videoViewApiImpl, defaultVideoViewApiImplRes);
             }
         }
 

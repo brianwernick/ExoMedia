@@ -4,5 +4,6 @@
         <attr name="useDefaultControls" format="boolean" />
         <attr name="videoViewApiImpl" format="reference" />
         <attr name="videoViewApiImplLegacy" format="reference" />
+        <attr name="videoViewHideShutters" format="boolean" />
     </declare-styleable>
 </resources>

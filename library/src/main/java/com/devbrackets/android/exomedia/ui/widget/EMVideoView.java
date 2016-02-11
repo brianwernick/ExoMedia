@@ -28,6 +28,7 @@ import android.os.Build;
 import android.support.annotation.DrawableRes;
 import android.support.annotation.FloatRange;
 import android.support.annotation.LayoutRes;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
 import android.view.GestureDetector;
@@ -40,10 +41,10 @@ import android.widget.RelativeLayout;
 
 import com.devbrackets.android.exomedia.R;
 import com.devbrackets.android.exomedia.core.EMListenerMux;
+import com.devbrackets.android.exomedia.core.api.VideoViewApi;
 import com.devbrackets.android.exomedia.core.builder.RenderBuilder;
 import com.devbrackets.android.exomedia.core.exoplayer.EMExoPlayer;
 import com.devbrackets.android.exomedia.core.listener.ExoPlayerListener;
-import com.devbrackets.android.exomedia.core.api.VideoViewApi;
 import com.devbrackets.android.exomedia.util.EMDeviceUtil;
 import com.devbrackets.android.exomedia.util.Repeater;
 import com.devbrackets.android.exomedia.util.StopWatch;
@@ -81,7 +82,7 @@ public class EMVideoView extends RelativeLayout {
     protected StopWatch overriddenPositionStopWatch = new StopWatch();
 
     protected MuxNotifier muxNotifier = new MuxNotifier();
-    private EMListenerMux listenerMux;
+    protected EMListenerMux listenerMux;
 
     protected boolean releaseOnDetachFromWindow = true;
 
@@ -139,8 +140,6 @@ public class EMVideoView extends RelativeLayout {
         forceLayout();
         invalidate();
     }
-
-
 
     @Override
     protected void onLayout(boolean changed, int l, int t, int r, int b) {
@@ -206,8 +205,8 @@ public class EMVideoView extends RelativeLayout {
         typedArray.recycle();
     }
 
-    private void initView(Context context, @Nullable AttributeSet attrs) {
-        View.inflate(context, R.layout.exomedia_video_view_layout, this);
+    protected void initView(Context context, @Nullable AttributeSet attrs) {
+        inflateVideoView(context, attrs);
 
         shutterBottom = findViewById(R.id.exomedia_video_shutter_bottom);
         shutterTop = findViewById(R.id.exomedia_video_shutter_top);
@@ -215,9 +214,6 @@ public class EMVideoView extends RelativeLayout {
         shutterRight = findViewById(R.id.exomedia_video_shutter_right);
 
         previewImageView = (ImageView) findViewById(R.id.exomedia_video_preview_image);
-
-        inflateVideoViewImpl(context, attrs);
-
         videoViewImpl = (VideoViewApi) findViewById(R.id.exomedia_video_view);
 
         muxNotifier = new MuxNotifier();
@@ -225,41 +221,6 @@ public class EMVideoView extends RelativeLayout {
 
         videoViewImpl.setListenerMux(listenerMux);
         videoViewImpl.setOnSizeChangedListener(muxNotifier);
-    }
-
-    private void inflateVideoViewImpl(Context context, @Nullable AttributeSet attrs) {
-        final boolean useLegacy = Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN || !EMDeviceUtil.isDeviceCTSCompliant();
-
-        ViewStub videoViewImplStub = (ViewStub) findViewById(R.id.video_view_api_impl_stub);
-
-        final @LayoutRes int defaultVideoViewApiImplRes;
-        if(useLegacy) {
-            defaultVideoViewApiImplRes = R.layout.exomedia_default_native_video_view;
-        }
-        else {
-            defaultVideoViewApiImplRes = R.layout.exomedia_default_exo_video_view;
-        }
-
-        final @LayoutRes int videoViewApiImplRes;
-        if(attrs == null || isInEditMode()) {
-            videoViewApiImplRes = defaultVideoViewApiImplRes;
-        } else {
-            TypedArray typedArray = context.obtainStyledAttributes(attrs, R.styleable.EMVideoView);
-            if (typedArray == null) {
-                videoViewApiImplRes = defaultVideoViewApiImplRes;
-            } else {
-                if(useLegacy) {
-                    videoViewApiImplRes = typedArray.getResourceId(R.styleable.EMVideoView_videoViewApiImplLegacy, defaultVideoViewApiImplRes);
-                } else {
-                    videoViewApiImplRes = typedArray.getResourceId(R.styleable.EMVideoView_videoViewApiImpl, defaultVideoViewApiImplRes);
-                }
-
-                typedArray.recycle();
-            }
-        }
-
-        videoViewImplStub.setLayoutResource(videoViewApiImplRes);
-        videoViewImplStub.inflate();
     }
 
     /**
@@ -688,6 +649,63 @@ public class EMVideoView extends RelativeLayout {
     }
 
     /**
+     * Inflates the video view layout, replacing the {@link ViewStub} with the
+     * correct backing implementation.
+     *
+     * @param context The context to use for inflating the correct video view
+     * @param attrs The attributes for retrieving custom backing implementations.
+     */
+    protected void inflateVideoView(@NonNull Context context, @Nullable AttributeSet attrs) {
+        View.inflate(context, R.layout.exomedia_video_view_layout, this);
+        ViewStub videoViewStub = (ViewStub) findViewById(R.id.video_view_api_impl_stub);
+
+        videoViewStub.setLayoutResource(getVideoViewApiImplementation(context, attrs));
+        videoViewStub.inflate();
+    }
+
+    /**
+     * Retrieves the layout resource to use for the backing video view implementation.  By
+     * default this uses the Android {@link android.widget.VideoView} on legacy devices with
+     * APIs below Jellybean (16) or that don't pass the Compatibility Test Suite [CTS] via
+     * {@link com.devbrackets.android.exomedia.core.video.NativeVideoView}
+     * , and an ExoPlayer backed video view on the remaining devices via
+     * {@link com.devbrackets.android.exomedia.core.video.ExoVideoView}.
+     *
+     * In the rare cases that the default implementations need to be extended, or replaced, the
+     * user can override the value with the attributes <code>videoViewApiImplLegacy</code>
+     * and <code>videoViewApiImpl</code>.
+     *
+     * <b>NOTE:</b> overriding the default implementations may cause inconsistencies and isn't
+     * recommended.
+     *
+     * @param context The Context to use when retrieving the backing video view implementation
+     * @param attrs The attributes to use for finding overridden video view implementations
+     * @return The layout resource for the backing implementation on the current device
+     */
+    @LayoutRes
+    protected int getVideoViewApiImplementation(@NonNull Context context, @Nullable AttributeSet attrs) {
+        boolean useLegacy = Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN || !EMDeviceUtil.isDeviceCTSCompliant();
+        int defaultVideoViewApiImplRes = useLegacy ? R.layout.exomedia_default_native_video_view : R.layout.exomedia_default_exo_video_view;
+
+        if (attrs == null || isInEditMode()) {
+            return defaultVideoViewApiImplRes;
+        }
+
+        //If there aren't any EMVideoView styles specified, return the default implementation
+        TypedArray typedArray = context.obtainStyledAttributes(attrs, R.styleable.EMVideoView);
+        if (typedArray == null) {
+            return defaultVideoViewApiImplRes;
+        }
+
+        //Retrieves the specified implementation
+        int styleableRes = useLegacy ? R.styleable.EMVideoView_videoViewApiImplLegacy : R.styleable.EMVideoView_videoViewApiImpl;
+        int videoViewApiImplRes = typedArray.getResourceId(styleableRes, defaultVideoViewApiImplRes);;
+        typedArray.recycle();
+
+        return videoViewApiImplRes;
+    }
+
+    /**
      * Performs the functionality to stop the progress polling, and stop any other
      * procedures from running that we no longer need.
      */
@@ -794,8 +812,8 @@ public class EMVideoView extends RelativeLayout {
     /**
      * Monitors the view click events to show the video controls if they have been specified.
      */
-    private class TouchListener extends GestureDetector.SimpleOnGestureListener implements OnTouchListener {
-        private GestureDetector gestureDetector;
+    protected class TouchListener extends GestureDetector.SimpleOnGestureListener implements OnTouchListener {
+        protected GestureDetector gestureDetector;
 
         public TouchListener(Context context) {
             gestureDetector = new GestureDetector(context, this);

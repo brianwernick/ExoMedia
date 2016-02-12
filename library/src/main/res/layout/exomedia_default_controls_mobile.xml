@@ -53,15 +53,6 @@
         android:background="@drawable/exomedia_default_controls_interactive_background"
         android:orientation="vertical">
 
-        <!--TODO link up... also, maybe to the end of the progress views?-->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="right|end"
-            android:layout_marginLeft="16dp"
-            android:layout_marginRight="16dp"
-            android:orientation="horizontal"/>
-
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -91,10 +82,18 @@
                 android:id="@+id/exomedia_controls_end_time"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_alignParentRight="true"
+                android:layout_toLeftOf="@+id/exomedia_controls_extra_container"
                 android:layout_centerVertical="true"
                 android:textColor="@android:color/white"
                 tools:text="99:99" />
+
+            <LinearLayout
+                android:id="@+id/exomedia_controls_extra_container"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentRight="true"
+                android:orientation="horizontal"
+                tools:ignore="UselessLeaf"/>
         </RelativeLayout>
 
         <LinearLayout

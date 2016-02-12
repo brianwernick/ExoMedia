@@ -21,6 +21,7 @@ import android.content.Context;
 import android.os.Build;
 import android.support.annotation.IntRange;
 import android.util.AttributeSet;
+import android.widget.LinearLayout;
 import android.widget.SeekBar;
 
 import com.devbrackets.android.exomedia.R;
@@ -33,9 +34,11 @@ import com.devbrackets.android.exomedia.ui.animation.TopViewHideShowAnimation;
  * (Phone, Tablet, etc.) devices.
  */
 public class VideoControlsMobile extends VideoControls {
-    private SeekBar seekBar;
-    private boolean pausedForSeek = false;
-    private boolean userInteracting = false;
+    protected SeekBar seekBar;
+    protected LinearLayout extraViewsContainer;
+
+    protected boolean pausedForSeek = false;
+    protected boolean userInteracting = false;
 
     public VideoControlsMobile(Context context) {
         super(context);
@@ -102,6 +105,7 @@ public class VideoControlsMobile extends VideoControls {
     protected void retrieveViews() {
         super.retrieveViews();
         seekBar = (SeekBar) findViewById(R.id.exomedia_controls_video_seek);
+        extraViewsContainer = (LinearLayout) findViewById(R.id.exomedia_controls_extra_container);
     }
 
     /**
@@ -157,7 +161,7 @@ public class VideoControlsMobile extends VideoControls {
     /**
      * Listens to the seek bar change events and correctly handles the changes
      */
-    private class SeekBarChanged implements SeekBar.OnSeekBarChangeListener {
+    protected class SeekBarChanged implements SeekBar.OnSeekBarChangeListener {
         private int seekToTime;
 
         @Override

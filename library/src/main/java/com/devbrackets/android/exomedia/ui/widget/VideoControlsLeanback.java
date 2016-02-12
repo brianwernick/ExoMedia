@@ -41,20 +41,20 @@ import com.devbrackets.android.exomedia.ui.animation.BottomViewHideShowAnimation
  */
 @TargetApi(Build.VERSION_CODES.LOLLIPOP)
 public class VideoControlsLeanback extends VideoControls {
-    private static final int FAST_FORWARD_REWIND_AMOUNT = 10000; //10 seconds
+    protected static final int FAST_FORWARD_REWIND_AMOUNT = 10000; //10 seconds
 
-    private ProgressBar progressBar;
+    protected ProgressBar progressBar;
 
-    private ImageView rippleIndicator;
+    protected ImageView rippleIndicator;
 
-    private ImageButton fastForwardButton;
-    private ImageButton rewindButton;
+    protected ImageButton fastForwardButton;
+    protected ImageButton rewindButton;
 
-    private Drawable defaultRewindDrawable;
-    private Drawable defaultFastForwardDrawable;
+    protected Drawable defaultRewindDrawable;
+    protected Drawable defaultFastForwardDrawable;
 
-    private View currentFocus;
-    private ButtonFocusChangeListener buttonFocusChangeListener = new ButtonFocusChangeListener();
+    protected View currentFocus;
+    protected ButtonFocusChangeListener buttonFocusChangeListener = new ButtonFocusChangeListener();
 
     public VideoControlsLeanback(Context context) {
         super(context);
@@ -294,7 +294,7 @@ public class VideoControlsLeanback extends VideoControls {
      * Performs the functionality to rewind the current video by
      * {@value #FAST_FORWARD_REWIND_AMOUNT} milliseconds.
      */
-    private void onRewindClick() {
+    protected void onRewindClick() {
         int newPosition = (int) videoView.getCurrentPosition() - FAST_FORWARD_REWIND_AMOUNT;
         if (newPosition < 0) {
             newPosition = 0;
@@ -307,7 +307,7 @@ public class VideoControlsLeanback extends VideoControls {
      * Performs the functionality to fast forward the current video by
      * {@value #FAST_FORWARD_REWIND_AMOUNT} milliseconds.
      */
-    private void onFastForwardClick() {
+    protected void onFastForwardClick() {
         int newPosition = (int) videoView.getCurrentPosition() + FAST_FORWARD_REWIND_AMOUNT;
         if (newPosition > progressBar.getMax()) {
             newPosition = progressBar.getMax();
@@ -322,7 +322,7 @@ public class VideoControlsLeanback extends VideoControls {
      *
      * @param seekToTime The time to seek to in milliseconds
      */
-    private void performSeek(int seekToTime) {
+    protected void performSeek(int seekToTime) {
         if (seekCallbacks != null && seekCallbacks.onSeekEnded(seekToTime)) {
             return;
         }
@@ -335,7 +335,7 @@ public class VideoControlsLeanback extends VideoControls {
      * delay.  If the {@link #videoView} is not playing then the controls
      * will not be hidden.
      */
-    private void showTemporary() {
+    protected void showTemporary() {
         show();
 
         if (videoView.isPlaying()) {
@@ -347,7 +347,7 @@ public class VideoControlsLeanback extends VideoControls {
      * Registers all selectable fields for key events in order
      * to correctly handle navigation.
      */
-    private void registerForInput() {
+    protected void registerForInput() {
         RemoteKeyListener remoteKeyListener = new RemoteKeyListener();
         setOnKeyListener(remoteKeyListener);
 
@@ -364,7 +364,7 @@ public class VideoControlsLeanback extends VideoControls {
      *
      * @param view The view to find the next focus for
      */
-    private void focusNext(View view) {
+    protected void focusNext(View view) {
         int nextId = view.getNextFocusRightId();
         if (nextId == NO_ID) {
             return;
@@ -386,7 +386,7 @@ public class VideoControlsLeanback extends VideoControls {
      *
      * @param view The view to find the previous focus for
      */
-    private void focusPrevious(View view) {
+    protected void focusPrevious(View view) {
         int previousId = view.getNextFocusLeftId();
         if (previousId == NO_ID) {
             return;
@@ -407,7 +407,7 @@ public class VideoControlsLeanback extends VideoControls {
      * A listener to monitor the selected button and move the ripple
      * indicator when the focus shifts.
      */
-    private class ButtonFocusChangeListener implements OnFocusChangeListener {
+    protected class ButtonFocusChangeListener implements OnFocusChangeListener {
         @Override
         public void onFocusChange(View view, boolean hasFocus) {
             if (!hasFocus) {
@@ -419,7 +419,7 @@ public class VideoControlsLeanback extends VideoControls {
             rippleIndicator.startAnimation(new RippleTranslateAnimation(xDelta));
         }
 
-        private int getHorizontalDelta(View selectedView) {
+        protected int getHorizontalDelta(View selectedView) {
             int[] position = new int[2];
             selectedView.getLocationOnScreen(position);
 
@@ -435,7 +435,7 @@ public class VideoControlsLeanback extends VideoControls {
      * A listener to catch the key events so that we can correctly perform the
      * playback functionality and to hide/show the controls
      */
-    private class RemoteKeyListener implements OnKeyListener {
+    protected class RemoteKeyListener implements OnKeyListener {
         /**
          * NOTE: the view is not always the currently focused view, thus the
          * {@link #currentFocus} variable
@@ -520,10 +520,10 @@ public class VideoControlsLeanback extends VideoControls {
      * An animation for moving the ripple indicator to the correctly
      * focused view.
      */
-    private class RippleTranslateAnimation extends TranslateAnimation implements Animation.AnimationListener {
-        private static final long DURATION = 250;
+    protected class RippleTranslateAnimation extends TranslateAnimation implements Animation.AnimationListener {
+        protected static final long DURATION = 250;
 
-        private int xDelta;
+        protected int xDelta;
 
         public RippleTranslateAnimation(int xDelta) {
             super(0, xDelta, 0, 0);

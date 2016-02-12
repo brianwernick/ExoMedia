@@ -24,6 +24,7 @@ import android.os.Handler;
 import android.support.annotation.DrawableRes;
 import android.support.annotation.IntRange;
 import android.support.annotation.LayoutRes;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
 import android.view.View;
@@ -36,6 +37,9 @@ import android.widget.TextView;
 import com.devbrackets.android.exomedia.R;
 import com.devbrackets.android.exomedia.listener.DefaultControlsListener;
 import com.devbrackets.android.exomedia.util.EMResourceUtil;
+
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * This is a simple abstraction for the EMVideoView to have a single "View" to add
@@ -392,6 +396,19 @@ public abstract class VideoControls extends RelativeLayout {
      */
     public void setFastForwardButtonRemoved(boolean removed) {
         //Purposefully left blank
+    }
+
+    public void addExtraView(@NonNull View view) {
+        //Purposefully left blank
+    }
+
+    public void removeExtraView(@NonNull View view) {
+        //Purposefully left blank
+    }
+
+    @NonNull
+    public List<View> getExtraViews() {
+        return new LinkedList<>();
     }
 
     /**

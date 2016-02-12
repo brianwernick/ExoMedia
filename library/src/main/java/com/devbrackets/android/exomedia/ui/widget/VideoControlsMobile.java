@@ -20,7 +20,9 @@ import android.annotation.TargetApi;
 import android.content.Context;
 import android.os.Build;
 import android.support.annotation.IntRange;
+import android.support.annotation.NonNull;
 import android.util.AttributeSet;
+import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.SeekBar;
 
@@ -28,6 +30,9 @@ import com.devbrackets.android.exomedia.R;
 import com.devbrackets.android.exomedia.util.TimeFormatUtil;
 import com.devbrackets.android.exomedia.ui.animation.BottomViewHideShowAnimation;
 import com.devbrackets.android.exomedia.ui.animation.TopViewHideShowAnimation;
+
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * Provides playback controls for the EMVideoView on Mobile
@@ -116,6 +121,33 @@ public class VideoControlsMobile extends VideoControls {
     protected void registerListeners() {
         super.registerListeners();
         seekBar.setOnSeekBarChangeListener(new SeekBarChanged());
+    }
+
+    @Override
+    public void addExtraView(@NonNull View view) {
+        extraViewsContainer.addView(view);
+    }
+
+    @Override
+    public void removeExtraView(@NonNull View view) {
+        extraViewsContainer.removeView(view);
+    }
+
+    @NonNull
+    @Override
+    public List<View> getExtraViews() {
+        int childCount = extraViewsContainer.getChildCount();
+        if (childCount <= 0) {
+            return super.getExtraViews();
+        }
+
+        //Retrieves the layouts children
+        List<View> children = new LinkedList<>();
+        for (int i = 0; i < childCount; i++) {
+            children.add(extraViewsContainer.getChildAt(i));
+        }
+
+        return children;
     }
 
     /**

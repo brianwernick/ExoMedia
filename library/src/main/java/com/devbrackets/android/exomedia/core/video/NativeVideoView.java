@@ -24,17 +24,16 @@ import android.support.annotation.FloatRange;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
-import android.widget.VideoView;
 
 import com.devbrackets.android.exomedia.core.EMListenerMux;
-import com.devbrackets.android.exomedia.core.builder.RenderBuilder;
 import com.devbrackets.android.exomedia.core.api.VideoViewApi;
+import com.devbrackets.android.exomedia.core.builder.RenderBuilder;
 
 /**
  * A {@link VideoViewApi} implementation that uses the
  * standard Android VideoView as an implementation
  */
-public class NativeVideoView extends VideoView implements VideoViewApi {
+public class NativeVideoView extends TextureVideoView implements VideoViewApi {
     private OnTouchListener touchListener;
     protected EMListenerMux listenerMux;
 

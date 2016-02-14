@@ -149,7 +149,7 @@ public class EMAudioPlayer {
      */
     public void seekTo(int milliSeconds) {
         if (milliSeconds > getDuration()) {
-            milliSeconds = (int)getDuration();
+            milliSeconds = getDuration();
         }
 
         mediaPlayerImpl.seekTo(milliSeconds);
@@ -197,7 +197,7 @@ public class EMAudioPlayer {
      *
      * @return The millisecond duration of the video
      */
-    public long getDuration() {
+    public int getDuration() {
         if (overriddenDuration >= 0) {
             return overriddenDuration;
         }
@@ -223,7 +223,7 @@ public class EMAudioPlayer {
      *
      * @return The millisecond value for the current position
      */
-    public long getCurrentPosition() {
+    public int getCurrentPosition() {
         return mediaPlayerImpl.getCurrentPosition();
     }
 

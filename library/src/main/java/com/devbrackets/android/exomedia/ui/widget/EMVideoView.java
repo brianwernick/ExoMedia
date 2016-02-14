@@ -142,11 +142,11 @@ public class EMVideoView extends RelativeLayout {
     }
 
     @Override
-    protected void onLayout(boolean changed, int l, int t, int r, int b) {
-        super.onLayout(changed, l, t, r, b);
+    protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
+        super.onLayout(changed, left, top, right, bottom);
 
         if (changed) {
-            updateVideoShutters(r, b, videoViewImpl.getWidth(), videoViewImpl.getHeight());
+            updateVideoShutters(right, bottom, videoViewImpl.getWidth(), videoViewImpl.getHeight());
         }
     }
 
@@ -514,7 +514,7 @@ public class EMVideoView extends RelativeLayout {
      *
      * @return The millisecond duration of the video
      */
-    public long getDuration() {
+    public int getDuration() {
         if (overriddenDuration >= 0) {
             return overriddenDuration;
         }
@@ -540,9 +540,9 @@ public class EMVideoView extends RelativeLayout {
      *
      * @return The millisecond value for the current position
      */
-    public long getCurrentPosition() {
+    public int getCurrentPosition() {
         if (overridePosition) {
-            return positionOffset + overriddenPositionStopWatch.getTime();
+            return positionOffset + overriddenPositionStopWatch.getTimeInt();
         }
 
         return positionOffset + videoViewImpl.getCurrentPosition();

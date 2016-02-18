@@ -473,7 +473,7 @@ public class EMAudioPlayer implements AudioCapabilitiesReceiver.Listener {
         if (!useExo) {
             mediaPlayer.stop();
         } else {
-            emExoPlayer.setPlayWhenReady(false);
+            emExoPlayer.stop();
         }
 
         stopProgressPoll();

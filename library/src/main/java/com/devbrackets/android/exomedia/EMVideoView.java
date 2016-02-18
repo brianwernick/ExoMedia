@@ -962,7 +962,7 @@ public class EMVideoView extends RelativeLayout implements AudioCapabilitiesRece
         if (!useExo) {
             videoView.stopPlayback();
         } else {
-            emExoPlayer.setPlayWhenReady(false);
+            emExoPlayer.stop();
         }
 
         if (defaultControls != null) {

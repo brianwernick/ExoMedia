@@ -129,7 +129,7 @@ public class ExoVideoView extends VideoTextureView implements VideoViewApi, Audi
 
     @Override
     public void stopPlayback() {
-        emExoPlayer.setPlayWhenReady(false);
+        emExoPlayer.stop();
         playRequested = false;
     }
 

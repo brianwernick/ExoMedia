@@ -130,7 +130,7 @@ public class ExoMediaPlayer implements MediaPlayerApi, AudioCapabilitiesReceiver
 
     @Override
     public void stopPlayback() {
-        emExoPlayer.setPlayWhenReady(false);
+        emExoPlayer.stop();
         playRequested = false;
     }
 

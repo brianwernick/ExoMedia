@@ -254,6 +254,11 @@ public class EMExoPlayer implements
         reportPlayerState();
     }
 
+    public void stop() {
+        player.setPlayWhenReady(false);
+        player.stop();
+    }
+
     public void setPlayWhenReady(boolean playWhenReady) {
         player.setPlayWhenReady(playWhenReady);
         stayAwake(playWhenReady);

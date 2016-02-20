@@ -24,6 +24,8 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.support.annotation.DrawableRes;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
@@ -40,13 +42,14 @@ public class EMLockScreen {
     public static final String SESSION_TAG = "EMLockScreen.Session";
     public static final String RECEIVER_EXTRA_CLASS = "com.devbrackets.android.exomedia.RECEIVER_EXTRA_CLASS";
 
+    @NonNull
     private Context context;
-    private Class<? extends Service> mediaServiceClass;
+    @Nullable
+    private Bitmap appIconBitmap;
+    @Nullable
+    private MediaSessionCompat mediaSession;
 
     private boolean showLockScreen = true;
-
-    private Bitmap appIconBitmap;
-    private MediaSessionCompat mediaSession;
 
     /**
      * Creates a new EMLockScreen object
@@ -54,15 +57,14 @@ public class EMLockScreen {
      * @param context The context to use for holding a MediaSession and sending action intents
      * @param mediaServiceClass The class for the service that owns the backing MediaService and to notify of playback actions
      */
-    public EMLockScreen(Context context, Class<? extends Service> mediaServiceClass) {
+    public EMLockScreen(@NonNull Context context, @NonNull Class<? extends Service> mediaServiceClass) {
         this.context = context;
-        this.mediaServiceClass = mediaServiceClass;
 
         ComponentName componentName = new ComponentName(context, MediaControlsReceiver.class.getName());
 
-        mediaSession = new MediaSessionCompat(context, SESSION_TAG, componentName, getMediaButtonReceiverPendingIntent(componentName));
+        mediaSession = new MediaSessionCompat(context, SESSION_TAG, componentName, getMediaButtonReceiverPendingIntent(componentName, mediaServiceClass));
         mediaSession.setFlags(MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS | MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS);
-        mediaSession.setCallback(new SessionCallback());
+        mediaSession.setCallback(new SessionCallback(mediaServiceClass));
     }
 
     public void release() {
@@ -70,10 +72,7 @@ public class EMLockScreen {
             mediaSession.release();
         }
 
-        context = null;
         appIconBitmap = null;
-        mediaServiceClass = null;
-        mediaServiceClass = null;
     }
 
     /**
@@ -92,7 +91,7 @@ public class EMLockScreen {
         showLockScreen = enabled;
 
         //Remove the lock screen when disabling
-        if (!enabled) {
+        if (!enabled && mediaSession != null) {
             mediaSession.setActive(false);
         }
     }
@@ -135,8 +134,9 @@ public class EMLockScreen {
             metaDataBuilder.putBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART, mediaArtwork);
         }
 
-        mediaSession.setMetadata(metaDataBuilder.build());
-
+        if (mediaSession != null) {
+            mediaSession.setMetadata(metaDataBuilder.build());
+        }
 
         //Updates the available playback controls
         PlaybackStateCompat.Builder playbackStateBuilder = new PlaybackStateCompat.Builder();
@@ -151,11 +151,11 @@ public class EMLockScreen {
         }
     }
 
-    private PendingIntent getMediaButtonReceiverPendingIntent(ComponentName componentName) {
+    private PendingIntent getMediaButtonReceiverPendingIntent(ComponentName componentName, @NonNull Class<? extends Service> serviceClass) {
         Intent mediaButtonIntent = new Intent(Intent.ACTION_MEDIA_BUTTON);
         mediaButtonIntent.setComponent(componentName);
 
-        mediaButtonIntent.putExtra(RECEIVER_EXTRA_CLASS, mediaServiceClass.getName());
+        mediaButtonIntent.putExtra(RECEIVER_EXTRA_CLASS, serviceClass.getName());
         return PendingIntent.getBroadcast(context, 0, mediaButtonIntent, PendingIntent.FLAG_CANCEL_CURRENT);
     }
 
@@ -192,7 +192,7 @@ public class EMLockScreen {
      * @param serviceClass The service class to notify of intents
      * @return The resulting PendingIntent
      */
-    private PendingIntent createPendingIntent(String action, Class<? extends Service> serviceClass) {
+    private PendingIntent createPendingIntent(@NonNull String action, @NonNull Class<? extends Service> serviceClass) {
         Intent intent = new Intent(context, serviceClass);
         intent.setAction(action);
 
@@ -201,17 +201,17 @@ public class EMLockScreen {
 
     /**
      * A simple callback class to listen to the notifications received from the lock screen
-     * and forward them to the {@link #mediaServiceClass}
+     * and forward them to the specified Class
      */
     private class SessionCallback extends MediaSessionCompat.Callback {
         private PendingIntent playPausePendingIntent, nextPendingIntent, previousPendingIntent;
 
-        public SessionCallback() {
+        public SessionCallback(@NonNull Class<? extends Service> serviceClass) {
             super();
 
-            playPausePendingIntent = createPendingIntent(EMRemoteActions.ACTION_PLAY_PAUSE, mediaServiceClass);
-            nextPendingIntent = createPendingIntent(EMRemoteActions.ACTION_NEXT, mediaServiceClass);
-            previousPendingIntent = createPendingIntent(EMRemoteActions.ACTION_PREVIOUS, mediaServiceClass);
+            playPausePendingIntent = createPendingIntent(EMRemoteActions.ACTION_PLAY_PAUSE, serviceClass);
+            nextPendingIntent = createPendingIntent(EMRemoteActions.ACTION_NEXT, serviceClass);
+            previousPendingIntent = createPendingIntent(EMRemoteActions.ACTION_PREVIOUS, serviceClass);
         }
 
         @Override

@@ -26,6 +26,7 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.os.Build;
 import android.support.annotation.DrawableRes;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.NotificationCompat;
 import android.view.View;
@@ -36,16 +37,17 @@ import android.widget.RemoteViews;
  * media playback applications.
  */
 public class EMNotification {
+    @NonNull
     private Context context;
-    private NotificationManager notificationManager;
+    @NonNull
     private NotificationInfo notificationInfo = new NotificationInfo();
 
+    @Nullable
+    private NotificationManager notificationManager;
+    @Nullable
     private Class<? extends Service> mediaServiceClass;
 
-    private RemoteViews customNotification;
-    private RemoteViews bigContent;
-
-    public EMNotification(Context context) {
+    public EMNotification(@NonNull Context context) {
         this.context = context;
         notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
     }
@@ -58,9 +60,6 @@ public class EMNotification {
         dismiss();
 
         mediaServiceClass = null;
-        customNotification = null;
-        bigContent = null;
-
         notificationInfo.clean();
     }
 
@@ -68,7 +67,7 @@ public class EMNotification {
      * Dismisses the current active notification
      */
     public void dismiss() {
-        if (notificationManager != null && notificationInfo != null) {
+        if (notificationManager != null) {
             notificationManager.cancel(notificationInfo.getNotificationId());
         }
     }
@@ -78,7 +77,7 @@ public class EMNotification {
      * ready for playback (e.g. paused).  The notification information
      * will need to be updated by calling {@link #setNotificationBaseInformation(int, int)}
      * and {@link #updateNotificationInformation(String, String, String, Bitmap, Bitmap)} and can be retrieved
-     * with {@link #getNotification(android.app.PendingIntent)}
+     * with {@link #getNotification(android.app.PendingIntent, Class)}
      *
      * @param enabled True if notifications should be shown
      */
@@ -90,7 +89,7 @@ public class EMNotification {
         notificationInfo.setShowNotifications(enabled);
 
         //Remove the notification when disabling
-        if (!enabled) {
+        if (!enabled && notificationManager != null) {
             notificationManager.cancel(notificationInfo.getNotificationId());
         }
     }
@@ -171,8 +170,8 @@ public class EMNotification {
         notificationInfo.setSecondaryImage(secondaryNotificationImage);
         notificationInfo.setMediaState(notificationMediaState);
 
-        if (notificationInfo.getShowNotifications()) {
-            notificationManager.notify(notificationInfo.getNotificationId(), getNotification(notificationInfo.getPendingIntent()));
+        if (notificationInfo.getShowNotifications() && notificationManager != null && mediaServiceClass != null) {
+            notificationManager.notify(notificationInfo.getNotificationId(), getNotification(notificationInfo.getPendingIntent(), mediaServiceClass));
         }
     }
 
@@ -185,16 +184,16 @@ public class EMNotification {
      * @return The constructed notification
      */
     @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
-    public Notification getNotification(@Nullable PendingIntent pendingIntent) {
+    public Notification getNotification(@Nullable PendingIntent pendingIntent, @NonNull Class<? extends Service> serviceClass) {
         setClickPendingIntent(pendingIntent);
-        RemoteViews customNotificationViews = getCustomNotification();
+        RemoteViews customNotificationViews = getCustomNotification(serviceClass);
 
         boolean allowSwipe = notificationInfo.getMediaState() == null || !notificationInfo.getMediaState().isPlaying();
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(context);
         builder.setContent(customNotificationViews);
         builder.setContentIntent(pendingIntent);
-        builder.setDeleteIntent(createPendingIntent(EMRemoteActions.ACTION_STOP, mediaServiceClass));
+        builder.setDeleteIntent(createPendingIntent(EMRemoteActions.ACTION_STOP, serviceClass));
         builder.setSmallIcon(notificationInfo.getAppIcon());
         builder.setAutoCancel(allowSwipe);
         builder.setOngoing(!allowSwipe);
@@ -212,7 +211,7 @@ public class EMNotification {
         //Build the notification and set the expanded content view if there is a service to inform of clicks
         Notification notification = builder.build();
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN && mediaServiceClass != null) {
-            notification.bigContentView = getBigNotification();
+            notification.bigContentView = getBigNotification(serviceClass);
             notification.bigContentView.setOnClickPendingIntent(R.id.exomedia_big_notification_touch_area, pendingIntent);
         }
 
@@ -224,12 +223,12 @@ public class EMNotification {
      *
      * @return The resulting RemoteViews
      */
-    private RemoteViews getCustomNotification() {
-        customNotification = new RemoteViews(context.getPackageName(), R.layout.exomedia_notification_content);
+    private RemoteViews getCustomNotification(@NonNull Class<? extends Service> serviceClass) {
+        RemoteViews customNotification = new RemoteViews(context.getPackageName(), R.layout.exomedia_notification_content);
 
-        customNotification.setOnClickPendingIntent(R.id.exomedia_notification_playpause, createPendingIntent(EMRemoteActions.ACTION_PLAY_PAUSE, mediaServiceClass));
-        customNotification.setOnClickPendingIntent(R.id.exomedia_notification_next, createPendingIntent(EMRemoteActions.ACTION_NEXT, mediaServiceClass));
-        customNotification.setOnClickPendingIntent(R.id.exomedia_notification_prev, createPendingIntent(EMRemoteActions.ACTION_PREVIOUS, mediaServiceClass));
+        customNotification.setOnClickPendingIntent(R.id.exomedia_notification_playpause, createPendingIntent(EMRemoteActions.ACTION_PLAY_PAUSE, serviceClass));
+        customNotification.setOnClickPendingIntent(R.id.exomedia_notification_next, createPendingIntent(EMRemoteActions.ACTION_NEXT, serviceClass));
+        customNotification.setOnClickPendingIntent(R.id.exomedia_notification_prev, createPendingIntent(EMRemoteActions.ACTION_PREVIOUS, serviceClass));
 
         customNotification.setTextViewText(R.id.exomedia_notification_title, notificationInfo.getTitle());
         customNotification.setTextViewText(R.id.exomedia_notification_album, notificationInfo.getAlbum());
@@ -250,13 +249,13 @@ public class EMNotification {
      *
      * @return The resulting RemoteViews
      */
-    private RemoteViews getBigNotification() {
-        bigContent = new RemoteViews(context.getPackageName(), R.layout.exomedia_big_notification_content);
+    private RemoteViews getBigNotification(@NonNull Class<? extends Service> serviceClass) {
+        RemoteViews bigContent = new RemoteViews(context.getPackageName(), R.layout.exomedia_big_notification_content);
 
-        bigContent.setOnClickPendingIntent(R.id.exomedia_big_notification_close, createPendingIntent(EMRemoteActions.ACTION_STOP, mediaServiceClass));
-        bigContent.setOnClickPendingIntent(R.id.exomedia_big_notification_playpause, createPendingIntent(EMRemoteActions.ACTION_PLAY_PAUSE, mediaServiceClass));
-        bigContent.setOnClickPendingIntent(R.id.exomedia_big_notification_next, createPendingIntent(EMRemoteActions.ACTION_NEXT, mediaServiceClass));
-        bigContent.setOnClickPendingIntent(R.id.exomedia_big_notification_prev, createPendingIntent(EMRemoteActions.ACTION_PREVIOUS, mediaServiceClass));
+        bigContent.setOnClickPendingIntent(R.id.exomedia_big_notification_close, createPendingIntent(EMRemoteActions.ACTION_STOP, serviceClass));
+        bigContent.setOnClickPendingIntent(R.id.exomedia_big_notification_playpause, createPendingIntent(EMRemoteActions.ACTION_PLAY_PAUSE, serviceClass));
+        bigContent.setOnClickPendingIntent(R.id.exomedia_big_notification_next, createPendingIntent(EMRemoteActions.ACTION_NEXT, serviceClass));
+        bigContent.setOnClickPendingIntent(R.id.exomedia_big_notification_prev, createPendingIntent(EMRemoteActions.ACTION_PREVIOUS, serviceClass));
 
         bigContent.setTextViewText(R.id.exomedia_big_notification_title, notificationInfo.getTitle());
         bigContent.setTextViewText(R.id.exomedia_big_notification_album, notificationInfo.getAlbum());
@@ -313,7 +312,7 @@ public class EMNotification {
      * @param serviceClass The service class to notify of intents
      * @return The resulting PendingIntent
      */
-    private PendingIntent createPendingIntent(String action, Class<? extends Service> serviceClass) {
+    private PendingIntent createPendingIntent(String action, @NonNull Class<? extends Service> serviceClass) {
         Intent intent = new Intent(context, serviceClass);
         intent.setAction(action);
 

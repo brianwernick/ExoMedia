@@ -29,6 +29,7 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.os.PowerManager;
 import android.support.annotation.DrawableRes;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
@@ -74,27 +75,35 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
     }
 
     protected WifiManager.WifiLock wifiLock;
+    @Nullable
     protected EMAudioFocusHelper audioFocusHelper;
 
+    @Nullable
     protected EMAudioPlayer audioPlayer;
+    @Nullable
     protected EMMediaProgressEvent currentMediaProgress;
 
+    @Nullable
     protected EMNotification notificationHelper;
+    @Nullable
     protected EMLockScreen lockScreenHelper;
 
     protected boolean pausedForFocusLoss = false;
     protected MediaState currentState = MediaState.PREPARING;
 
+    @Nullable
     protected I currentPlaylistItem;
     protected int seekToPosition = -1;
     protected boolean immediatelyPause = false;
 
+    @NonNull
     protected AudioListener audioListener = new AudioListener();
     protected boolean pausedForSeek = false;
     protected boolean foregroundSetup;
     protected boolean notificationSetup;
 
     protected boolean onCreateCalled = false;
+    @Nullable
     protected Intent workaroundIntent = null;
 
     @Nullable
@@ -102,6 +111,7 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
     @Nullable
     protected String currentLockScreenArtworkUrl;
 
+    @NonNull
     protected List<EMPlaylistServiceCallback> callbackList = new LinkedList<>();
 
     /**
@@ -380,10 +390,12 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
 
         relaxResources(true);
         getMediaPlaylistManager().unRegisterService();
-        audioFocusHelper.setAudioFocusCallback(null);
-        audioFocusHelper.abandonFocus();
 
-        audioFocusHelper = null;
+        if (audioFocusHelper != null) {
+            audioFocusHelper.setAudioFocusCallback(null);
+            audioFocusHelper = null;
+        }
+
         notificationHelper = null;
         lockScreenHelper = null;
 
@@ -427,7 +439,7 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
      */
     @Override
     public boolean onAudioFocusGained() {
-        if (!currentItemIsAudio()) {
+        if (!currentItemIsAudio() || audioPlayer == null) {
             return false;
         }
 
@@ -446,12 +458,12 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
      */
     @Override
     public boolean onAudioFocusLost(boolean canDuckAudio) {
-        if (!currentItemIsAudio()) {
+        if (!currentItemIsAudio() || audioPlayer == null) {
             return false;
         }
 
-        if (audioFocusHelper.getCurrentAudioFocus() == EMAudioFocusHelper.Focus.NO_FOCUS_NO_DUCK) {
-            if (audioPlayer.isPlaying()) {
+        if (!canDuckAudio) {
+            if (audioPlayer.isPlaying() ) {
                 pausedForFocusLoss = true;
                 audioPlayer.pause();
                 updateNotification();
@@ -548,6 +560,7 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
         audioFocusHelper = new EMAudioFocusHelper(getApplicationContext());
         audioFocusHelper.setAudioFocusCallback(this);
         wifiLock = ((WifiManager) getSystemService(Context.WIFI_SERVICE)).createWifiLock(WifiManager.WIFI_MODE_FULL, "mcLock");
+        wifiLock.setReferenceCounted(false);
 
         notificationHelper = new EMNotification(getApplicationContext());
         lockScreenHelper = new EMLockScreen(getApplicationContext(), getClass());
@@ -642,8 +655,14 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
      * {@link EMPlaylistManager#invokeSeekStarted()}
      */
     protected void performSeekStarted() {
-        EMVideoView videoView = getMediaPlaylistManager().getVideoView();
-        boolean isPlaying = (currentItemIsAudio() && audioPlayer.isPlaying()) || (currentItemIsVideo() && videoView != null && videoView.isPlaying());
+        boolean isPlaying = false;
+
+        if (currentItemIsAudio()) {
+            isPlaying = audioPlayer != null && audioPlayer.isPlaying();
+        } else if (currentItemIsVideo()) {
+            EMVideoView videoView = getMediaPlaylistManager().getVideoView();
+            isPlaying = videoView != null && videoView.isPlaying();
+        }
 
         if (isPlaying) {
             pausedForSeek = true;
@@ -732,7 +751,6 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
 
         // let go of all resources
         relaxResources(true);
-        audioFocusHelper.abandonFocus();
 
         //Cleans out the avPlayListManager
         getMediaPlaylistManager().setParameters(null, 0);
@@ -748,10 +766,8 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
      * @param position The position to seek to in milliseconds
      */
     protected void performSeek(int position) {
-        if (currentItemIsAudio()) {
-            if (audioPlayer != null) {
-                audioPlayer.seekTo(position);
-            }
+        if (currentItemIsAudio() && audioPlayer != null) {
+            audioPlayer.seekTo(position);
         } else if (currentItemIsVideo()) {
             EMVideoView videoView = getMediaPlaylistManager().getVideoView();
             if (videoView != null) {
@@ -850,9 +866,9 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
      * Sets up the service as a Foreground service only if we aren't already registered as such
      */
     protected void setupForeground() {
-        if (!foregroundSetup && notificationSetup) {
+        if (!foregroundSetup && notificationSetup && notificationHelper != null) {
             foregroundSetup = true;
-            startForeground(getNotificationId(), notificationHelper.getNotification(getNotificationClickPendingIntent()));
+            startForeground(getNotificationId(), notificationHelper.getNotification(getNotificationClickPendingIntent(), getClass()));
         }
     }
 
@@ -904,10 +920,15 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
     protected void playAudioItem() {
         stopVideoPlayback();
         initializeAudioPlayer();
-        audioFocusHelper.requestFocus();
+        if (audioFocusHelper != null) {
+            audioFocusHelper.requestFocus();
+        }
 
-        boolean isItemDownloaded = isDownloaded(currentPlaylistItem);
+        //noinspection ConstantConditions -  currentPlaylistItem is not null at this point (see calling method for null check)
         audioPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+        boolean isItemDownloaded = isDownloaded(currentPlaylistItem);
+
+        //noinspection ConstantConditions -  currentPlaylistItem is not null at this point (see calling method for null check)
         audioPlayer.setDataSource(this, Uri.parse(isItemDownloaded ? currentPlaylistItem.getDownloadedMediaUri() : currentPlaylistItem.getMediaUrl()));
 
         setMediaState(MediaState.PREPARING);
@@ -936,6 +957,8 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
         if (videoView != null) {
             videoView.stopPlayback();
             boolean isItemDownloaded = isDownloaded(currentPlaylistItem);
+
+            //noinspection ConstantConditions -  currentPlaylistItem is not null at this point (see calling method for null check)
             videoView.setVideoURI(Uri.parse(isItemDownloaded ? currentPlaylistItem.getDownloadedMediaUri() : currentPlaylistItem.getMediaUrl()));
         }
     }
@@ -951,7 +974,9 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
      * Stops the AudioPlayer from playing.
      */
     protected void stopAudioPlayback() {
-        audioFocusHelper.abandonFocus();
+        if (audioFocusHelper != null) {
+            audioFocusHelper.abandonFocus();
+        }
 
         if (audioPlayer != null) {
             audioPlayer.stopPlayback();
@@ -982,7 +1007,7 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
             return;
         }
 
-        if (audioFocusHelper.getCurrentAudioFocus() == EMAudioFocusHelper.Focus.NO_FOCUS_NO_DUCK) {
+        if (audioFocusHelper == null ||audioFocusHelper.getCurrentAudioFocus() == EMAudioFocusHelper.Focus.NO_FOCUS_NO_DUCK) {
             // If we don't have audio focus and can't duck we have to pause, even if state is playing
             // Be we stay in the playing state so we know we have to resume playback once we get the focus back.
             if (audioPlayer.isPlaying()) {
@@ -1012,8 +1037,14 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
     protected void relaxResources(boolean releaseAudioPlayer) {
         stopForeground(true);
         foregroundSetup = false;
-        notificationHelper.release();
-        lockScreenHelper.release();
+
+        if (notificationHelper != null) {
+            notificationHelper.release();
+        }
+
+        if (lockScreenHelper != null) {
+            lockScreenHelper.release();
+        }
 
         notificationSetup = false;
 
@@ -1029,6 +1060,10 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
 
         if (wifiLock.isHeld()) {
             wifiLock.release();
+        }
+
+        if (audioFocusHelper != null) {
+            audioFocusHelper.abandonFocus();
         }
     }
 
@@ -1075,12 +1110,16 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
      */
     protected void setupAsForeground() {
         //Sets up the Lock Screen playback controls
-        lockScreenHelper.setLockScreenEnabled(true);
-        lockScreenHelper.setLockScreenBaseInformation(getLockScreenIconRes());
+        if (lockScreenHelper != null) {
+            lockScreenHelper.setLockScreenEnabled(true);
+            lockScreenHelper.setLockScreenBaseInformation(getLockScreenIconRes());
+        }
 
         //Sets up the Notifications
-        notificationHelper.setNotificationsEnabled(true);
-        notificationHelper.setNotificationBaseInformation(getNotificationId(), getNotificationIconRes(), getClass());
+        if (notificationHelper != null) {
+            notificationHelper.setNotificationsEnabled(true);
+            notificationHelper.setNotificationBaseInformation(getNotificationId(), getNotificationIconRes(), getClass());
+        }
 
         //Starts the service as the foreground audio player
         notificationSetup = true;
@@ -1289,7 +1328,6 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
 
             setMediaState(MediaState.ERROR);
             relaxResources(true);
-            audioFocusHelper.abandonFocus();
             return false;
         }
 
@@ -1307,7 +1345,7 @@ public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem
             //Immediately pauses
             if (immediatelyPause) {
                 immediatelyPause = false;
-                if (audioPlayer.isPlaying()) {
+                if (audioPlayer != null && audioPlayer.isPlaying()) {
                     performPause();
                 }
             }

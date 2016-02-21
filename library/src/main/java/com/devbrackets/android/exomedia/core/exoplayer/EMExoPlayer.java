@@ -268,11 +268,6 @@ public class EMExoPlayer implements
         player.seekTo(positionMs);
     }
 
-    public void stop() {
-        player.setPlayWhenReady(false);
-        player.stop();
-    }
-
     public void release() {
         if (rendererBuilder != null) {
             rendererBuilder.cancel();

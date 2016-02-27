@@ -16,6 +16,15 @@
 
 package com.devbrackets.android.exomedia;
 
+import com.devbrackets.android.exomedia.manager.EMPlaylistManager;
+import com.devbrackets.android.exomedia.service.EMPlaylistService;
+
+/**
+ * @deprecated The {@link EMPlaylistService}, {@link EMPlaylistManager}, and associated helpers will be removed in the next
+ * major release (3.0).  Instead the Playlist functionality has been extracted in to a separate library called
+ * <a href="https://github.com/brianwernick/PlaylistCore">PlaylistCore</a>
+ */
+@Deprecated
 public class EMRemoteActions {
     public static final String ACTION_START_SERVICE = "remote_action_start_service";
 

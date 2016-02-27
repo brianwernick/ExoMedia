@@ -22,7 +22,11 @@ import android.support.annotation.Nullable;
 /**
  * Used to capture when the current media item has a playback error
  * (see {@link android.media.MediaPlayer.OnErrorListener}
+ *
+ * @deprecated EventBus support will be removed in the next major release (3.0).
+ * Instead the standard listeners should be used
  */
+@Deprecated
 public class EMMediaErrorEvent {
     private final MediaPlayer mediaPlayer;
     private final int what;

@@ -32,10 +32,18 @@ import android.support.v4.app.NotificationCompat;
 import android.view.View;
 import android.widget.RemoteViews;
 
+import com.devbrackets.android.exomedia.manager.EMPlaylistManager;
+import com.devbrackets.android.exomedia.service.EMPlaylistService;
+
 /**
  * A class to help simplify notification creation and modification for
  * media playback applications.
+ *
+ * @deprecated The {@link EMPlaylistService}, {@link EMPlaylistManager}, and associated helpers will be removed in the next
+ * major release (3.0).  Instead the Playlist functionality has been extracted in to a separate library called
+ * <a href="https://github.com/brianwernick/PlaylistCore">PlaylistCore</a>
  */
+@Deprecated
 public class EMNotification {
     @NonNull
     private Context context;

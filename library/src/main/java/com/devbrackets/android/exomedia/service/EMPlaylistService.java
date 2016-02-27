@@ -59,8 +59,13 @@ import java.util.List;
  * being played isn't downloaded (see {@link #isDownloaded(EMPlaylistManager.PlaylistItem)}).
  * <p>
  * This requires the manifest permission &lt;uses-permission android:name="android.permission.WAKE_LOCK" /&gt;
+ *
+ * @deprecated The EMPlaylistService, {@link EMPlaylistManager}, and associated helpers will be removed in the next
+ * major release (3.0).  Instead the Playlist functionality has been extracted in to a separate library called
+ * <a href="https://github.com/brianwernick/PlaylistCore">PlaylistCore</a>
  */
 @SuppressWarnings("unused")
+@Deprecated
 public abstract class EMPlaylistService<I extends EMPlaylistManager.PlaylistItem, M extends EMPlaylistManager<I>> extends Service implements EMAudioFocusCallback, EMProgressCallback {
     private static final String TAG = "EMPlaylistService";
     public static final String START_SERVICE = "EMPlaylistService.start";

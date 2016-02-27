@@ -18,7 +18,11 @@ package com.devbrackets.android.exomedia.event;
 
 /**
  * An event posted when the user finishes the seek interaction
+ *
+ * @deprecated EventBus support will be removed in the next major release (3.0).
+ * Instead the standard listeners should be used
  */
+@Deprecated
 public class EMMediaSeekEndedEvent {
     private final long seekPosition;
 

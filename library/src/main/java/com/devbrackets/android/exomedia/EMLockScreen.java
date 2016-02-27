@@ -31,12 +31,19 @@ import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 import android.util.Log;
 
+import com.devbrackets.android.exomedia.manager.EMPlaylistManager;
 import com.devbrackets.android.exomedia.receiver.MediaControlsReceiver;
+import com.devbrackets.android.exomedia.service.EMPlaylistService;
 
 /**
  * A class to help simplify lock screen artwork and playback
  * controls similar to how the {@link EMNotification} simplifies notifications
+ *
+ * @deprecated The {@link EMPlaylistService}, {@link EMPlaylistManager}, and associated helpers will be removed in the next
+ * major release (3.0).  Instead the Playlist functionality has been extracted in to a separate library called
+ * <a href="https://github.com/brianwernick/PlaylistCore">PlaylistCore</a>
  */
+@Deprecated
 public class EMLockScreen {
     private static final String TAG = "EMLockScreen";
     public static final String SESSION_TAG = "EMLockScreen.Session";

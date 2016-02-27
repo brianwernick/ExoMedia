@@ -20,7 +20,11 @@ package com.devbrackets.android.exomedia.event;
  * Used to capture when the current media item has completed playback.
  * This is only called when the media item was played through the end,
  * which is the same as {@link android.media.MediaPlayer.OnCompletionListener}
+ *
+ * @deprecated EventBus support will be removed in the next major release (3.0).
+ * Instead the standard listeners should be used
  */
+@Deprecated
 public class EMMediaCompletionEvent {
     //Purposefully left blank
 }

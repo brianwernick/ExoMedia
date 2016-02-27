@@ -23,7 +23,11 @@ import com.devbrackets.android.exomedia.util.EMAudioFocusHelper;
  * through the callbacks {@link com.devbrackets.android.exomedia.listener.EMAudioFocusCallback} when
  * registered in the {@link EMAudioFocusHelper}.  Additionally, if the callbacks
  * are implemented and consume the event, this will NOT be called.
+ *
+ * @deprecated EventBus support will be removed in the next major release (3.0).
+ * Instead the standard listeners should be used
  */
+@Deprecated
 public class EMAudioFocusLostEvent {
     private final boolean canDuck;
 

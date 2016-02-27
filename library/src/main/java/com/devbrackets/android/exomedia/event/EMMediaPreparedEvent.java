@@ -18,7 +18,11 @@ package com.devbrackets.android.exomedia.event;
 
 /**
  * Used to capture when the current media item has been prepared.
+ *
+ * @deprecated EventBus support will be removed in the next major release (3.0).
+ * Instead the standard listeners should be used
  */
+@Deprecated
 public class EMMediaPreparedEvent {
     //Purposefully left blank
 }

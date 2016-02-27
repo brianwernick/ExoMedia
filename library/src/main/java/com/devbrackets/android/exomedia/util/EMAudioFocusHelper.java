@@ -23,11 +23,18 @@ import android.support.annotation.Nullable;
 import com.devbrackets.android.exomedia.event.EMAudioFocusGainedEvent;
 import com.devbrackets.android.exomedia.event.EMAudioFocusLostEvent;
 import com.devbrackets.android.exomedia.listener.EMAudioFocusCallback;
+import com.devbrackets.android.exomedia.manager.EMPlaylistManager;
+import com.devbrackets.android.exomedia.service.EMPlaylistService;
 
 /**
  * A helper to simplify audio focus procedures in to simple callbacks and/or
  * EventBus events.
+ *
+ * @deprecated The {@link EMPlaylistService}, {@link EMPlaylistManager}, and associated helpers will be removed in the next
+ * major release (3.0).  Instead the Playlist functionality has been extracted in to a separate library called
+ * <a href="https://github.com/brianwernick/PlaylistCore">PlaylistCore</a>
  */
+@Deprecated
 public class EMAudioFocusHelper {
     public enum Focus {
         NONE,               // We haven't tried to obtain focus

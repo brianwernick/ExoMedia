@@ -16,10 +16,18 @@
 
 package com.devbrackets.android.exomedia.listener;
 
+import com.devbrackets.android.exomedia.manager.EMPlaylistManager;
+import com.devbrackets.android.exomedia.service.EMPlaylistService;
+
 /**
  * Basic AudioFocus callbacks.  These can also be accessed through
  * their corresponding EventBus events.
+ *
+ * @deprecated The {@link EMPlaylistService}, {@link EMPlaylistManager}, and associated helpers will be removed in the next
+ * major release (3.0).  Instead the Playlist functionality has been extracted in to a separate library called
+ * <a href="https://github.com/brianwernick/PlaylistCore">PlaylistCore</a>
  */
+@Deprecated
 public interface EMAudioFocusCallback {
     /**
      * Occurs when the application gains audio focus.

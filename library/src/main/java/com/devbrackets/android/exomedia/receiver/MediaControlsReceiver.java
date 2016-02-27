@@ -26,11 +26,18 @@ import android.view.KeyEvent;
 
 import com.devbrackets.android.exomedia.EMLockScreen;
 import com.devbrackets.android.exomedia.EMRemoteActions;
+import com.devbrackets.android.exomedia.manager.EMPlaylistManager;
+import com.devbrackets.android.exomedia.service.EMPlaylistService;
 
 /**
  * A Receiver to handle lock screen and other remote controls
  * such as Bluetooth devices
+ *
+ * @deprecated The {@link EMPlaylistService}, {@link EMPlaylistManager}, and associated helpers will be removed in the next
+ * major release (3.0).  Instead the Playlist functionality has been extracted in to a separate library called
+ * <a href="https://github.com/brianwernick/PlaylistCore">PlaylistCore</a>
  */
+@Deprecated
 public class MediaControlsReceiver extends BroadcastReceiver {
     private static final String TAG = "MediaControlsReceiver";
 

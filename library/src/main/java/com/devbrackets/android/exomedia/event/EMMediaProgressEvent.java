@@ -20,7 +20,11 @@ package com.devbrackets.android.exomedia.event;
  * An event to be used to inform listeners of media (e.g. audio, video) progress
  * changes.  This event will be re-used internally to avoid over-creating objects,
  * if you need to store the current values use
+ *
+ * @deprecated EventBus support will be removed in the next major release (3.0).
+ * Instead the standard listeners should be used
  */
+@Deprecated
 public class EMMediaProgressEvent {
     private static final int MAX_BUFFER_PERCENT = 100;
 

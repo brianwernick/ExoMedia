@@ -40,8 +40,13 @@ import java.util.List;
  * to simplify and standardize implementations in the service itself.  This manager can be
  * used as standalone with a custom service, or in conjunction with
  * {@link com.devbrackets.android.exomedia.service.EMPlaylistService}
+ *
+ *  @deprecated The {@link EMPlaylistService}, EMPlaylistManager, and associated helpers will be removed in the next
+ * major release (3.0).  Instead the Playlist functionality has been extracted in to a separate library called
+ * <a href="https://github.com/brianwernick/PlaylistCore">PlaylistCore</a>
  */
 @SuppressWarnings("unused")
+@Deprecated
 public abstract class EMPlaylistManager<I extends EMPlaylistManager.PlaylistItem> implements EMPlaylistServiceCallback {
     private static final String TAG = "EMPlaylistManager";
 

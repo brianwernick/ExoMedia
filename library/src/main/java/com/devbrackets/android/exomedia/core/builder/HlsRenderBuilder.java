@@ -42,8 +42,9 @@ import com.google.android.exoplayer.hls.HlsPlaylist;
 import com.google.android.exoplayer.hls.HlsPlaylistParser;
 import com.google.android.exoplayer.hls.HlsSampleSource;
 import com.google.android.exoplayer.hls.PtsTimestampAdjusterProvider;
-import com.google.android.exoplayer.metadata.Id3Parser;
 import com.google.android.exoplayer.metadata.MetadataTrackRenderer;
+import com.google.android.exoplayer.metadata.id3.Id3Frame;
+import com.google.android.exoplayer.metadata.id3.Id3Parser;
 import com.google.android.exoplayer.text.TextTrackRenderer;
 import com.google.android.exoplayer.upstream.DataSource;
 import com.google.android.exoplayer.upstream.DefaultAllocator;
@@ -53,7 +54,7 @@ import com.google.android.exoplayer.util.ManifestFetcher;
 import com.google.android.exoplayer.util.ManifestFetcher.ManifestCallback;
 
 import java.io.IOException;
-import java.util.Map;
+import java.util.List;
 
 /**
  * A RenderBuilder for parsing and creating the renderers for
@@ -180,7 +181,7 @@ public class HlsRenderBuilder extends RenderBuilder {
             EMMediaCodecAudioTrackRenderer audioRenderer = new EMMediaCodecAudioTrackRenderer(sampleSource, MediaCodecSelector.DEFAULT, null, true,
                     player.getMainHandler(), player, AudioCapabilities.getCapabilities(context), streamType);
             TextTrackRenderer captionsRenderer = new TextTrackRenderer(sampleSource, player, mainHandler.getLooper());
-            MetadataTrackRenderer<Map<String, Object>> id3Renderer = new MetadataTrackRenderer<>(sampleSource, new Id3Parser(),
+            MetadataTrackRenderer<List<Id3Frame>> id3Renderer = new MetadataTrackRenderer<>(sampleSource, new Id3Parser(),
                     player, mainHandler.getLooper());
 
 

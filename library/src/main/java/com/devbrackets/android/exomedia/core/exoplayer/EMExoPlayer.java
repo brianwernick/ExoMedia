@@ -50,6 +50,7 @@ import com.google.android.exoplayer.dash.DashChunkSource;
 import com.google.android.exoplayer.drm.StreamingDrmSessionManager;
 import com.google.android.exoplayer.hls.HlsSampleSource;
 import com.google.android.exoplayer.metadata.MetadataTrackRenderer;
+import com.google.android.exoplayer.metadata.id3.Id3Frame;
 import com.google.android.exoplayer.text.Cue;
 import com.google.android.exoplayer.text.TextRenderer;
 import com.google.android.exoplayer.upstream.BandwidthMeter;
@@ -59,7 +60,6 @@ import com.google.android.exoplayer.util.PlayerControl;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 public class EMExoPlayer implements
@@ -71,7 +71,7 @@ public class EMExoPlayer implements
         MediaCodecAudioTrackRenderer.EventListener,
         StreamingDrmSessionManager.EventListener,
         DashChunkSource.EventListener,
-        MetadataTrackRenderer.MetadataRenderer<Map<String, Object>>,
+        MetadataTrackRenderer.MetadataRenderer<List<Id3Frame>>,
         TextRenderer {
     private static final String TAG = "EMExoPlayer";
     public static final int DISABLED_TRACK = -1;
@@ -489,7 +489,7 @@ public class EMExoPlayer implements
     }
 
     @Override
-    public void onMetadata(Map<String, Object> metadata) {
+    public void onMetadata(List<Id3Frame> metadata) {
         if (id3MetadataListener != null && getSelectedTrack(RENDER_TIMED_METADATA) != DISABLED_TRACK) {
             id3MetadataListener.onId3Metadata(metadata);
         }

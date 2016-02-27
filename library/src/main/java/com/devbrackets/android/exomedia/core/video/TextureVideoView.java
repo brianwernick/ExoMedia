@@ -28,7 +28,6 @@ import android.support.annotation.Nullable;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.Surface;
-import android.view.TextureView;
 import android.widget.MediaController;
 
 import java.io.IOException;
@@ -46,7 +45,7 @@ import java.util.Map;
  * <li>The {@link MediaController}</li>
  * </ul>
  */
-public class TextureVideoView extends TextureView implements MediaController.MediaPlayerControl {
+public class TextureVideoView extends VideoTextureView implements MediaController.MediaPlayerControl {
     private static final String TAG = "TextureVideoView";
 
     protected enum State {
@@ -234,12 +233,13 @@ public class TextureVideoView extends TextureView implements MediaController.Med
 
     public void stopPlayback() {
         mediaPlayer.stop();
-
         currentState = State.IDLE;
 
         playRequested = false;
         AudioManager am = (AudioManager) getContext().getApplicationContext().getSystemService(Context.AUDIO_SERVICE);
         am.abandonAudioFocus(null);
+
+        clearSurface();
     }
 
     public void suspend() {
@@ -451,8 +451,9 @@ public class TextureVideoView extends TextureView implements MediaController.Med
 
     protected class TextureVideoViewSurfaceListener implements SurfaceTextureListener {
         @Override
-        public void onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height) {
-            mediaPlayer.setSurface(new Surface(surface));
+        public void onSurfaceTextureAvailable(SurfaceTexture surfaceTexture, int width, int height) {
+            surface = new Surface(surfaceTexture);
+            mediaPlayer.setSurface(surface);
             if (playRequested) {
                 mediaPlayer.prepareAsync();
             }

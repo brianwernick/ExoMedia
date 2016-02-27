@@ -20,10 +20,18 @@ package com.devbrackets.android.exomedia.core.video;
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.graphics.Point;
+import android.opengl.GLES20;
 import android.os.Build;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
+import android.view.Surface;
 import android.view.TextureView;
+
+import javax.microedition.khronos.egl.EGL10;
+import javax.microedition.khronos.egl.EGLConfig;
+import javax.microedition.khronos.egl.EGLContext;
+import javax.microedition.khronos.egl.EGLDisplay;
+import javax.microedition.khronos.egl.EGLSurface;
 
 /**
  * A VideoTextureView that reSizes itself to match a specified aspect
@@ -42,15 +50,53 @@ public class VideoTextureView extends TextureView {
      */
     private static final float MAX_ASPECT_RATIO_DEFORMATION_FRACTION  = 0.01f;
 
+    /**
+     * A version of the EGL14.EGL_CONTEXT_CLIENT_VERSION so that we can
+     * reference it without being on API 17+
+     */
+    private static final int EGL_CONTEXT_CLIENT_VERSION = 0x3098;
+
+    /**
+     * Because the TextureView itself doesn't contain a method to clear the surface
+     * we need to use GL to perform teh clear ourselves.  This means initializing
+     * a GL context, and specifying attributes.  This is the attribute list for
+     * the configuration of that context
+     */
+    @SuppressWarnings("MismatchedReadAndWriteOfArray")
+    private static final int[] GL_CLEAR_CONFIG_ATTRIBUTES = {
+            EGL10.EGL_RED_SIZE, 8,
+            EGL10.EGL_GREEN_SIZE, 8,
+            EGL10.EGL_BLUE_SIZE, 8,
+            EGL10.EGL_ALPHA_SIZE, 8,
+            EGL10.EGL_RENDERABLE_TYPE, EGL10.EGL_WINDOW_BIT,
+            EGL10.EGL_NONE, 0,
+            EGL10.EGL_NONE
+    };
+
+    /**
+     * Because the TextureView itself doesn't contain a method to clear the surface
+     * we need to use GL to perform teh clear ourselves.  This means initializing
+     * a GL context, and specifying attributes.  This is the attribute list for
+     * that context
+     */
+    @SuppressWarnings("MismatchedReadAndWriteOfArray")
+    private static final int[] GL_CLEAR_CONTEXT_ATTRIBUTES = {
+            EGL_CONTEXT_CLIENT_VERSION, 2,
+            EGL10.EGL_NONE
+    };
+
     public interface OnSizeChangeListener {
         void onVideoSurfaceSizeChange(int width, int height);
     }
 
-    private float videoAspectRatio;
+    protected float videoAspectRatio;
 
     @Nullable
-    private OnSizeChangeListener listener;
-    private Point oldSize = new Point(0, 0);
+    protected OnSizeChangeListener listener;
+    protected Point oldSize = new Point(0, 0);
+
+    @Nullable
+    Surface surface;
 
     public VideoTextureView(Context context) {
         super(context);
@@ -113,7 +159,34 @@ public class VideoTextureView extends TextureView {
         this.listener = listener;
     }
 
-    private void notifyListener(int width, int height) {
+    public void clearSurface() {
+        if (surface == null) {
+            return;
+        }
+
+        EGL10 gl10 = (EGL10) EGLContext.getEGL();
+        EGLDisplay display = gl10.eglGetDisplay(EGL10.EGL_DEFAULT_DISPLAY);
+        gl10.eglInitialize(display, null);
+
+        EGLConfig[] configs = new EGLConfig[1];
+        gl10.eglChooseConfig(display, GL_CLEAR_CONFIG_ATTRIBUTES, configs, configs.length, new int[1]);
+        EGLContext context = gl10.eglCreateContext(display, configs[0], EGL10.EGL_NO_CONTEXT, GL_CLEAR_CONTEXT_ATTRIBUTES);
+        EGLSurface eglSurface = gl10.eglCreateWindowSurface(display, configs[0], surface, new int[] { EGL10.EGL_NONE });
+
+        gl10.eglMakeCurrent(display, eglSurface, eglSurface, context);
+
+        GLES20.glClearColor(0, 0, 0, 1);
+        GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
+
+        gl10.eglSwapBuffers(display, eglSurface);
+        gl10.eglDestroySurface(display, eglSurface);
+        gl10.eglMakeCurrent(display, EGL10.EGL_NO_SURFACE, EGL10.EGL_NO_SURFACE, EGL10.EGL_NO_CONTEXT);
+        gl10.eglDestroyContext(display, context);
+
+        gl10.eglTerminate(display);
+    }
+
+    protected void notifyListener(int width, int height) {
         if (listener != null && (oldSize.x != width || oldSize.y != height)) {
             oldSize.x = width;
             oldSize.y = height;

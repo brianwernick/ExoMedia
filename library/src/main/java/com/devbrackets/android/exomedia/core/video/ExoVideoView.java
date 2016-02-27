@@ -131,6 +131,7 @@ public class ExoVideoView extends VideoTextureView implements VideoViewApi, Audi
     public void stopPlayback() {
         emExoPlayer.stop();
         playRequested = false;
+        clearSurface();
     }
 
     @Override
@@ -246,7 +247,8 @@ public class ExoVideoView extends VideoTextureView implements VideoViewApi, Audi
     protected class EMExoVideoSurfaceTextureListener implements TextureView.SurfaceTextureListener {
         @Override
         public void onSurfaceTextureAvailable(SurfaceTexture surfaceTexture, int width, int height) {
-            emExoPlayer.setSurface(new Surface(surfaceTexture));
+            surface = new Surface(surfaceTexture);
+            emExoPlayer.setSurface(surface);
             if (playRequested) {
                 emExoPlayer.setPlayWhenReady(true);
             }

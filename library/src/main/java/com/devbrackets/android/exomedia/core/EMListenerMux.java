@@ -19,38 +19,45 @@ package com.devbrackets.android.exomedia.core;
 import android.media.MediaPlayer;
 import android.os.Handler;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 
 import com.devbrackets.android.exomedia.core.exoplayer.EMExoPlayer;
 import com.devbrackets.android.exomedia.core.listener.ExoPlayerListener;
+import com.devbrackets.android.exomedia.listener.OnBufferUpdateListener;
+import com.devbrackets.android.exomedia.listener.OnCompletionListener;
+import com.devbrackets.android.exomedia.listener.OnErrorListener;
+import com.devbrackets.android.exomedia.listener.OnPreparedListener;
+import com.devbrackets.android.exomedia.listener.OnSeekCompletionListener;
 import com.google.android.exoplayer.ExoPlayer;
 
-import java.util.LinkedList;
-import java.util.List;
-
 /**
- * An internal Listener that implements the listeners for the EMExoPlayer,
+ * An internal Listener that implements the listeners for the {@link EMExoPlayer},
  * Android VideoView, and the Android MediaPlayer to output to the correct
  * error listeners.
  */
 public class EMListenerMux implements ExoPlayerListener, MediaPlayer.OnPreparedListener, MediaPlayer.OnCompletionListener, MediaPlayer.OnErrorListener,
-        MediaPlayer.OnInfoListener, MediaPlayer.OnBufferingUpdateListener {
-
+        MediaPlayer.OnBufferingUpdateListener, MediaPlayer.OnSeekCompleteListener {
     //The amount of time the current position can be off the duration to call the onCompletion listener
     private static final long COMPLETED_DURATION_LEEWAY = 1000;
-    private boolean notifiedPrepared = false;
-    private boolean notifiedCompleted = false;
 
+    @NonNull
     private Handler delayedHandler = new Handler();
+    @NonNull
     private EMListenerMuxNotifier muxNotifier;
 
-    private List<ExoPlayerListener> exoPlayerListeners = new LinkedList<>();
+    @Nullable
+    private OnPreparedListener preparedListener;
+    @Nullable
+    private OnCompletionListener completionListener;
+    @Nullable
+    private OnBufferUpdateListener bufferUpdateListener;
+    @Nullable
+    private OnSeekCompletionListener seekCompletionListener;
+    @Nullable
+    private OnErrorListener errorListener;
 
-    private MediaPlayer.OnBufferingUpdateListener bufferingUpdateListener;
-    private MediaPlayer.OnCompletionListener completionListener;
-    private MediaPlayer.OnPreparedListener preparedListener;
-    private MediaPlayer.OnErrorListener errorListener;
-    private MediaPlayer.OnInfoListener infoListener;
-
+    private boolean notifiedPrepared = false;
+    private boolean notifiedCompleted = false;
 
     public EMListenerMux(@NonNull EMListenerMuxNotifier notifier) {
         muxNotifier = notifier;
@@ -60,36 +67,38 @@ public class EMListenerMux implements ExoPlayerListener, MediaPlayer.OnPreparedL
     public void onBufferingUpdate(MediaPlayer mp, int percent) {
         muxNotifier.onBufferUpdated(percent);
 
-        if (bufferingUpdateListener != null) {
-            bufferingUpdateListener.onBufferingUpdate(mp, percent);
+        if (bufferUpdateListener != null) {
+            bufferUpdateListener.onBufferingUpdate(percent);
         }
     }
 
     @Override
     public void onCompletion(MediaPlayer mp) {
         if (completionListener != null) {
-            completionListener.onCompletion(null);
+            completionListener.onCompletion();
         }
     }
 
     @Override
     public boolean onError(MediaPlayer mp, int what, int extra) {
-        return errorListener != null && errorListener.onError(mp, what, extra);
+        return errorListener != null && errorListener.onError();
     }
 
     @Override
-    public boolean onInfo(MediaPlayer mp, int what, int extra) {
-        return infoListener != null && infoListener.onInfo(mp, what, extra);
+    public void onSeekComplete(MediaPlayer mp) {
+        if (seekCompletionListener != null) {
+            seekCompletionListener.onSeekComplete();
+        }
     }
 
     @Override
-    public void onPrepared(final MediaPlayer mp) {
+    public void onPrepared(MediaPlayer mp) {
         notifiedPrepared = true;
 
         delayedHandler.post(new Runnable() {
             @Override
             public void run() {
-                performPreparedHandlerNotification(mp);
+                performPreparedHandlerNotification();
             }
         });
     }
@@ -99,12 +108,8 @@ public class EMListenerMux implements ExoPlayerListener, MediaPlayer.OnPreparedL
         muxNotifier.onExoPlayerError(emExoPlayer, e);
         muxNotifier.onMediaPlaybackEnded();
 
-        if (errorListener != null && errorListener.onError(null, 0, 0)) {
-            return;
-        }
-
-        for (ExoPlayerListener listener : exoPlayerListeners) {
-            listener.onError(emExoPlayer, e);
+        if (errorListener != null) {
+            errorListener.onError();
         }
     }
 
@@ -117,11 +122,7 @@ public class EMListenerMux implements ExoPlayerListener, MediaPlayer.OnPreparedL
                 notifyCompletionListener();
             }
         } else if (playbackState == ExoPlayer.STATE_READY && !notifiedPrepared) {
-            notifyPreparedListener(null);
-        }
-
-        for (ExoPlayerListener listener : exoPlayerListeners) {
-            listener.onStateChanged(playWhenReady, playbackState);
+            notifyPreparedListener();
         }
 
         //Updates the previewImage
@@ -133,32 +134,6 @@ public class EMListenerMux implements ExoPlayerListener, MediaPlayer.OnPreparedL
     @Override
     public void onVideoSizeChanged(int width, int height, int unAppliedRotationDegrees, float pixelWidthHeightRatio) {
         muxNotifier.onVideoSizeChanged(width, height, unAppliedRotationDegrees, pixelWidthHeightRatio);
-
-        for (ExoPlayerListener listener : exoPlayerListeners) {
-            listener.onVideoSizeChanged(width, height, unAppliedRotationDegrees, pixelWidthHeightRatio);
-        }
-    }
-
-    /**
-     * Sets the listener to inform of any exoPlayer events
-     *
-     * @param listener The listener
-     */
-    public void addExoPlayerListener(ExoPlayerListener listener) {
-        if (listener != null) {
-            exoPlayerListeners.add(listener);
-        }
-    }
-
-    /**
-     * Removes the specified listener for the ExoPlayer.
-     *
-     * @param listener The listener to remove
-     */
-    public void removeExoPlayerListener(ExoPlayerListener listener) {
-        if (listener != null && exoPlayerListeners.contains(listener)) {
-            exoPlayerListeners.remove(listener);
-        }
     }
 
     /**
@@ -166,7 +141,7 @@ public class EMListenerMux implements ExoPlayerListener, MediaPlayer.OnPreparedL
      *
      * @param listener The listener
      */
-    public void setOnPreparedListener(MediaPlayer.OnPreparedListener listener) {
+    public void setOnPreparedListener(@Nullable OnPreparedListener listener) {
         preparedListener = listener;
     }
 
@@ -175,26 +150,8 @@ public class EMListenerMux implements ExoPlayerListener, MediaPlayer.OnPreparedL
      *
      * @param listener The listener
      */
-    public void setOnCompletionListener(MediaPlayer.OnCompletionListener listener) {
+    public void setOnCompletionListener(@Nullable OnCompletionListener listener) {
         completionListener = listener;
-    }
-
-    /**
-     * Sets the listener to inform of playback errors
-     *
-     * @param listener The listener
-     */
-    public void setOnErrorListener(MediaPlayer.OnErrorListener listener) {
-        errorListener = listener;
-    }
-
-    /**
-     * Sets the listener to inform of media information events.
-     *
-     * @param listener The listener
-     */
-    public void setOnInfoListener(MediaPlayer.OnInfoListener listener) {
-        infoListener = listener;
     }
 
     /**
@@ -202,9 +159,28 @@ public class EMListenerMux implements ExoPlayerListener, MediaPlayer.OnPreparedL
      *
      * @param listener The listener
      */
-    public void setOnBufferingUpdateListener(android.media.MediaPlayer.OnBufferingUpdateListener listener) {
-        bufferingUpdateListener = listener;
+    public void setOnBufferUpdateListener(@Nullable OnBufferUpdateListener listener) {
+        bufferUpdateListener = listener;
     }
+
+    /**
+     * Sets the listener to inform of VideoPlayer seek completion events
+     *
+     * @param listener The listener
+     */
+    public void setOnSeekCompletionListener(@Nullable OnSeekCompletionListener listener) {
+        seekCompletionListener = listener;
+    }
+
+    /**
+     * Sets the listener to inform of playback errors
+     *
+     * @param listener The listener
+     */
+    public void setOnErrorListener(@Nullable OnErrorListener listener) {
+        errorListener = listener;
+    }
+
 
     /**
      * Sets weather the listener was notified when we became prepared.
@@ -235,22 +211,22 @@ public class EMListenerMux implements ExoPlayerListener, MediaPlayer.OnPreparedL
         notifiedCompleted = wasNotified;
     }
 
-    private void notifyPreparedListener(final MediaPlayer mediaPlayer) {
+    private void notifyPreparedListener() {
         notifiedPrepared = true;
 
         delayedHandler.post(new Runnable() {
             @Override
             public void run() {
-                performPreparedHandlerNotification(mediaPlayer);
+                performPreparedHandlerNotification();
             }
         });
     }
 
-    private void performPreparedHandlerNotification(MediaPlayer mediaPlayer) {
+    private void performPreparedHandlerNotification() {
         muxNotifier.onPrepared();
 
         if (preparedListener != null) {
-            preparedListener.onPrepared(mediaPlayer);
+            preparedListener.onPrepared();
         }
     }
 
@@ -265,12 +241,11 @@ public class EMListenerMux implements ExoPlayerListener, MediaPlayer.OnPreparedL
             @Override
             public void run() {
                 if (completionListener != null) {
-                    completionListener.onCompletion(null);
+                    completionListener.onCompletion();
                 }
             }
         });
     }
-
 
     @SuppressWarnings("UnusedParameters")
     public static abstract class EMListenerMuxNotifier {

@@ -26,7 +26,7 @@ public class FullScreenVideoPlayerActivity extends VideoPlayerActivity {
 
         goFullscreen();
         if (emVideoView.getVideoControls() != null) {
-            emVideoView.getVideoControls().setVideoViewControlsCallback(new DefaultControlsListener());
+            emVideoView.getVideoControls().setVideoViewControlsCallback(new VideoControlsListener());
         }
     }
 
@@ -100,7 +100,7 @@ public class FullScreenVideoPlayerActivity extends VideoPlayerActivity {
      * A Listener for the {@link VideoControls}
      * so that we can re-enter fullscreen mode when the controls are hidden.
      */
-    private class DefaultControlsListener implements com.devbrackets.android.exomedia.listener.DefaultControlsListener {
+    private class VideoControlsListener implements com.devbrackets.android.exomedia.listener.VideoControlsListener {
         @Override
         public boolean onPlayPauseClicked() {
             return false; // No additional functionality performed

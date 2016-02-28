@@ -129,11 +129,9 @@ public class NativeVideoView extends TextureVideoView implements VideoViewApi {
 
         setOnCompletionListener(listenerMux);
         setOnPreparedListener(listenerMux);
+        setOnBufferingUpdateListener(listenerMux);
+        setOnSeekCompleteListener(listenerMux);
         setOnErrorListener(listenerMux);
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
-            setOnInfoListener(listenerMux);
-        }
     }
 
     @Override

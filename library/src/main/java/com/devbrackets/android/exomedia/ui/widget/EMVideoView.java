@@ -467,6 +467,7 @@ public class EMVideoView extends RelativeLayout {
      */
     public void start() {
         videoViewImpl.start();
+        setKeepScreenOn(true);
 
         if (videoControls != null) {
             videoControls.updatePlayPauseImage(true);
@@ -479,6 +480,7 @@ public class EMVideoView extends RelativeLayout {
      */
     public void pause() {
         videoViewImpl.pause();
+        setKeepScreenOn(false);
 
         if (videoControls != null) {
             videoControls.updatePlayPauseImage(false);
@@ -491,6 +493,7 @@ public class EMVideoView extends RelativeLayout {
      */
     public void stopPlayback() {
         videoViewImpl.stopPlayback();
+        setKeepScreenOn(false);
 
         if (videoControls != null) {
             videoControls.updatePlayPauseImage(false);
@@ -503,6 +506,7 @@ public class EMVideoView extends RelativeLayout {
      */
     public void suspend() {
         videoViewImpl.suspend();
+        setKeepScreenOn(false);
 
         if (videoControls != null) {
             videoControls.updatePlayPauseImage(false);
@@ -751,6 +755,7 @@ public class EMVideoView extends RelativeLayout {
 
         @Override
         public void onExoPlayerError(EMExoPlayer emExoPlayer, Exception e) {
+            setKeepScreenOn(false);
             if (emExoPlayer != null) {
                 emExoPlayer.forcePrepare();
             }
@@ -758,6 +763,7 @@ public class EMVideoView extends RelativeLayout {
 
         @Override
         public void onMediaPlaybackEnded() {
+            setKeepScreenOn(false);
             onPlaybackEnded();
         }
 

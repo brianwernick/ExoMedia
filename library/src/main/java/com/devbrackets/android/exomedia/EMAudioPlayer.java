@@ -17,18 +17,21 @@
 package com.devbrackets.android.exomedia;
 
 import android.content.Context;
-import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Build;
 import android.support.annotation.FloatRange;
 
 import com.devbrackets.android.exomedia.core.EMListenerMux;
+import com.devbrackets.android.exomedia.core.api.MediaPlayerApi;
 import com.devbrackets.android.exomedia.core.audio.ExoMediaPlayer;
 import com.devbrackets.android.exomedia.core.audio.NativeMediaPlayer;
 import com.devbrackets.android.exomedia.core.builder.RenderBuilder;
 import com.devbrackets.android.exomedia.core.exoplayer.EMExoPlayer;
-import com.devbrackets.android.exomedia.core.listener.ExoPlayerListener;
-import com.devbrackets.android.exomedia.core.api.MediaPlayerApi;
+import com.devbrackets.android.exomedia.listener.OnBufferUpdateListener;
+import com.devbrackets.android.exomedia.listener.OnCompletionListener;
+import com.devbrackets.android.exomedia.listener.OnErrorListener;
+import com.devbrackets.android.exomedia.listener.OnPreparedListener;
+import com.devbrackets.android.exomedia.listener.OnSeekCompletionListener;
 import com.devbrackets.android.exomedia.util.EMDeviceUtil;
 
 /**
@@ -143,7 +146,7 @@ public class EMAudioPlayer {
     /**
      * Moves the current audio progress to the specified location.
      * This method should only be called after the EMAudioPlayer is
-     * prepared. (see {@link #setOnPreparedListener(android.media.MediaPlayer.OnPreparedListener)}
+     * prepared. (see {@link #setOnPreparedListener(OnPreparedListener)}
      *
      * @param milliSeconds The time to move the playback to
      */
@@ -166,7 +169,7 @@ public class EMAudioPlayer {
 
     /**
      * Starts the playback for the audio item specified in {@link #setDataSource(android.content.Context, android.net.Uri)}.
-     * This should be called after the AudioPlayer is correctly prepared (see {@link #setOnPreparedListener(android.media.MediaPlayer.OnPreparedListener)})
+     * This should be called after the AudioPlayer is correctly prepared (see {@link #setOnPreparedListener(OnPreparedListener)})
      */
     public void start() {
         mediaPlayerImpl.start();
@@ -192,7 +195,7 @@ public class EMAudioPlayer {
 
     /**
      * Retrieves the duration of the current audio item.  This should only be called after
-     * the item is prepared (see {@link #setOnPreparedListener(android.media.MediaPlayer.OnPreparedListener)}).
+     * the item is prepared (see {@link #setOnPreparedListener(OnPreparedListener)}).
      * If {@link #overrideDuration(int)} is set then that value will be returned.
      *
      * @return The millisecond duration of the video
@@ -219,7 +222,7 @@ public class EMAudioPlayer {
     /**
      * Retrieves the current position of the audio playback.  If an audio item is not currently
      * in playback then the value will be 0.  This should only be called after the item is
-     * prepared (see {@link #setOnPreparedListener(android.media.MediaPlayer.OnPreparedListener)})
+     * prepared (see {@link #setOnPreparedListener(OnPreparedListener)})
      *
      * @return The millisecond value for the current position
      */
@@ -230,7 +233,7 @@ public class EMAudioPlayer {
     /**
      * Retrieves the current buffer percent of the audio item.  If an audio item is not currently
      * prepared or buffering the value will be 0.  This should only be called after the audio item is
-     * prepared (see {@link #setOnPreparedListener(android.media.MediaPlayer.OnPreparedListener)})
+     * prepared (see {@link #setOnPreparedListener(OnPreparedListener)})
      *
      * @return The integer percent that is buffered [0, 100] inclusive
      */
@@ -239,29 +242,11 @@ public class EMAudioPlayer {
     }
 
     /**
-     * Sets the listener to inform of any exoPlayer events
-     *
-     * @param listener The listener
-     */
-    public void addExoPlayerListener(ExoPlayerListener listener) {
-        listenerMux.addExoPlayerListener(listener);
-    }
-
-    /**
-     * Removes the specified listener for the ExoPlayer.
-     *
-     * @param listener The listener to remove
-     */
-    public void removeExoPlayerListener(ExoPlayerListener listener) {
-        listenerMux.removeExoPlayerListener(listener);
-    }
-
-    /**
      * Sets the listener to inform of VideoPlayer prepared events
      *
      * @param listener The listener
      */
-    public void setOnPreparedListener(MediaPlayer.OnPreparedListener listener) {
+    public void setOnPreparedListener(OnPreparedListener listener) {
         listenerMux.setOnPreparedListener(listener);
     }
 
@@ -270,8 +255,26 @@ public class EMAudioPlayer {
      *
      * @param listener The listener
      */
-    public void setOnCompletionListener(MediaPlayer.OnCompletionListener listener) {
+    public void setOnCompletionListener(OnCompletionListener listener) {
         listenerMux.setOnCompletionListener(listener);
+    }
+
+    /**
+     * Sets the listener to inform of VideoPlayer buffer update events
+     *
+     * @param listener The listener
+     */
+    public void setOnBufferUpdateListener(OnBufferUpdateListener listener) {
+        listenerMux.setOnBufferUpdateListener(listener);
+    }
+
+    /**
+     * Sets the listener to inform of VideoPlayer seek completion events
+     *
+     * @param listener The listener
+     */
+    public void setOnSeekCompletionListener(OnSeekCompletionListener listener) {
+        listenerMux.setOnSeekCompletionListener(listener);
     }
 
     /**
@@ -279,26 +282,8 @@ public class EMAudioPlayer {
      *
      * @param listener The listener
      */
-    public void setOnErrorListener(MediaPlayer.OnErrorListener listener) {
+    public void setOnErrorListener(OnErrorListener listener) {
         listenerMux.setOnErrorListener(listener);
-    }
-
-    /**
-     * Sets the listener to inform of media information events.
-     *
-     * @param listener The listener
-     */
-    public void setOnInfoListener(MediaPlayer.OnInfoListener listener) {
-        listenerMux.setOnInfoListener(listener);
-    }
-
-    /**
-     * Sets the listener to inform of buffering updates
-     *
-     * @param listener The listener
-     */
-    public void setOnBufferingUpdateListener(android.media.MediaPlayer.OnBufferingUpdateListener listener) {
-        listenerMux.setOnBufferingUpdateListener(listener);
     }
 
     /**

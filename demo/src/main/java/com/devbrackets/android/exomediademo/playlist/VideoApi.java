@@ -7,17 +7,18 @@ import android.support.annotation.NonNull;
 
 import com.devbrackets.android.exomedia.ui.widget.EMVideoView;
 import com.devbrackets.android.playlistcore.api.VideoPlayerApi;
-import com.devbrackets.android.playlistcore.listener.OnMediaBufferUpdateListener;
-import com.devbrackets.android.playlistcore.listener.OnMediaCompletionListener;
-import com.devbrackets.android.playlistcore.listener.OnMediaErrorListener;
-import com.devbrackets.android.playlistcore.listener.OnMediaPreparedListener;
-import com.devbrackets.android.playlistcore.listener.OnMediaSeekCompletionListener;
 
-public class VideoApi implements VideoPlayerApi {
+public class VideoApi extends BaseMediaApi implements VideoPlayerApi {
     private EMVideoView videoView;
 
     public VideoApi(EMVideoView videoView) {
         this.videoView = videoView;
+
+        videoView.setOnErrorListener(this);
+        videoView.setOnPreparedListener(this);
+        videoView.setOnCompletionListener(this);
+        videoView.setOnBufferUpdateListener(this);
+        videoView.setOnSeekCompletionListener(this);
     }
 
     @Override
@@ -78,30 +79,5 @@ public class VideoApi implements VideoPlayerApi {
     @Override
     public int getBufferedPercent() {
         return videoView.getBufferPercentage();
-    }
-
-    @Override
-    public void setOnMediaPreparedListener(OnMediaPreparedListener onMediaPreparedListener) {
-
-    }
-
-    @Override
-    public void setOnMediaBufferUpdateListener(OnMediaBufferUpdateListener onMediaBufferUpdateListener) {
-
-    }
-
-    @Override
-    public void setOnMediaSeekCompletionListener(OnMediaSeekCompletionListener onMediaSeekCompletionListener) {
-
-    }
-
-    @Override
-    public void setOnMediaCompletionListener(OnMediaCompletionListener onMediaCompletionListener) {
-
-    }
-
-    @Override
-    public void setOnMediaErrorListener(OnMediaErrorListener onMediaErrorListener) {
-
     }
 }

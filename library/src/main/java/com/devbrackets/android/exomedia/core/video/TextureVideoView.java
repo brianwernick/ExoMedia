@@ -243,9 +243,15 @@ public class TextureVideoView extends TextureView implements MediaController.Med
     }
 
     public void stopPlayback() {
-        mediaPlayer.stop();
-
         currentState = State.IDLE;
+
+        if (isReady()) {
+            try {
+                mediaPlayer.stop();
+            } catch (Exception e) {
+                Log.d(TAG, "stopPlayback: error calling mediaPlayer.stop()", e);
+            }
+        }
 
         playRequested = false;
         AudioManager am = (AudioManager) getContext().getApplicationContext().getSystemService(Context.AUDIO_SERVICE);
@@ -253,10 +259,14 @@ public class TextureVideoView extends TextureView implements MediaController.Med
     }
 
     public void suspend() {
-        mediaPlayer.reset();
-        mediaPlayer.release();
-
         currentState = State.IDLE;
+
+        try {
+            mediaPlayer.reset();
+            mediaPlayer.release();
+        } catch (Exception e) {
+            Log.d(TAG, "stopPlayback: error calling mediaPlayer.reset() or mediaPlayer.release()", e);
+        }
 
         playRequested = false;
         AudioManager am = (AudioManager) getContext().getApplicationContext().getSystemService(Context.AUDIO_SERVICE);

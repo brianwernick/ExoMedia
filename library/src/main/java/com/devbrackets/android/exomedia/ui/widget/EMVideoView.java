@@ -114,7 +114,6 @@ public class EMVideoView extends RelativeLayout {
     @Override
     protected void onDetachedFromWindow() {
         super.onDetachedFromWindow();
-        pause();
 
         if (releaseOnDetachFromWindow) {
             release();

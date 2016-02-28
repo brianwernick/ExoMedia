@@ -1,9 +1,9 @@
 package com.devbrackets.android.exomediademo.ui.activity;
 
 import android.app.Activity;
-import android.media.MediaPlayer;
 import android.os.Bundle;
 
+import com.devbrackets.android.exomedia.listener.OnPreparedListener;
 import com.devbrackets.android.exomedia.ui.widget.EMVideoView;
 import com.devbrackets.android.exomediademo.App;
 import com.devbrackets.android.exomediademo.R;
@@ -17,7 +17,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 
-public class VideoPlayerActivity extends Activity implements MediaPlayer.OnPreparedListener {
+public class VideoPlayerActivity extends Activity implements OnPreparedListener {
     public static final String EXTRA_INDEX = "EXTRA_INDEX";
     public static final int PLAYLIST_ID = 6; //Arbitrary, for the example (different from audio)
 
@@ -62,8 +62,8 @@ public class VideoPlayerActivity extends Activity implements MediaPlayer.OnPrepa
     }
 
     @Override
-    public void onPrepared(MediaPlayer mp) {
-        //Starts the video playback as soon as it is ready
+    public void onPrepared() {
+        //Starts the video playback as soon as it is ready (todo: the service should handle this now)
         emVideoView.start();
     }
 

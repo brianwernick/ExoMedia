@@ -35,7 +35,7 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.devbrackets.android.exomedia.R;
-import com.devbrackets.android.exomedia.listener.DefaultControlsListener;
+import com.devbrackets.android.exomedia.listener.VideoControlsListener;
 import com.devbrackets.android.exomedia.util.EMResourceUtil;
 
 import java.util.LinkedList;
@@ -88,7 +88,7 @@ public abstract class VideoControls extends RelativeLayout {
 
     protected EMVideoView videoView;
     protected SeekCallbacks seekCallbacks;
-    protected DefaultControlsListener callback;
+    protected VideoControlsListener callback;
 
     public VideoControls(Context context) {
         super(context);
@@ -127,7 +127,7 @@ public abstract class VideoControls extends RelativeLayout {
      *
      * @param callback The callback
      */
-    public void setVideoViewControlsCallback(DefaultControlsListener callback) {
+    public void setVideoViewControlsCallback(VideoControlsListener callback) {
         this.callback = callback;
     }
 

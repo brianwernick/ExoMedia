@@ -22,7 +22,6 @@ import android.content.res.Configuration;
 import android.content.res.TypedArray;
 import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
-import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Build;
 import android.support.annotation.DrawableRes;
@@ -44,7 +43,11 @@ import com.devbrackets.android.exomedia.core.EMListenerMux;
 import com.devbrackets.android.exomedia.core.api.VideoViewApi;
 import com.devbrackets.android.exomedia.core.builder.RenderBuilder;
 import com.devbrackets.android.exomedia.core.exoplayer.EMExoPlayer;
-import com.devbrackets.android.exomedia.core.listener.ExoPlayerListener;
+import com.devbrackets.android.exomedia.listener.OnBufferUpdateListener;
+import com.devbrackets.android.exomedia.listener.OnCompletionListener;
+import com.devbrackets.android.exomedia.listener.OnErrorListener;
+import com.devbrackets.android.exomedia.listener.OnPreparedListener;
+import com.devbrackets.android.exomedia.listener.OnSeekCompletionListener;
 import com.devbrackets.android.exomedia.util.EMDeviceUtil;
 import com.devbrackets.android.exomedia.util.Repeater;
 import com.devbrackets.android.exomedia.util.StopWatch;
@@ -460,7 +463,7 @@ public class EMVideoView extends RelativeLayout {
     /**
      * Starts the playback for the video specified in {@link #setVideoURI(android.net.Uri)}
      * or {@link #setVideoPath(String)}.  This should be called after the VideoView is correctly
-     * prepared (see {@link #setOnPreparedListener(android.media.MediaPlayer.OnPreparedListener)})
+     * prepared (see {@link #setOnPreparedListener(OnPreparedListener)})
      */
     public void start() {
         videoViewImpl.start();
@@ -509,7 +512,7 @@ public class EMVideoView extends RelativeLayout {
 
     /**
      * Retrieves the duration of the current audio item.  This should only be called after
-     * the item is prepared (see {@link #setOnPreparedListener(android.media.MediaPlayer.OnPreparedListener)}).
+     * the item is prepared (see {@link #setOnPreparedListener(OnPreparedListener)}).
      * If {@link #overrideDuration(int)} is set then that value will be returned.
      *
      * @return The millisecond duration of the video
@@ -536,7 +539,7 @@ public class EMVideoView extends RelativeLayout {
     /**
      * Retrieves the current position of the audio playback.  If an audio item is not currently
      * in playback then the value will be 0.  This should only be called after the item is
-     * prepared (see {@link #setOnPreparedListener(android.media.MediaPlayer.OnPreparedListener)})
+     * prepared (see {@link #setOnPreparedListener(OnPreparedListener)})
      *
      * @return The millisecond value for the current position
      */
@@ -585,7 +588,7 @@ public class EMVideoView extends RelativeLayout {
     /**
      * Retrieves the current buffer percent of the video.  If a video is not currently
      * prepared or buffering the value will be 0.  This should only be called after the video is
-     * prepared (see {@link #setOnPreparedListener(android.media.MediaPlayer.OnPreparedListener)})
+     * prepared (see {@link #setOnPreparedListener(OnPreparedListener)})
      *
      * @return The integer percent that is buffered [0, 100] inclusive
      */
@@ -594,30 +597,11 @@ public class EMVideoView extends RelativeLayout {
     }
 
     /**
-     * Sets the listener to inform of any exoPlayer events
-     *
-     * @param listener The listener
-     */
-    public void addExoPlayerListener(ExoPlayerListener listener) {
-        listenerMux.addExoPlayerListener(listener);
-    }
-
-    /**
-     * Removes the specified listener for the ExoPlayer.
-     *
-     * @param listener The listener to remove
-     */
-    public void removeExoPlayerListener(ExoPlayerListener listener) {
-        listenerMux.removeExoPlayerListener(listener);
-    }
-
-
-    /**
      * Sets the listener to inform of VideoPlayer prepared events
      *
      * @param listener The listener
      */
-    public void setOnPreparedListener(MediaPlayer.OnPreparedListener listener) {
+    public void setOnPreparedListener(OnPreparedListener listener) {
         listenerMux.setOnPreparedListener(listener);
     }
 
@@ -626,8 +610,26 @@ public class EMVideoView extends RelativeLayout {
      *
      * @param listener The listener
      */
-    public void setOnCompletionListener(MediaPlayer.OnCompletionListener listener) {
+    public void setOnCompletionListener(OnCompletionListener listener) {
         listenerMux.setOnCompletionListener(listener);
+    }
+
+    /**
+     * Sets the listener to inform of VideoPlayer buffer update events
+     *
+     * @param listener The listener
+     */
+    public void setOnBufferUpdateListener(OnBufferUpdateListener listener) {
+        listenerMux.setOnBufferUpdateListener(listener);
+    }
+
+    /**
+     * Sets the listener to inform of VideoPlayer seek completion events
+     *
+     * @param listener The listener
+     */
+    public void setOnSeekCompletionListener(OnSeekCompletionListener listener) {
+        listenerMux.setOnSeekCompletionListener(listener);
     }
 
     /**
@@ -635,17 +637,8 @@ public class EMVideoView extends RelativeLayout {
      *
      * @param listener The listener
      */
-    public void setOnErrorListener(MediaPlayer.OnErrorListener listener) {
+    public void setOnErrorListener(OnErrorListener listener) {
         listenerMux.setOnErrorListener(listener);
-    }
-
-    /**
-     * Sets the listener to inform of media information events.
-     *
-     * @param listener The listener
-     */
-    public void setOnInfoListener(MediaPlayer.OnInfoListener listener) {
-        listenerMux.setOnInfoListener(listener);
     }
 
     /**
@@ -699,7 +692,7 @@ public class EMVideoView extends RelativeLayout {
 
         //Retrieves the specified implementation
         int styleableRes = useLegacy ? R.styleable.EMVideoView_videoViewApiImplLegacy : R.styleable.EMVideoView_videoViewApiImpl;
-        int videoViewApiImplRes = typedArray.getResourceId(styleableRes, defaultVideoViewApiImplRes);;
+        int videoViewApiImplRes = typedArray.getResourceId(styleableRes, defaultVideoViewApiImplRes);
         typedArray.recycle();
 
         return videoViewApiImplRes;

@@ -19,12 +19,11 @@ package com.devbrackets.android.exomedia.core.audio;
 import android.content.Context;
 import android.media.MediaPlayer;
 import android.net.Uri;
-import android.os.Build;
 import android.util.Log;
 
 import com.devbrackets.android.exomedia.core.EMListenerMux;
-import com.devbrackets.android.exomedia.core.builder.RenderBuilder;
 import com.devbrackets.android.exomedia.core.api.MediaPlayerApi;
+import com.devbrackets.android.exomedia.core.builder.RenderBuilder;
 
 public class NativeMediaPlayer extends MediaPlayer implements MediaPlayerApi, MediaPlayer.OnBufferingUpdateListener {
     private static final String TAG = "NativeMediaPlayer";
@@ -109,11 +108,9 @@ public class NativeMediaPlayer extends MediaPlayer implements MediaPlayerApi, Me
 
         setOnCompletionListener(listenerMux);
         setOnPreparedListener(listenerMux);
+        setOnBufferingUpdateListener(listenerMux);
+        setOnSeekCompleteListener(listenerMux);
         setOnErrorListener(listenerMux);
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
-            setOnInfoListener(listenerMux);
-        }
     }
 
     @Override

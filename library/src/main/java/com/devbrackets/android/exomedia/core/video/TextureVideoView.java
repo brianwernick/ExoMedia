@@ -24,6 +24,7 @@ import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Build;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
 import android.util.Log;
@@ -70,11 +71,20 @@ public class TextureVideoView extends TextureView implements MediaController.Med
     protected int requestedSeek;
     protected int currentBufferPercent;
 
+    @NonNull
     protected InternalListeners internalListeners = new InternalListeners();
 
+    @Nullable
     protected MediaPlayer.OnCompletionListener onCompletionListener;
+    @Nullable
     protected MediaPlayer.OnPreparedListener onPreparedListener;
+    @Nullable
+    protected MediaPlayer.OnBufferingUpdateListener onBufferingUpdateListener;
+    @Nullable
+    protected MediaPlayer.OnSeekCompleteListener onSeekCompleteListener;
+    @Nullable
     protected MediaPlayer.OnErrorListener onErrorListener;
+    @Nullable
     protected MediaPlayer.OnInfoListener onInfoListener;
 
     public TextureVideoView(Context context) {
@@ -287,7 +297,7 @@ public class TextureVideoView extends TextureView implements MediaController.Med
      *
      * @param listener The callback that will be run
      */
-    public void setOnPreparedListener(MediaPlayer.OnPreparedListener listener) {
+    public void setOnPreparedListener(@Nullable MediaPlayer.OnPreparedListener listener) {
         onPreparedListener = listener;
     }
 
@@ -297,8 +307,28 @@ public class TextureVideoView extends TextureView implements MediaController.Med
      *
      * @param listener The callback that will be run
      */
-    public void setOnCompletionListener(MediaPlayer.OnCompletionListener listener) {
+    public void setOnCompletionListener(@Nullable MediaPlayer.OnCompletionListener listener) {
         onCompletionListener = listener;
+    }
+
+    /**
+     * Register a callback to be invoked when the status of a network
+     * stream's buffer has changed.
+     *
+     * @param listener the callback that will be run.
+     */
+    public void setOnBufferingUpdateListener(@Nullable MediaPlayer.OnBufferingUpdateListener listener) {
+        onBufferingUpdateListener = listener;
+    }
+
+    /**
+     * Register a callback to be invoked when a seek operation has been
+     * completed.
+     *
+     * @param listener the callback that will be run
+     */
+    public void setOnSeekCompleteListener(@Nullable MediaPlayer.OnSeekCompleteListener listener) {
+        onSeekCompleteListener = listener;
     }
 
     /**
@@ -309,7 +339,7 @@ public class TextureVideoView extends TextureView implements MediaController.Med
      *
      * @param listener The callback that will be run
      */
-    public void setOnErrorListener(MediaPlayer.OnErrorListener listener) {
+    public void setOnErrorListener(@Nullable MediaPlayer.OnErrorListener listener) {
         onErrorListener = listener;
     }
 
@@ -319,7 +349,7 @@ public class TextureVideoView extends TextureView implements MediaController.Med
      *
      * @param listener The callback that will be run
      */
-    public void setOnInfoListener(MediaPlayer.OnInfoListener listener) {
+    public void setOnInfoListener(@Nullable MediaPlayer.OnInfoListener listener) {
         onInfoListener = listener;
     }
 
@@ -374,6 +404,7 @@ public class TextureVideoView extends TextureView implements MediaController.Med
         mediaPlayer.setOnErrorListener(internalListeners);
         mediaPlayer.setOnPreparedListener(internalListeners);
         mediaPlayer.setOnCompletionListener(internalListeners);
+        mediaPlayer.setOnSeekCompleteListener(internalListeners);
         mediaPlayer.setOnBufferingUpdateListener(internalListeners);
         mediaPlayer.setOnVideoSizeChangedListener(internalListeners);
 
@@ -382,10 +413,13 @@ public class TextureVideoView extends TextureView implements MediaController.Med
     }
 
     protected class InternalListeners implements MediaPlayer.OnBufferingUpdateListener, MediaPlayer.OnErrorListener, MediaPlayer.OnPreparedListener,
-            MediaPlayer.OnCompletionListener, MediaPlayer.OnInfoListener, MediaPlayer.OnVideoSizeChangedListener {
+            MediaPlayer.OnCompletionListener, MediaPlayer.OnSeekCompleteListener, MediaPlayer.OnInfoListener, MediaPlayer.OnVideoSizeChangedListener {
         @Override
         public void onBufferingUpdate(MediaPlayer mp, int percent) {
             currentBufferPercent = percent;
+            if (onBufferingUpdateListener != null) {
+                onBufferingUpdateListener.onBufferingUpdate(mp, percent);
+            }
         }
 
         @Override
@@ -393,6 +427,13 @@ public class TextureVideoView extends TextureView implements MediaController.Med
             currentState = State.COMPLETED;
             if (onCompletionListener != null) {
                 onCompletionListener.onCompletion(mediaPlayer);
+            }
+        }
+
+        @Override
+        public void onSeekComplete(MediaPlayer mp) {
+            if (onSeekCompleteListener != null) {
+                onSeekCompleteListener.onSeekComplete(mp);
             }
         }
 

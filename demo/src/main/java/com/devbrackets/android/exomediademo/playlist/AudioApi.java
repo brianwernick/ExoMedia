@@ -8,17 +8,18 @@ import android.support.annotation.NonNull;
 
 import com.devbrackets.android.exomedia.EMAudioPlayer;
 import com.devbrackets.android.playlistcore.api.AudioPlayerApi;
-import com.devbrackets.android.playlistcore.listener.OnMediaBufferUpdateListener;
-import com.devbrackets.android.playlistcore.listener.OnMediaCompletionListener;
-import com.devbrackets.android.playlistcore.listener.OnMediaErrorListener;
-import com.devbrackets.android.playlistcore.listener.OnMediaPreparedListener;
-import com.devbrackets.android.playlistcore.listener.OnMediaSeekCompletionListener;
 
-public class AudioApi implements AudioPlayerApi {
+public class AudioApi extends BaseMediaApi implements AudioPlayerApi {
     private EMAudioPlayer audioPlayer;
 
     public AudioApi(EMAudioPlayer audioPlayer) {
         this.audioPlayer = audioPlayer;
+
+        audioPlayer.setOnErrorListener(this);
+        audioPlayer.setOnPreparedListener(this);
+        audioPlayer.setOnCompletionListener(this);
+        audioPlayer.setOnBufferUpdateListener(this);
+        audioPlayer.setOnSeekCompletionListener(this);
     }
 
     @Override
@@ -94,30 +95,5 @@ public class AudioApi implements AudioPlayerApi {
     @Override
     public int getBufferedPercent() {
         return audioPlayer.getBufferPercentage();
-    }
-
-    @Override
-    public void setOnMediaPreparedListener(OnMediaPreparedListener onMediaPreparedListener) {
-
-    }
-
-    @Override
-    public void setOnMediaBufferUpdateListener(OnMediaBufferUpdateListener onMediaBufferUpdateListener) {
-
-    }
-
-    @Override
-    public void setOnMediaSeekCompletionListener(OnMediaSeekCompletionListener onMediaSeekCompletionListener) {
-
-    }
-
-    @Override
-    public void setOnMediaCompletionListener(OnMediaCompletionListener onMediaCompletionListener) {
-
-    }
-
-    @Override
-    public void setOnMediaErrorListener(OnMediaErrorListener onMediaErrorListener) {
-
     }
 }

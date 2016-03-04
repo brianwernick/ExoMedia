@@ -167,7 +167,6 @@ public class ExoMediaPlayer implements MediaPlayerApi, AudioCapabilitiesReceiver
         }
     }
 
-
     @Override
     public int getAudioSessionId() {
         return emExoPlayer.getAudioSessionId();

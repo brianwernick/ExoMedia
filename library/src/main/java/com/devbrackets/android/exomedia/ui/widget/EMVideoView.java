@@ -706,7 +706,7 @@ public class EMVideoView extends RelativeLayout {
      * procedures from running that we no longer need.
      */
     protected void onPlaybackEnded() {
-        stopPlayback();
+        pause();
         pollRepeater.stop();
     }
 
@@ -754,7 +754,8 @@ public class EMVideoView extends RelativeLayout {
 
         @Override
         public void onExoPlayerError(EMExoPlayer emExoPlayer, Exception e) {
-            setKeepScreenOn(false);
+            stopPlayback();
+
             if (emExoPlayer != null) {
                 emExoPlayer.forcePrepare();
             }

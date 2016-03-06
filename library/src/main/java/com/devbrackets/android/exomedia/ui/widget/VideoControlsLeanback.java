@@ -32,13 +32,14 @@ import android.widget.ImageView;
 import android.widget.ProgressBar;
 
 import com.devbrackets.android.exomedia.R;
+import com.devbrackets.android.exomedia.ui.animation.BottomViewHideShowAnimation;
 import com.devbrackets.android.exomedia.util.EMResourceUtil;
 import com.devbrackets.android.exomedia.util.TimeFormatUtil;
-import com.devbrackets.android.exomedia.ui.animation.BottomViewHideShowAnimation;
 
 /**
  * Provides playback controls for the EMVideoView on TV devices.
  */
+@SuppressWarnings("unused")
 @TargetApi(Build.VERSION_CODES.LOLLIPOP)
 public class VideoControlsLeanback extends VideoControls {
     protected static final int FAST_FORWARD_REWIND_AMOUNT = 10000; //10 seconds
@@ -75,6 +76,7 @@ public class VideoControlsLeanback extends VideoControls {
     @Override
     protected void setup(Context context) {
         super.setup(context);
+        internalListener = new LeanbackInternalListener();
         registerForInput();
     }
 
@@ -295,12 +297,9 @@ public class VideoControlsLeanback extends VideoControls {
      * {@value #FAST_FORWARD_REWIND_AMOUNT} milliseconds.
      */
     protected void onRewindClick() {
-        int newPosition = (int) videoView.getCurrentPosition() - FAST_FORWARD_REWIND_AMOUNT;
-        if (newPosition < 0) {
-            newPosition = 0;
+        if (buttonsListener == null || !buttonsListener.onRewindClicked()) {
+            internalListener.onRewindClicked();
         }
-
-        performSeek(newPosition);
     }
 
     /**
@@ -308,12 +307,9 @@ public class VideoControlsLeanback extends VideoControls {
      * {@value #FAST_FORWARD_REWIND_AMOUNT} milliseconds.
      */
     protected void onFastForwardClick() {
-        int newPosition = (int) videoView.getCurrentPosition() + FAST_FORWARD_REWIND_AMOUNT;
-        if (newPosition > progressBar.getMax()) {
-            newPosition = progressBar.getMax();
+        if (buttonsListener == null || !buttonsListener.onFastForwardClicked()) {
+            internalListener.onFastForwardClicked();
         }
-
-        performSeek(newPosition);
     }
 
     /**
@@ -323,11 +319,9 @@ public class VideoControlsLeanback extends VideoControls {
      * @param seekToTime The time to seek to in milliseconds
      */
     protected void performSeek(int seekToTime) {
-        if (seekCallbacks != null && seekCallbacks.onSeekEnded(seekToTime)) {
-            return;
+        if (seekListener == null || !seekListener.onSeekEnded(seekToTime)) {
+            internalListener.onSeekEnded(seekToTime);
         }
-
-        videoView.seekTo(seekToTime);
     }
 
     /**
@@ -338,7 +332,7 @@ public class VideoControlsLeanback extends VideoControls {
     protected void showTemporary() {
         show();
 
-        if (videoView.isPlaying()) {
+        if (videoView != null && videoView.isPlaying()) {
             hideDelayed(DEFAULT_CONTROL_HIDE_DELAY);
         }
     }
@@ -482,14 +476,14 @@ public class VideoControlsLeanback extends VideoControls {
                     return true;
 
                 case KeyEvent.KEYCODE_MEDIA_PLAY:
-                    if (!videoView.isPlaying()) {
+                    if (videoView != null && !videoView.isPlaying()) {
                         videoView.start();
                         return true;
                     }
                     break;
 
                 case KeyEvent.KEYCODE_MEDIA_PAUSE:
-                    if (videoView.isPlaying()) {
+                    if (videoView != null && videoView.isPlaying()) {
                         videoView.pause();
                         return true;
                     }
@@ -547,6 +541,38 @@ public class VideoControlsLeanback extends VideoControls {
         @Override
         public void onAnimationRepeat(Animation animation) {
             //Purposefully left blank
+        }
+    }
+
+    protected class LeanbackInternalListener extends InternalListener {
+        @Override
+        public boolean onFastForwardClicked() {
+            if (videoView == null) {
+                return false;
+            }
+
+            int newPosition = videoView.getCurrentPosition() - FAST_FORWARD_REWIND_AMOUNT;
+            if (newPosition < 0) {
+                newPosition = 0;
+            }
+
+            performSeek(newPosition);
+            return true;
+        }
+
+        @Override
+        public boolean onRewindClicked() {
+            if (videoView == null) {
+                return false;
+            }
+
+            int newPosition = videoView.getCurrentPosition() + FAST_FORWARD_REWIND_AMOUNT;
+            if (newPosition > progressBar.getMax()) {
+                newPosition = progressBar.getMax();
+            }
+
+            performSeek(newPosition);
+            return true;
         }
     }
 }

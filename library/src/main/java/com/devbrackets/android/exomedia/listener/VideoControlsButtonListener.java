@@ -16,43 +16,44 @@
 
 package com.devbrackets.android.exomedia.listener;
 
-/**
- * Basic VideoView callbacks.  These can also be accessed through
- * their corresponding EventBus events.
- */
-public interface VideoControlsListener {
+public interface VideoControlsButtonListener {
     /**
-     * Occurs when the PlayPause button on the VideoView is clicked
+     * Occurs when the PlayPause button on the {@link com.devbrackets.android.exomedia.ui.widget.VideoControls}
+     * is clicked
      *
      * @return True if the event has been handled
      */
     boolean onPlayPauseClicked();
 
     /**
-     * Occurs when the Previous button on the VideoView is clicked
+     * Occurs when the Previous button on the {@link com.devbrackets.android.exomedia.ui.widget.VideoControls}
+     * is clicked
      *
      * @return True if the event has been handled
      */
     boolean onPreviousClicked();
 
     /**
-     * Occurs when the Next button on the VideoView is clicked
+     * Occurs when the Next button on the {@link com.devbrackets.android.exomedia.ui.widget.VideoControls}
+     * is clicked
      *
      * @return True if the event has been handled
      */
     boolean onNextClicked();
 
     /**
-     * Occurs when the DefaultControls becomes visible
+     * Occurs when the Rewind button on the {@link com.devbrackets.android.exomedia.ui.widget.VideoControls}
+     * is clicked.
      *
      * @return True if the event has been handled
      */
-    boolean onControlsShown();
+    boolean onRewindClicked();
 
     /**
-     * Occurs when the DefaultControls becomes hidden
+     * Occurs when the Fast Forward button on the {@link com.devbrackets.android.exomedia.ui.widget.VideoControls}
+     * is clicked.
      *
      * @return True if the event has been handled
      */
-    boolean onControlsHidden();
+    boolean onFastForwardClicked();
 }

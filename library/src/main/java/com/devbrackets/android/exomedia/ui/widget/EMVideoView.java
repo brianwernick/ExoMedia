@@ -500,6 +500,27 @@ public class EMVideoView extends RelativeLayout {
         }
     }
 
+  /**
+   * If the video has completed playback, calling {@code restart} will seek to the beginning of the video, and play it.
+   *
+   * @return {@code true} if the video was successfully restarted, otherwise {@code false}
+   */
+  public boolean restart() {
+        if(videoUri == null) {
+            return false;
+        }
+
+        if(videoViewImpl.restart()) {
+            if (videoControls != null) {
+                videoControls.restartLoading();
+            }
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+
     /**
      * If a video is currently in playback then the playback will be suspended
      */

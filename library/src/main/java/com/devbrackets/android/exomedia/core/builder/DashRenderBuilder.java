@@ -92,6 +92,10 @@ public class DashRenderBuilder extends RenderBuilder {
         this.streamType = streamType;
     }
 
+    protected UriDataSource createManifestDataSource(Context context, String userAgent) {
+        return new DefaultUriDataSource(context, userAgent);
+    }
+
     @Override
     public void buildRenderers(EMExoPlayer player) {
         currentAsyncBuilder = new AsyncRendererBuilder(context, userAgent, url, player, streamType);
@@ -125,7 +129,7 @@ public class DashRenderBuilder extends RenderBuilder {
             this.player = player;
 
             MediaPresentationDescriptionParser parser = new MediaPresentationDescriptionParser();
-            manifestDataSource = new DefaultUriDataSource(context, userAgent);
+            manifestDataSource = createManifestDataSource(context, userAgent);
             manifestFetcher = new ManifestFetcher<>(url, manifestDataSource, parser);
         }
 
@@ -220,7 +224,7 @@ public class DashRenderBuilder extends RenderBuilder {
 
 
             //Create the Sample Source to be used by the Video Renderer
-            DataSource dataSourceVideo = new DefaultUriDataSource(context, bandwidthMeter, userAgent, true);
+            DataSource dataSourceVideo = createDataSource(context, bandwidthMeter, userAgent);
             ChunkSource chunkSourceVideo = new DashChunkSource(manifestFetcher, DefaultDashTrackSelector.newVideoInstance(context, true, filterHdContent), dataSourceVideo,
                     new AdaptiveEvaluator(bandwidthMeter), LIVE_EDGE_LATENCY_MS, elapsedRealtimeOffset, mainHandler, player, EMExoPlayer.RENDER_VIDEO);
             ChunkSampleSource sampleSourceVideo = new ChunkSampleSource(chunkSourceVideo, loadControl, BUFFER_SEGMENTS_VIDEO * BUFFER_SEGMENT_SIZE,
@@ -228,7 +232,7 @@ public class DashRenderBuilder extends RenderBuilder {
 
 
             //Create the Sample Source to be used by the Audio Renderer
-            DataSource dataSourceAudio = new DefaultUriDataSource(context, bandwidthMeter, userAgent, true);
+            DataSource dataSourceAudio = createDataSource(context, bandwidthMeter, userAgent);
             ChunkSource chunkSourceAudio = new DashChunkSource(manifestFetcher, DefaultDashTrackSelector.newAudioInstance(), dataSourceAudio,
                     null, LIVE_EDGE_LATENCY_MS, elapsedRealtimeOffset, mainHandler, player, EMExoPlayer.RENDER_AUDIO);
             ChunkSampleSource sampleSourceAudio = new ChunkSampleSource(chunkSourceAudio, loadControl, BUFFER_SEGMENTS_AUDIO * BUFFER_SEGMENT_SIZE,
@@ -236,7 +240,7 @@ public class DashRenderBuilder extends RenderBuilder {
 
 
             //Create the Sample Source to be used by the Closed Captions Renderer
-            DataSource dataSourceCC = new DefaultUriDataSource(context, bandwidthMeter, userAgent);
+            DataSource dataSourceCC = createDataSource(context, bandwidthMeter, userAgent);
             ChunkSource chunkSourceCC = new DashChunkSource(manifestFetcher, DefaultDashTrackSelector.newAudioInstance(), dataSourceCC,
                     null, LIVE_EDGE_LATENCY_MS, elapsedRealtimeOffset, mainHandler, player, EMExoPlayer.RENDER_CLOSED_CAPTION);
             ChunkSampleSource sampleSourceCC = new ChunkSampleSource(chunkSourceCC, loadControl, BUFFER_SEGMENTS_TEXT * BUFFER_SEGMENT_SIZE,

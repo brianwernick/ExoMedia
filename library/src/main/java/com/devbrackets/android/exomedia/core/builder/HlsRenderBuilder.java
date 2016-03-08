@@ -50,6 +50,7 @@ import com.google.android.exoplayer.upstream.DataSource;
 import com.google.android.exoplayer.upstream.DefaultAllocator;
 import com.google.android.exoplayer.upstream.DefaultBandwidthMeter;
 import com.google.android.exoplayer.upstream.DefaultUriDataSource;
+import com.google.android.exoplayer.upstream.UriDataSource;
 import com.google.android.exoplayer.util.ManifestFetcher;
 import com.google.android.exoplayer.util.ManifestFetcher.ManifestCallback;
 
@@ -82,6 +83,10 @@ public class HlsRenderBuilder extends RenderBuilder {
         this.streamType = streamType;
     }
 
+    protected UriDataSource createManifestDataSource(Context context, String userAgent) {
+        return new DefaultUriDataSource(context, userAgent);
+    }
+
     @Override
     public void buildRenderers(EMExoPlayer player) {
         currentAsyncBuilder = new AsyncRendererBuilder(context, userAgent, url, player, streamType);
@@ -96,7 +101,7 @@ public class HlsRenderBuilder extends RenderBuilder {
         }
     }
 
-    private static final class AsyncRendererBuilder implements ManifestCallback<HlsPlaylist> {
+    private final class AsyncRendererBuilder implements ManifestCallback<HlsPlaylist> {
         private final Context context;
         private final String userAgent;
         private final String url;
@@ -114,7 +119,7 @@ public class HlsRenderBuilder extends RenderBuilder {
             this.player = player;
 
             HlsPlaylistParser parser = new HlsPlaylistParser();
-            playlistFetcher = new ManifestFetcher<>(url, new DefaultUriDataSource(context, userAgent), parser);
+            playlistFetcher = new ManifestFetcher<>(url, createManifestDataSource(context, userAgent), parser);
         }
 
         public void init() {
@@ -168,7 +173,7 @@ public class HlsRenderBuilder extends RenderBuilder {
             }
 
             //Create the Sample Source to be used by the renders
-            DataSource dataSource = new DefaultUriDataSource(context, bandwidthMeter, userAgent, true);
+            DataSource dataSource = createDataSource(context, bandwidthMeter, userAgent);
             HlsChunkSource chunkSource = new HlsChunkSource(true, dataSource, url, playlist, DefaultHlsTrackSelector.newDefaultInstance(context),
                     bandwidthMeter, timestampAdjusterProvider, HlsChunkSource.ADAPTIVE_MODE_SPLICE);
             HlsSampleSource sampleSource = new HlsSampleSource(chunkSource, loadControl,

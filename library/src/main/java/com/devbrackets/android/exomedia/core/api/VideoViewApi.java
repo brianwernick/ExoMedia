@@ -57,6 +57,8 @@ public interface VideoViewApi {
 
     void stopPlayback();
 
+    boolean restart();
+
     void suspend();
 
     void release();

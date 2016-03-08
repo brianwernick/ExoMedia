@@ -134,6 +134,25 @@ public class ExoMediaPlayer implements MediaPlayerApi, AudioCapabilitiesReceiver
         playRequested = false;
     }
 
+    /**
+     * If the media has completed playback, calling {@code restart} will seek to the beginning of the media, and play it.
+     *
+     * @return {@code true} if the media was successfully restarted, otherwise {@code false}
+     */
+    @Override
+    public boolean restart() {
+        if(!emExoPlayer.restart()) {
+            return false;
+        }
+
+        listenerMux.setNotifiedCompleted(false);
+
+        //Makes sure the listeners get the onPrepared callback
+        listenerMux.setNotifiedPrepared(false);
+
+        return true;
+    }
+
     @Override
     public int getDuration() {
         if (!listenerMux.isPrepared()) {

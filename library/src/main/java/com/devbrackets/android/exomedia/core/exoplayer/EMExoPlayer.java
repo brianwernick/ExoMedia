@@ -268,6 +268,26 @@ public class EMExoPlayer implements
         player.seekTo(positionMs);
     }
 
+  /**
+   * Seeks to the beginning of the media, and plays it. This method will not succeed if playback state is not {@link ExoPlayer.STATE_IDLE}.
+   *
+   * @return {@code true} if the media was successfully restarted, otherwise {@code false}
+   */
+  public boolean restart() {
+        if(getPlaybackState() != ExoPlayer.STATE_IDLE) {
+            return false;
+        }
+
+        seekTo(0);
+
+        setPlayWhenReady(true);
+
+        prepared = false;
+        prepare();
+
+        return true;
+    }
+
     public void release() {
         if (rendererBuilder != null) {
             rendererBuilder.cancel();

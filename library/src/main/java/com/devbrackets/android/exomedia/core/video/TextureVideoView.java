@@ -41,7 +41,7 @@ import java.util.Map;
  * resolves issues with the SurfaceView because the TextureView is an actual
  * View that follows the normal drawing paths; allowing the view to be animated,
  * scaled, etc.
- * <p/>
+ * <br><br>
  * NOTE: This does remove some of the functionality from the VideoView including:
  * <ul>
  * <li>The {@link MediaController}</li>

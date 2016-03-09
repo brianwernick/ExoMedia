@@ -269,7 +269,7 @@ public class EMExoPlayer implements
     }
 
   /**
-   * Seeks to the beginning of the media, and plays it. This method will not succeed if playback state is not {@link ExoPlayer.STATE_IDLE}.
+   * Seeks to the beginning of the media, and plays it. This method will not succeed if playback state is not {@code ExoPlayer.STATE_IDLE}.
    *
    * @return {@code true} if the media was successfully restarted, otherwise {@code false}
    */

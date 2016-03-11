@@ -1,22 +1,22 @@
 package com.devbrackets.android.exomediademo.ui.activity;
 
 import android.app.Activity;
-import android.media.MediaPlayer;
 import android.os.Bundle;
 
-import com.devbrackets.android.exomedia.EMVideoView;
-import com.devbrackets.android.exomedia.manager.EMPlaylistManager;
+import com.devbrackets.android.exomedia.ui.widget.EMVideoView;
 import com.devbrackets.android.exomediademo.App;
 import com.devbrackets.android.exomediademo.R;
 import com.devbrackets.android.exomediademo.data.MediaItem;
 import com.devbrackets.android.exomediademo.helper.VideoItems;
 import com.devbrackets.android.exomediademo.manager.PlaylistManager;
+import com.devbrackets.android.exomediademo.playlist.VideoApi;
+import com.devbrackets.android.playlistcore.manager.BasePlaylistManager;
 
 import java.util.LinkedList;
 import java.util.List;
 
 
-public class VideoPlayerActivity extends Activity implements MediaPlayer.OnPreparedListener {
+public class VideoPlayerActivity extends Activity {
     public static final String EXTRA_INDEX = "EXTRA_INDEX";
     public static final int PLAYLIST_ID = 6; //Arbitrary, for the example (different from audio)
 
@@ -60,11 +60,6 @@ public class VideoPlayerActivity extends Activity implements MediaPlayer.OnPrepa
         playlistManager.invokeStop();
     }
 
-    @Override
-    public void onPrepared(MediaPlayer mp) {
-        //Starts the video playback as soon as it is ready
-        emVideoView.start();
-    }
 
     /**
      * Retrieves the extra associated with the selected playlist index
@@ -79,9 +74,8 @@ public class VideoPlayerActivity extends Activity implements MediaPlayer.OnPrepa
         setupPlaylistManager();
 
         emVideoView = (EMVideoView)findViewById(R.id.video_play_activity_video_view);
-        emVideoView.setOnPreparedListener(this);
 
-        playlistManager.setVideoView(emVideoView);
+        playlistManager.setVideoPlayer(new VideoApi(emVideoView));
         playlistManager.play(0, false);
     }
 
@@ -98,8 +92,8 @@ public class VideoPlayerActivity extends Activity implements MediaPlayer.OnPrepa
             mediaItems.add(mediaItem);
         }
 
-        playlistManager.setAllowedMediaType(EMPlaylistManager.MediaType.AUDIO_AND_VIDEO);
+        playlistManager.setAllowedMediaType(BasePlaylistManager.AUDIO | BasePlaylistManager.VIDEO);
         playlistManager.setParameters(mediaItems, selectedIndex);
-        playlistManager.setPlaylistId(PLAYLIST_ID);
+        playlistManager.setId( PLAYLIST_ID);
     }
 }

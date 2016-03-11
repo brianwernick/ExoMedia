@@ -5,8 +5,8 @@ import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
 
-import com.devbrackets.android.exomedia.listener.EMVideoViewControlsCallback;
-import com.devbrackets.android.exomedia.widget.DefaultControls;
+import com.devbrackets.android.exomedia.ui.widget.VideoControls;
+import com.devbrackets.android.exomedia.ui.widget.EMVideoView;
 
 /**
  * A simple example of making a fullscreen video player activity.
@@ -25,7 +25,9 @@ public class FullScreenVideoPlayerActivity extends VideoPlayerActivity {
         }
 
         goFullscreen();
-        emVideoView.setVideoViewControlsCallback(new DefaultControlsCallback());
+        if (emVideoView.getVideoControls() != null) {
+            emVideoView.getVideoControls().setVideoViewControlsCallback(new VideoControlsListener());
+        }
     }
 
     @Override
@@ -82,23 +84,23 @@ public class FullScreenVideoPlayerActivity extends VideoPlayerActivity {
 
     /**
      * Listens to the system to determine when to show the default controls
-     * for the {@link com.devbrackets.android.exomedia.EMVideoView}
+     * for the {@link EMVideoView}
      */
     @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     private class FullScreenListener implements View.OnSystemUiVisibilityChangeListener {
         @Override
         public void onSystemUiVisibilityChange(int visibility) {
             if ((visibility & View.SYSTEM_UI_FLAG_FULLSCREEN) == 0) {
-                emVideoView.showDefaultControls();
+                emVideoView.showControls();
             }
         }
     }
 
     /**
-     * A Listener for the {@link DefaultControls}
+     * A Listener for the {@link VideoControls}
      * so that we can re-enter fullscreen mode when the controls are hidden.
      */
-    private class DefaultControlsCallback implements EMVideoViewControlsCallback {
+    private class VideoControlsListener implements com.devbrackets.android.exomedia.listener.VideoControlsListener {
         @Override
         public boolean onPlayPauseClicked() {
             return false; // No additional functionality performed

@@ -1,10 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-              android:layout_width="match_parent"
-              android:layout_height="match_parent">
+                xmlns:tools="http://schemas.android.com/tools"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
 
-    <view class="com.devbrackets.android.exomedia.EMVideoView$TouchVideoView"
-        android:id="@+id/exomedia_android_video_view"
+    <ViewStub
+        android:id="@+id/video_view_api_impl_stub"
+        android:inflatedId="@+id/exomedia_video_view"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_centerInParent="true"/>
@@ -14,30 +16,28 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_alignParentTop="true"
-        android:layout_above="@+id/exomedia_android_video_view"
         android:background="@android:color/black"/>
 
     <View
         android:id="@+id/exomedia_video_shutter_left"
         android:layout_width="0dp"
         android:layout_height="match_parent"
-        android:layout_toLeftOf="@+id/exomedia_android_video_view"
         android:layout_alignParentLeft="true"
-        android:background="@android:color/black"/>
+        android:background="@android:color/black"
+        tools:ignore="RtlHardcoded"/>
 
     <View
         android:id="@+id/exomedia_video_shutter_right"
         android:layout_width="0dp"
         android:layout_height="match_parent"
-        android:layout_toRightOf="@+id/exomedia_android_video_view"
         android:layout_alignParentRight="true"
-        android:background="@android:color/black"/>
+        android:background="@android:color/black"
+        tools:ignore="RtlHardcoded"/>
 
     <View
         android:id="@+id/exomedia_video_shutter_bottom"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_below="@+id/exomedia_android_video_view"
         android:layout_alignParentBottom="true"
         android:background="@android:color/black"/>
 
@@ -46,5 +46,6 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_centerInParent="true"
-        android:scaleType="fitXY"/>
+        android:scaleType="centerCrop"
+        tools:ignore="ContentDescription"/>
 </RelativeLayout>

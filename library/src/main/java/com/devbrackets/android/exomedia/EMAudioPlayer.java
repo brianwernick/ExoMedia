@@ -17,29 +17,22 @@
 package com.devbrackets.android.exomedia;
 
 import android.content.Context;
-import android.media.AudioManager;
-import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Build;
-import android.support.annotation.Nullable;
-import android.util.Log;
+import android.support.annotation.FloatRange;
 
-import com.devbrackets.android.exomedia.builder.DashRenderBuilder;
-import com.devbrackets.android.exomedia.builder.HlsRenderBuilder;
-import com.devbrackets.android.exomedia.builder.RenderBuilder;
-import com.devbrackets.android.exomedia.builder.SmoothStreamRenderBuilder;
-import com.devbrackets.android.exomedia.event.EMMediaProgressEvent;
-import com.devbrackets.android.exomedia.exoplayer.EMExoPlayer;
-import com.devbrackets.android.exomedia.listener.EMProgressCallback;
-import com.devbrackets.android.exomedia.listener.ExoPlayerListener;
-import com.devbrackets.android.exomedia.type.MediaSourceType;
+import com.devbrackets.android.exomedia.core.EMListenerMux;
+import com.devbrackets.android.exomedia.core.api.MediaPlayerApi;
+import com.devbrackets.android.exomedia.core.audio.ExoMediaPlayer;
+import com.devbrackets.android.exomedia.core.audio.NativeMediaPlayer;
+import com.devbrackets.android.exomedia.core.builder.RenderBuilder;
+import com.devbrackets.android.exomedia.core.exoplayer.EMExoPlayer;
+import com.devbrackets.android.exomedia.listener.OnBufferUpdateListener;
+import com.devbrackets.android.exomedia.listener.OnCompletionListener;
+import com.devbrackets.android.exomedia.listener.OnErrorListener;
+import com.devbrackets.android.exomedia.listener.OnPreparedListener;
+import com.devbrackets.android.exomedia.listener.OnSeekCompletionListener;
 import com.devbrackets.android.exomedia.util.EMDeviceUtil;
-import com.devbrackets.android.exomedia.util.EMEventBus;
-import com.devbrackets.android.exomedia.util.MediaUtil;
-import com.devbrackets.android.exomedia.util.Repeater;
-import com.devbrackets.android.exomedia.util.StopWatch;
-import com.google.android.exoplayer.audio.AudioCapabilities;
-import com.google.android.exoplayer.audio.AudioCapabilitiesReceiver;
 
 /**
  * An AudioPlayer that uses the ExoPlayer as the backing architecture.  If the current device
@@ -47,219 +40,25 @@ import com.google.android.exoplayer.audio.AudioCapabilitiesReceiver;
  * will fall back to using the default Android MediaPlayer.
  * <p>
  * To help with quick conversions from the Android MediaPlayer this class follows the APIs
- * the MediaPlayer provides.
+ * the Android MediaPlayer provides.
  */
 @SuppressWarnings("UnusedDeclaration")
-public class EMAudioPlayer implements AudioCapabilitiesReceiver.Listener {
-    private static final String TAG = EMAudioPlayer.class.getSimpleName();
-    private static final String USER_AGENT_FORMAT = "EMAudioPlayer %s / Android %s / %s";
-
-    private Context context;
-    private MediaPlayer mediaPlayer;
-    private EMExoPlayer emExoPlayer;
+public class EMAudioPlayer {
     private EMListenerMux listenerMux;
 
-    private boolean useExo;
-    private int currentBufferPercent = 0;
+    protected MediaPlayerApi mediaPlayerImpl;
     private int overriddenDuration = -1;
-    private int positionOffset = 0;
-
-    private int audioStreamType = AudioManager.STREAM_MUSIC;
-    private boolean overridePosition = false;
-
-    @Nullable
-    private EMEventBus bus;
-    private EMProgressCallback progressCallback;
-
-    private Repeater pollRepeater = new Repeater();
-    private StopWatch overriddenPositionStopWatch = new StopWatch();
-
-    private AudioCapabilities audioCapabilities;
-    private AudioCapabilitiesReceiver audioCapabilitiesReceiver;
-
-    private EMMediaProgressEvent currentMediaProgressEvent = new EMMediaProgressEvent(0, 0, 0);
 
     public EMAudioPlayer(Context context) {
-        this.context = context;
-        useExo = Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN  && EMDeviceUtil.isDeviceCTSCompliant();
-
-        if (!useExo && mediaPlayer == null) {
-            setupMediaPlayer();
-        } else if (useExo && emExoPlayer == null) {
-            setupEMExoPlayer();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN  && EMDeviceUtil.isDeviceCTSCompliant()) {
+            mediaPlayerImpl = new ExoMediaPlayer(context);
+        } else {
+            mediaPlayerImpl = new NativeMediaPlayer(context);
         }
 
-        pollRepeater.setRepeatListener(new Repeater.RepeatListener() {
-            @Override
-            public void onRepeat() {
-                currentMediaProgressEvent.update(getCurrentPosition(), getBufferPercentage(), getDuration());
-
-                if (progressCallback != null && progressCallback.onProgressUpdated(currentMediaProgressEvent)) {
-                    return;
-                }
-
-                if (bus != null) {
-                    bus.post(currentMediaProgressEvent);
-                }
-            }
-        });
-    }
-
-    /**
-     * Creates the ExoPlayer and sets the listeners
-     */
-    private void setupEMExoPlayer() {
-        if (audioCapabilitiesReceiver == null) {
-            audioCapabilitiesReceiver = new AudioCapabilitiesReceiver(context.getApplicationContext(), this);
-            audioCapabilitiesReceiver.register();
-        }
-
-        if (emExoPlayer == null) {
-            emExoPlayer = new EMExoPlayer();
-
-            //Sets the internal listener
-            listenerMux = new EMListenerMux(new MuxNotifier());
-            emExoPlayer.addListener(listenerMux);
-
-            emExoPlayer.setMetadataListener(null);
-        }
-    }
-
-    /**
-     * Initializes the MediaPlayer and sets the listeners
-     */
-    private void setupMediaPlayer() {
         listenerMux = new EMListenerMux(new MuxNotifier());
-
-        mediaPlayer = new MediaPlayer();
-        mediaPlayer.setOnCompletionListener(listenerMux);
-        mediaPlayer.setOnPreparedListener(listenerMux);
-        mediaPlayer.setOnErrorListener(listenerMux);
-        mediaPlayer.setOnBufferingUpdateListener(listenerMux);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
-            mediaPlayer.setOnInfoListener(listenerMux);
-        }
+        mediaPlayerImpl.setListenerMux(listenerMux);
     }
-
-    @Override
-    public void onAudioCapabilitiesChanged(AudioCapabilities audioCapabilities) {
-        if (!audioCapabilities.equals(this.audioCapabilities)) {
-            this.audioCapabilities = audioCapabilities;
-        }
-    }
-
-    /**
-     * Sets the delay to use when notifying of progress.  The
-     * default is 33 milliseconds, or 30 frames-per-second
-     *
-     * @param milliSeconds The millisecond delay to use
-     */
-    public void setProgressPollDelay(int milliSeconds) {
-        pollRepeater.setRepeaterDelay(milliSeconds);
-    }
-
-    /**
-     * Sets the bus to use for dispatching Events such as the poll progress
-     *
-     * @param bus The EventBus to dispatch events on
-     */
-    public void setBus(@Nullable EMEventBus bus) {
-        this.bus = bus;
-        listenerMux.setBus(bus);
-    }
-
-    /**
-     * Sets the callback to be informed of progress events.  This takes precedence over
-     * the bus events.
-     *
-     * @param progressCallback The callback to be notified of progress events or null
-     */
-    public void setProgressCallback(@Nullable EMProgressCallback progressCallback) {
-        this.progressCallback = progressCallback;
-    }
-
-    /**
-     * Starts the progress poll.
-     *
-     * @param bus The EventBus event dispatcher that the listener is connected to
-     */
-    public void startProgressPoll(@Nullable EMEventBus bus) {
-        setBus(bus);
-
-        if (bus != null) {
-            pollRepeater.start();
-        }
-    }
-
-    /**
-     * Starts the progress poll with the callback to be informed of the progress
-     * events.
-     *
-     * @param callback The Callback to inform of progress events
-     */
-    public void startProgressPoll(EMProgressCallback callback) {
-        progressCallback = callback;
-
-        if (progressCallback != null) {
-            pollRepeater.start();
-        }
-    }
-
-    /**
-     * Starts the progress poll.  This should be called after you have set the bus with {@link #setBus(EMEventBus)}
-     * or previously called {@link #startProgressPoll(EMEventBus)}, otherwise you won't get notified
-     * of progress changes
-     */
-    public void startProgressPoll() {
-        if (bus != null || progressCallback != null) {
-            pollRepeater.start();
-        }
-    }
-
-    /**
-     * Stops the progress poll
-     * (see {@link #startProgressPoll(EMEventBus)})
-     */
-    public void stopProgressPoll() {
-        pollRepeater.stop();
-    }
-
-    /**
-     * Creates and returns the correct render builder for the specified AudioType and uri.
-     *
-     * @param renderType        The RenderType to use for creating the correct RenderBuilder
-     * @param uri               The audio item's Uri
-     * @param defaultMediaType  The MediaType to use when auto-detection fails
-     * @return                  The appropriate RenderBuilder
-     */
-    private RenderBuilder getRendererBuilder(MediaSourceType renderType, Uri uri, MediaUtil.MediaType defaultMediaType) {
-        switch (renderType) {
-            case HLS:
-                return new HlsRenderBuilder(context, getUserAgent(), uri.toString(), audioStreamType);
-            case DASH:
-                return new DashRenderBuilder(context, getUserAgent(), uri.toString(), audioStreamType);
-            case SMOOTH_STREAM:
-                return new SmoothStreamRenderBuilder(context, getUserAgent(), uri.toString(), audioStreamType);
-            default:
-                return new RenderBuilder(context, getUserAgent(), uri.toString(), audioStreamType);
-        }
-    }
-
-    /**
-     * Retrieves the user agent that the EMAudioPlayer will use when communicating
-     * with media servers
-     *
-     * @return The String user agent for the EMAudioPlayer
-     */
-    public String getUserAgent() {
-        return String.format(USER_AGENT_FORMAT, BuildConfig.VERSION_NAME + " (" + BuildConfig.VERSION_CODE + ")", Build.VERSION.RELEASE, Build.MODEL);
-    }
-
-    /**
-     * ***************************************
-     * Start of the standard MediaPlayer APIs *
-     * ****************************************
-     */
 
     /**
      * Returns the audio session ID.
@@ -269,30 +68,11 @@ public class EMAudioPlayer implements AudioCapabilitiesReceiver.Listener {
      * instantiated.
      */
     public int getAudioSessionId() {
-        if (!useExo) {
-            return mediaPlayer.getAudioSessionId();
-        }
-
-        return emExoPlayer.getAudioSessionId();
+        return mediaPlayerImpl.getAudioSessionId();
     }
 
     public void setAudioStreamType(int streamType) {
-        if (!useExo) {
-            mediaPlayer.setAudioStreamType(streamType);
-        }
-
-        this.audioStreamType = streamType;
-    }
-
-    /**
-     * Sets the source path for the audio item.  This path can be a web address (e.g. http://) or
-     * an absolute local path (e.g. file://). Uses MP3 as the default for media type.
-     *
-     * @param context The applications context that owns the media
-     * @param uri The Uri representing the path to the audio item
-     */
-    public void setDataSource(Context context, Uri uri) {
-        setDataSource(context, uri, MediaUtil.MediaType.MP3);
+        mediaPlayerImpl.setAudioStreamType(streamType);
     }
 
     /**
@@ -301,15 +81,10 @@ public class EMAudioPlayer implements AudioCapabilitiesReceiver.Listener {
      *
      * @param context The applications context that owns the media
      * @param uri The Uri representing the path to the audio item
-     * @param defaultMediaType The MediaType to use when auto-detection fails
      */
-    public void setDataSource(Context context, Uri uri, MediaUtil.MediaType defaultMediaType) {
-        RenderBuilder builder = null;
-        if (uri != null) {
-            builder = getRendererBuilder(MediaSourceType.get(uri), uri, defaultMediaType);
-        }
-
-        setDataSource(context, uri, builder);
+    public void setDataSource(Context context, Uri uri) {
+        mediaPlayerImpl.setDataSource(context, uri);
+        overrideDuration(-1);
     }
 
     /**
@@ -321,34 +96,12 @@ public class EMAudioPlayer implements AudioCapabilitiesReceiver.Listener {
      * @param renderBuilder The RenderBuilder to use for audio playback
      */
     public void setDataSource(Context context, Uri uri, RenderBuilder renderBuilder) {
-        if (!useExo) {
-            try {
-                mediaPlayer.setDataSource(context, uri);
-            } catch (Exception e) {
-                Log.d(TAG, "MediaPlayer: error setting data source", e);
-            }
-        } else {
-            if (uri != null) {
-                emExoPlayer.replaceRenderBuilder(renderBuilder);
-                listenerMux.setNotifiedCompleted(false);
-            } else {
-                emExoPlayer.replaceRenderBuilder(null);
-            }
-
-            emExoPlayer.seekTo(0);
-        }
-
-        listenerMux.setNotifiedPrepared(false);
+        mediaPlayerImpl.setDataSource(context, uri, renderBuilder);
         overrideDuration(-1);
-        setPositionOffset(0);
     }
 
     public void prepareAsync() {
-        if (!useExo) {
-            mediaPlayer.prepareAsync();
-        } else {
-            emExoPlayer.prepare();
-        }
+        mediaPlayerImpl.prepareAsync();
     }
 
     /**
@@ -357,12 +110,8 @@ public class EMAudioPlayer implements AudioCapabilitiesReceiver.Listener {
      * @param leftVolume The volume range [0.0 - 1.0]
      * @param rightVolume The volume range [0.0 - 1.0]
      */
-    public void setVolume(float leftVolume, float rightVolume) {
-        if (!useExo) {
-            mediaPlayer.setVolume(leftVolume, rightVolume);
-        } else {
-            emExoPlayer.setVolume(leftVolume);
-        }
+    public void setVolume(@FloatRange(from = 0.0, to = 1.0) float leftVolume, @FloatRange(from = 0.0, to = 1.0) float rightVolume) {
+        mediaPlayerImpl.setVolume(leftVolume, rightVolume);
     }
 
     /**
@@ -380,11 +129,7 @@ public class EMAudioPlayer implements AudioCapabilitiesReceiver.Listener {
      * @see android.os.PowerManager
      */
     public void setWakeMode(Context context, int mode) {
-        if (!useExo) {
-            mediaPlayer.setWakeMode(context, mode);
-        } else {
-            emExoPlayer.setWakeMode(context, mode);
-        }
+        mediaPlayerImpl.setWakeMode(context, mode);
     }
 
     /**
@@ -395,32 +140,22 @@ public class EMAudioPlayer implements AudioCapabilitiesReceiver.Listener {
         stopPlayback();
         setDataSource(null, null);
 
-        if (!useExo) {
-            mediaPlayer.reset();
-        }
+        mediaPlayerImpl.reset();
     }
 
     /**
      * Moves the current audio progress to the specified location.
      * This method should only be called after the EMAudioPlayer is
-     * prepared. (see {@link #setOnPreparedListener(android.media.MediaPlayer.OnPreparedListener)}
+     * prepared. (see {@link #setOnPreparedListener(OnPreparedListener)}
      *
      * @param milliSeconds The time to move the playback to
      */
     public void seekTo(int milliSeconds) {
-        if (!listenerMux.isPrepared()) {
-            return;
-        }
-
         if (milliSeconds > getDuration()) {
-            milliSeconds = (int)getDuration();
+            milliSeconds = getDuration();
         }
 
-        if (!useExo) {
-            mediaPlayer.seekTo(milliSeconds);
-        } else {
-            emExoPlayer.seekTo(milliSeconds);
-        }
+        mediaPlayerImpl.seekTo(milliSeconds);
     }
 
     /**
@@ -429,93 +164,48 @@ public class EMAudioPlayer implements AudioCapabilitiesReceiver.Listener {
      * @return True if an audio item is playing
      */
     public boolean isPlaying() {
-        if (!useExo) {
-            return mediaPlayer.isPlaying();
-        }
-
-        return emExoPlayer.getPlayWhenReady();
+        return mediaPlayerImpl.isPlaying();
     }
 
     /**
      * Starts the playback for the audio item specified in {@link #setDataSource(android.content.Context, android.net.Uri)}.
-     * This should be called after the AudioPlayer is correctly prepared (see {@link #setOnPreparedListener(android.media.MediaPlayer.OnPreparedListener)})
+     * This should be called after the AudioPlayer is correctly prepared (see {@link #setOnPreparedListener(OnPreparedListener)})
      */
     public void start() {
-        if (!useExo) {
-            mediaPlayer.start();
-        } else {
-            emExoPlayer.setPlayWhenReady(true);
-        }
-
-        startProgressPoll(bus);
-        startProgressPoll(progressCallback);
+        mediaPlayerImpl.start();
     }
 
     /**
-     * If an audio item is currently in playback, it will be paused and the progressPoll
-     * will be stopped (see {@link #startProgressPoll(EMEventBus)})
+     * If an audio item is currently in playback, it will be paused
      */
     public void pause() {
-        if (!useExo) {
-            mediaPlayer.pause();
-        } else {
-            emExoPlayer.setPlayWhenReady(false);
-        }
-
-        stopProgressPoll();
+        mediaPlayerImpl.pause();
     }
 
     /**
      * If an audio item is currently in playback then the playback will be stopped
-     * and the progressPoll will be stopped (see {@link #startProgressPoll(EMEventBus)})
      */
     public void stopPlayback() {
-        if (!useExo) {
-            mediaPlayer.stop();
-        } else {
-            emExoPlayer.stop();
-        }
-
-        stopProgressPoll();
+        mediaPlayerImpl.stopPlayback();
     }
 
     public void release() {
-        if (!useExo) {
-            mediaPlayer.release();
-        } else {
-            emExoPlayer.release();
-        }
-
-        stopProgressPoll();
-        overriddenPositionStopWatch.stop();
-
-        if (audioCapabilitiesReceiver != null) {
-            audioCapabilitiesReceiver.unregister();
-            audioCapabilitiesReceiver = null;
-        }
+        mediaPlayerImpl.release();
     }
 
     /**
      * Retrieves the duration of the current audio item.  This should only be called after
-     * the item is prepared (see {@link #setOnPreparedListener(android.media.MediaPlayer.OnPreparedListener)}).
+     * the item is prepared (see {@link #setOnPreparedListener(OnPreparedListener)}).
      * If {@link #overrideDuration(int)} is set then that value will be returned.
      *
      * @return The millisecond duration of the video
      */
-    public long getDuration() {
+    public int getDuration() {
         if (overriddenDuration >= 0) {
             return overriddenDuration;
         }
 
-        if (!listenerMux.isPrepared()) {
-            return 0;
-        }
-
-        if (!useExo) {
-            return mediaPlayer.getDuration();
-        }
-
-        return emExoPlayer.getDuration();
+        return mediaPlayerImpl.getDuration();
     }
 
     /**
@@ -532,143 +222,68 @@ public class EMAudioPlayer implements AudioCapabilitiesReceiver.Listener {
     /**
      * Retrieves the current position of the audio playback.  If an audio item is not currently
      * in playback then the value will be 0.  This should only be called after the item is
-     * prepared (see {@link #setOnPreparedListener(android.media.MediaPlayer.OnPreparedListener)})
+     * prepared (see {@link #setOnPreparedListener(OnPreparedListener)})
      *
      * @return The millisecond value for the current position
      */
-    public long getCurrentPosition() {
-        if (overridePosition) {
-            return positionOffset + overriddenPositionStopWatch.getTime();
-        }
-
-        if (!listenerMux.isPrepared()) {
-            return 0;
-        }
-
-        if (!useExo) {
-            return positionOffset + mediaPlayer.getCurrentPosition();
-        }
-
-        return positionOffset + emExoPlayer.getCurrentPosition();
-    }
-
-    /**
-     * Sets the amount of time to change the return value from {@link #getCurrentPosition()}.
-     * This value will be reset when a new audio item is selected.
-     *
-     * @param offset The millisecond value to offset the position
-     */
-    public void setPositionOffset(int offset) {
-        positionOffset = offset;
-    }
-
-    /**
-     * Restarts the audio position to the start if the position is being overridden (see {@link #overridePosition(boolean)}).
-     * This will be the value specified with {@link #setPositionOffset(int)} or 0 if it hasn't been set.
-     */
-    public void restartOverridePosition() {
-        overriddenPositionStopWatch.reset();
-    }
-
-    /**
-     * Sets if the audio position should be overridden, allowing the time to be restarted at will.  This
-     * is useful for streaming audio where the audio doesn't have breaks between songs.
-     *
-     * @param override True if the position should be overridden
-     */
-    public void overridePosition(boolean override) {
-        if (override) {
-            overriddenPositionStopWatch.start();
-        } else {
-            overriddenPositionStopWatch.stop();
-        }
-
-        overridePosition = override;
+    public int getCurrentPosition() {
+        return mediaPlayerImpl.getCurrentPosition();
     }
 
     /**
      * Retrieves the current buffer percent of the audio item.  If an audio item is not currently
      * prepared or buffering the value will be 0.  This should only be called after the audio item is
-     * prepared (see {@link #setOnPreparedListener(android.media.MediaPlayer.OnPreparedListener)})
+     * prepared (see {@link #setOnPreparedListener(OnPreparedListener)})
      *
      * @return The integer percent that is buffered [0, 100] inclusive
      */
     public int getBufferPercentage() {
-        if (!listenerMux.isPrepared()) {
-            return 0;
-        }
-
-        if (!useExo) {
-            return currentBufferPercent;
-        }
-
-        return emExoPlayer.getBufferedPercentage();
+        return mediaPlayerImpl.getBufferedPercent();
     }
 
     /**
-     * Sets the listener to inform of any exoPlayer events
+     * Sets the listener to inform of VideoPlayer prepared events
      *
      * @param listener The listener
      */
-    public void addExoPlayerListener(ExoPlayerListener listener) {
-        listenerMux.addExoPlayerListener(listener);
-    }
-
-    /**
-     * Removes the specified listener for the ExoPlayer.
-     *
-     * @param listener The listener to remove
-     */
-    public void removeExoPlayerListener(ExoPlayerListener listener) {
-        listenerMux.removeExoPlayerListener(listener);
-    }
-
-    /**
-     * Sets the listener to inform of VideoPlayer prepared events.  This can also be
-     * accessed through the bus event {@link com.devbrackets.android.exomedia.event.EMMediaPreparedEvent}
-     *
-     * @param listener The listener
-     */
-    public void setOnPreparedListener(MediaPlayer.OnPreparedListener listener) {
+    public void setOnPreparedListener(OnPreparedListener listener) {
         listenerMux.setOnPreparedListener(listener);
     }
 
     /**
-     * Sets the listener to inform of VideoPlayer completion events.  This can also be
-     * accessed through the bus event {@link com.devbrackets.android.exomedia.event.EMMediaCompletionEvent}
+     * Sets the listener to inform of VideoPlayer completion events
      *
      * @param listener The listener
      */
-    public void setOnCompletionListener(MediaPlayer.OnCompletionListener listener) {
+    public void setOnCompletionListener(OnCompletionListener listener) {
         listenerMux.setOnCompletionListener(listener);
     }
 
     /**
-     * Sets the listener to inform of playback errors.  This can also be
-     * accessed through the bus event {@link com.devbrackets.android.exomedia.event.EMMediaErrorEvent}
+     * Sets the listener to inform of VideoPlayer buffer update events
      *
      * @param listener The listener
      */
-    public void setOnErrorListener(MediaPlayer.OnErrorListener listener) {
+    public void setOnBufferUpdateListener(OnBufferUpdateListener listener) {
+        listenerMux.setOnBufferUpdateListener(listener);
+    }
+
+    /**
+     * Sets the listener to inform of VideoPlayer seek completion events
+     *
+     * @param listener The listener
+     */
+    public void setOnSeekCompletionListener(OnSeekCompletionListener listener) {
+        listenerMux.setOnSeekCompletionListener(listener);
+    }
+
+    /**
+     * Sets the listener to inform of playback errors
+     *
+     * @param listener The listener
+     */
+    public void setOnErrorListener(OnErrorListener listener) {
         listenerMux.setOnErrorListener(listener);
-    }
-
-    /**
-     * Sets the listener to inform of media information events.
-     *
-     * @param listener The listener
-     */
-    public void setOnInfoListener(MediaPlayer.OnInfoListener listener) {
-        listenerMux.setOnInfoListener(listener);
-    }
-
-    /**
-     * Sets the listener to inform of buffering updates
-     *
-     * @param listener The listener
-     */
-    public void setOnBufferingUpdateListener(android.media.MediaPlayer.OnBufferingUpdateListener listener) {
-        listenerMux.setOnBufferingUpdateListener(listener);
     }
 
     /**
@@ -677,7 +292,6 @@ public class EMAudioPlayer implements AudioCapabilitiesReceiver.Listener {
      */
     private void onPlaybackEnded() {
         stopPlayback();
-        pollRepeater.stop();
     }
 
     private class MuxNotifier extends EMListenerMux.EMListenerMuxNotifier {
@@ -687,7 +301,7 @@ public class EMAudioPlayer implements AudioCapabilitiesReceiver.Listener {
         }
 
         @Override
-        public void onExoPlayerError(Exception e) {
+        public void onExoPlayerError(EMExoPlayer emExoPlayer, Exception e) {
             if (emExoPlayer != null) {
                 emExoPlayer.forcePrepare();
             }
@@ -700,7 +314,7 @@ public class EMAudioPlayer implements AudioCapabilitiesReceiver.Listener {
 
         @Override
         public void onBufferUpdated(int percent) {
-            currentBufferPercent = percent;
+            //purposefully left blank
         }
     }
 }

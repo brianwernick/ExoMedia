@@ -41,7 +41,7 @@ import java.util.Map;
  * resolves issues with the SurfaceView because the TextureView is an actual
  * View that follows the normal drawing paths; allowing the view to be animated,
  * scaled, etc.
- * <p/>
+ * <br><br>
  * NOTE: This does remove some of the functionality from the VideoView including:
  * <ul>
  * <li>The {@link MediaController}</li>
@@ -224,6 +224,7 @@ public class TextureVideoView extends TextureView implements MediaController.Med
         if (mediaPlayer != null) {
             return currentBufferPercent;
         }
+
         return 0;
     }
 
@@ -295,6 +296,7 @@ public class TextureVideoView extends TextureView implements MediaController.Med
     public void setVideoURI(Uri uri, @Nullable Map<String, String> headers) {
         this.headers = headers;
         requestedSeek = 0;
+        playRequested = false;
 
         openVideo(uri);
         requestLayout();
@@ -519,7 +521,9 @@ public class TextureVideoView extends TextureView implements MediaController.Med
                 seekTo(requestedSeek);
             }
 
-            start();
+            if (playRequested) {
+                start();
+            }
         }
 
         @Override

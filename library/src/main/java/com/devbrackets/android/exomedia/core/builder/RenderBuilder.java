@@ -39,6 +39,7 @@ import com.google.android.exoplayer.upstream.DataSource;
 import com.google.android.exoplayer.upstream.DefaultAllocator;
 import com.google.android.exoplayer.upstream.DefaultBandwidthMeter;
 import com.google.android.exoplayer.upstream.DefaultUriDataSource;
+import com.google.android.exoplayer.upstream.TransferListener;
 
 /**
  * A default RenderBuilder that can process general
@@ -55,10 +56,10 @@ public class RenderBuilder {
     protected static final int BUFFER_SEGMENTS_TEXT = 2;
     protected static final int BUFFER_SEGMENTS_TOTAL = BUFFER_SEGMENTS_VIDEO + BUFFER_SEGMENTS_AUDIO + BUFFER_SEGMENTS_TEXT;
 
-    private final Context context;
-    private final String userAgent;
-    private final String uri;
-    private final int streamType;
+    protected final Context context;
+    protected final String userAgent;
+    protected final String uri;
+    protected final int streamType;
 
     public RenderBuilder(Context context, String userAgent, String uri) {
         this(context, userAgent, uri, AudioManager.STREAM_MUSIC);
@@ -71,12 +72,11 @@ public class RenderBuilder {
         this.streamType = streamType;
     }
 
-
     public void buildRenderers(EMExoPlayer player) {
         //Create the Sample Source to be used by the renderers
         Allocator allocator = new DefaultAllocator(BUFFER_SEGMENT_SIZE);
         DefaultBandwidthMeter bandwidthMeter = new DefaultBandwidthMeter(player.getMainHandler(), player);
-        DataSource dataSource = new DefaultUriDataSource(context, bandwidthMeter, userAgent, true);
+        DataSource dataSource = createDataSource(context, bandwidthMeter, userAgent);
 
         ExtractorSampleSource sampleSource = new ExtractorSampleSource(Uri.parse(MediaUtil.getUriWithProtocol(uri)), dataSource,
                allocator, BUFFER_SEGMENT_SIZE * BUFFER_SEGMENTS_TOTAL);
@@ -99,5 +99,9 @@ public class RenderBuilder {
 
     public void cancel() {
         //Purposefully left blank
+    }
+
+    protected DataSource createDataSource(Context context, TransferListener transferListener, String userAgent) {
+        return new DefaultUriDataSource(context, transferListener, userAgent, true);
     }
 }

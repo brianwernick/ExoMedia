@@ -98,6 +98,25 @@ public class ExoVideoView extends VideoTextureView implements VideoViewApi, Audi
         emExoPlayer.seekTo(0);
     }
 
+    /**
+     * If the video has completed playback, calling {@code restart} will seek to the beginning of the video, and play it.
+     *
+     * @return {@code true} if the video was successfully restarted, otherwise {@code false}
+     */
+    @Override
+    public boolean restart() {
+        if(!emExoPlayer.restart()) {
+            return false;
+        }
+
+        listenerMux.setNotifiedCompleted(false);
+
+        //Makes sure the listeners get the onPrepared callback
+        listenerMux.setNotifiedPrepared(false);
+
+        return true;
+    }
+
     @Override
     public boolean setVolume(@FloatRange(from = 0.0, to = 1.0) float volume) {
         emExoPlayer.setVolume(volume);

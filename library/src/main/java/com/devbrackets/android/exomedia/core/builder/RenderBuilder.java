@@ -39,6 +39,7 @@ import com.google.android.exoplayer.upstream.DataSource;
 import com.google.android.exoplayer.upstream.DefaultAllocator;
 import com.google.android.exoplayer.upstream.DefaultBandwidthMeter;
 import com.google.android.exoplayer.upstream.DefaultUriDataSource;
+import com.google.android.exoplayer.upstream.TransferListener;
 
 /**
  * A default RenderBuilder that can process general
@@ -71,12 +72,15 @@ public class RenderBuilder {
         this.streamType = streamType;
     }
 
+    protected DataSource createDataSource(Context context, TransferListener transferListener, String userAgent) {
+        return new DefaultUriDataSource(context, transferListener, userAgent, true);
+    }
 
     public void buildRenderers(EMExoPlayer player) {
         //Create the Sample Source to be used by the renderers
         Allocator allocator = new DefaultAllocator(BUFFER_SEGMENT_SIZE);
         DefaultBandwidthMeter bandwidthMeter = new DefaultBandwidthMeter(player.getMainHandler(), player);
-        DataSource dataSource = new DefaultUriDataSource(context, bandwidthMeter, userAgent, true);
+        DataSource dataSource = createDataSource(context, bandwidthMeter, userAgent);
 
         ExtractorSampleSource sampleSource = new ExtractorSampleSource(Uri.parse(MediaUtil.getUriWithProtocol(uri)), dataSource,
                allocator, BUFFER_SEGMENT_SIZE * BUFFER_SEGMENTS_TOTAL);

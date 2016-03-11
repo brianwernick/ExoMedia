@@ -86,6 +86,8 @@ public class ExoVideoView extends VideoTextureView implements VideoViewApi, Audi
 
     @Override
     public void setVideoUri(@Nullable Uri uri, @Nullable RenderBuilder renderBuilder) {
+        playRequested = false;
+
         if (uri == null) {
             emExoPlayer.replaceRenderBuilder(null);
         } else {

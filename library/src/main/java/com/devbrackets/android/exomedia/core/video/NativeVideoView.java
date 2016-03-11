@@ -130,7 +130,6 @@ public class NativeVideoView extends TextureVideoView implements VideoViewApi {
         }
 
         seekTo(0);
-
         start();
 
         return true;

@@ -63,33 +63,20 @@ import java.util.List;
  */
 @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
 public class HlsRenderBuilder extends RenderBuilder {
-    private final Context context;
-    private final String userAgent;
-    private final String url;
-    private final int streamType;
 
-    private AsyncRendererBuilder currentAsyncBuilder;
+    protected AsyncRendererBuilder currentAsyncBuilder;
 
     public HlsRenderBuilder(Context context, String userAgent, String url) {
         this(context, userAgent, url, AudioManager.STREAM_MUSIC);
     }
 
     public HlsRenderBuilder(Context context, String userAgent, String url, int streamType) {
-        super(context, userAgent, url);
-
-        this.context = context;
-        this.userAgent = userAgent;
-        this.url = url;
-        this.streamType = streamType;
-    }
-
-    protected UriDataSource createManifestDataSource(Context context, String userAgent) {
-        return new DefaultUriDataSource(context, userAgent);
+        super(context, userAgent, url, streamType);
     }
 
     @Override
     public void buildRenderers(EMExoPlayer player) {
-        currentAsyncBuilder = new AsyncRendererBuilder(context, userAgent, url, player, streamType);
+        currentAsyncBuilder = new AsyncRendererBuilder(context, userAgent, uri, player, streamType);
         currentAsyncBuilder.init();
     }
 
@@ -101,15 +88,19 @@ public class HlsRenderBuilder extends RenderBuilder {
         }
     }
 
-    private final class AsyncRendererBuilder implements ManifestCallback<HlsPlaylist> {
-        private final Context context;
-        private final String userAgent;
-        private final String url;
-        private final int streamType;
-        private final EMExoPlayer player;
-        private final ManifestFetcher<HlsPlaylist> playlistFetcher;
+    protected UriDataSource createManifestDataSource(Context context, String userAgent) {
+        return new DefaultUriDataSource(context, userAgent);
+    }
 
-        private boolean canceled;
+    protected final class AsyncRendererBuilder implements ManifestCallback<HlsPlaylist> {
+        protected final Context context;
+        protected final String userAgent;
+        protected final String url;
+        protected final int streamType;
+        protected final EMExoPlayer player;
+        protected final ManifestFetcher<HlsPlaylist> playlistFetcher;
+
+        protected boolean canceled;
 
         public AsyncRendererBuilder(Context context, String userAgent, String url, EMExoPlayer player, int streamType) {
             this.context = context;
@@ -148,7 +139,7 @@ public class HlsRenderBuilder extends RenderBuilder {
             buildRenderers(playlist);
         }
 
-        private void buildRenderers(HlsPlaylist playlist) {
+        protected void buildRenderers(HlsPlaylist playlist) {
             Handler mainHandler = player.getMainHandler();
             LoadControl loadControl = new DefaultLoadControl(new DefaultAllocator(BUFFER_SEGMENT_SIZE));
             DefaultBandwidthMeter bandwidthMeter = new DefaultBandwidthMeter(mainHandler, player);

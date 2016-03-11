@@ -56,10 +56,10 @@ public class RenderBuilder {
     protected static final int BUFFER_SEGMENTS_TEXT = 2;
     protected static final int BUFFER_SEGMENTS_TOTAL = BUFFER_SEGMENTS_VIDEO + BUFFER_SEGMENTS_AUDIO + BUFFER_SEGMENTS_TEXT;
 
-    private final Context context;
-    private final String userAgent;
-    private final String uri;
-    private final int streamType;
+    protected final Context context;
+    protected final String userAgent;
+    protected final String uri;
+    protected final int streamType;
 
     public RenderBuilder(Context context, String userAgent, String uri) {
         this(context, userAgent, uri, AudioManager.STREAM_MUSIC);
@@ -70,10 +70,6 @@ public class RenderBuilder {
         this.userAgent = userAgent;
         this.context = context;
         this.streamType = streamType;
-    }
-
-    protected DataSource createDataSource(Context context, TransferListener transferListener, String userAgent) {
-        return new DefaultUriDataSource(context, transferListener, userAgent, true);
     }
 
     public void buildRenderers(EMExoPlayer player) {
@@ -103,5 +99,9 @@ public class RenderBuilder {
 
     public void cancel() {
         //Purposefully left blank
+    }
+
+    protected DataSource createDataSource(Context context, TransferListener transferListener, String userAgent) {
+        return new DefaultUriDataSource(context, transferListener, userAgent, true);
     }
 }

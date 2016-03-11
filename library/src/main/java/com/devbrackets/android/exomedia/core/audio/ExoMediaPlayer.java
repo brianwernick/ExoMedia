@@ -146,8 +146,6 @@ public class ExoMediaPlayer implements MediaPlayerApi, AudioCapabilitiesReceiver
         }
 
         listenerMux.setNotifiedCompleted(false);
-
-        //Makes sure the listeners get the onPrepared callback
         listenerMux.setNotifiedPrepared(false);
 
         return true;

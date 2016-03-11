@@ -60,34 +60,21 @@ import java.io.IOException;
  */
 @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
 public class SmoothStreamRenderBuilder extends RenderBuilder {
-    private static final int LIVE_EDGE_LATENCY_MS = 30000;
+    protected static final int LIVE_EDGE_LATENCY_MS = 30000;
 
-    private final Context context;
-    private final String userAgent;
-    private final String url;
-    private final int streamType;
-
-    private AsyncRendererBuilder currentAsyncBuilder;
+    protected AsyncRendererBuilder currentAsyncBuilder;
 
     public SmoothStreamRenderBuilder(Context context, String userAgent, String url) {
         this(context, userAgent, url, AudioManager.STREAM_MUSIC);
     }
 
     public SmoothStreamRenderBuilder(Context context, String userAgent, String url, int streamType) {
-        super(context, userAgent, url);
-        this.context = context;
-        this.userAgent = userAgent;
-        this.url = Util.toLowerInvariant(url).endsWith("/manifest") ? url : url + "/Manifest";
-        this.streamType = streamType;
-    }
-
-    protected UriDataSource createManifestDataSource(Context context, String userAgent) {
-        return new DefaultHttpDataSource(userAgent, null);
+        super(context, userAgent, getManifestUri(url), streamType);
     }
 
     @Override
     public void buildRenderers(EMExoPlayer player) {
-        currentAsyncBuilder = new AsyncRendererBuilder(context, userAgent, url, player, streamType);
+        currentAsyncBuilder = new AsyncRendererBuilder(context, userAgent, uri, player, streamType);
         currentAsyncBuilder.init();
     }
 
@@ -99,14 +86,23 @@ public class SmoothStreamRenderBuilder extends RenderBuilder {
         }
     }
 
-    private final class AsyncRendererBuilder implements ManifestFetcher.ManifestCallback<SmoothStreamingManifest> {
-        private final Context context;
-        private final String userAgent;
-        private final int streamType;
-        private final EMExoPlayer player;
-        private final ManifestFetcher<SmoothStreamingManifest> manifestFetcher;
+    @SuppressWarnings("UnusedParameters") // Context kept for consistency with the HLS and Dash builders
+    protected UriDataSource createManifestDataSource(Context context, String userAgent) {
+        return new DefaultHttpDataSource(userAgent, null);
+    }
 
-        private boolean canceled;
+    protected static String getManifestUri(String url) {
+        return Util.toLowerInvariant(url).endsWith("/manifest") ? url : url + "/Manifest";
+    }
+
+    protected final class AsyncRendererBuilder implements ManifestFetcher.ManifestCallback<SmoothStreamingManifest> {
+        protected final Context context;
+        protected final String userAgent;
+        protected final int streamType;
+        protected final EMExoPlayer player;
+        protected final ManifestFetcher<SmoothStreamingManifest> manifestFetcher;
+
+        protected boolean canceled;
 
         public AsyncRendererBuilder(Context context, String userAgent, String url, EMExoPlayer player, int streamType) {
             this.context = context;
@@ -159,7 +155,7 @@ public class SmoothStreamRenderBuilder extends RenderBuilder {
             buildRenderers(drmSessionManager);
         }
 
-        private void buildRenderers(DrmSessionManager drmSessionManager) {
+        protected void buildRenderers(DrmSessionManager drmSessionManager) {
             Handler mainHandler = player.getMainHandler();
             LoadControl loadControl = new DefaultLoadControl(new DefaultAllocator(BUFFER_SEGMENT_SIZE));
             DefaultBandwidthMeter bandwidthMeter = new DefaultBandwidthMeter(mainHandler, player);

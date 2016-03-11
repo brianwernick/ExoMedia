@@ -224,6 +224,7 @@ public class TextureVideoView extends TextureView implements MediaController.Med
         if (mediaPlayer != null) {
             return currentBufferPercent;
         }
+
         return 0;
     }
 
@@ -295,6 +296,7 @@ public class TextureVideoView extends TextureView implements MediaController.Med
     public void setVideoURI(Uri uri, @Nullable Map<String, String> headers) {
         this.headers = headers;
         requestedSeek = 0;
+        playRequested = false;
 
         openVideo(uri);
         requestLayout();
@@ -519,7 +521,9 @@ public class TextureVideoView extends TextureView implements MediaController.Med
                 seekTo(requestedSeek);
             }
 
-            start();
+            if (playRequested) {
+                start();
+            }
         }
 
         @Override

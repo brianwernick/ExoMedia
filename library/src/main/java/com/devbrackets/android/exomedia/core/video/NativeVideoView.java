@@ -118,6 +118,23 @@ public class NativeVideoView extends TextureVideoView implements VideoViewApi {
         listenerMux.setNotifiedCompleted(false);
     }
 
+    /**
+     * If the video has completed playback, calling {@code restart} will seek to the beginning of the video, and play it.
+     *
+     * @return {@code true} if the video was successfully restarted, otherwise {@code false}
+     */
+    @Override
+    public boolean restart() {
+        if(currentState != State.COMPLETED) {
+            return false;
+        }
+
+        seekTo(0);
+        start();
+
+        return true;
+    }
+
     @Override
     public void release() {
         //Purposefully left blank

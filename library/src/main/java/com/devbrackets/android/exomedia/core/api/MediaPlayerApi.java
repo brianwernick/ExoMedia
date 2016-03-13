@@ -45,6 +45,8 @@ public interface MediaPlayerApi {
 
     void stopPlayback();
 
+    boolean restart();
+
     void release();
 
     void reset();

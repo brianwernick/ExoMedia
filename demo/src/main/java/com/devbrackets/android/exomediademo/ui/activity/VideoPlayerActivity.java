@@ -3,7 +3,6 @@ package com.devbrackets.android.exomediademo.ui.activity;
 import android.app.Activity;
 import android.os.Bundle;
 
-import com.devbrackets.android.exomedia.listener.OnPreparedListener;
 import com.devbrackets.android.exomedia.ui.widget.EMVideoView;
 import com.devbrackets.android.exomediademo.App;
 import com.devbrackets.android.exomediademo.R;
@@ -17,7 +16,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 
-public class VideoPlayerActivity extends Activity implements OnPreparedListener {
+public class VideoPlayerActivity extends Activity {
     public static final String EXTRA_INDEX = "EXTRA_INDEX";
     public static final int PLAYLIST_ID = 6; //Arbitrary, for the example (different from audio)
 
@@ -61,11 +60,6 @@ public class VideoPlayerActivity extends Activity implements OnPreparedListener 
         playlistManager.invokeStop();
     }
 
-    @Override
-    public void onPrepared() {
-        //Starts the video playback as soon as it is ready (todo: the service should handle this now)
-        emVideoView.start();
-    }
 
     /**
      * Retrieves the extra associated with the selected playlist index
@@ -80,7 +74,6 @@ public class VideoPlayerActivity extends Activity implements OnPreparedListener 
         setupPlaylistManager();
 
         emVideoView = (EMVideoView)findViewById(R.id.video_play_activity_video_view);
-        emVideoView.setOnPreparedListener(this);
 
         playlistManager.setVideoPlayer(new VideoApi(emVideoView));
         playlistManager.play(0, false);

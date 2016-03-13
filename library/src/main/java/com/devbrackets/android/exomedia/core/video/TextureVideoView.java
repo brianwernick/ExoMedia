@@ -29,7 +29,6 @@ import android.support.annotation.Nullable;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.Surface;
-import android.view.TextureView;
 import android.widget.MediaController;
 
 import java.io.IOException;
@@ -41,13 +40,13 @@ import java.util.Map;
  * resolves issues with the SurfaceView because the TextureView is an actual
  * View that follows the normal drawing paths; allowing the view to be animated,
  * scaled, etc.
- * <p/>
+ * <br><br>
  * NOTE: This does remove some of the functionality from the VideoView including:
  * <ul>
  * <li>The {@link MediaController}</li>
  * </ul>
  */
-public class TextureVideoView extends TextureView implements MediaController.MediaPlayerControl {
+public class TextureVideoView extends AspectTextureView implements MediaController.MediaPlayerControl {
     private static final String TAG = "TextureVideoView";
 
     protected enum State {
@@ -170,6 +169,7 @@ public class TextureVideoView extends TextureView implements MediaController.Med
     public void start() {
         if (isReady()) {
             mediaPlayer.start();
+            requestFocus();
             currentState = State.PLAYING;
         }
 
@@ -224,6 +224,7 @@ public class TextureVideoView extends TextureView implements MediaController.Med
         if (mediaPlayer != null) {
             return currentBufferPercent;
         }
+
         return 0;
     }
 
@@ -295,6 +296,7 @@ public class TextureVideoView extends TextureView implements MediaController.Med
     public void setVideoURI(Uri uri, @Nullable Map<String, String> headers) {
         this.headers = headers;
         requestedSeek = 0;
+        playRequested = false;
 
         openVideo(uri);
         requestLayout();
@@ -505,7 +507,7 @@ public class TextureVideoView extends TextureView implements MediaController.Med
         public void onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height) {
             mediaPlayer.setSurface(new Surface(surface));
             if (playRequested) {
-                mediaPlayer.prepareAsync();
+                start();
             }
         }
 
@@ -519,13 +521,15 @@ public class TextureVideoView extends TextureView implements MediaController.Med
                 seekTo(requestedSeek);
             }
 
-            start();
+            if (playRequested) {
+                start();
+            }
         }
 
         @Override
         public boolean onSurfaceTextureDestroyed(SurfaceTexture surface) {
             surface.release();
-            mediaPlayer.release();
+            suspend();
             return true;
         }
 

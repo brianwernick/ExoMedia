@@ -727,7 +727,7 @@ public class EMVideoView extends RelativeLayout {
      * procedures from running that we no longer need.
      */
     protected void onPlaybackEnded() {
-        pause();
+        stopPlayback();
         pollRepeater.stop();
     }
 

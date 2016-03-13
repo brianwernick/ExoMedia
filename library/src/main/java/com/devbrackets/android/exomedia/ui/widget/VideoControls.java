@@ -39,6 +39,7 @@ import com.devbrackets.android.exomedia.listener.VideoControlsButtonListener;
 import com.devbrackets.android.exomedia.listener.VideoControlsSeekListener;
 import com.devbrackets.android.exomedia.listener.VideoControlsVisibilityListener;
 import com.devbrackets.android.exomedia.util.EMResourceUtil;
+import com.devbrackets.android.exomedia.util.Repeater;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -46,8 +47,6 @@ import java.util.List;
 /**
  * This is a simple abstraction for the EMVideoView to have a single "View" to add
  * or remove for the Default Video Controls.
- *
- * TODO: progress polling
  */
 @SuppressWarnings("unused")
 public abstract class VideoControls extends RelativeLayout {
@@ -78,6 +77,8 @@ public abstract class VideoControls extends RelativeLayout {
 
     @NonNull
     protected Handler visibilityHandler = new Handler();
+    @NonNull
+    protected Repeater progressPollRepeater = new Repeater();
 
     @Nullable
     protected EMVideoView videoView;
@@ -215,7 +216,25 @@ public abstract class VideoControls extends RelativeLayout {
      */
     public void loadCompleted() {
         setLoading(false);
-        updatePlayPauseImage(videoView != null && videoView.isPlaying());
+        updatePlaybackState(videoView != null && videoView.isPlaying());
+    }
+
+    /**
+     * Informs the controls that the playback state has changed.  This will
+     * update to display the correct views, and manage progress polling.
+     *
+     * @param isPlaying True if the media is currently playing
+     */
+    public void updatePlaybackState(boolean isPlaying) {
+        updatePlayPauseImage(isPlaying);
+
+        if (isPlaying) {
+            progressPollRepeater.start();
+            hideDelayed(DEFAULT_CONTROL_HIDE_DELAY);
+        } else {
+            progressPollRepeater.stop();
+            show();
+        }
     }
 
     /**
@@ -591,6 +610,14 @@ public abstract class VideoControls extends RelativeLayout {
 
         registerListeners();
         updateButtonDrawables();
+
+        //A poll used to periodically update the progress bar
+        progressPollRepeater.setRepeatListener(new Repeater.RepeatListener() {
+            @Override
+            public void onRepeat() {
+                updateProgress();
+            }
+        });
     }
 
     /**
@@ -606,6 +633,16 @@ public abstract class VideoControls extends RelativeLayout {
             visibilityListener.onControlsShown();
         } else {
             visibilityListener.onControlsHidden();
+        }
+    }
+
+    /**
+     * Called by the {@link #progressPollRepeater} to update the progress
+     * bar using the {@link #videoView} to retrieve the correct information
+     */
+    protected void updateProgress() {
+        if (videoView != null) {
+            updateProgress(videoView.getCurrentPosition(), videoView.getDuration(), videoView.getBufferPercentage());
         }
     }
 

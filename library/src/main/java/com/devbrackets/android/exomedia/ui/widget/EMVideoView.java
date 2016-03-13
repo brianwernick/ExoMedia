@@ -775,7 +775,8 @@ public class EMVideoView extends RelativeLayout {
 
         @Override
         public void onExoPlayerError(EMExoPlayer emExoPlayer, Exception e) {
-            setKeepScreenOn(false);
+            stopPlayback();
+
             if (emExoPlayer != null) {
                 emExoPlayer.forcePrepare();
             }

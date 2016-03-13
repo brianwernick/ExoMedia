@@ -45,7 +45,7 @@ import com.google.android.exoplayer.audio.AudioCapabilitiesReceiver;
  * as the backing media player.
  */
 @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
-public class ExoVideoView extends VideoTextureView implements VideoViewApi, AudioCapabilitiesReceiver.Listener, VideoTextureView.OnSizeChangeListener  {
+public class ExoVideoView extends AspectTextureView implements VideoViewApi, AudioCapabilitiesReceiver.Listener, AspectTextureView.OnSizeChangeListener  {
     protected static final String USER_AGENT_FORMAT = "EMVideoView %s / Android %s / %s";
 
     protected EMExoPlayer emExoPlayer;

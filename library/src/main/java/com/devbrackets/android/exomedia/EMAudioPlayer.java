@@ -291,7 +291,7 @@ public class EMAudioPlayer {
      * procedures from running that we no longer need.
      */
     private void onPlaybackEnded() {
-        stopPlayback();
+        pause();
     }
 
     private class MuxNotifier extends EMListenerMux.EMListenerMuxNotifier {
@@ -302,6 +302,8 @@ public class EMAudioPlayer {
 
         @Override
         public void onExoPlayerError(EMExoPlayer emExoPlayer, Exception e) {
+            stopPlayback();
+
             if (emExoPlayer != null) {
                 emExoPlayer.forcePrepare();
             }

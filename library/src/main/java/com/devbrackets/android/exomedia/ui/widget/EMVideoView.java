@@ -166,18 +166,6 @@ public class EMVideoView extends RelativeLayout {
     }
 
     private void setup(Context context, @Nullable AttributeSet attrs) {
-        //TODO: we need this in the DefaultControls
-//        pollRepeater.setRepeatListener(new Repeater.RepeatListener() {
-//            @Override
-//            public void onRepeat() {
-//                currentMediaProgressEvent.update(getCurrentPosition(), getBufferPercentage(), getDuration());
-//
-//                if (defaultControls != null) {
-//                    defaultControls.setProgressEvent(currentMediaProgressEvent);
-//                }
-//            }
-//        });
-
         initView(context, attrs);
         readAttributes(context, attrs);
     }
@@ -469,8 +457,7 @@ public class EMVideoView extends RelativeLayout {
         setKeepScreenOn(true);
 
         if (videoControls != null) {
-            videoControls.updatePlayPauseImage(true);
-            videoControls.hideDelayed(VideoControls.DEFAULT_CONTROL_HIDE_DELAY);
+            videoControls.updatePlaybackState(true);
         }
     }
 
@@ -482,8 +469,7 @@ public class EMVideoView extends RelativeLayout {
         setKeepScreenOn(false);
 
         if (videoControls != null) {
-            videoControls.updatePlayPauseImage(false);
-            videoControls.show();
+            videoControls.updatePlaybackState(false);
         }
     }
 
@@ -495,8 +481,7 @@ public class EMVideoView extends RelativeLayout {
         setKeepScreenOn(false);
 
         if (videoControls != null) {
-            videoControls.updatePlayPauseImage(false);
-            videoControls.show();
+            videoControls.updatePlaybackState(false);
         }
     }
 
@@ -529,8 +514,7 @@ public class EMVideoView extends RelativeLayout {
         setKeepScreenOn(false);
 
         if (videoControls != null) {
-            videoControls.updatePlayPauseImage(false);
-            videoControls.show();
+            videoControls.updatePlaybackState(false);
         }
     }
 

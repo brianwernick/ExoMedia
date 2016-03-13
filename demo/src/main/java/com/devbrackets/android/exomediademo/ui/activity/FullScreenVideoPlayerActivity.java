@@ -5,8 +5,9 @@ import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
 
-import com.devbrackets.android.exomedia.ui.widget.VideoControls;
+import com.devbrackets.android.exomedia.listener.VideoControlsVisibilityListener;
 import com.devbrackets.android.exomedia.ui.widget.EMVideoView;
+import com.devbrackets.android.exomedia.ui.widget.VideoControls;
 
 /**
  * A simple example of making a fullscreen video player activity.
@@ -26,7 +27,7 @@ public class FullScreenVideoPlayerActivity extends VideoPlayerActivity {
 
         goFullscreen();
         if (emVideoView.getVideoControls() != null) {
-            emVideoView.getVideoControls().setVideoViewControlsCallback(new VideoControlsListener());
+            emVideoView.getVideoControls().setVisibilityListener(new ControlsVisibilityListener());
         }
     }
 
@@ -100,31 +101,15 @@ public class FullScreenVideoPlayerActivity extends VideoPlayerActivity {
      * A Listener for the {@link VideoControls}
      * so that we can re-enter fullscreen mode when the controls are hidden.
      */
-    private class VideoControlsListener implements com.devbrackets.android.exomedia.listener.VideoControlsListener {
+    private class ControlsVisibilityListener implements VideoControlsVisibilityListener {
         @Override
-        public boolean onPlayPauseClicked() {
-            return false; // No additional functionality performed
+        public void onControlsShown() {
+            // No additional functionality performed
         }
 
         @Override
-        public boolean onPreviousClicked() {
-            return false; // No additional functionality performed
-        }
-
-        @Override
-        public boolean onNextClicked() {
-            return false; // No additional functionality performed
-        }
-
-        @Override
-        public boolean onControlsShown() {
-            return false; // No additional functionality performed
-        }
-
-        @Override
-        public boolean onControlsHidden() {
+        public void onControlsHidden() {
             goFullscreen();
-            return false;
         }
     }
 }

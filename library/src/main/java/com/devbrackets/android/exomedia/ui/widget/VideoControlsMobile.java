@@ -38,11 +38,11 @@ import java.util.List;
  * Provides playback controls for the EMVideoView on Mobile
  * (Phone, Tablet, etc.) devices.
  */
+@SuppressWarnings("unused")
 public class VideoControlsMobile extends VideoControls {
     protected SeekBar seekBar;
     protected LinearLayout extraViewsContainer;
 
-    protected boolean pausedForSeek = false;
     protected boolean userInteracting = false;
 
     public VideoControlsMobile(Context context) {
@@ -53,7 +53,6 @@ public class VideoControlsMobile extends VideoControls {
         super(context, attrs);
     }
 
-    @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     public VideoControlsMobile(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
     }
@@ -75,7 +74,7 @@ public class VideoControlsMobile extends VideoControls {
      * @param position The position in milliseconds
      */
     @Override
-    public void setPosition(long position) {
+    public void setPosition(@IntRange(from = 0) long position) {
         currentTime.setText(TimeFormatUtil.formatMs(position));
         seekBar.setProgress((int) position);
     }
@@ -87,7 +86,7 @@ public class VideoControlsMobile extends VideoControls {
      * @param duration The duration of the video in milliseconds
      */
     @Override
-    public void setDuration(long duration) {
+    public void setDuration(@IntRange(from = 0) long duration) {
         if (duration != seekBar.getMax()) {
             endTime.setText(TimeFormatUtil.formatMs(duration));
             seekBar.setMax((int) duration);
@@ -165,16 +164,14 @@ public class VideoControlsMobile extends VideoControls {
         }
 
         //If the user is interacting with controls we don't want to start the delayed hide yet
-        if (userInteracting) {
-            return;
+        if (!userInteracting) {
+            visibilityHandler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    animateVisibility(false);
+                }
+            }, delay);
         }
-
-        visibilityHandler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                animateVisibility(false);
-            }
-        }, delay);
     }
 
     @Override
@@ -203,41 +200,24 @@ public class VideoControlsMobile extends VideoControls {
             }
 
             seekToTime = progress;
-            if (seekCallbacks != null && seekCallbacks.onSeekStarted()) {
-                return;
-            }
-
             if (currentTime != null) {
-                currentTime.setText(TimeFormatUtil.formatMs(progress));
+                currentTime.setText(TimeFormatUtil.formatMs(seekToTime));
             }
         }
 
         @Override
         public void onStartTrackingTouch(SeekBar seekBar) {
             userInteracting = true;
-
-            if (videoView.isPlaying()) {
-                pausedForSeek = true;
-                videoView.pause();
+            if (seekListener == null || !seekListener.onSeekStarted()) {
+                internalListener.onSeekStarted();
             }
-
-            //Make sure to keep the controls visible during seek
-            show();
         }
 
         @Override
         public void onStopTrackingTouch(SeekBar seekBar) {
             userInteracting = false;
-            if (seekCallbacks != null && seekCallbacks.onSeekEnded(seekToTime)) {
-                return;
-            }
-
-            videoView.seekTo(seekToTime);
-
-            if (pausedForSeek) {
-                pausedForSeek = false;
-                videoView.start();
-                hideDelayed(hideDelay);
+            if (seekListener == null || !seekListener.onSeekEnded(seekToTime)) {
+                internalListener.onSeekEnded(seekToTime);
             }
         }
     }

@@ -45,7 +45,7 @@ import com.google.android.exoplayer.audio.AudioCapabilitiesReceiver;
  * as the backing media player.
  */
 @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
-public class ExoVideoView extends VideoTextureView implements VideoViewApi, AudioCapabilitiesReceiver.Listener, VideoTextureView.OnSizeChangeListener  {
+public class ExoVideoView extends AspectTextureView implements VideoViewApi, AudioCapabilitiesReceiver.Listener, AspectTextureView.OnSizeChangeListener  {
     protected static final String USER_AGENT_FORMAT = "EMVideoView %s / Android %s / %s";
 
     protected EMExoPlayer emExoPlayer;
@@ -86,6 +86,8 @@ public class ExoVideoView extends VideoTextureView implements VideoViewApi, Audi
 
     @Override
     public void setVideoUri(@Nullable Uri uri, @Nullable RenderBuilder renderBuilder) {
+        playRequested = false;
+
         if (uri == null) {
             emExoPlayer.replaceRenderBuilder(null);
         } else {
@@ -96,6 +98,25 @@ public class ExoVideoView extends VideoTextureView implements VideoViewApi, Audi
         //Makes sure the listeners get the onPrepared callback
         listenerMux.setNotifiedPrepared(false);
         emExoPlayer.seekTo(0);
+    }
+
+    /**
+     * If the video has completed playback, calling {@code restart} will seek to the beginning of the video, and play it.
+     *
+     * @return {@code true} if the video was successfully restarted, otherwise {@code false}
+     */
+    @Override
+    public boolean restart() {
+        if(!emExoPlayer.restart()) {
+            return false;
+        }
+
+        listenerMux.setNotifiedCompleted(false);
+
+        //Makes sure the listeners get the onPrepared callback
+        listenerMux.setNotifiedPrepared(false);
+
+        return true;
     }
 
     @Override

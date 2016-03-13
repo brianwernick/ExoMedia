@@ -66,35 +66,24 @@ import java.io.IOException;
 @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
 public class DashRenderBuilder extends RenderBuilder {
     private static final String TAG = "DashRendererBuilder";
-    private static final int LIVE_EDGE_LATENCY_MS = 30000;
+    protected static final int LIVE_EDGE_LATENCY_MS = 30000;
 
-    private static final int SECURITY_LEVEL_UNKNOWN = -1;
-    private static final int SECURITY_LEVEL_1 = 1;
-    private static final int SECURITY_LEVEL_3 = 3;
+    protected static final int SECURITY_LEVEL_UNKNOWN = -1;
+    protected static final int SECURITY_LEVEL_1 = 1;
+    protected static final int SECURITY_LEVEL_3 = 3;
 
-    private final Context context;
-    private final String userAgent;
-    private final String url;
-    private final int streamType;
-
-    private AsyncRendererBuilder currentAsyncBuilder;
+    protected AsyncRendererBuilder currentAsyncBuilder;
 
     public DashRenderBuilder(Context context, String userAgent, String url) {
         this(context, userAgent, url, AudioManager.STREAM_MUSIC);
     }
 
     public DashRenderBuilder(Context context, String userAgent, String url, int streamType) {
-        super(context, userAgent, url);
-
-        this.context = context;
-        this.userAgent = userAgent;
-        this.url = url;
-        this.streamType = streamType;
+        super(context, userAgent, url, streamType);
     }
-
     @Override
     public void buildRenderers(EMExoPlayer player) {
-        currentAsyncBuilder = new AsyncRendererBuilder(context, userAgent, url, player, streamType);
+        currentAsyncBuilder = new AsyncRendererBuilder(context, userAgent, uri, player, streamType);
         currentAsyncBuilder.init();
     }
 
@@ -106,17 +95,21 @@ public class DashRenderBuilder extends RenderBuilder {
         }
     }
 
-    private final class AsyncRendererBuilder implements ManifestFetcher.ManifestCallback<MediaPresentationDescription>, UtcTimingCallback {
-        private final Context context;
-        private final String userAgent;
-        private final int streamType;
-        private final EMExoPlayer player;
-        private final ManifestFetcher<MediaPresentationDescription> manifestFetcher;
-        private MediaPresentationDescription currentManifest;
-        private final UriDataSource manifestDataSource;
+    protected UriDataSource createManifestDataSource(Context context, String userAgent) {
+        return new DefaultUriDataSource(context, userAgent);
+    }
 
-        private boolean canceled;
-        private long elapsedRealtimeOffset;
+    protected final class AsyncRendererBuilder implements ManifestFetcher.ManifestCallback<MediaPresentationDescription>, UtcTimingCallback {
+       protected final Context context;
+       protected final String userAgent;
+       protected final int streamType;
+       protected final EMExoPlayer player;
+       protected final ManifestFetcher<MediaPresentationDescription> manifestFetcher;
+       protected MediaPresentationDescription currentManifest;
+       protected final UriDataSource manifestDataSource;
+
+        protected boolean canceled;
+        protected long elapsedRealtimeOffset;
 
         public AsyncRendererBuilder(Context context, String userAgent, String url, EMExoPlayer player, int streamType) {
             this.context = context;
@@ -125,7 +118,7 @@ public class DashRenderBuilder extends RenderBuilder {
             this.player = player;
 
             MediaPresentationDescriptionParser parser = new MediaPresentationDescriptionParser();
-            manifestDataSource = new DefaultUriDataSource(context, userAgent);
+            manifestDataSource = createManifestDataSource(context, userAgent);
             manifestFetcher = new ManifestFetcher<>(url, manifestDataSource, parser);
         }
 
@@ -181,7 +174,7 @@ public class DashRenderBuilder extends RenderBuilder {
             buildRenderers();
         }
 
-        private void buildRenderers() {
+        protected void buildRenderers() {
             boolean filterHdContent = false;
             boolean hasContentProtection = false;
             Period period = currentManifest.getPeriod(0);
@@ -213,14 +206,14 @@ public class DashRenderBuilder extends RenderBuilder {
             buildRenderers(drmSessionManager, filterHdContent);
         }
 
-        private void buildRenderers(DrmSessionManager drmSessionManager, boolean filterHdContent) {
+        protected void buildRenderers(DrmSessionManager drmSessionManager, boolean filterHdContent) {
             Handler mainHandler = player.getMainHandler();
             LoadControl loadControl = new DefaultLoadControl(new DefaultAllocator(BUFFER_SEGMENT_SIZE));
             DefaultBandwidthMeter bandwidthMeter = new DefaultBandwidthMeter(mainHandler, player);
 
 
             //Create the Sample Source to be used by the Video Renderer
-            DataSource dataSourceVideo = new DefaultUriDataSource(context, bandwidthMeter, userAgent, true);
+            DataSource dataSourceVideo = createDataSource(context, bandwidthMeter, userAgent);
             ChunkSource chunkSourceVideo = new DashChunkSource(manifestFetcher, DefaultDashTrackSelector.newVideoInstance(context, true, filterHdContent), dataSourceVideo,
                     new AdaptiveEvaluator(bandwidthMeter), LIVE_EDGE_LATENCY_MS, elapsedRealtimeOffset, mainHandler, player, EMExoPlayer.RENDER_VIDEO);
             ChunkSampleSource sampleSourceVideo = new ChunkSampleSource(chunkSourceVideo, loadControl, BUFFER_SEGMENTS_VIDEO * BUFFER_SEGMENT_SIZE,
@@ -228,7 +221,7 @@ public class DashRenderBuilder extends RenderBuilder {
 
 
             //Create the Sample Source to be used by the Audio Renderer
-            DataSource dataSourceAudio = new DefaultUriDataSource(context, bandwidthMeter, userAgent, true);
+            DataSource dataSourceAudio = createDataSource(context, bandwidthMeter, userAgent);
             ChunkSource chunkSourceAudio = new DashChunkSource(manifestFetcher, DefaultDashTrackSelector.newAudioInstance(), dataSourceAudio,
                     null, LIVE_EDGE_LATENCY_MS, elapsedRealtimeOffset, mainHandler, player, EMExoPlayer.RENDER_AUDIO);
             ChunkSampleSource sampleSourceAudio = new ChunkSampleSource(chunkSourceAudio, loadControl, BUFFER_SEGMENTS_AUDIO * BUFFER_SEGMENT_SIZE,
@@ -236,7 +229,7 @@ public class DashRenderBuilder extends RenderBuilder {
 
 
             //Create the Sample Source to be used by the Closed Captions Renderer
-            DataSource dataSourceCC = new DefaultUriDataSource(context, bandwidthMeter, userAgent);
+            DataSource dataSourceCC = createDataSource(context, bandwidthMeter, userAgent);
             ChunkSource chunkSourceCC = new DashChunkSource(manifestFetcher, DefaultDashTrackSelector.newAudioInstance(), dataSourceCC,
                     null, LIVE_EDGE_LATENCY_MS, elapsedRealtimeOffset, mainHandler, player, EMExoPlayer.RENDER_CLOSED_CAPTION);
             ChunkSampleSource sampleSourceCC = new ChunkSampleSource(chunkSourceCC, loadControl, BUFFER_SEGMENTS_TEXT * BUFFER_SEGMENT_SIZE,
@@ -259,7 +252,7 @@ public class DashRenderBuilder extends RenderBuilder {
             player.onRenderers(renderers, bandwidthMeter);
         }
 
-        private int getWidevineSecurityLevel(StreamingDrmSessionManager sessionManager) {
+        protected int getWidevineSecurityLevel(StreamingDrmSessionManager sessionManager) {
             String securityLevelProperty = sessionManager.getPropertyString("securityLevel");
             return securityLevelProperty.equals("L1") ? SECURITY_LEVEL_1 : securityLevelProperty.equals("L3") ? SECURITY_LEVEL_3 : SECURITY_LEVEL_UNKNOWN;
         }

@@ -24,7 +24,6 @@ import android.media.AudioManager;
 import android.media.MediaCodec;
 import android.os.Build;
 import android.os.Handler;
-
 import com.devbrackets.android.exomedia.core.exoplayer.EMExoPlayer;
 import com.devbrackets.android.exomedia.core.renderer.EMMediaCodecAudioTrackRenderer;
 import com.google.android.exoplayer.DefaultLoadControl;
@@ -49,7 +48,7 @@ import com.google.android.exoplayer.upstream.DataSource;
 import com.google.android.exoplayer.upstream.DefaultAllocator;
 import com.google.android.exoplayer.upstream.DefaultBandwidthMeter;
 import com.google.android.exoplayer.upstream.DefaultHttpDataSource;
-import com.google.android.exoplayer.upstream.DefaultUriDataSource;
+import com.google.android.exoplayer.upstream.UriDataSource;
 import com.google.android.exoplayer.util.ManifestFetcher;
 import com.google.android.exoplayer.util.Util;
 
@@ -61,30 +60,21 @@ import java.io.IOException;
  */
 @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
 public class SmoothStreamRenderBuilder extends RenderBuilder {
-    private static final int LIVE_EDGE_LATENCY_MS = 30000;
+    protected static final int LIVE_EDGE_LATENCY_MS = 30000;
 
-    private final Context context;
-    private final String userAgent;
-    private final String url;
-    private final int streamType;
-
-    private AsyncRendererBuilder currentAsyncBuilder;
+    protected AsyncRendererBuilder currentAsyncBuilder;
 
     public SmoothStreamRenderBuilder(Context context, String userAgent, String url) {
         this(context, userAgent, url, AudioManager.STREAM_MUSIC);
     }
 
     public SmoothStreamRenderBuilder(Context context, String userAgent, String url, int streamType) {
-        super(context, userAgent, url);
-        this.context = context;
-        this.userAgent = userAgent;
-        this.url = Util.toLowerInvariant(url).endsWith("/manifest") ? url : url + "/Manifest";
-        this.streamType = streamType;
+        super(context, userAgent, getManifestUri(url), streamType);
     }
 
     @Override
     public void buildRenderers(EMExoPlayer player) {
-        currentAsyncBuilder = new AsyncRendererBuilder(context, userAgent, url, player, streamType);
+        currentAsyncBuilder = new AsyncRendererBuilder(context, userAgent, uri, player, streamType);
         currentAsyncBuilder.init();
     }
 
@@ -96,14 +86,23 @@ public class SmoothStreamRenderBuilder extends RenderBuilder {
         }
     }
 
-    private static final class AsyncRendererBuilder implements ManifestFetcher.ManifestCallback<SmoothStreamingManifest> {
-        private final Context context;
-        private final String userAgent;
-        private final int streamType;
-        private final EMExoPlayer player;
-        private final ManifestFetcher<SmoothStreamingManifest> manifestFetcher;
+    @SuppressWarnings("UnusedParameters") // Context kept for consistency with the HLS and Dash builders
+    protected UriDataSource createManifestDataSource(Context context, String userAgent) {
+        return new DefaultHttpDataSource(userAgent, null);
+    }
 
-        private boolean canceled;
+    protected static String getManifestUri(String url) {
+        return Util.toLowerInvariant(url).endsWith("/manifest") ? url : url + "/Manifest";
+    }
+
+    protected final class AsyncRendererBuilder implements ManifestFetcher.ManifestCallback<SmoothStreamingManifest> {
+        protected final Context context;
+        protected final String userAgent;
+        protected final int streamType;
+        protected final EMExoPlayer player;
+        protected final ManifestFetcher<SmoothStreamingManifest> manifestFetcher;
+
+        protected boolean canceled;
 
         public AsyncRendererBuilder(Context context, String userAgent, String url, EMExoPlayer player, int streamType) {
             this.context = context;
@@ -111,7 +110,7 @@ public class SmoothStreamRenderBuilder extends RenderBuilder {
             this.streamType = streamType;
             this.player = player;
             SmoothStreamingManifestParser parser = new SmoothStreamingManifestParser();
-            manifestFetcher = new ManifestFetcher<>(url, new DefaultHttpDataSource(userAgent, null), parser);
+            manifestFetcher = new ManifestFetcher<>(url, createManifestDataSource(null, userAgent), parser);
         }
 
         public void init() {
@@ -156,14 +155,14 @@ public class SmoothStreamRenderBuilder extends RenderBuilder {
             buildRenderers(drmSessionManager);
         }
 
-        private void buildRenderers(DrmSessionManager drmSessionManager) {
+        protected void buildRenderers(DrmSessionManager drmSessionManager) {
             Handler mainHandler = player.getMainHandler();
             LoadControl loadControl = new DefaultLoadControl(new DefaultAllocator(BUFFER_SEGMENT_SIZE));
             DefaultBandwidthMeter bandwidthMeter = new DefaultBandwidthMeter(mainHandler, player);
 
 
             //Create the Sample Source to be used by the Video Renderer
-            DataSource dataSourceVideo = new DefaultUriDataSource(context, bandwidthMeter, userAgent);
+            DataSource dataSourceVideo = createDataSource(context, bandwidthMeter, userAgent);
             SmoothStreamingTrackSelector trackSelectorVideo = DefaultSmoothStreamingTrackSelector.newVideoInstance(context, true, false);
             ChunkSource chunkSourceVideo = new SmoothStreamingChunkSource(manifestFetcher, trackSelectorVideo, dataSourceVideo,
                     new FormatEvaluator.AdaptiveEvaluator(bandwidthMeter), LIVE_EDGE_LATENCY_MS);
@@ -172,7 +171,7 @@ public class SmoothStreamRenderBuilder extends RenderBuilder {
 
 
             //Create the Sample Source to be used by the Audio Renderer
-            DataSource dataSourceAudio = new DefaultUriDataSource(context, bandwidthMeter, userAgent);
+            DataSource dataSourceAudio = createDataSource(context, bandwidthMeter, userAgent);
             SmoothStreamingTrackSelector trackSelectorAudio = DefaultSmoothStreamingTrackSelector.newAudioInstance();
             ChunkSource chunkSourceAudio = new SmoothStreamingChunkSource(manifestFetcher, trackSelectorAudio, dataSourceAudio, null, LIVE_EDGE_LATENCY_MS);
             ChunkSampleSource sampleSourceAudio = new ChunkSampleSource(chunkSourceAudio, loadControl, BUFFER_SEGMENTS_AUDIO * BUFFER_SEGMENT_SIZE,
@@ -180,7 +179,7 @@ public class SmoothStreamRenderBuilder extends RenderBuilder {
 
 
             //Create the Sample Source to be used by the Closed Captions Renderer
-            DataSource dataSourceCC = new DefaultUriDataSource(context, bandwidthMeter, userAgent);
+            DataSource dataSourceCC = createDataSource(context, bandwidthMeter, userAgent);
             SmoothStreamingTrackSelector trackSelectorCC = DefaultSmoothStreamingTrackSelector.newTextInstance();
             ChunkSource chunkSourceCC = new SmoothStreamingChunkSource(manifestFetcher, trackSelectorCC, dataSourceCC, null, LIVE_EDGE_LATENCY_MS);
             ChunkSampleSource sampleSourceCC = new ChunkSampleSource(chunkSourceCC, loadControl, BUFFER_SEGMENTS_TEXT * BUFFER_SEGMENT_SIZE,

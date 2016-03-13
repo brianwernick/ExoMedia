@@ -38,7 +38,7 @@ import javax.microedition.khronos.egl.EGLSurface;
  * ratio for videos.
  */
 @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
-public class VideoTextureView extends TextureView {
+public class AspectTextureView extends TextureView {
     /**
      * The surface view will not resize itself if the fractional difference between its default
      * aspect ratio and the aspect ratio of the video falls below this threshold.
@@ -98,25 +98,25 @@ public class VideoTextureView extends TextureView {
     @Nullable
     Surface surface;
 
-    public VideoTextureView(Context context) {
+    public AspectTextureView(Context context) {
         super(context);
     }
 
-    public VideoTextureView(Context context, AttributeSet attrs) {
+    public AspectTextureView(Context context, AttributeSet attrs) {
         super(context, attrs);
     }
 
-    public VideoTextureView(Context context, AttributeSet attrs, int defStyleAttr) {
+    public AspectTextureView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
     }
 
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
-    public VideoTextureView(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
+    public AspectTextureView(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
         super(context, attrs, defStyleAttr, defStyleRes);
     }
 
     /**
-     * Set the aspect ratio that this {@link VideoTextureView} should satisfy.
+     * Set the aspect ratio that this {@link AspectTextureView} should satisfy.
      *
      * @param widthHeightRatio The width to height ratio.
      */

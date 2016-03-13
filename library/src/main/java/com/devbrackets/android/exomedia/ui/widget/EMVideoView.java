@@ -114,7 +114,6 @@ public class EMVideoView extends RelativeLayout {
     @Override
     protected void onDetachedFromWindow() {
         super.onDetachedFromWindow();
-        pause();
 
         if (releaseOnDetachFromWindow) {
             release();
@@ -167,18 +166,6 @@ public class EMVideoView extends RelativeLayout {
     }
 
     private void setup(Context context, @Nullable AttributeSet attrs) {
-        //TODO: we need this in the DefaultControls
-//        pollRepeater.setRepeatListener(new Repeater.RepeatListener() {
-//            @Override
-//            public void onRepeat() {
-//                currentMediaProgressEvent.update(getCurrentPosition(), getBufferPercentage(), getDuration());
-//
-//                if (defaultControls != null) {
-//                    defaultControls.setProgressEvent(currentMediaProgressEvent);
-//                }
-//            }
-//        });
-
         initView(context, attrs);
         readAttributes(context, attrs);
     }
@@ -470,8 +457,7 @@ public class EMVideoView extends RelativeLayout {
         setKeepScreenOn(true);
 
         if (videoControls != null) {
-            videoControls.updatePlayPauseImage(true);
-            videoControls.hideDelayed(VideoControls.DEFAULT_CONTROL_HIDE_DELAY);
+            videoControls.updatePlaybackState(true);
         }
     }
 
@@ -483,8 +469,7 @@ public class EMVideoView extends RelativeLayout {
         setKeepScreenOn(false);
 
         if (videoControls != null) {
-            videoControls.updatePlayPauseImage(false);
-            videoControls.show();
+            videoControls.updatePlaybackState(false);
         }
     }
 
@@ -496,8 +481,28 @@ public class EMVideoView extends RelativeLayout {
         setKeepScreenOn(false);
 
         if (videoControls != null) {
-            videoControls.updatePlayPauseImage(false);
-            videoControls.show();
+            videoControls.updatePlaybackState(false);
+        }
+    }
+
+  /**
+   * If the video has completed playback, calling {@code restart} will seek to the beginning of the video, and play it.
+   *
+   * @return {@code true} if the video was successfully restarted, otherwise {@code false}
+   */
+  public boolean restart() {
+        if(videoUri == null) {
+            return false;
+        }
+
+        if(videoViewImpl.restart()) {
+            if (videoControls != null) {
+                videoControls.restartLoading();
+            }
+            return true;
+        }
+        else {
+            return false;
         }
     }
 
@@ -509,8 +514,7 @@ public class EMVideoView extends RelativeLayout {
         setKeepScreenOn(false);
 
         if (videoControls != null) {
-            videoControls.updatePlayPauseImage(false);
-            videoControls.show();
+            videoControls.updatePlaybackState(false);
         }
     }
 
@@ -755,7 +759,8 @@ public class EMVideoView extends RelativeLayout {
 
         @Override
         public void onExoPlayerError(EMExoPlayer emExoPlayer, Exception e) {
-            setKeepScreenOn(false);
+            stopPlayback();
+
             if (emExoPlayer != null) {
                 emExoPlayer.forcePrepare();
             }

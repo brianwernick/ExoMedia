@@ -35,8 +35,11 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.devbrackets.android.exomedia.R;
-import com.devbrackets.android.exomedia.listener.VideoControlsListener;
+import com.devbrackets.android.exomedia.listener.VideoControlsButtonListener;
+import com.devbrackets.android.exomedia.listener.VideoControlsSeekListener;
+import com.devbrackets.android.exomedia.listener.VideoControlsVisibilityListener;
 import com.devbrackets.android.exomedia.util.EMResourceUtil;
+import com.devbrackets.android.exomedia.util.Repeater;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -45,15 +48,11 @@ import java.util.List;
  * This is a simple abstraction for the EMVideoView to have a single "View" to add
  * or remove for the Default Video Controls.
  */
+@SuppressWarnings("unused")
 public abstract class VideoControls extends RelativeLayout {
     public static final int DEFAULT_CONTROL_HIDE_DELAY = 2000;
     protected static final long CONTROL_VISIBILITY_ANIMATION_LENGTH = 300;
     protected static final int INVALID_RESOURCE_ID = 0;
-
-    public interface SeekCallbacks {
-        boolean onSeekStarted();
-        boolean onSeekEnded(int seekTime);
-    }
 
     protected TextView currentTime;
     protected TextView endTime;
@@ -76,6 +75,24 @@ public abstract class VideoControls extends RelativeLayout {
     protected Drawable defaultPreviousDrawable;
     protected Drawable defaultNextDrawable;
 
+    @NonNull
+    protected Handler visibilityHandler = new Handler();
+    @NonNull
+    protected Repeater progressPollRepeater = new Repeater();
+
+    @Nullable
+    protected EMVideoView videoView;
+
+    @Nullable
+    protected VideoControlsSeekListener seekListener;
+    @Nullable
+    protected VideoControlsButtonListener buttonsListener;
+    @Nullable
+    protected VideoControlsVisibilityListener visibilityListener;
+
+    @NonNull
+    protected InternalListener internalListener = new InternalListener();
+
     //Since the Play/Pause button uses 2 separate resource Id's we need to store them
     protected int playResourceId = INVALID_RESOURCE_ID;
     protected int pauseResourceId = INVALID_RESOURCE_ID;
@@ -84,11 +101,43 @@ public abstract class VideoControls extends RelativeLayout {
 
     protected boolean isVisible = true;
     protected boolean canViewHide = true;
-    protected Handler visibilityHandler = new Handler();
 
-    protected EMVideoView videoView;
-    protected SeekCallbacks seekCallbacks;
-    protected VideoControlsListener callback;
+    /**
+     * Sets the current video position, updating the seek bar
+     * and the current time field
+     *
+     * @param position The position in milliseconds
+     */
+    public abstract void setPosition(@IntRange(from = 0) long position);
+
+    /**
+     * Sets the video duration in Milliseconds to display
+     * at the end of the progress bar
+     *
+     * @param duration The duration of the video in milliseconds
+     */
+    public abstract void setDuration(@IntRange(from = 0) long duration);
+
+    /**
+     * Performs the progress update on the current time field,
+     * and the seek bar
+     */
+    public abstract void updateProgress(@IntRange(from = 0) long position, @IntRange(from = 0) long duration, @IntRange(from = 0, to = 100) int bufferPercent);
+
+    /**
+     * Used to retrieve the layout resource identifier to inflate
+     *
+     * @return The layout resource identifier to inflate
+     */
+    @LayoutRes
+    protected abstract int getLayoutResource();
+
+    /**
+     * Performs the control visibility animation for showing or hiding
+     * this view
+     * @param toVisible True if the view should be visible at the end of the animation
+     */
+    protected abstract void animateVisibility(boolean toVisible);
 
     public VideoControls(Context context) {
         super(context);
@@ -100,7 +149,6 @@ public abstract class VideoControls extends RelativeLayout {
         setup(context);
     }
 
-    @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     public VideoControls(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         setup(context);
@@ -118,17 +166,35 @@ public abstract class VideoControls extends RelativeLayout {
      *
      * @param EMVideoView The Parent view to these controls
      */
-    public void setVideoView(EMVideoView EMVideoView) {
+    public void setVideoView(@Nullable EMVideoView EMVideoView) {
         this.videoView = EMVideoView;
     }
 
     /**
-     * Specifies the callback to use for informing the host app of click events
+     * Sets the callbacks to inform of progress seek events
+     *
+     * @param callbacks The callbacks to inform
+     */
+    public void setSeekListener(@Nullable VideoControlsSeekListener callbacks) {
+        this.seekListener = callbacks;
+    }
+
+    /**
+     * Specifies the callback to inform of button click events
      *
      * @param callback The callback
      */
-    public void setVideoViewControlsCallback(VideoControlsListener callback) {
-        this.callback = callback;
+    public void setButtonListener(@Nullable VideoControlsButtonListener callback) {
+        this.buttonsListener = callback;
+    }
+
+    /**
+     * Sets the callbacks to inform of visibility changes
+     *
+     * @param callbacks The callbacks to inform
+     */
+    public void setVisibilityListener(@Nullable VideoControlsVisibilityListener callbacks) {
+        this.visibilityListener = callbacks;
     }
 
     /**
@@ -150,7 +216,25 @@ public abstract class VideoControls extends RelativeLayout {
      */
     public void loadCompleted() {
         setLoading(false);
-        updatePlayPauseImage(videoView.isPlaying());
+        updatePlaybackState(videoView != null && videoView.isPlaying());
+    }
+
+    /**
+     * Informs the controls that the playback state has changed.  This will
+     * update to display the correct views, and manage progress polling.
+     *
+     * @param isPlaying True if the media is currently playing
+     */
+    public void updatePlaybackState(boolean isPlaying) {
+        updatePlayPauseImage(isPlaying);
+
+        if (isPlaying) {
+            progressPollRepeater.start();
+            hideDelayed(DEFAULT_CONTROL_HIDE_DELAY);
+        } else {
+            progressPollRepeater.stop();
+            show();
+        }
     }
 
     /**
@@ -190,37 +274,6 @@ public abstract class VideoControls extends RelativeLayout {
     public void setDescription(@Nullable CharSequence description) {
         descriptionView.setText(description);
     }
-
-    /**
-     * Sets the callbacks to inform of progress seek events
-     *
-     * @param callbacks The callbacks to inform
-     */
-    public void setSeekCallbacks(@Nullable SeekCallbacks callbacks) {
-        this.seekCallbacks = callbacks;
-    }
-
-    /**
-     * Sets the current video position, updating the seek bar
-     * and the current time field
-     *
-     * @param position The position in milliseconds
-     */
-    public abstract void setPosition(long position);
-
-    /**
-     * Sets the video duration in Milliseconds to display
-     * at the end of the progress bar
-     *
-     * @param duration The duration of the video in milliseconds
-     */
-    public abstract void setDuration(long duration);
-
-    /**
-     * Performs the progress update on the current time field,
-     * and the seek bar
-     */
-    public abstract void updateProgress(@IntRange(from = 0) long position, @IntRange(from = 0) long duration, @IntRange(from = 0, to = 100) int bufferPercent);
 
     /**
      * Sets the resource id's to use for the PlayPause button.
@@ -520,16 +573,8 @@ public abstract class VideoControls extends RelativeLayout {
      * event, and toggling the video playback.
      */
     protected void onPlayPauseClick() {
-        if (callback != null && callback.onPlayPauseClicked()) {
-            return;
-        }
-
-        //toggles the playback
-        boolean playing = videoView.isPlaying();
-        if (playing) {
-            videoView.pause();
-        } else {
-            videoView.start();
+        if (buttonsListener == null || !buttonsListener.onPlayPauseClicked()) {
+            internalListener.onPlayPauseClicked();
         }
     }
 
@@ -538,8 +583,8 @@ public abstract class VideoControls extends RelativeLayout {
      * button has been clicked
      */
     protected void onPreviousClick() {
-        if (callback != null) {
-            callback.onPreviousClicked();
+        if (buttonsListener == null || !buttonsListener.onPreviousClicked()) {
+            internalListener.onPreviousClicked();
         }
     }
 
@@ -548,18 +593,10 @@ public abstract class VideoControls extends RelativeLayout {
      * button has been clicked
      */
     protected void onNextClick() {
-        if (callback != null) {
-            callback.onNextClicked();
+        if (buttonsListener == null || !buttonsListener.onNextClicked()) {
+            internalListener.onNextClicked();
         }
     }
-
-    /**
-     * Used to retrieve the layout resource identifier to inflate
-     *
-     * @return The layout resource identifier to inflate
-     */
-    @LayoutRes
-    protected abstract int getLayoutResource();
 
     /**
      * Performs any initialization steps such as retrieving views, registering listeners,
@@ -573,6 +610,14 @@ public abstract class VideoControls extends RelativeLayout {
 
         registerListeners();
         updateButtonDrawables();
+
+        //A poll used to periodically update the progress bar
+        progressPollRepeater.setRepeatListener(new Repeater.RepeatListener() {
+            @Override
+            public void onRepeat() {
+                updateProgress();
+            }
+        });
     }
 
     /**
@@ -580,19 +625,103 @@ public abstract class VideoControls extends RelativeLayout {
      * that the DefaultControls visibility has changed
      */
     protected void onVisibilityChanged() {
-        if (callback != null) {
-            if (isVisible) {
-                callback.onControlsShown();
-            } else {
-                callback.onControlsHidden();
-            }
+        if (visibilityListener == null) {
+            return;
+        }
+
+        if (isVisible) {
+            visibilityListener.onControlsShown();
+        } else {
+            visibilityListener.onControlsHidden();
         }
     }
 
     /**
-     * Performs the control visibility animation for showing or hiding
-     * this view
-     * @param toVisible True if the view should be visible at the end of the animation
+     * Called by the {@link #progressPollRepeater} to update the progress
+     * bar using the {@link #videoView} to retrieve the correct information
      */
-    protected abstract void animateVisibility(boolean toVisible);
+    protected void updateProgress() {
+        if (videoView != null) {
+            updateProgress(videoView.getCurrentPosition(), videoView.getDuration(), videoView.getBufferPercentage());
+        }
+    }
+
+    /**
+     * An internal class used to handle the default functionality for the
+     * VideoControls
+     */
+    protected class InternalListener implements VideoControlsSeekListener, VideoControlsButtonListener {
+        protected boolean pausedForSeek = false;
+
+        @Override
+        public boolean onPlayPauseClicked() {
+            if (videoView == null) {
+                return false;
+            }
+
+            if (videoView.isPlaying()) {
+                videoView.pause();
+            } else {
+                videoView.start();
+            }
+
+            return true;
+        }
+
+        @Override
+        public boolean onPreviousClicked() {
+            //Purposefully left blank
+            return false;
+        }
+
+        @Override
+        public boolean onNextClicked() {
+            //Purposefully left blank
+            return false;
+        }
+
+        @Override
+        public boolean onRewindClicked() {
+            //Purposefully left blank
+            return false;
+        }
+
+        @Override
+        public boolean onFastForwardClicked() {
+            //Purposefully left blank
+            return false;
+        }
+
+        @Override
+        public boolean onSeekStarted() {
+            if (videoView == null) {
+                return false;
+            }
+
+            if (videoView.isPlaying()) {
+                pausedForSeek = true;
+                videoView.pause();
+            }
+
+            show();
+            return true;
+        }
+
+        @Override
+        public boolean onSeekEnded(int seekTime) {
+            if (videoView == null) {
+                return false;
+            }
+
+            videoView.seekTo(seekTime);
+
+            if (pausedForSeek) {
+                pausedForSeek = false;
+                videoView.start();
+                hideDelayed(hideDelay);
+            }
+
+            return true;
+        }
+    }
 }

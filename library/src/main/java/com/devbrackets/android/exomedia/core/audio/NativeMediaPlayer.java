@@ -70,6 +70,25 @@ public class NativeMediaPlayer extends MediaPlayer implements MediaPlayerApi, Me
         stop();
     }
 
+    /**
+     * If the media has completed playback, calling {@code restart} will seek to the beginning of the media, and play it.
+     *
+     * @return {@code true} if the media was successfully restarted, otherwise {@code false}
+     */
+  @Override
+    public boolean restart() {
+        if(!listenerMux.isPrepared()) {
+            return false;
+        }
+
+        super.seekTo(0);
+        super.start();
+
+        listenerMux.setNotifiedCompleted(false);
+
+        return true;
+    }
+
     @Override
     public int getDuration() {
         if (!listenerMux.isPrepared()) {

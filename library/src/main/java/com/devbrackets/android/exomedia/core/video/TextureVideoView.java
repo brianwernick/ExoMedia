@@ -40,13 +40,13 @@ import java.util.Map;
  * resolves issues with the SurfaceView because the TextureView is an actual
  * View that follows the normal drawing paths; allowing the view to be animated,
  * scaled, etc.
- * <p/>
+ * <br><br>
  * NOTE: This does remove some of the functionality from the VideoView including:
  * <ul>
  * <li>The {@link MediaController}</li>
  * </ul>
  */
-public class TextureVideoView extends VideoTextureView implements MediaController.MediaPlayerControl {
+public class TextureVideoView extends AspectTextureView implements MediaController.MediaPlayerControl {
     private static final String TAG = "TextureVideoView";
 
     protected enum State {
@@ -169,6 +169,7 @@ public class TextureVideoView extends VideoTextureView implements MediaControlle
     public void start() {
         if (isReady()) {
             mediaPlayer.start();
+            requestFocus();
             currentState = State.PLAYING;
         }
 
@@ -223,6 +224,7 @@ public class TextureVideoView extends VideoTextureView implements MediaControlle
         if (mediaPlayer != null) {
             return currentBufferPercent;
         }
+
         return 0;
     }
 
@@ -242,8 +244,15 @@ public class TextureVideoView extends VideoTextureView implements MediaControlle
     }
 
     public void stopPlayback() {
-        mediaPlayer.stop();
         currentState = State.IDLE;
+
+        if (isReady()) {
+            try {
+                mediaPlayer.stop();
+            } catch (Exception e) {
+                Log.d(TAG, "stopPlayback: error calling mediaPlayer.stop()", e);
+            }
+        }
 
         playRequested = false;
         AudioManager am = (AudioManager) getContext().getApplicationContext().getSystemService(Context.AUDIO_SERVICE);
@@ -253,10 +262,14 @@ public class TextureVideoView extends VideoTextureView implements MediaControlle
     }
 
     public void suspend() {
-        mediaPlayer.reset();
-        mediaPlayer.release();
-
         currentState = State.IDLE;
+
+        try {
+            mediaPlayer.reset();
+            mediaPlayer.release();
+        } catch (Exception e) {
+            Log.d(TAG, "stopPlayback: error calling mediaPlayer.reset() or mediaPlayer.release()", e);
+        }
 
         playRequested = false;
         AudioManager am = (AudioManager) getContext().getApplicationContext().getSystemService(Context.AUDIO_SERVICE);
@@ -285,6 +298,7 @@ public class TextureVideoView extends VideoTextureView implements MediaControlle
     public void setVideoURI(Uri uri, @Nullable Map<String, String> headers) {
         this.headers = headers;
         requestedSeek = 0;
+        playRequested = false;
 
         openVideo(uri);
         requestLayout();
@@ -496,7 +510,7 @@ public class TextureVideoView extends VideoTextureView implements MediaControlle
             surface = new Surface(surfaceTexture);
             mediaPlayer.setSurface(surface);
             if (playRequested) {
-                mediaPlayer.prepareAsync();
+                start();
             }
         }
 
@@ -510,13 +524,15 @@ public class TextureVideoView extends VideoTextureView implements MediaControlle
                 seekTo(requestedSeek);
             }
 
-            start();
+            if (playRequested) {
+                start();
+            }
         }
 
         @Override
         public boolean onSurfaceTextureDestroyed(SurfaceTexture surface) {
             surface.release();
-            mediaPlayer.release();
+            suspend();
             return true;
         }
 

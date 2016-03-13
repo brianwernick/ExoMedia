@@ -93,20 +93,13 @@ public class EMListenerMux implements ExoPlayerListener, MediaPlayer.OnPreparedL
 
     @Override
     public void onPrepared(MediaPlayer mp) {
-        notifiedPrepared = true;
-
-        delayedHandler.post(new Runnable() {
-            @Override
-            public void run() {
-                performPreparedHandlerNotification();
-            }
-        });
+        notifyPreparedListener();
     }
 
     @Override
     public void onError(EMExoPlayer emExoPlayer, Exception e) {
-        muxNotifier.onExoPlayerError(emExoPlayer, e);
         muxNotifier.onMediaPlaybackEnded();
+        muxNotifier.onExoPlayerError(emExoPlayer, e);
 
         if (errorListener != null) {
             errorListener.onError();
@@ -247,7 +240,6 @@ public class EMListenerMux implements ExoPlayerListener, MediaPlayer.OnPreparedL
         });
     }
 
-    @SuppressWarnings("UnusedParameters")
     public static abstract class EMListenerMuxNotifier {
         public void onBufferUpdated(int percent) {
             //Purposefully left blank

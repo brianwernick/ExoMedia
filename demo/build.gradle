@@ -2,11 +2,11 @@ apply plugin: 'com.android.application'
 
 dependencies {
     compile project(':library')
-    compile 'com.android.support:appcompat-v7:23.1.1'
+    compile 'com.android.support:appcompat-v7:23.2.1'
     compile 'com.squareup.picasso:picasso:2.5.2'
 
     // Playlist support
-    compile 'com.devbrackets.android:playlistcore:1.0.0'
+    compile 'com.devbrackets.android:playlistcore:1.0.1'
 }
 
 android {

@@ -125,6 +125,13 @@ public class EMListenerMux implements ExoPlayerListener, MediaPlayer.OnPreparedL
     }
 
     @Override
+    public void onSeekComplete() {
+        if (seekCompletionListener != null) {
+            seekCompletionListener.onSeekComplete();
+        }
+    }
+
+    @Override
     public void onVideoSizeChanged(int width, int height, int unAppliedRotationDegrees, float pixelWidthHeightRatio) {
         muxNotifier.onVideoSizeChanged(width, height, unAppliedRotationDegrees, pixelWidthHeightRatio);
     }

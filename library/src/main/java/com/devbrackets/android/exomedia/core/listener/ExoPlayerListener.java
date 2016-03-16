@@ -18,11 +18,12 @@
 package com.devbrackets.android.exomedia.core.listener;
 
 import com.devbrackets.android.exomedia.core.exoplayer.EMExoPlayer;
+import com.devbrackets.android.exomedia.listener.OnSeekCompletionListener;
 
 /**
  * A listener for core EMExoPlayer events
  */
-public interface ExoPlayerListener {
+public interface ExoPlayerListener extends OnSeekCompletionListener {
     void onStateChanged(boolean playWhenReady, int playbackState);
 
     void onError(EMExoPlayer emExoPlayer, Exception e);

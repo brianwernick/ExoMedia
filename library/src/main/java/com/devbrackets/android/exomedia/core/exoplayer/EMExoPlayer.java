@@ -25,6 +25,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.PowerManager;
 import android.support.annotation.Nullable;
+import android.support.annotation.Size;
 import android.util.Log;
 import android.view.Surface;
 
@@ -98,8 +99,7 @@ public class EMExoPlayer implements
     private final CopyOnWriteArrayList<ExoPlayerListener> listeners;
 
     private RenderBuildingState rendererBuildingState;
-    private int lastReportedPlaybackState;
-    private boolean lastReportedPlayWhenReady;
+    private StateStore stateStore = new StateStore();
 
     private boolean prepared = false;
 
@@ -126,7 +126,6 @@ public class EMExoPlayer implements
 
         mainHandler = new Handler();
         listeners = new CopyOnWriteArrayList<>();
-        lastReportedPlaybackState = ExoPlayer.STATE_IDLE;
         rendererBuildingState = RenderBuildingState.IDLE;
         player.setSelectedTrack(RENDER_CLOSED_CAPTION, DISABLED_TRACK);
     }
@@ -266,6 +265,7 @@ public class EMExoPlayer implements
 
     public void seekTo(long positionMs) {
         player.seekTo(positionMs);
+        stateStore.setMostRecentState(stateStore.isLastReportedPlayWhenReady(), StateStore.STATE_SEEKING);
     }
 
   /**
@@ -561,13 +561,21 @@ public class EMExoPlayer implements
         boolean playWhenReady = player.getPlayWhenReady();
         int playbackState = getPlaybackState();
 
-        if (lastReportedPlayWhenReady != playWhenReady || lastReportedPlaybackState != playbackState) {
+        int newState = stateStore.getState(playWhenReady, playbackState);
+        if (newState != stateStore.getMostRecentState()) {
+            stateStore.setMostRecentState(playWhenReady, playbackState);
+
+            //Because the playWhenReady isn't a state in itself, rather a flag to a state we will ignore informing of
+            // see events when that is the only change
+            boolean informSeekCompletion = stateStore.matchesHistory(new int[]{StateStore.STATE_SEEKING, ExoPlayer.STATE_BUFFERING, ExoPlayer.STATE_READY}, true);
+
             for (ExoPlayerListener listener : listeners) {
                 listener.onStateChanged(playWhenReady, playbackState);
-            }
 
-            lastReportedPlayWhenReady = playWhenReady;
-            lastReportedPlaybackState = playbackState;
+                if (informSeekCompletion) {
+                    listener.onSeekComplete();
+                }
+            }
         }
     }
 
@@ -580,6 +588,49 @@ public class EMExoPlayer implements
             player.blockingSendMessage(videoRenderer, MediaCodecVideoTrackRenderer.MSG_SET_SURFACE, surface);
         } else {
             player.sendMessage(videoRenderer, MediaCodecVideoTrackRenderer.MSG_SET_SURFACE, surface);
+        }
+    }
+
+    private static class StateStore {
+        public static final int FLAG_PLAY_WHEN_READY = 0xF0000000;
+        public static final int STATE_SEEKING = 100;
+
+        //We keep the last few states because that is all we need currently
+        private int[] prevStates = new int[]{ExoPlayer.STATE_IDLE, ExoPlayer.STATE_IDLE, ExoPlayer.STATE_IDLE};
+
+        public void setMostRecentState(boolean playWhenReady, int state) {
+            int newState = getState(playWhenReady, state);
+            if (prevStates[2] == newState) {
+                return;
+            }
+
+            prevStates[0] = prevStates[1];
+            prevStates[1] = prevStates[2];
+            prevStates[2] = newState;
+        }
+
+        public int getState(boolean playWhenReady, int state) {
+            return state | (playWhenReady ? FLAG_PLAY_WHEN_READY : 0);
+        }
+
+        public int getMostRecentState() {
+            return prevStates[2];
+        }
+
+        public boolean isLastReportedPlayWhenReady() {
+            return (prevStates[2] & FLAG_PLAY_WHEN_READY) != 0;
+        }
+
+        public boolean matchesHistory(@Size(min = 1, max = 3) int[] states, boolean ignorePlayWhenReady) {
+            boolean flag = true;
+            int andFlag = ignorePlayWhenReady ? ~FLAG_PLAY_WHEN_READY : ~0x0;
+            int startIndex = prevStates.length - states.length;
+
+            for (int i = startIndex; i < prevStates.length; i++) {
+                flag &= (prevStates[i] & andFlag) == (states[i - startIndex] & andFlag);
+            }
+
+            return flag;
         }
     }
 }

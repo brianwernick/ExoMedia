@@ -318,6 +318,7 @@ public class AudioPlayerActivity extends AppCompatActivity implements EMPlaylist
     private void startPlayback(boolean forceStart) {
         //If we are changing audio files, or we haven't played before then start the playback
         if (forceStart || playlistManager.getCurrentIndex() != selectedIndex) {
+            playlistManager.setCurrentIndex(selectedIndex);
             playlistManager.play(0, false);
         }
     }

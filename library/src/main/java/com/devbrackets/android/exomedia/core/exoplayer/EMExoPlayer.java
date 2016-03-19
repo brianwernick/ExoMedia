@@ -566,8 +566,10 @@ public class EMExoPlayer implements
             stateStore.setMostRecentState(playWhenReady, playbackState);
 
             //Because the playWhenReady isn't a state in itself, rather a flag to a state we will ignore informing of
-            // see events when that is the only change
+            // see events when that is the only change.  Additionally, on some devices we get states ordered as
+            // [seeking, ready, buffering, ready] while on others we get [seeking, buffering, ready]
             boolean informSeekCompletion = stateStore.matchesHistory(new int[]{StateStore.STATE_SEEKING, ExoPlayer.STATE_BUFFERING, ExoPlayer.STATE_READY}, true);
+            informSeekCompletion |= stateStore.matchesHistory(new int[]{StateStore.STATE_SEEKING, ExoPlayer.STATE_READY, ExoPlayer.STATE_BUFFERING, ExoPlayer.STATE_READY}, true);
 
             for (ExoPlayerListener listener : listeners) {
                 listener.onStateChanged(playWhenReady, playbackState);
@@ -596,17 +598,18 @@ public class EMExoPlayer implements
         public static final int STATE_SEEKING = 100;
 
         //We keep the last few states because that is all we need currently
-        private int[] prevStates = new int[]{ExoPlayer.STATE_IDLE, ExoPlayer.STATE_IDLE, ExoPlayer.STATE_IDLE};
+        private int[] prevStates = new int[]{ExoPlayer.STATE_IDLE, ExoPlayer.STATE_IDLE, ExoPlayer.STATE_IDLE, ExoPlayer.STATE_IDLE};
 
         public void setMostRecentState(boolean playWhenReady, int state) {
             int newState = getState(playWhenReady, state);
-            if (prevStates[2] == newState) {
+            if (prevStates[3] == newState) {
                 return;
             }
 
             prevStates[0] = prevStates[1];
             prevStates[1] = prevStates[2];
-            prevStates[2] = newState;
+            prevStates[2] = prevStates[3];
+            prevStates[3] = state;
         }
 
         public int getState(boolean playWhenReady, int state) {
@@ -614,14 +617,14 @@ public class EMExoPlayer implements
         }
 
         public int getMostRecentState() {
-            return prevStates[2];
+            return prevStates[3];
         }
 
         public boolean isLastReportedPlayWhenReady() {
-            return (prevStates[2] & FLAG_PLAY_WHEN_READY) != 0;
+            return (prevStates[3] & FLAG_PLAY_WHEN_READY) != 0;
         }
 
-        public boolean matchesHistory(@Size(min = 1, max = 3) int[] states, boolean ignorePlayWhenReady) {
+        public boolean matchesHistory(@Size(min = 1, max = 4) int[] states, boolean ignorePlayWhenReady) {
             boolean flag = true;
             int andFlag = ignorePlayWhenReady ? ~FLAG_PLAY_WHEN_READY : ~0x0;
             int startIndex = prevStates.length - states.length;

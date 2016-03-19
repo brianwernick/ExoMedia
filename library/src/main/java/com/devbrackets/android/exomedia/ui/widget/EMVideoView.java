@@ -435,6 +435,11 @@ public class EMVideoView extends RelativeLayout {
      * @param milliSeconds The time to move the playback to
      */
     public void seekTo(int milliSeconds) {
+        if (videoControls != null) {
+            videoControls.show();
+            videoControls.restartLoading();
+        }
+
         videoViewImpl.seekTo(milliSeconds);
     }
 
@@ -770,6 +775,13 @@ public class EMVideoView extends RelativeLayout {
         public void onMediaPlaybackEnded() {
             setKeepScreenOn(false);
             onPlaybackEnded();
+        }
+
+        @Override
+        public void onSeekComplete() {
+            if (videoControls != null) {
+                videoControls.loadCompleted();
+            }
         }
 
         @Override

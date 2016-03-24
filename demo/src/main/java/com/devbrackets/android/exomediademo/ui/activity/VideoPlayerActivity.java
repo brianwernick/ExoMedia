@@ -60,7 +60,6 @@ public class VideoPlayerActivity extends Activity {
         playlistManager.invokeStop();
     }
 
-
     /**
      * Retrieves the extra associated with the selected playlist index
      * so that we can start playing the correct item.
@@ -94,6 +93,6 @@ public class VideoPlayerActivity extends Activity {
 
         playlistManager.setAllowedMediaType(BasePlaylistManager.AUDIO | BasePlaylistManager.VIDEO);
         playlistManager.setParameters(mediaItems, selectedIndex);
-        playlistManager.setId( PLAYLIST_ID);
+        playlistManager.setId(PLAYLIST_ID);
     }
 }

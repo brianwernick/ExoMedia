@@ -26,27 +26,23 @@ import android.support.annotation.IntRange;
 
 import com.devbrackets.android.exomedia.BuildConfig;
 import com.devbrackets.android.exomedia.core.EMListenerMux;
+import com.devbrackets.android.exomedia.core.api.MediaPlayerApi;
 import com.devbrackets.android.exomedia.core.builder.DashRenderBuilder;
 import com.devbrackets.android.exomedia.core.builder.HlsRenderBuilder;
 import com.devbrackets.android.exomedia.core.builder.RenderBuilder;
 import com.devbrackets.android.exomedia.core.builder.SmoothStreamRenderBuilder;
 import com.devbrackets.android.exomedia.core.exoplayer.EMExoPlayer;
-import com.devbrackets.android.exomedia.core.api.MediaPlayerApi;
 import com.devbrackets.android.exomedia.type.MediaSourceType;
-import com.google.android.exoplayer.audio.AudioCapabilities;
-import com.google.android.exoplayer.audio.AudioCapabilitiesReceiver;
 
 /**
  * A {@link MediaPlayerApi} implementation that uses the ExoPlayer
  * as the backing media player.
  */
 @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
-public class ExoMediaPlayer implements MediaPlayerApi, AudioCapabilitiesReceiver.Listener {
+public class ExoMediaPlayer implements MediaPlayerApi {
     protected static final String USER_AGENT_FORMAT = "EMAudioPlayer %s / Android %s / %s";
 
     protected EMExoPlayer emExoPlayer;
-    protected AudioCapabilities audioCapabilities;
-    protected AudioCapabilitiesReceiver audioCapabilitiesReceiver;
 
     protected Context context;
     protected EMListenerMux listenerMux;
@@ -57,11 +53,7 @@ public class ExoMediaPlayer implements MediaPlayerApi, AudioCapabilitiesReceiver
     public ExoMediaPlayer(Context context) {
         this.context = context;
 
-        audioCapabilitiesReceiver = new AudioCapabilitiesReceiver(context, this);
-        audioCapabilitiesReceiver.register();
         emExoPlayer = new EMExoPlayer(null);
-
-        //Sets the internal listener
         emExoPlayer.setMetadataListener(null);
     }
 
@@ -177,11 +169,6 @@ public class ExoMediaPlayer implements MediaPlayerApi, AudioCapabilitiesReceiver
     @Override
     public void release() {
         emExoPlayer.release();
-
-        if (audioCapabilitiesReceiver != null) {
-            audioCapabilitiesReceiver.unregister();
-            audioCapabilitiesReceiver = null;
-        }
     }
 
     @Override
@@ -203,13 +190,6 @@ public class ExoMediaPlayer implements MediaPlayerApi, AudioCapabilitiesReceiver
     public void setListenerMux(EMListenerMux listenerMux) {
         this.listenerMux = listenerMux;
         emExoPlayer.addListener(listenerMux);
-    }
-
-    @Override
-    public void onAudioCapabilitiesChanged(AudioCapabilities audioCapabilities) {
-        if (!audioCapabilities.equals(this.audioCapabilities)) {
-            this.audioCapabilities = audioCapabilities;
-        }
     }
 
     /**

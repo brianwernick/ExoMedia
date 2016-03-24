@@ -44,6 +44,8 @@ import com.google.android.exoplayer.MediaCodecTrackRenderer;
 import com.google.android.exoplayer.MediaCodecVideoTrackRenderer;
 import com.google.android.exoplayer.TimeRange;
 import com.google.android.exoplayer.TrackRenderer;
+import com.google.android.exoplayer.audio.AudioCapabilities;
+import com.google.android.exoplayer.audio.AudioCapabilitiesReceiver;
 import com.google.android.exoplayer.audio.AudioTrack;
 import com.google.android.exoplayer.chunk.ChunkSampleSource;
 import com.google.android.exoplayer.chunk.Format;
@@ -63,8 +65,10 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+@SuppressWarnings("unused")
 public class EMExoPlayer implements
         ExoPlayer.Listener,
+        AudioCapabilitiesReceiver.Listener,
         ChunkSampleSource.EventListener,
         HlsSampleSource.EventListener,
         DefaultBandwidthMeter.EventListener,
@@ -107,11 +111,21 @@ public class EMExoPlayer implements
     private TrackRenderer videoRenderer;
     private TrackRenderer audioRenderer;
 
+    @Nullable
+    private AudioCapabilities audioCapabilities;
+    @Nullable
+    private AudioCapabilitiesReceiver audioCapabilitiesReceiver;
+
+    @Nullable
     private CaptionListener captionListener;
+    @Nullable
     private Id3MetadataListener id3MetadataListener;
+    @Nullable
     private InternalErrorListener internalErrorListener;
+    @Nullable
     private InfoListener infoListener;
 
+    @Nullable
     private PowerManager.WakeLock wakeLock = null;
 
     public EMExoPlayer() {
@@ -128,6 +142,11 @@ public class EMExoPlayer implements
         listeners = new CopyOnWriteArrayList<>();
         rendererBuildingState = RenderBuildingState.IDLE;
         player.setSelectedTrack(RENDER_CLOSED_CAPTION, DISABLED_TRACK);
+
+        if (rendererBuilder != null && audioCapabilities == null) {
+            audioCapabilitiesReceiver = new AudioCapabilitiesReceiver(rendererBuilder.getContext(), this);
+            audioCapabilitiesReceiver.register();
+        }
     }
 
     public void replaceRenderBuilder(RenderBuilder renderBuilder) {
@@ -153,19 +172,19 @@ public class EMExoPlayer implements
         }
     }
 
-    public void setInternalErrorListener(InternalErrorListener listener) {
+    public void setInternalErrorListener(@Nullable InternalErrorListener listener) {
         internalErrorListener = listener;
     }
 
-    public void setInfoListener(InfoListener listener) {
+    public void setInfoListener(@Nullable InfoListener listener) {
         infoListener = listener;
     }
 
-    public void setCaptionListener(CaptionListener listener) {
+    public void setCaptionListener(@Nullable CaptionListener listener) {
         captionListener = listener;
     }
 
-    public void setMetadataListener(Id3MetadataListener listener) {
+    public void setMetadataListener(@Nullable Id3MetadataListener listener) {
         id3MetadataListener = listener;
     }
 
@@ -181,6 +200,11 @@ public class EMExoPlayer implements
     public void blockingClearSurface() {
         surface = null;
         pushSurface(true);
+    }
+
+    @Nullable
+    public AudioCapabilities getAudioCapabilities() {
+        return audioCapabilities;
     }
 
     public int getTrackCount(int type) {
@@ -280,10 +304,9 @@ public class EMExoPlayer implements
         }
 
         seekTo(0);
-
         setPlayWhenReady(true);
 
-        prepared = false;
+        forcePrepare();
         prepare();
 
         return true;
@@ -292,6 +315,10 @@ public class EMExoPlayer implements
     public void release() {
         if (rendererBuilder != null) {
             rendererBuilder.cancel();
+        }
+
+        if (audioCapabilitiesReceiver != null) {
+            audioCapabilitiesReceiver.unregister();
         }
 
         rendererBuildingState = RenderBuildingState.IDLE;
@@ -555,6 +582,17 @@ public class EMExoPlayer implements
     @Override
     public void onUpstreamDiscarded(int sourceId, long mediaStartTimeMs, long mediaEndTimeMs) {
         //Purposefully left blank
+    }
+
+    @Override
+    public void onAudioCapabilitiesChanged(AudioCapabilities audioCapabilities) {
+        if (audioCapabilities.equals(this.audioCapabilities)) {
+            return;
+        }
+
+        this.audioCapabilities = audioCapabilities;
+        //TODO: The ExoPlayer demo restarts the DemoExoPlayer [EMExoPlayer].  Can we just swap out the audio renderer?
+        // see https://github.com/google/ExoPlayer/blob/master/demo/src/main/java/com/google/android/exoplayer/demo/PlayerActivity.java#L246
     }
 
     private void reportPlayerState() {

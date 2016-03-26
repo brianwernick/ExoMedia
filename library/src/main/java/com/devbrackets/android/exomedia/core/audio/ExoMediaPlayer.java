@@ -27,6 +27,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
 import com.devbrackets.android.exomedia.BuildConfig;
+import com.devbrackets.android.exomedia.annotation.TrackRenderType;
 import com.devbrackets.android.exomedia.core.EMListenerMux;
 import com.devbrackets.android.exomedia.core.api.MediaPlayerApi;
 import com.devbrackets.android.exomedia.core.builder.DashRenderBuilder;
@@ -208,6 +209,11 @@ public class ExoMediaPlayer implements MediaPlayerApi, AudioCapabilitiesReceiver
     @Override
     public boolean trackSelectionAvailable() {
         return true;
+    }
+
+    @Override
+    public void setTrack(@TrackRenderType int trackType, int trackIndex) {
+        emExoPlayer.setSelectedTrack(trackType, trackIndex);
     }
 
     @Nullable

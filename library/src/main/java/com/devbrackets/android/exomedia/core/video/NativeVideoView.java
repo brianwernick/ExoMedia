@@ -25,6 +25,7 @@ import android.support.annotation.Nullable;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 
+import com.devbrackets.android.exomedia.annotation.TrackRenderType;
 import com.devbrackets.android.exomedia.core.EMListenerMux;
 import com.devbrackets.android.exomedia.core.api.VideoViewApi;
 import com.devbrackets.android.exomedia.core.builder.RenderBuilder;
@@ -147,6 +148,11 @@ public class NativeVideoView extends TextureVideoView implements VideoViewApi {
     @Override
     public boolean trackSelectionAvailable() {
         return false;
+    }
+
+    @Override
+    public void setTrack(@TrackRenderType int trackType, int trackIndex) {
+        //Purposefully left blank
     }
 
     @Nullable

@@ -29,6 +29,7 @@ import android.view.Surface;
 import android.view.TextureView;
 
 import com.devbrackets.android.exomedia.BuildConfig;
+import com.devbrackets.android.exomedia.annotation.TrackRenderType;
 import com.devbrackets.android.exomedia.core.EMListenerMux;
 import com.devbrackets.android.exomedia.core.builder.DashRenderBuilder;
 import com.devbrackets.android.exomedia.core.builder.HlsRenderBuilder;
@@ -190,6 +191,11 @@ public class ExoVideoView extends AspectTextureView implements VideoViewApi, Aud
     @Override
     public boolean trackSelectionAvailable() {
         return true;
+    }
+
+    @Override
+    public void setTrack(@TrackRenderType int trackType, int trackIndex) {
+        emExoPlayer.setSelectedTrack(trackType, trackIndex);
     }
 
     @Nullable

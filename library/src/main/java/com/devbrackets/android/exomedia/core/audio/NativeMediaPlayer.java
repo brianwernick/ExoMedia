@@ -22,6 +22,7 @@ import android.net.Uri;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
+import com.devbrackets.android.exomedia.annotation.TrackRenderType;
 import com.devbrackets.android.exomedia.core.EMListenerMux;
 import com.devbrackets.android.exomedia.core.api.MediaPlayerApi;
 import com.devbrackets.android.exomedia.core.builder.RenderBuilder;
@@ -129,6 +130,11 @@ public class NativeMediaPlayer extends MediaPlayer implements MediaPlayerApi, Me
     @Override
     public boolean trackSelectionAvailable() {
         return false;
+    }
+
+    @Override
+    public void setTrack(@TrackRenderType int trackType, int trackIndex) {
+        //Purposefully left blank
     }
 
     @Nullable

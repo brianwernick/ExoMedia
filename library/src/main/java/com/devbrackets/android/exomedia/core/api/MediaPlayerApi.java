@@ -22,6 +22,7 @@ import android.support.annotation.FloatRange;
 import android.support.annotation.IntRange;
 import android.support.annotation.Nullable;
 
+import com.devbrackets.android.exomedia.annotation.TrackRenderType;
 import com.devbrackets.android.exomedia.core.EMListenerMux;
 import com.devbrackets.android.exomedia.core.builder.RenderBuilder;
 import com.google.android.exoplayer.MediaFormat;
@@ -70,6 +71,8 @@ public interface MediaPlayerApi {
     void setAudioStreamType(int streamType);
 
     boolean trackSelectionAvailable();
+
+    void setTrack(@TrackRenderType int trackType, int trackIndex);
 
     /**
      * Retrieves a list of available tracks to select from.  Typically {@link #trackSelectionAvailable()}

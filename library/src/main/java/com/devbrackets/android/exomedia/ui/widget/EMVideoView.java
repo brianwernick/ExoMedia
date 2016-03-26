@@ -39,6 +39,7 @@ import android.widget.ImageView;
 import android.widget.RelativeLayout;
 
 import com.devbrackets.android.exomedia.R;
+import com.devbrackets.android.exomedia.annotation.TrackRenderType;
 import com.devbrackets.android.exomedia.core.EMListenerMux;
 import com.devbrackets.android.exomedia.core.api.VideoViewApi;
 import com.devbrackets.android.exomedia.core.builder.RenderBuilder;
@@ -619,13 +620,24 @@ public class EMVideoView extends RelativeLayout {
     }
 
     /**
+     * Changes to the track with <code>trackIndex</code> for the specified
+     * <code>trackType</code>
+     *
+     * @param trackType The type for the track to switch to the selected index
+     * @param trackIndex The index for the track to swith to
+     */
+    public void setTrack(@TrackRenderType int trackType, int trackIndex) {
+        videoViewImpl.setTrack(trackType, trackIndex);
+    }
+
+    /**
      * Retrieves a list of available tracks to select from.  Typically {@link #trackSelectionAvailable()}
      * should be called before this.
      *
      * @return A list of available tracks associated with each track type (see {@link com.devbrackets.android.exomedia.annotation.TrackRenderType})
      */
     @Nullable
-    Map<Integer, List<MediaFormat>> getAvailableTracks() {
+    public Map<Integer, List<MediaFormat>> getAvailableTracks() {
         return videoViewImpl.getAvailableTracks();
     }
 

@@ -24,6 +24,10 @@ import android.view.View;
 
 import com.devbrackets.android.exomedia.core.EMListenerMux;
 import com.devbrackets.android.exomedia.core.builder.RenderBuilder;
+import com.google.android.exoplayer.MediaFormat;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  * The basic APIs expected in the backing video view
@@ -71,6 +75,17 @@ public interface VideoViewApi {
 
     @IntRange(from = 0, to = 100)
     int getBufferedPercent();
+
+    boolean trackSelectionAvailable();
+
+    /**
+     * Retrieves a list of available tracks to select from.  Typically {@link #trackSelectionAvailable()}
+     * should be called before this.
+     *
+     * @return A list of available tracks associated with each track type (see {@link com.devbrackets.android.exomedia.annotation.TrackRenderType})
+     */
+    @Nullable
+    Map<Integer, List<MediaFormat>> getAvailableTracks();
 
     void setOnTouchListener(View.OnTouchListener listener);
 

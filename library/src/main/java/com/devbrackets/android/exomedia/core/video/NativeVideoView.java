@@ -28,6 +28,10 @@ import android.view.MotionEvent;
 import com.devbrackets.android.exomedia.core.EMListenerMux;
 import com.devbrackets.android.exomedia.core.api.VideoViewApi;
 import com.devbrackets.android.exomedia.core.builder.RenderBuilder;
+import com.google.android.exoplayer.MediaFormat;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  * A {@link VideoViewApi} implementation that uses the
@@ -138,6 +142,17 @@ public class NativeVideoView extends TextureVideoView implements VideoViewApi {
     @Override
     public void release() {
         //Purposefully left blank
+    }
+
+    @Override
+    public boolean trackSelectionAvailable() {
+        return false;
+    }
+
+    @Nullable
+    @Override
+    public Map<Integer, List<MediaFormat>> getAvailableTracks() {
+        return null;
     }
 
     @Override

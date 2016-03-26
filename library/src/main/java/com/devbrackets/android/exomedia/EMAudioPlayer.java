@@ -20,6 +20,7 @@ import android.content.Context;
 import android.net.Uri;
 import android.os.Build;
 import android.support.annotation.FloatRange;
+import android.support.annotation.Nullable;
 
 import com.devbrackets.android.exomedia.core.EMListenerMux;
 import com.devbrackets.android.exomedia.core.api.MediaPlayerApi;
@@ -33,6 +34,10 @@ import com.devbrackets.android.exomedia.listener.OnErrorListener;
 import com.devbrackets.android.exomedia.listener.OnPreparedListener;
 import com.devbrackets.android.exomedia.listener.OnSeekCompletionListener;
 import com.devbrackets.android.exomedia.util.EMDeviceUtil;
+import com.google.android.exoplayer.MediaFormat;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  * An AudioPlayer that uses the ExoPlayer as the backing architecture.  If the current device
@@ -239,6 +244,27 @@ public class EMAudioPlayer {
      */
     public int getBufferPercentage() {
         return mediaPlayerImpl.getBufferedPercent();
+    }
+
+    /**
+     * Determines if the current video player implementation supports
+     * track selection for audio or video tracks.
+     *
+     * @return True if tracks can be manually specified
+     */
+    public boolean trackSelectionAvailable() {
+        return mediaPlayerImpl.trackSelectionAvailable();
+    }
+
+    /**
+     * Retrieves a list of available tracks to select from.  Typically {@link #trackSelectionAvailable()}
+     * should be called before this.
+     *
+     * @return A list of available tracks associated with each track type (see {@link com.devbrackets.android.exomedia.annotation.TrackRenderType})
+     */
+    @Nullable
+    Map<Integer, List<MediaFormat>> getAvailableTracks() {
+        return mediaPlayerImpl.getAvailableTracks();
     }
 
     /**

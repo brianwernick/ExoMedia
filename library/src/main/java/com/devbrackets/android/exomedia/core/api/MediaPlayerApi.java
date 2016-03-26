@@ -20,9 +20,14 @@ import android.content.Context;
 import android.net.Uri;
 import android.support.annotation.FloatRange;
 import android.support.annotation.IntRange;
+import android.support.annotation.Nullable;
 
 import com.devbrackets.android.exomedia.core.EMListenerMux;
 import com.devbrackets.android.exomedia.core.builder.RenderBuilder;
+import com.google.android.exoplayer.MediaFormat;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  * The basic APIs expected in the backing media player
@@ -63,6 +68,17 @@ public interface MediaPlayerApi {
     int getAudioSessionId();
 
     void setAudioStreamType(int streamType);
+
+    boolean trackSelectionAvailable();
+
+    /**
+     * Retrieves a list of available tracks to select from.  Typically {@link #trackSelectionAvailable()}
+     * should be called before this.
+     *
+     * @return A list of available tracks associated with each track type (see {@link com.devbrackets.android.exomedia.annotation.TrackRenderType})
+     */
+    @Nullable
+    Map<Integer, List<MediaFormat>> getAvailableTracks();
 
     void setVolume(@FloatRange(from = 0.0, to = 1.0) float left, @FloatRange(from = 0.0, to = 1.0) float right);
 

@@ -51,6 +51,10 @@ import com.devbrackets.android.exomedia.listener.OnSeekCompletionListener;
 import com.devbrackets.android.exomedia.util.EMDeviceUtil;
 import com.devbrackets.android.exomedia.util.Repeater;
 import com.devbrackets.android.exomedia.util.StopWatch;
+import com.google.android.exoplayer.MediaFormat;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  * This is a support VideoView that will use the standard VideoView on devices below
@@ -602,6 +606,27 @@ public class EMVideoView extends RelativeLayout {
      */
     public int getBufferPercentage() {
         return videoViewImpl.getBufferedPercent();
+    }
+
+    /**
+     * Determines if the current video player implementation supports
+     * track selection for audio or video tracks.
+     *
+     * @return True if tracks can be manually specified
+     */
+    public boolean trackSelectionAvailable() {
+        return videoViewImpl.trackSelectionAvailable();
+    }
+
+    /**
+     * Retrieves a list of available tracks to select from.  Typically {@link #trackSelectionAvailable()}
+     * should be called before this.
+     *
+     * @return A list of available tracks associated with each track type (see {@link com.devbrackets.android.exomedia.annotation.TrackRenderType})
+     */
+    @Nullable
+    Map<Integer, List<MediaFormat>> getAvailableTracks() {
+        return videoViewImpl.getAvailableTracks();
     }
 
     /**

@@ -81,7 +81,7 @@ public class EMListenerMux implements ExoPlayerListener, MediaPlayer.OnPreparedL
 
     @Override
     public boolean onError(MediaPlayer mp, int what, int extra) {
-        return errorListener != null && errorListener.onError();
+        return notifyErrorListener();
     }
 
     @Override
@@ -100,10 +100,7 @@ public class EMListenerMux implements ExoPlayerListener, MediaPlayer.OnPreparedL
     public void onError(EMExoPlayer emExoPlayer, Exception e) {
         muxNotifier.onMediaPlaybackEnded();
         muxNotifier.onExoPlayerError(emExoPlayer, e);
-
-        if (errorListener != null) {
-            errorListener.onError();
-        }
+        notifyErrorListener();
     }
 
     @Override
@@ -139,7 +136,7 @@ public class EMListenerMux implements ExoPlayerListener, MediaPlayer.OnPreparedL
     /**
      * Sets the listener to inform of VideoPlayer prepared events
      *
-     * @param listener The listener
+     * @param listener The listener to inform
      */
     public void setOnPreparedListener(@Nullable OnPreparedListener listener) {
         preparedListener = listener;
@@ -148,7 +145,7 @@ public class EMListenerMux implements ExoPlayerListener, MediaPlayer.OnPreparedL
     /**
      * Sets the listener to inform of VideoPlayer completion events
      *
-     * @param listener The listener
+     * @param listener The listener to inform
      */
     public void setOnCompletionListener(@Nullable OnCompletionListener listener) {
         completionListener = listener;
@@ -157,7 +154,7 @@ public class EMListenerMux implements ExoPlayerListener, MediaPlayer.OnPreparedL
     /**
      * Sets the listener to inform of buffering updates
      *
-     * @param listener The listener
+     * @param listener The listener to inform
      */
     public void setOnBufferUpdateListener(@Nullable OnBufferUpdateListener listener) {
         bufferUpdateListener = listener;
@@ -166,7 +163,7 @@ public class EMListenerMux implements ExoPlayerListener, MediaPlayer.OnPreparedL
     /**
      * Sets the listener to inform of VideoPlayer seek completion events
      *
-     * @param listener The listener
+     * @param listener The listener to inform
      */
     public void setOnSeekCompletionListener(@Nullable OnSeekCompletionListener listener) {
         seekCompletionListener = listener;
@@ -175,12 +172,11 @@ public class EMListenerMux implements ExoPlayerListener, MediaPlayer.OnPreparedL
     /**
      * Sets the listener to inform of playback errors
      *
-     * @param listener The listener
+     * @param listener The listener to inform
      */
     public void setOnErrorListener(@Nullable OnErrorListener listener) {
         errorListener = listener;
     }
-
 
     /**
      * Sets weather the listener was notified when we became prepared.
@@ -209,6 +205,10 @@ public class EMListenerMux implements ExoPlayerListener, MediaPlayer.OnPreparedL
      */
     public void setNotifiedCompleted(boolean wasNotified) {
         notifiedCompleted = wasNotified;
+    }
+
+    private boolean notifyErrorListener() {
+        return errorListener != null && errorListener.onError();
     }
 
     private void notifyPreparedListener() {

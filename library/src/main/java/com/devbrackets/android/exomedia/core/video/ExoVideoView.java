@@ -37,8 +37,12 @@ import com.devbrackets.android.exomedia.core.builder.SmoothStreamRenderBuilder;
 import com.devbrackets.android.exomedia.core.exoplayer.EMExoPlayer;
 import com.devbrackets.android.exomedia.core.api.VideoViewApi;
 import com.devbrackets.android.exomedia.type.MediaSourceType;
+import com.google.android.exoplayer.MediaFormat;
 import com.google.android.exoplayer.audio.AudioCapabilities;
 import com.google.android.exoplayer.audio.AudioCapabilitiesReceiver;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  * A {@link VideoViewApi} implementation that uses the ExoPlayer
@@ -181,6 +185,17 @@ public class ExoVideoView extends AspectTextureView implements VideoViewApi, Aud
     @Override
     public int getBufferedPercent() {
         return emExoPlayer.getBufferedPercentage();
+    }
+
+    @Override
+    public boolean trackSelectionAvailable() {
+        return true;
+    }
+
+    @Nullable
+    @Override
+    public Map<Integer, List<MediaFormat>> getAvailableTracks() {
+        return emExoPlayer.getAvailableTracks();
     }
 
     @Override

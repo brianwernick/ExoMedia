@@ -19,11 +19,16 @@ package com.devbrackets.android.exomedia.core.audio;
 import android.content.Context;
 import android.media.MediaPlayer;
 import android.net.Uri;
+import android.support.annotation.Nullable;
 import android.util.Log;
 
 import com.devbrackets.android.exomedia.core.EMListenerMux;
 import com.devbrackets.android.exomedia.core.api.MediaPlayerApi;
 import com.devbrackets.android.exomedia.core.builder.RenderBuilder;
+import com.google.android.exoplayer.MediaFormat;
+
+import java.util.List;
+import java.util.Map;
 
 public class NativeMediaPlayer extends MediaPlayer implements MediaPlayerApi, MediaPlayer.OnBufferingUpdateListener {
     private static final String TAG = "NativeMediaPlayer";
@@ -119,6 +124,17 @@ public class NativeMediaPlayer extends MediaPlayer implements MediaPlayerApi, Me
         }
 
         super.seekTo(msec);
+    }
+
+    @Override
+    public boolean trackSelectionAvailable() {
+        return false;
+    }
+
+    @Nullable
+    @Override
+    public Map<Integer, List<MediaFormat>> getAvailableTracks() {
+        return null;
     }
 
     @Override

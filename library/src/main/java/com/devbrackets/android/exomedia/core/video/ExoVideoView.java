@@ -29,6 +29,7 @@ import android.view.Surface;
 import android.view.TextureView;
 
 import com.devbrackets.android.exomedia.BuildConfig;
+import com.devbrackets.android.exomedia.annotation.TrackRenderType;
 import com.devbrackets.android.exomedia.core.EMListenerMux;
 import com.devbrackets.android.exomedia.core.builder.DashRenderBuilder;
 import com.devbrackets.android.exomedia.core.builder.HlsRenderBuilder;
@@ -37,8 +38,12 @@ import com.devbrackets.android.exomedia.core.builder.SmoothStreamRenderBuilder;
 import com.devbrackets.android.exomedia.core.exoplayer.EMExoPlayer;
 import com.devbrackets.android.exomedia.core.api.VideoViewApi;
 import com.devbrackets.android.exomedia.type.MediaSourceType;
+import com.google.android.exoplayer.MediaFormat;
 import com.google.android.exoplayer.audio.AudioCapabilities;
 import com.google.android.exoplayer.audio.AudioCapabilitiesReceiver;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  * A {@link VideoViewApi} implementation that uses the ExoPlayer
@@ -181,6 +186,22 @@ public class ExoVideoView extends AspectTextureView implements VideoViewApi, Aud
     @Override
     public int getBufferedPercent() {
         return emExoPlayer.getBufferedPercentage();
+    }
+
+    @Override
+    public boolean trackSelectionAvailable() {
+        return true;
+    }
+
+    @Override
+    public void setTrack(@TrackRenderType int trackType, int trackIndex) {
+        emExoPlayer.setSelectedTrack(trackType, trackIndex);
+    }
+
+    @Nullable
+    @Override
+    public Map<Integer, List<MediaFormat>> getAvailableTracks() {
+        return emExoPlayer.getAvailableTracks();
     }
 
     @Override

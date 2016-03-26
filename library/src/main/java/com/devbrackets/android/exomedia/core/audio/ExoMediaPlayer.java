@@ -23,8 +23,11 @@ import android.net.Uri;
 import android.os.Build;
 import android.support.annotation.FloatRange;
 import android.support.annotation.IntRange;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 
 import com.devbrackets.android.exomedia.BuildConfig;
+import com.devbrackets.android.exomedia.annotation.TrackRenderType;
 import com.devbrackets.android.exomedia.core.EMListenerMux;
 import com.devbrackets.android.exomedia.core.api.MediaPlayerApi;
 import com.devbrackets.android.exomedia.core.builder.DashRenderBuilder;
@@ -33,6 +36,10 @@ import com.devbrackets.android.exomedia.core.builder.RenderBuilder;
 import com.devbrackets.android.exomedia.core.builder.SmoothStreamRenderBuilder;
 import com.devbrackets.android.exomedia.core.exoplayer.EMExoPlayer;
 import com.devbrackets.android.exomedia.type.MediaSourceType;
+import com.google.android.exoplayer.MediaFormat;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  * A {@link MediaPlayerApi} implementation that uses the ExoPlayer
@@ -50,7 +57,7 @@ public class ExoMediaPlayer implements MediaPlayerApi {
 
     protected int audioStreamType = AudioManager.STREAM_MUSIC;
 
-    public ExoMediaPlayer(Context context) {
+    public ExoMediaPlayer(@NonNull Context context) {
         this.context = context;
 
         emExoPlayer = new EMExoPlayer(null);
@@ -58,13 +65,13 @@ public class ExoMediaPlayer implements MediaPlayerApi {
     }
 
     @Override
-    public void setDataSource(Context context, Uri uri) {
+    public void setDataSource(@NonNull Context context, @Nullable Uri uri) {
         RenderBuilder builder = uri == null ? null : getRendererBuilder(MediaSourceType.get(uri), uri);
         setDataSource(context, uri, builder);
     }
 
     @Override
-    public void setDataSource(Context context, Uri uri, RenderBuilder renderBuilder) {
+    public void setDataSource(Context context, @Nullable Uri uri, @Nullable RenderBuilder renderBuilder) {
         if (uri == null) {
             emExoPlayer.replaceRenderBuilder(null);
         } else {
@@ -184,6 +191,22 @@ public class ExoMediaPlayer implements MediaPlayerApi {
     @Override
     public void setWakeMode(Context context, int mode) {
         emExoPlayer.setWakeMode(context, mode);
+    }
+
+    @Override
+    public boolean trackSelectionAvailable() {
+        return true;
+    }
+
+    @Override
+    public void setTrack(@TrackRenderType int trackType, int trackIndex) {
+        emExoPlayer.setSelectedTrack(trackType, trackIndex);
+    }
+
+    @Nullable
+    @Override
+    public Map<Integer, List<MediaFormat>> getAvailableTracks() {
+        return emExoPlayer.getAvailableTracks();
     }
 
     @Override

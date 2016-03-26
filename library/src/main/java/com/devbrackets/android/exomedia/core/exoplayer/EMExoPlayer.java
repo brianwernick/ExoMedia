@@ -24,11 +24,14 @@ import android.media.MediaCodec;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.PowerManager;
+import android.support.annotation.FloatRange;
 import android.support.annotation.Nullable;
 import android.support.annotation.Size;
+import android.support.v4.util.ArrayMap;
 import android.util.Log;
 import android.view.Surface;
 
+import com.devbrackets.android.exomedia.annotation.TrackRenderType;
 import com.devbrackets.android.exomedia.core.builder.RenderBuilder;
 import com.devbrackets.android.exomedia.core.listener.CaptionListener;
 import com.devbrackets.android.exomedia.core.listener.ExoPlayerListener;
@@ -42,6 +45,7 @@ import com.google.android.exoplayer.ExoPlayer;
 import com.google.android.exoplayer.MediaCodecAudioTrackRenderer;
 import com.google.android.exoplayer.MediaCodecTrackRenderer;
 import com.google.android.exoplayer.MediaCodecVideoTrackRenderer;
+import com.google.android.exoplayer.MediaFormat;
 import com.google.android.exoplayer.TimeRange;
 import com.google.android.exoplayer.TrackRenderer;
 import com.google.android.exoplayer.audio.AudioCapabilities;
@@ -58,11 +62,12 @@ import com.google.android.exoplayer.text.Cue;
 import com.google.android.exoplayer.text.TextRenderer;
 import com.google.android.exoplayer.upstream.BandwidthMeter;
 import com.google.android.exoplayer.upstream.DefaultBandwidthMeter;
-import com.google.android.exoplayer.util.PlayerControl;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 @SuppressWarnings("unused")
@@ -98,7 +103,6 @@ public class EMExoPlayer implements
 
     private RenderBuilder rendererBuilder;
     private final ExoPlayer player;
-    private final PlayerControl playerControl;
     private final Handler mainHandler;
     private final CopyOnWriteArrayList<ExoPlayerListener> listeners;
 
@@ -132,11 +136,10 @@ public class EMExoPlayer implements
         this(null);
     }
 
-    public EMExoPlayer(RenderBuilder rendererBuilder) {
+    public EMExoPlayer(@Nullable RenderBuilder rendererBuilder) {
         this.rendererBuilder = rendererBuilder;
         player = ExoPlayer.Factory.newInstance(RENDER_COUNT, BUFFER_LENGTH_MIN, REBUFFER_LENGTH_MIN);
         player.addListener(this);
-        playerControl = new PlayerControl(player);
 
         mainHandler = new Handler();
         listeners = new CopyOnWriteArrayList<>();
@@ -149,15 +152,11 @@ public class EMExoPlayer implements
         }
     }
 
-    public void replaceRenderBuilder(RenderBuilder renderBuilder) {
+    public void replaceRenderBuilder(@Nullable RenderBuilder renderBuilder) {
         this.rendererBuilder = renderBuilder;
 
         prepared = false;
         prepare();
-    }
-
-    public PlayerControl getPlayerControl() {
-        return playerControl;
     }
 
     public void addListener(ExoPlayerListener listener) {
@@ -207,22 +206,53 @@ public class EMExoPlayer implements
         return audioCapabilities;
     }
 
-    public int getTrackCount(int type) {
+    /**
+     * Retrieves a list of available tracks
+     *
+     * @return A list of available tracks associated with each type (see {@link com.devbrackets.android.exomedia.annotation.TrackRenderType})
+     */
+    @Nullable
+    public Map<Integer, List<MediaFormat>> getAvailableTracks() {
+        if (getPlaybackState() == ExoPlayer.STATE_IDLE) {
+            return null;
+        }
+
+        Map<Integer, List<MediaFormat>> trackMap = new ArrayMap<>();
+        int[] trackTypes = new int[] {RENDER_AUDIO, RENDER_VIDEO, RENDER_CLOSED_CAPTION, RENDER_TIMED_METADATA};
+
+        //Populates the map with all available tracks
+        for (int type : trackTypes) {
+            List<MediaFormat> tracks = new ArrayList<>(getTrackCount(type));
+            trackMap.put(type, tracks);
+
+            for (int i = 0; i < tracks.size(); i++) {
+                tracks.add(getTrackFormat(type, i));
+            }
+        }
+
+        return trackMap;
+    }
+
+    public int getTrackCount(@TrackRenderType int type) {
         return player.getTrackCount(type);
     }
 
-    public int getSelectedTrack(int type) {
+    public MediaFormat getTrackFormat(@TrackRenderType int type, int index) {
+        return player.getTrackFormat(type, index);
+    }
+
+    public int getSelectedTrack(@TrackRenderType int type) {
         return player.getSelectedTrack(type);
     }
 
-    public void setSelectedTrack(int type, int index) {
+    public void setSelectedTrack(@TrackRenderType int type, int index) {
         player.setSelectedTrack(type, index);
         if (type == RENDER_CLOSED_CAPTION && index == DISABLED_TRACK && captionListener != null) {
             captionListener.onCues(Collections.<Cue>emptyList());
         }
     }
 
-    public void setVolume(float volume) {
+    public void setVolume(@FloatRange(from = 0.0, to = 1.0) float volume) {
         player.sendMessage(audioRenderer, MediaCodecAudioTrackRenderer.MSG_SET_VOLUME, volume);
     }
 
@@ -591,7 +621,7 @@ public class EMExoPlayer implements
         }
 
         this.audioCapabilities = audioCapabilities;
-        //TODO: The ExoPlayer demo restarts the DemoExoPlayer [EMExoPlayer].  Can we just swap out the audio renderer?
+        //TODO: The ExoPlayer demo restarts the DemoExoPlayer [EMExoPlayer].  Can we just swap out the audio track?
         // see https://github.com/google/ExoPlayer/blob/master/demo/src/main/java/com/google/android/exoplayer/demo/PlayerActivity.java#L246
     }
 

@@ -137,7 +137,6 @@ public class EMExoPlayer implements
     }
 
     public EMExoPlayer(@Nullable RenderBuilder rendererBuilder) {
-        this.rendererBuilder = rendererBuilder;
         player = ExoPlayer.Factory.newInstance(RENDER_COUNT, BUFFER_LENGTH_MIN, REBUFFER_LENGTH_MIN);
         player.addListener(this);
 
@@ -146,14 +145,15 @@ public class EMExoPlayer implements
         rendererBuildingState = RenderBuildingState.IDLE;
         player.setSelectedTrack(RENDER_CLOSED_CAPTION, DISABLED_TRACK);
 
-        if (rendererBuilder != null && audioCapabilities == null) {
-            audioCapabilitiesReceiver = new AudioCapabilitiesReceiver(rendererBuilder.getContext(), this);
-            audioCapabilitiesReceiver.register();
-        }
+        replaceRenderBuilder(rendererBuilder);
     }
 
     public void replaceRenderBuilder(@Nullable RenderBuilder renderBuilder) {
         this.rendererBuilder = renderBuilder;
+        if (rendererBuilder != null && audioCapabilities == null) {
+            audioCapabilitiesReceiver = new AudioCapabilitiesReceiver(rendererBuilder.getContext(), this);
+            audioCapabilitiesReceiver.register();
+        }
 
         prepared = false;
         prepare();
@@ -349,6 +349,7 @@ public class EMExoPlayer implements
 
         if (audioCapabilitiesReceiver != null) {
             audioCapabilitiesReceiver.unregister();
+            audioCapabilitiesReceiver = null;
         }
 
         rendererBuildingState = RenderBuildingState.IDLE;
@@ -621,7 +622,20 @@ public class EMExoPlayer implements
         }
 
         this.audioCapabilities = audioCapabilities;
-        //TODO: The ExoPlayer demo restarts the DemoExoPlayer [EMExoPlayer].  Can we just swap out the audio track?
+        if (rendererBuilder == null) {
+            return;
+        }
+
+        //Retrieves all possible audio tracks
+//        int availableAudioTracks = getTrackCount(RENDER_AUDIO);
+//        for (int i = 0; i < availableAudioTracks; i++) {
+//            MediaFormat track = getTrackFormat(RENDER_AUDIO, i);
+//            //TODO figure out priority for selecting audio tracks
+//            //TODO can we determine what ENCODING the track is?
+//        }
+
+//        audioCapabilities.supportsEncoding() //See AudioFormat.ENCODING_* values
+        //TODO: The ExoPlayer demo restarts the DemoExoPlayer [EMExoPlayer]
         // see https://github.com/google/ExoPlayer/blob/master/demo/src/main/java/com/google/android/exoplayer/demo/PlayerActivity.java#L246
     }
 

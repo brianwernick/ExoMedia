@@ -44,6 +44,7 @@ import com.devbrackets.android.exomedia.core.EMListenerMux;
 import com.devbrackets.android.exomedia.core.api.VideoViewApi;
 import com.devbrackets.android.exomedia.core.builder.RenderBuilder;
 import com.devbrackets.android.exomedia.core.exoplayer.EMExoPlayer;
+import com.devbrackets.android.exomedia.core.video.scale.ScaleType;
 import com.devbrackets.android.exomedia.listener.OnBufferUpdateListener;
 import com.devbrackets.android.exomedia.listener.OnCompletionListener;
 import com.devbrackets.android.exomedia.listener.OnErrorListener;
@@ -642,6 +643,15 @@ public class EMVideoView extends RelativeLayout {
     }
 
     /**
+     * Sets how the video should be scaled in the view
+     *
+     * @param scaleType how to scale the videos
+     */
+    public void setScaleType(@NonNull ScaleType scaleType) {
+        videoViewImpl.setScaleType(scaleType);
+    }
+
+    /**
      * Sets the listener to inform of VideoPlayer prepared events
      *
      * @param listener The listener
@@ -819,6 +829,7 @@ public class EMVideoView extends RelativeLayout {
             //Makes sure we have the correct aspect ratio
             float videoAspectRatio = height == 0 ? 1 : (width * pixelWidthHeightRatio) / height;
             videoViewImpl.updateAspectRatio(videoAspectRatio);
+            videoViewImpl.updateIntrinsicVideoSize(width, height);
 
             //Since the ExoPlayer will occasionally return an unscaled video size, we will make sure
             // we are using scaled values when updating the shutters

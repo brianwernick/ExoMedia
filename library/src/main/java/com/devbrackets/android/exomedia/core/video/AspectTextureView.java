@@ -21,9 +21,14 @@ import android.annotation.TargetApi;
 import android.content.Context;
 import android.graphics.Point;
 import android.os.Build;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
 import android.view.TextureView;
+import android.view.ViewTreeObserver;
+
+import com.devbrackets.android.exomedia.core.video.scale.MatrixManager;
+import com.devbrackets.android.exomedia.core.video.scale.ScaleType;
 
 /**
  * A VideoTextureView that reSizes itself to match a specified aspect
@@ -49,8 +54,12 @@ public class AspectTextureView extends TextureView {
     private float videoAspectRatio;
 
     @Nullable
-    private OnSizeChangeListener listener;
+    private OnSizeChangeListener sizeChangeListener;
     private Point oldSize = new Point(0, 0);
+
+    @NonNull
+    protected ScaleType currentScaleType = ScaleType.CENTER_INSIDE;
+    protected MatrixManager matrixManager = new MatrixManager();
 
     public AspectTextureView(Context context) {
         super(context);
@@ -69,18 +78,6 @@ public class AspectTextureView extends TextureView {
         super(context, attrs, defStyleAttr, defStyleRes);
     }
 
-    /**
-     * Set the aspect ratio that this {@link AspectTextureView} should satisfy.
-     *
-     * @param widthHeightRatio The width to height ratio.
-     */
-    public void setAspectRatio(float widthHeightRatio) {
-        if (this.videoAspectRatio != widthHeightRatio) {
-            this.videoAspectRatio = widthHeightRatio;
-            requestLayout();
-        }
-    }
-
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
@@ -95,7 +92,7 @@ public class AspectTextureView extends TextureView {
         float aspectDeformation = videoAspectRatio / viewAspectRatio - 1;
         if (Math.abs(aspectDeformation) <= MAX_ASPECT_RATIO_DEFORMATION_FRACTION) {
             // We're within the allowed tolerance, so leave the values from super
-            notifyListener(width, height);
+            onSizeChange(width, height);
             return;
         }
 
@@ -106,18 +103,54 @@ public class AspectTextureView extends TextureView {
         }
 
         super.onMeasure(MeasureSpec.makeMeasureSpec(width, MeasureSpec.EXACTLY), MeasureSpec.makeMeasureSpec(height, MeasureSpec.EXACTLY));
-        notifyListener(width, height);
+        onSizeChange(width, height);
     }
 
     public void setOnSizeChangeListener(@Nullable OnSizeChangeListener listener) {
-        this.listener = listener;
+        this.sizeChangeListener = listener;
     }
 
-    private void notifyListener(int width, int height) {
-        if (listener != null && (oldSize.x != width || oldSize.y != height)) {
-            oldSize.x = width;
-            oldSize.y = height;
-            listener.onVideoSurfaceSizeChange(width, height);
+    /**
+     * Set the aspect ratio that this {@link AspectTextureView} should satisfy.
+     *
+     * @param widthHeightRatio The width to height ratio.
+     */
+    public void setAspectRatio(float widthHeightRatio) {
+        if (this.videoAspectRatio != widthHeightRatio) {
+            this.videoAspectRatio = widthHeightRatio;
+            requestLayout();
+        }
+    }
+
+    public void updateIntrinsicVideoSize(int width, int height) {
+        matrixManager.setIntrinsicVideoSize(width, height);
+
+        getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+            @Override
+            public void onGlobalLayout() {
+                setScaleType(currentScaleType);
+                getViewTreeObserver().removeOnGlobalLayoutListener(this); //todo we also need to re-scale on orientation changes
+            }
+        });
+    }
+
+    public void setScaleType(@NonNull ScaleType scaleType) {
+        currentScaleType = scaleType;
+        if (matrixManager.ready()) {
+            matrixManager.scale(this, scaleType);
+        }
+    }
+
+    private void onSizeChange(int width, int height) {
+        if (oldSize.x == width && oldSize.y == height) {
+            return;
+        }
+
+        oldSize.x = width;
+        oldSize.y = height;
+
+        if (sizeChangeListener != null) {
+            sizeChangeListener.onVideoSurfaceSizeChange(width, height);
         }
     }
 }

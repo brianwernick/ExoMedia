@@ -80,4 +80,8 @@ public class VideoApi extends BaseMediaApi implements VideoPlayerApi {
     public int getBufferedPercent() {
         return videoView.getBufferPercentage();
     }
+
+    public EMVideoView getVideoView() {
+        return videoView;
+    }
 }

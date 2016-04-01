@@ -9,11 +9,14 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
 import com.devbrackets.android.exomedia.EMAudioPlayer;
+import com.devbrackets.android.exomedia.ui.widget.EMVideoView;
+import com.devbrackets.android.exomedia.ui.widget.VideoControls;
 import com.devbrackets.android.exomediademo.App;
 import com.devbrackets.android.exomediademo.R;
 import com.devbrackets.android.exomediademo.data.MediaItem;
 import com.devbrackets.android.exomediademo.manager.PlaylistManager;
 import com.devbrackets.android.exomediademo.playlist.AudioApi;
+import com.devbrackets.android.exomediademo.playlist.VideoApi;
 import com.devbrackets.android.exomediademo.ui.activity.StartupActivity;
 import com.devbrackets.android.playlistcore.api.AudioPlayerApi;
 import com.devbrackets.android.playlistcore.service.BasePlaylistService;
@@ -78,7 +81,7 @@ public class MediaService extends BasePlaylistService<MediaItem, PlaylistManager
     @Override
     protected Bitmap getDefaultLargeNotificationImage() {
         if (defaultLargeNotificationImage == null) {
-            defaultLargeNotificationImage  = BitmapFactory.decodeResource(getResources(), R.mipmap.ic_launcher);
+            defaultLargeNotificationImage = BitmapFactory.decodeResource(getResources(), R.mipmap.ic_launcher);
         }
 
         return defaultLargeNotificationImage;
@@ -123,9 +126,32 @@ public class MediaService extends BasePlaylistService<MediaItem, PlaylistManager
     }
 
     /**
+     * Overridden to allow updating the Title, SubTitle, and description in
+     * the EMVideoView (VideoControls)
+     */
+    @Override
+    protected boolean playVideoItem() {
+        if (super.playVideoItem()) {
+            EMVideoView videoView = ((VideoApi) getPlaylistManager().getVideoPlayer()).getVideoView();
+            updateVideoControlsText(videoView.getVideoControls());
+            return true;
+        }
+
+        return false;
+    }
+
+    private void updateVideoControlsText(@Nullable VideoControls videoControls) {
+        if (videoControls != null && currentPlaylistItem != null) {
+            videoControls.setTitle(currentPlaylistItem.getTitle());
+            videoControls.setSubTitle(currentPlaylistItem.getAlbum());
+            videoControls.setDescription(currentPlaylistItem.getArtist());
+        }
+    }
+
+    /**
      * A class used to listen to the loading of the large notification images and perform
      * the correct functionality to update the notification once it is loaded.
-     *
+     * <p/>
      * <b>NOTE:</b> This is a Picasso Image loader class
      */
     private class NotificationTarget implements Target {
@@ -149,7 +175,7 @@ public class MediaService extends BasePlaylistService<MediaItem, PlaylistManager
     /**
      * A class used to listen to the loading of the large lock screen images and perform
      * the correct functionality to update the artwork once it is loaded.
-     *
+     * <p/>
      * <b>NOTE:</b> This is a Picasso Image loader class
      */
     private class LockScreenTarget implements Target {

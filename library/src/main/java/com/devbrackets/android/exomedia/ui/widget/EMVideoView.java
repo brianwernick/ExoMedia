@@ -383,7 +383,7 @@ public class EMVideoView extends RelativeLayout {
      * Sets the Uri location for the video to play
      *
      * @param uri The video's Uri
-     * @param renderBuilder    RenderBuilder that should be used
+     * @param renderBuilder RenderBuilder that should be used
      */
     public void setVideoURI(@Nullable Uri uri, @Nullable RenderBuilder renderBuilder) {
         videoUri = uri;
@@ -491,23 +491,22 @@ public class EMVideoView extends RelativeLayout {
         }
     }
 
-  /**
-   * If the video has completed playback, calling {@code restart} will seek to the beginning of the video, and play it.
-   *
-   * @return {@code true} if the video was successfully restarted, otherwise {@code false}
-   */
-  public boolean restart() {
-        if(videoUri == null) {
+    /**
+     * If the video has completed playback, calling {@code restart} will seek to the beginning of the video, and play it.
+     *
+     * @return {@code true} if the video was successfully restarted, otherwise {@code false}
+     */
+    public boolean restart() {
+        if (videoUri == null) {
             return false;
         }
 
-        if(videoViewImpl.restart()) {
+        if (videoViewImpl.restart()) {
             if (videoControls != null) {
                 videoControls.restartLoading();
             }
             return true;
-        }
-        else {
+        } else {
             return false;
         }
     }
@@ -718,11 +717,11 @@ public class EMVideoView extends RelativeLayout {
      * {@link com.devbrackets.android.exomedia.core.video.NativeVideoView}
      * , and an ExoPlayer backed video view on the remaining devices via
      * {@link com.devbrackets.android.exomedia.core.video.ExoVideoView}.
-     *
+     * <p>
      * In the rare cases that the default implementations need to be extended, or replaced, the
      * user can override the value with the attributes <code>videoViewApiImplLegacy</code>
      * and <code>videoViewApiImpl</code>.
-     *
+     * <p>
      * <b>NOTE:</b> overriding the default implementations may cause inconsistencies and isn't
      * recommended.
      *
@@ -790,12 +789,12 @@ public class EMVideoView extends RelativeLayout {
 
     protected int calculateVerticalShutterSize(int viewHeight, int videoHeight) {
         int shutterSize = (viewHeight - videoHeight) / 2;
-        return (viewHeight - videoHeight) % 2 == 0 ? shutterSize : shutterSize +1;
+        return (viewHeight - videoHeight) % 2 == 0 ? shutterSize : shutterSize + 1;
     }
 
     protected int calculateSideShutterSize(int viewWidth, int videoWidth) {
         int shutterSize = (viewWidth - videoWidth) / 2;
-        return (viewWidth - videoWidth) % 2 == 0 ? shutterSize : shutterSize +1;
+        return (viewWidth - videoWidth) % 2 == 0 ? shutterSize : shutterSize + 1;
     }
 
     protected class MuxNotifier extends EMListenerMux.EMListenerMuxNotifier implements VideoViewApi.OnSurfaceSizeChanged {
@@ -826,19 +825,19 @@ public class EMVideoView extends RelativeLayout {
 
         @Override
         public void onVideoSizeChanged(int width, int height, int unAppliedRotationDegrees, float pixelWidthHeightRatio) {
-            //Makes sure we have the correct aspect ratio
-            float videoAspectRatio = height == 0 ? 1 : (width * pixelWidthHeightRatio) / height;
-            videoViewImpl.updateAspectRatio(videoAspectRatio);
-            videoViewImpl.updateIntrinsicVideoSize(width, height);
+            videoViewImpl.onVideoSizeChanged(width, height);
 
             //Since the ExoPlayer will occasionally return an unscaled video size, we will make sure
             // we are using scaled values when updating the shutters
             if (width < getWidth() && height < getHeight()) {
+                //Makes sure we have the correct aspect ratio
+                float videoAspectRatio = height == 0 ? 1 : (width * pixelWidthHeightRatio) / height;
+
                 width = getWidth();
-                height = (int)(width / videoAspectRatio);
+                height = (int) (width / videoAspectRatio);
                 if (height > getHeight()) {
                     height = getHeight();
-                    width = (int)(height * videoAspectRatio);
+                    width = (int) (height * videoAspectRatio);
                 }
             }
 

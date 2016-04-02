@@ -94,7 +94,7 @@ public interface VideoViewApi {
 
     void setListenerMux(EMListenerMux listenerMux);
 
-    void updateAspectRatio(float aspectRatio);
+    void onVideoSizeChanged(int width, int height);
 
     void setOnSizeChangedListener(@Nullable OnSurfaceSizeChanged listener);
 }

@@ -32,7 +32,7 @@ public class MatrixManager {
         float yCenter = (float)view.getHeight() / 2F;
 
         Matrix transformMatrix = new Matrix(view.getMatrix());
-        transformMatrix.setRotate(rotation, xCenter, yCenter);
+        transformMatrix.postRotate(rotation, xCenter, yCenter);
         view.setTransform(transformMatrix);
     }
 
@@ -74,36 +74,65 @@ public class MatrixManager {
         return true;
     }
 
+    /**
+     * Applies the {@link ScaleType#CENTER} to the specified matrix.  This will
+     * perform no scaling as this just indicates that the video should be centered
+     * in the View
+     *
+     * @param view The view to apply the transformation to
+     * @param transformMatrix The matrix to add the transformation to
+     */
     protected void applyCenter(@NonNull TextureView view, @NonNull Matrix transformMatrix) {
         applyScale(view, transformMatrix, 1, 1);
     }
 
+    /**
+     * Applies the {@link ScaleType#CENTER_CROP} to the specified matrix.  This will
+     * make sure the smallest side fits the parent container, cropping the other
+     *
+     * @param view The view to apply the transformation to
+     * @param transformMatrix The matrix to add the transformation to
+     */
     protected void applyCenterCrop(@NonNull TextureView view, @NonNull Matrix transformMatrix) {
         float xScale = (float)view.getWidth() / intrinsicVideoSize.x;
         float yScale = (float)view.getHeight() / intrinsicVideoSize.y;
 
-        float maxScale = Math.max(xScale, yScale);
-        xScale = maxScale / xScale;
-        yScale = maxScale / yScale;
-
-        applyScale(view, transformMatrix, xScale, yScale);
+        float scale = Math.max(xScale, yScale);
+        applyScale(view, transformMatrix, scale, scale);
     }
 
+    /**
+     * Applies the {@link ScaleType#CENTER_INSIDE} to the specified matrix.  This will
+     * only perform scaling if the video is too large to fit completely in the <code>view</code>
+     * in which case it will be scaled to fit
+     *
+     * @param view The view to apply the transformation to
+     * @param transformMatrix The matrix to add the transformation to
+     */
     protected void applyCenterInside(@NonNull TextureView view, @NonNull Matrix transformMatrix) {
         float xScale = (float)view.getWidth() / intrinsicVideoSize.x;
         float yScale = (float)view.getHeight() / intrinsicVideoSize.y;
 
-        float minScale = Math.min(xScale, yScale);
-        xScale = minScale / xScale;
-        yScale = minScale / yScale;
+        //We min the resulting scale with 1 to make sure we aren't increasing the size
+        float scale = Math.min(xScale, yScale);
+        scale = Math.min(scale, 1F);
 
-        applyScale(view, transformMatrix, xScale, yScale);
+        applyScale(view, transformMatrix, scale, scale);
     }
 
+    /**
+     * Applies the {@link ScaleType#FIT_CENTER} to the specified matrix.  This will
+     * scale the video so that the largest side will always match the <code>view</code>
+     *
+     * @param view The view to apply the transformation to
+     * @param transformMatrix The matrix to add the transformation to
+     */
     protected void applyFitCenter(@NonNull TextureView view, @NonNull Matrix transformMatrix) {
-        float xScale = intrinsicVideoSize.x / (float)view.getWidth();
-        float yScale = intrinsicVideoSize.y / (float)view.getHeight();
-        applyScale(view, transformMatrix, xScale, yScale);
+        float xScale = (float)view.getWidth() / intrinsicVideoSize.x;
+        float yScale = (float)view.getHeight() / intrinsicVideoSize.y;
+
+        float scale = Math.min(xScale, yScale);
+        applyScale(view, transformMatrix, scale, scale);
     }
 
     protected void applyScale(@NonNull TextureView view, @NonNull Matrix transformMatrix, float xScale, float yScale) {

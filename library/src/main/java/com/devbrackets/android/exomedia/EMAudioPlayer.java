@@ -20,7 +20,9 @@ import android.content.Context;
 import android.net.Uri;
 import android.os.Build;
 import android.support.annotation.FloatRange;
+import android.support.annotation.Nullable;
 
+import com.devbrackets.android.exomedia.annotation.TrackRenderType;
 import com.devbrackets.android.exomedia.core.EMListenerMux;
 import com.devbrackets.android.exomedia.core.api.MediaPlayerApi;
 import com.devbrackets.android.exomedia.core.audio.ExoMediaPlayer;
@@ -33,6 +35,10 @@ import com.devbrackets.android.exomedia.listener.OnErrorListener;
 import com.devbrackets.android.exomedia.listener.OnPreparedListener;
 import com.devbrackets.android.exomedia.listener.OnSeekCompletionListener;
 import com.devbrackets.android.exomedia.util.EMDeviceUtil;
+import com.google.android.exoplayer.MediaFormat;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  * An AudioPlayer that uses the ExoPlayer as the backing architecture.  If the current device
@@ -239,6 +245,38 @@ public class EMAudioPlayer {
      */
     public int getBufferPercentage() {
         return mediaPlayerImpl.getBufferedPercent();
+    }
+
+    /**
+     * Determines if the current video player implementation supports
+     * track selection for audio or video tracks.
+     *
+     * @return True if tracks can be manually specified
+     */
+    public boolean trackSelectionAvailable() {
+        return mediaPlayerImpl.trackSelectionAvailable();
+    }
+
+    /**
+     * Changes to the track with <code>trackIndex</code> for the specified
+     * <code>trackType</code>
+     *
+     * @param trackType The type for the track to switch to the selected index
+     * @param trackIndex The index for the track to swith to
+     */
+    public void setTrack(@TrackRenderType int trackType, int trackIndex) {
+        mediaPlayerImpl.setTrack(trackType, trackIndex);
+    }
+
+    /**
+     * Retrieves a list of available tracks to select from.  Typically {@link #trackSelectionAvailable()}
+     * should be called before this.
+     *
+     * @return A list of available tracks associated with each track type (see {@link com.devbrackets.android.exomedia.annotation.TrackRenderType})
+     */
+    @Nullable
+    public Map<Integer, List<MediaFormat>> getAvailableTracks() {
+        return mediaPlayerImpl.getAvailableTracks();
     }
 
     /**

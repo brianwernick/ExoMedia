@@ -29,6 +29,7 @@ import android.view.Surface;
 import android.view.TextureView;
 
 import com.devbrackets.android.exomedia.BuildConfig;
+import com.devbrackets.android.exomedia.annotation.TrackRenderType;
 import com.devbrackets.android.exomedia.core.EMListenerMux;
 import com.devbrackets.android.exomedia.core.builder.DashRenderBuilder;
 import com.devbrackets.android.exomedia.core.builder.HlsRenderBuilder;
@@ -37,15 +38,19 @@ import com.devbrackets.android.exomedia.core.builder.SmoothStreamRenderBuilder;
 import com.devbrackets.android.exomedia.core.exoplayer.EMExoPlayer;
 import com.devbrackets.android.exomedia.core.api.VideoViewApi;
 import com.devbrackets.android.exomedia.type.MediaSourceType;
+import com.google.android.exoplayer.MediaFormat;
 import com.google.android.exoplayer.audio.AudioCapabilities;
 import com.google.android.exoplayer.audio.AudioCapabilitiesReceiver;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  * A {@link VideoViewApi} implementation that uses the ExoPlayer
  * as the backing media player.
  */
 @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
-public class ExoVideoView extends AspectTextureView implements VideoViewApi, AudioCapabilitiesReceiver.Listener, AspectTextureView.OnSizeChangeListener  {
+public class ExoVideoView extends ResizingTextureView implements VideoViewApi, AudioCapabilitiesReceiver.Listener, ResizingTextureView.OnSizeChangeListener  {
     protected static final String USER_AGENT_FORMAT = "EMVideoView %s / Android %s / %s";
 
     protected EMExoPlayer emExoPlayer;
@@ -185,6 +190,22 @@ public class ExoVideoView extends AspectTextureView implements VideoViewApi, Aud
     }
 
     @Override
+    public boolean trackSelectionAvailable() {
+        return true;
+    }
+
+    @Override
+    public void setTrack(@TrackRenderType int trackType, int trackIndex) {
+        emExoPlayer.setSelectedTrack(trackType, trackIndex);
+    }
+
+    @Nullable
+    @Override
+    public Map<Integer, List<MediaFormat>> getAvailableTracks() {
+        return emExoPlayer.getAvailableTracks();
+    }
+
+    @Override
     public void onVideoSurfaceSizeChange(int width, int height) {
         if (onSurfaceSizeChangedListener != null) {
             onSurfaceSizeChangedListener.onSurfaceSizeChanged(width, height);
@@ -215,8 +236,10 @@ public class ExoVideoView extends AspectTextureView implements VideoViewApi, Aud
     }
 
     @Override
-    public void updateAspectRatio(float aspectRatio) {
-        setAspectRatio(aspectRatio);
+    public void onVideoSizeChanged(int width, int height) {
+        if (updateVideoSize(width, height)) {
+            requestLayout();
+        }
     }
 
     @Override
@@ -233,6 +256,7 @@ public class ExoVideoView extends AspectTextureView implements VideoViewApi, Aud
         emExoPlayer.setMetadataListener(null);
         setSurfaceTextureListener(new EMExoVideoSurfaceTextureListener());
         setOnSizeChangeListener(this);
+        updateVideoSize(0, 0);
     }
 
     /**

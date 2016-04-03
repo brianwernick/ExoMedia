@@ -105,6 +105,7 @@ public class AudioPlayerActivity extends AppCompatActivity implements PlaylistLi
 
             case RETRIEVING:
             case PREPARING:
+            case SEEKING:
                 restartLoading();
                 break;
 
@@ -321,6 +322,7 @@ public class AudioPlayerActivity extends AppCompatActivity implements PlaylistLi
     private void startPlayback(boolean forceStart) {
         //If we are changing audio files, or we haven't played before then start the playback
         if (forceStart || playlistManager.getCurrentPosition() != selectedIndex) {
+            playlistManager.setCurrentPosition(selectedIndex);
             playlistManager.play(0, false);
         }
     }

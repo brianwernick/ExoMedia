@@ -24,10 +24,14 @@ import android.media.MediaCodec;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.PowerManager;
+import android.support.annotation.FloatRange;
 import android.support.annotation.Nullable;
+import android.support.annotation.Size;
+import android.support.v4.util.ArrayMap;
 import android.util.Log;
 import android.view.Surface;
 
+import com.devbrackets.android.exomedia.annotation.TrackRenderType;
 import com.devbrackets.android.exomedia.core.builder.RenderBuilder;
 import com.devbrackets.android.exomedia.core.listener.CaptionListener;
 import com.devbrackets.android.exomedia.core.listener.ExoPlayerListener;
@@ -41,6 +45,7 @@ import com.google.android.exoplayer.ExoPlayer;
 import com.google.android.exoplayer.MediaCodecAudioTrackRenderer;
 import com.google.android.exoplayer.MediaCodecTrackRenderer;
 import com.google.android.exoplayer.MediaCodecVideoTrackRenderer;
+import com.google.android.exoplayer.MediaFormat;
 import com.google.android.exoplayer.TimeRange;
 import com.google.android.exoplayer.TrackRenderer;
 import com.google.android.exoplayer.audio.AudioTrack;
@@ -55,13 +60,15 @@ import com.google.android.exoplayer.text.Cue;
 import com.google.android.exoplayer.text.TextRenderer;
 import com.google.android.exoplayer.upstream.BandwidthMeter;
 import com.google.android.exoplayer.upstream.DefaultBandwidthMeter;
-import com.google.android.exoplayer.util.PlayerControl;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+@SuppressWarnings("unused")
 public class EMExoPlayer implements
         ExoPlayer.Listener,
         ChunkSampleSource.EventListener,
@@ -93,13 +100,11 @@ public class EMExoPlayer implements
 
     private RenderBuilder rendererBuilder;
     private final ExoPlayer player;
-    private final PlayerControl playerControl;
     private final Handler mainHandler;
     private final CopyOnWriteArrayList<ExoPlayerListener> listeners;
 
     private RenderBuildingState rendererBuildingState;
-    private int lastReportedPlaybackState;
-    private boolean lastReportedPlayWhenReady;
+    private StateStore stateStore = new StateStore();
 
     private boolean prepared = false;
 
@@ -107,39 +112,38 @@ public class EMExoPlayer implements
     private TrackRenderer videoRenderer;
     private TrackRenderer audioRenderer;
 
+    @Nullable
     private CaptionListener captionListener;
+    @Nullable
     private Id3MetadataListener id3MetadataListener;
+    @Nullable
     private InternalErrorListener internalErrorListener;
+    @Nullable
     private InfoListener infoListener;
 
+    @Nullable
     private PowerManager.WakeLock wakeLock = null;
 
     public EMExoPlayer() {
         this(null);
     }
 
-    public EMExoPlayer(RenderBuilder rendererBuilder) {
+    public EMExoPlayer(@Nullable RenderBuilder rendererBuilder) {
         this.rendererBuilder = rendererBuilder;
         player = ExoPlayer.Factory.newInstance(RENDER_COUNT, BUFFER_LENGTH_MIN, REBUFFER_LENGTH_MIN);
         player.addListener(this);
-        playerControl = new PlayerControl(player);
 
         mainHandler = new Handler();
         listeners = new CopyOnWriteArrayList<>();
-        lastReportedPlaybackState = ExoPlayer.STATE_IDLE;
         rendererBuildingState = RenderBuildingState.IDLE;
         player.setSelectedTrack(RENDER_CLOSED_CAPTION, DISABLED_TRACK);
     }
 
-    public void replaceRenderBuilder(RenderBuilder renderBuilder) {
+    public void replaceRenderBuilder(@Nullable RenderBuilder renderBuilder) {
         this.rendererBuilder = renderBuilder;
 
         prepared = false;
         prepare();
-    }
-
-    public PlayerControl getPlayerControl() {
-        return playerControl;
     }
 
     public void addListener(ExoPlayerListener listener) {
@@ -154,19 +158,19 @@ public class EMExoPlayer implements
         }
     }
 
-    public void setInternalErrorListener(InternalErrorListener listener) {
+    public void setInternalErrorListener(@Nullable InternalErrorListener listener) {
         internalErrorListener = listener;
     }
 
-    public void setInfoListener(InfoListener listener) {
+    public void setInfoListener(@Nullable InfoListener listener) {
         infoListener = listener;
     }
 
-    public void setCaptionListener(CaptionListener listener) {
+    public void setCaptionListener(@Nullable CaptionListener listener) {
         captionListener = listener;
     }
 
-    public void setMetadataListener(Id3MetadataListener listener) {
+    public void setMetadataListener(@Nullable Id3MetadataListener listener) {
         id3MetadataListener = listener;
     }
 
@@ -184,22 +188,53 @@ public class EMExoPlayer implements
         pushSurface(true);
     }
 
-    public int getTrackCount(int type) {
+    /**
+     * Retrieves a list of available tracks
+     *
+     * @return A list of available tracks associated with each type (see {@link com.devbrackets.android.exomedia.annotation.TrackRenderType})
+     */
+    @Nullable
+    public Map<Integer, List<MediaFormat>> getAvailableTracks() {
+        if (getPlaybackState() == ExoPlayer.STATE_IDLE) {
+            return null;
+        }
+
+        Map<Integer, List<MediaFormat>> trackMap = new ArrayMap<>();
+        int[] trackTypes = new int[] {RENDER_AUDIO, RENDER_VIDEO, RENDER_CLOSED_CAPTION, RENDER_TIMED_METADATA};
+
+        //Populates the map with all available tracks
+        for (int type : trackTypes) {
+            List<MediaFormat> tracks = new ArrayList<>(getTrackCount(type));
+            trackMap.put(type, tracks);
+
+            for (int i = 0; i < tracks.size(); i++) {
+                tracks.add(getTrackFormat(type, i));
+            }
+        }
+
+        return trackMap;
+    }
+
+    public int getTrackCount(@TrackRenderType int type) {
         return player.getTrackCount(type);
     }
 
-    public int getSelectedTrack(int type) {
+    public MediaFormat getTrackFormat(@TrackRenderType int type, int index) {
+        return player.getTrackFormat(type, index);
+    }
+
+    public int getSelectedTrack(@TrackRenderType int type) {
         return player.getSelectedTrack(type);
     }
 
-    public void setSelectedTrack(int type, int index) {
+    public void setSelectedTrack(@TrackRenderType int type, int index) {
         player.setSelectedTrack(type, index);
         if (type == RENDER_CLOSED_CAPTION && index == DISABLED_TRACK && captionListener != null) {
             captionListener.onCues(Collections.<Cue>emptyList());
         }
     }
 
-    public void setVolume(float volume) {
+    public void setVolume(@FloatRange(from = 0.0, to = 1.0) float volume) {
         player.sendMessage(audioRenderer, MediaCodecAudioTrackRenderer.MSG_SET_VOLUME, volume);
     }
 
@@ -266,6 +301,7 @@ public class EMExoPlayer implements
 
     public void seekTo(long positionMs) {
         player.seekTo(positionMs);
+        stateStore.setMostRecentState(stateStore.isLastReportedPlayWhenReady(), StateStore.STATE_SEEKING);
     }
 
   /**
@@ -561,13 +597,23 @@ public class EMExoPlayer implements
         boolean playWhenReady = player.getPlayWhenReady();
         int playbackState = getPlaybackState();
 
-        if (lastReportedPlayWhenReady != playWhenReady || lastReportedPlaybackState != playbackState) {
+        int newState = stateStore.getState(playWhenReady, playbackState);
+        if (newState != stateStore.getMostRecentState()) {
+            stateStore.setMostRecentState(playWhenReady, playbackState);
+
+            //Because the playWhenReady isn't a state in itself, rather a flag to a state we will ignore informing of
+            // see events when that is the only change.  Additionally, on some devices we get states ordered as
+            // [seeking, ready, buffering, ready] while on others we get [seeking, buffering, ready]
+            boolean informSeekCompletion = stateStore.matchesHistory(new int[]{StateStore.STATE_SEEKING, ExoPlayer.STATE_BUFFERING, ExoPlayer.STATE_READY}, true);
+            informSeekCompletion |= stateStore.matchesHistory(new int[]{StateStore.STATE_SEEKING, ExoPlayer.STATE_READY, ExoPlayer.STATE_BUFFERING, ExoPlayer.STATE_READY}, true);
+
             for (ExoPlayerListener listener : listeners) {
                 listener.onStateChanged(playWhenReady, playbackState);
-            }
 
-            lastReportedPlayWhenReady = playWhenReady;
-            lastReportedPlaybackState = playbackState;
+                if (informSeekCompletion) {
+                    listener.onSeekComplete();
+                }
+            }
         }
     }
 
@@ -580,6 +626,50 @@ public class EMExoPlayer implements
             player.blockingSendMessage(videoRenderer, MediaCodecVideoTrackRenderer.MSG_SET_SURFACE, surface);
         } else {
             player.sendMessage(videoRenderer, MediaCodecVideoTrackRenderer.MSG_SET_SURFACE, surface);
+        }
+    }
+
+    private static class StateStore {
+        public static final int FLAG_PLAY_WHEN_READY = 0xF0000000;
+        public static final int STATE_SEEKING = 100;
+
+        //We keep the last few states because that is all we need currently
+        private int[] prevStates = new int[]{ExoPlayer.STATE_IDLE, ExoPlayer.STATE_IDLE, ExoPlayer.STATE_IDLE, ExoPlayer.STATE_IDLE};
+
+        public void setMostRecentState(boolean playWhenReady, int state) {
+            int newState = getState(playWhenReady, state);
+            if (prevStates[3] == newState) {
+                return;
+            }
+
+            prevStates[0] = prevStates[1];
+            prevStates[1] = prevStates[2];
+            prevStates[2] = prevStates[3];
+            prevStates[3] = state;
+        }
+
+        public int getState(boolean playWhenReady, int state) {
+            return state | (playWhenReady ? FLAG_PLAY_WHEN_READY : 0);
+        }
+
+        public int getMostRecentState() {
+            return prevStates[3];
+        }
+
+        public boolean isLastReportedPlayWhenReady() {
+            return (prevStates[3] & FLAG_PLAY_WHEN_READY) != 0;
+        }
+
+        public boolean matchesHistory(@Size(min = 1, max = 4) int[] states, boolean ignorePlayWhenReady) {
+            boolean flag = true;
+            int andFlag = ignorePlayWhenReady ? ~FLAG_PLAY_WHEN_READY : ~0x0;
+            int startIndex = prevStates.length - states.length;
+
+            for (int i = startIndex; i < prevStates.length; i++) {
+                flag &= (prevStates[i] & andFlag) == (states[i - startIndex] & andFlag);
+            }
+
+            return flag;
         }
     }
 }

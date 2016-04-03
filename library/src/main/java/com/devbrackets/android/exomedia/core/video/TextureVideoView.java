@@ -18,7 +18,6 @@ package com.devbrackets.android.exomedia.core.video;
 
 import android.annotation.TargetApi;
 import android.content.Context;
-import android.graphics.Point;
 import android.graphics.SurfaceTexture;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
@@ -46,7 +45,7 @@ import java.util.Map;
  * <li>The {@link MediaController}</li>
  * </ul>
  */
-public class TextureVideoView extends AspectTextureView implements MediaController.MediaPlayerControl {
+public class TextureVideoView extends ResizingTextureView implements MediaController.MediaPlayerControl {
     private static final String TAG = "TextureVideoView";
 
     protected enum State {
@@ -64,7 +63,6 @@ public class TextureVideoView extends AspectTextureView implements MediaControll
     protected State currentState = State.IDLE;
 
     protected MediaPlayer mediaPlayer;
-    protected Point videoSize = new Point(0, 0);
 
     protected boolean playRequested = false;
     protected int requestedSeek;
@@ -105,64 +103,6 @@ public class TextureVideoView extends AspectTextureView implements MediaControll
     public TextureVideoView(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
         super(context, attrs, defStyleAttr, defStyleRes);
         setup(context, attrs);
-    }
-
-    @Override
-    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        int width = getDefaultSize(videoSize.x, widthMeasureSpec);
-        int height = getDefaultSize(videoSize.y, heightMeasureSpec);
-        if (videoSize.x > 0 && videoSize.y > 0) {
-
-            int widthSpecMode = MeasureSpec.getMode(widthMeasureSpec);
-            int widthSpecSize = MeasureSpec.getSize(widthMeasureSpec);
-            int heightSpecMode = MeasureSpec.getMode(heightMeasureSpec);
-            int heightSpecSize = MeasureSpec.getSize(heightMeasureSpec);
-
-            if (widthSpecMode == MeasureSpec.EXACTLY && heightSpecMode == MeasureSpec.EXACTLY) {
-                // the size is fixed
-                width = widthSpecSize;
-                height = heightSpecSize;
-
-                // for compatibility, we adjust size based on aspect ratio
-                if (videoSize.x * height < width * videoSize.y) {
-                    width = height * videoSize.x / videoSize.y;
-                } else if (videoSize.x * height > width * videoSize.y) {
-                    height = width * videoSize.y / videoSize.x;
-                }
-            } else if (widthSpecMode == MeasureSpec.EXACTLY) {
-                // only the width is fixed, adjust the height to match aspect ratio if possible
-                width = widthSpecSize;
-                height = width * videoSize.y / videoSize.x;
-                if (heightSpecMode == MeasureSpec.AT_MOST && height > heightSpecSize) {
-                    // couldn't match aspect ratio within the constraints
-                    height = heightSpecSize;
-                }
-            } else if (heightSpecMode == MeasureSpec.EXACTLY) {
-                // only the height is fixed, adjust the width to match aspect ratio if possible
-                height = heightSpecSize;
-                width = height * videoSize.x / videoSize.y;
-                if (widthSpecMode == MeasureSpec.AT_MOST && width > widthSpecSize) {
-                    // couldn't match aspect ratio within the constraints
-                    width = widthSpecSize;
-                }
-            } else {
-                // neither the width nor the height are fixed, try to use actual video size
-                width = videoSize.x;
-                height = videoSize.y;
-                if (heightSpecMode == MeasureSpec.AT_MOST && height > heightSpecSize) {
-                    // too tall, decrease both width and height
-                    height = heightSpecSize;
-                    width = height * videoSize.x / videoSize.y;
-                }
-                if (widthSpecMode == MeasureSpec.AT_MOST && width > widthSpecSize) {
-                    // too wide, decrease both width and height
-                    width = widthSpecSize;
-                    height = width * videoSize.y / videoSize.x;
-                }
-            }
-        }
-
-        setMeasuredDimension(width, height);
     }
 
     @Override
@@ -406,8 +346,7 @@ public class TextureVideoView extends AspectTextureView implements MediaControll
         setFocusableInTouchMode(true);
         requestFocus();
 
-        videoSize.x = 0;
-        videoSize.y = 0;
+        updateVideoSize(0, 0);
         currentState = State.IDLE;
     }
 
@@ -467,15 +406,10 @@ public class TextureVideoView extends AspectTextureView implements MediaControll
                 onPreparedListener.onPrepared(mediaPlayer);
             }
 
-            videoSize.x = mp.getVideoWidth();
-            videoSize.y = mp.getVideoHeight();
+            updateVideoSize(mp.getVideoWidth(), mp.getVideoHeight());
 
             if (requestedSeek != 0) {
                 seekTo(requestedSeek);
-            }
-
-            if (videoSize.x != 0 && videoSize.y != 0 && Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH_MR1) {
-                getSurfaceTexture().setDefaultBufferSize(videoSize.x, videoSize.y);
             }
 
             if (playRequested) {
@@ -490,17 +424,9 @@ public class TextureVideoView extends AspectTextureView implements MediaControll
 
         @Override
         public void onVideoSizeChanged(MediaPlayer mp, int width, int height) {
-            videoSize.x = mp.getVideoWidth();
-            videoSize.y = mp.getVideoHeight();
-            if (videoSize.x == 0 || videoSize.y == 0) {
-                return;
+            if (updateVideoSize(mp.getVideoWidth(), mp.getVideoHeight())) {
+                requestLayout();
             }
-
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH_MR1) {
-                getSurfaceTexture().setDefaultBufferSize(videoSize.x, videoSize.y);
-            }
-
-            requestLayout();
         }
     }
 

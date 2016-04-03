@@ -26,6 +26,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.support.annotation.DrawableRes;
 import android.support.annotation.FloatRange;
+import android.support.annotation.IntRange;
 import android.support.annotation.LayoutRes;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -651,6 +652,15 @@ public class EMVideoView extends RelativeLayout {
     }
 
     /**
+     * Sets the rotation for the Video
+     *
+     * @param rotation The rotation to apply to the video
+     */
+    public void setVideoRotation(@IntRange(from = 0, to = 359) int rotation) {
+        videoViewImpl.setVideoRotation(rotation, true);
+    }
+
+    /**
      * Sets the listener to inform of VideoPlayer prepared events
      *
      * @param listener The listener
@@ -798,6 +808,9 @@ public class EMVideoView extends RelativeLayout {
     }
 
     protected class MuxNotifier extends EMListenerMux.EMListenerMuxNotifier implements VideoViewApi.OnSurfaceSizeChanged {
+        public static final int ROTATION_90 = 90;
+        public static final int ROTATION_270 = 270;
+
         @Override
         public boolean shouldNotifyCompletion(long endLeeway) {
             return getCurrentPosition() + endLeeway >= getDuration();
@@ -824,7 +837,38 @@ public class EMVideoView extends RelativeLayout {
         }
 
         @Override
+        @SuppressWarnings("SuspiciousNameCombination")
         public void onVideoSizeChanged(int width, int height, int unAppliedRotationDegrees, float pixelWidthHeightRatio) {
+            //NOTE: Android 5.0+ will always have an unAppliedRotationDegrees of 0 (ExoPlayer already handles it)
+            videoViewImpl.setVideoRotation(unAppliedRotationDegrees, false);
+
+            //If we applied a rotation make sure to update the width, height, and ratio
+            if (unAppliedRotationDegrees == ROTATION_90 || unAppliedRotationDegrees == ROTATION_270) {
+                int rotatedHeight = height;
+                height = width;
+                width = rotatedHeight;
+                pixelWidthHeightRatio = 1 / pixelWidthHeightRatio;
+            }
+
+            onVideoSizeChanged(width, height, pixelWidthHeightRatio);
+        }
+
+        @Override
+        public void onPrepared() {
+            if (videoControls != null) {
+                videoControls.setDuration(getDuration());
+                videoControls.loadCompleted();
+            }
+        }
+
+        @Override
+        public void onPreviewImageStateChanged(boolean toVisible) {
+            if (previewImageView != null) {
+                previewImageView.setVisibility(toVisible ? View.VISIBLE : View.GONE);
+            }
+        }
+
+        public void onVideoSizeChanged(int width, int height, float pixelWidthHeightRatio) {
             videoViewImpl.onVideoSizeChanged(width, height);
 
             //Since the ExoPlayer will occasionally return an unscaled video size, we will make sure
@@ -842,21 +886,6 @@ public class EMVideoView extends RelativeLayout {
             }
 
             updateVideoShutters(getWidth(), getHeight(), width, height);
-        }
-
-        @Override
-        public void onPrepared() {
-            if (videoControls != null) {
-                videoControls.setDuration(getDuration());
-                videoControls.loadCompleted();
-            }
-        }
-
-        @Override
-        public void onPreviewImageStateChanged(boolean toVisible) {
-            if (previewImageView != null) {
-                previewImageView.setVisibility(toVisible ? View.VISIBLE : View.GONE);
-            }
         }
     }
 

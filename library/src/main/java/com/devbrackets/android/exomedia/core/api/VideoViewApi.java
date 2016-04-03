@@ -94,6 +94,14 @@ public interface VideoViewApi {
 
     void setScaleType(@NonNull ScaleType scaleType);
 
+    /**
+     * Sets the rotation for the Video
+     *
+     * @param rotation The rotation to apply to the video
+     * @param fromUser True if the rotation was requested by the user, false if it is from a video configuration
+     */
+    void setVideoRotation(@IntRange(from = 0, to = 359) int rotation, boolean fromUser);
+
     void setOnTouchListener(View.OnTouchListener listener);
 
     void setListenerMux(EMListenerMux listenerMux);

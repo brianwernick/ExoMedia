@@ -22,6 +22,7 @@ import android.content.Context;
 import android.content.res.Configuration;
 import android.graphics.Point;
 import android.os.Build;
+import android.support.annotation.IntRange;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
@@ -37,6 +38,8 @@ import com.devbrackets.android.exomedia.core.video.scale.ScaleType;
  */
 @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
 public class ResizingTextureView extends TextureView {
+    protected static final int MAX_DEGREES = 360;
+
     public interface OnSizeChangeListener {
         void onVideoSurfaceSizeChange(int width, int height);
     }
@@ -53,6 +56,11 @@ public class ResizingTextureView extends TextureView {
     protected ScaleType currentScaleType = ScaleType.CENTER_INSIDE;
     @NonNull
     protected MatrixManager matrixManager = new MatrixManager();
+
+    @IntRange(from = 0, to = 359)
+    protected int requestedUserRotation = 0;
+    @IntRange(from = 0, to = 359)
+    protected int requestedConfigurationRotation = 0;
 
     public ResizingTextureView(Context context) {
         super(context);
@@ -135,7 +143,7 @@ public class ResizingTextureView extends TextureView {
 
     @Override
     protected void onConfigurationChanged(Configuration newConfig) {
-        updateScaleOnLayout();
+        updateMatrixOnLayout();
         super.onConfigurationChanged(newConfig);
     }
 
@@ -153,7 +161,7 @@ public class ResizingTextureView extends TextureView {
      */
     protected boolean updateVideoSize(int width, int height) {
         matrixManager.setIntrinsicVideoSize(width, height);
-        updateScaleOnLayout();
+        updateMatrixOnLayout();
 
         videoSize.x = width;
         videoSize.y = height;
@@ -176,11 +184,31 @@ public class ResizingTextureView extends TextureView {
         }
     }
 
-    protected void updateScaleOnLayout() {
+    /**
+     * Sets the rotation for the Video
+     *
+     * @param rotation The rotation to apply to the video
+     * @param fromUser True if the rotation was requested by the user, false if it is from a video configuration
+     */
+    public void setVideoRotation(@IntRange(from = 0, to = 359) int rotation, boolean fromUser) {
+        setVideoRotation(fromUser ? rotation : requestedUserRotation, !fromUser ? rotation : requestedConfigurationRotation);
+    }
+
+    public void setVideoRotation(@IntRange(from = 0, to = 359) int userRotation, @IntRange(from = 0, to = 359) int configurationRotation) {
+        requestedUserRotation = userRotation;
+        requestedConfigurationRotation = configurationRotation;
+
+        if (matrixManager.ready()) {
+            matrixManager.rotate(this, (userRotation + configurationRotation) % MAX_DEGREES);
+        }
+    }
+
+    protected void updateMatrixOnLayout() {
         getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
             @Override
             public void onGlobalLayout() {
                 setScaleType(currentScaleType);
+                setVideoRotation(requestedUserRotation, requestedConfigurationRotation);
                 getViewTreeObserver().removeOnGlobalLayoutListener(this);
             }
         });

@@ -151,7 +151,7 @@ public class MediaService extends BasePlaylistService<MediaItem, PlaylistManager
     /**
      * A class used to listen to the loading of the large notification images and perform
      * the correct functionality to update the notification once it is loaded.
-     * <p/>
+     * <p>
      * <b>NOTE:</b> This is a Picasso Image loader class
      */
     private class NotificationTarget implements Target {
@@ -175,7 +175,7 @@ public class MediaService extends BasePlaylistService<MediaItem, PlaylistManager
     /**
      * A class used to listen to the loading of the large lock screen images and perform
      * the correct functionality to update the artwork once it is loaded.
-     * <p/>
+     * <p>
      * <b>NOTE:</b> This is a Picasso Image loader class
      */
     private class LockScreenTarget implements Target {

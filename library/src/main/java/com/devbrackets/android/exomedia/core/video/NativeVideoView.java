@@ -173,7 +173,7 @@ public class NativeVideoView extends TextureVideoView implements VideoViewApi {
     }
 
     @Override
-    public void updateAspectRatio(float aspectRatio) {
+    public void onVideoSizeChanged(int width, int height) {
         //Purposefully left blank
     }
 

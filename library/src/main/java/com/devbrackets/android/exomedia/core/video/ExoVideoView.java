@@ -50,7 +50,7 @@ import java.util.Map;
  * as the backing media player.
  */
 @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
-public class ExoVideoView extends AspectTextureView implements VideoViewApi, AudioCapabilitiesReceiver.Listener, AspectTextureView.OnSizeChangeListener  {
+public class ExoVideoView extends ResizingTextureView implements VideoViewApi, AudioCapabilitiesReceiver.Listener, ResizingTextureView.OnSizeChangeListener  {
     protected static final String USER_AGENT_FORMAT = "EMVideoView %s / Android %s / %s";
 
     protected EMExoPlayer emExoPlayer;
@@ -235,8 +235,10 @@ public class ExoVideoView extends AspectTextureView implements VideoViewApi, Aud
     }
 
     @Override
-    public void updateAspectRatio(float aspectRatio) {
-        setAspectRatio(aspectRatio);
+    public void onVideoSizeChanged(int width, int height) {
+        if (updateVideoSize(width, height)) {
+            requestLayout();
+        }
     }
 
     @Override
@@ -253,6 +255,7 @@ public class ExoVideoView extends AspectTextureView implements VideoViewApi, Aud
         emExoPlayer.setMetadataListener(null);
         setSurfaceTextureListener(new EMExoVideoSurfaceTextureListener());
         setOnSizeChangeListener(this);
+        updateVideoSize(0, 0);
     }
 
     /**

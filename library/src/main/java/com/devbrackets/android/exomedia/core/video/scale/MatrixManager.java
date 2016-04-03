@@ -26,6 +26,7 @@ public class MatrixManager {
         intrinsicVideoSize.y = height;
     }
 
+    //TODO: make sure the rotate and scale don't wipe out the previous transformations
     public void rotate(@NonNull TextureView view, @IntRange(from = 0, to = 359) int rotation) {
         float xCenter = (float)view.getWidth() / 2F;
         float yCenter = (float)view.getHeight() / 2F;

@@ -22,6 +22,7 @@ import android.content.Context;
 import android.content.res.Configuration;
 import android.graphics.Point;
 import android.os.Build;
+import android.support.annotation.IntRange;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
@@ -174,6 +175,17 @@ public class ResizingTextureView extends TextureView {
         if (matrixManager.ready()) {
             matrixManager.scale(this, scaleType);
         }
+    }
+
+    /**
+     * Sets the rotation for the Video
+     *
+     * @param rotation The rotation to apply to the video
+     * @param fromUser True if the rotation was requested by the user, false if it is from a video configuration
+     */
+    public void setVideoRotation(@IntRange(from = 0, to = 359) int rotation, boolean fromUser) {
+        //todo: make sure to combine the fromUser and !fromUser values
+        matrixManager.rotate(this, rotation);
     }
 
     protected void updateScaleOnLayout() {

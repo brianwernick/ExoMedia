@@ -19,12 +19,14 @@ package com.devbrackets.android.exomedia.core.api;
 import android.net.Uri;
 import android.support.annotation.FloatRange;
 import android.support.annotation.IntRange;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.view.View;
 
 import com.devbrackets.android.exomedia.annotation.TrackRenderType;
 import com.devbrackets.android.exomedia.core.EMListenerMux;
 import com.devbrackets.android.exomedia.core.builder.RenderBuilder;
+import com.devbrackets.android.exomedia.core.video.scale.ScaleType;
 import com.google.android.exoplayer.MediaFormat;
 
 import java.util.List;
@@ -90,11 +92,21 @@ public interface VideoViewApi {
     @Nullable
     Map<Integer, List<MediaFormat>> getAvailableTracks();
 
+    void setScaleType(@NonNull ScaleType scaleType);
+
+    /**
+     * Sets the rotation for the Video
+     *
+     * @param rotation The rotation to apply to the video
+     * @param fromUser True if the rotation was requested by the user, false if it is from a video configuration
+     */
+    void setVideoRotation(@IntRange(from = 0, to = 359) int rotation, boolean fromUser);
+
     void setOnTouchListener(View.OnTouchListener listener);
 
     void setListenerMux(EMListenerMux listenerMux);
 
-    void updateAspectRatio(float aspectRatio);
+    void onVideoSizeChanged(int width, int height);
 
     void setOnSizeChangedListener(@Nullable OnSurfaceSizeChanged listener);
 }

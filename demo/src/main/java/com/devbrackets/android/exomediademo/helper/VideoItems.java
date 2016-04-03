@@ -19,8 +19,6 @@ public class VideoItems {
         items.add(new VideoItem("Smooth Stream - Caminandes: Llama Drama by Blender", "http://amssamples.streaming.mediaservices.windows.net/634cd01c-6822-4630-8444-8dd6279f94c6/CaminandesLlamaDrama4K.ism/manifest"));
         items.add(new VideoItem("Smooth Stream - Tears of Steel Teaser by Blender", "http://amssamples.streaming.mediaservices.windows.net/3d7eaff9-39fa-442f-81cc-f2ea7db1797e/TearsOfSteelTeaser.ism/manifest"));
         items.add(new VideoItem("WEBM - Big Buck Bunny", "http://video.webmfiles.org/big-buck-bunny_trailer.webm"));
-
-        items.add(new VideoItem("Rotation issue test", "https://dl.dropboxusercontent.com/s/8evvodziythdnw2/20160206_235342.mp4")); //TODO remove
     }
 
     public static List<VideoItem> getItems() {

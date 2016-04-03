@@ -839,10 +839,8 @@ public class EMVideoView extends RelativeLayout {
         @Override
         @SuppressWarnings("SuspiciousNameCombination")
         public void onVideoSizeChanged(int width, int height, int unAppliedRotationDegrees, float pixelWidthHeightRatio) {
-            //Applies the rotation when necessary (Lollipop+ will never be unApplied)
-            if (unAppliedRotationDegrees != 0) {
-                videoViewImpl.setVideoRotation(unAppliedRotationDegrees, false);
-            }
+            //NOTE: Android 5.0+ will always have an unAppliedRotationDegrees of 0 (ExoPlayer already handles it)
+            videoViewImpl.setVideoRotation(unAppliedRotationDegrees, false);
 
             //If we applied a rotation make sure to update the width, height, and ratio
             if (unAppliedRotationDegrees == ROTATION_90 || unAppliedRotationDegrees == ROTATION_270) {

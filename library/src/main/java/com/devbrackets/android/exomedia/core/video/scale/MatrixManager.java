@@ -30,7 +30,8 @@ public class MatrixManager {
         float xCenter = (float)view.getWidth() / 2F;
         float yCenter = (float)view.getHeight() / 2F;
 
-        Matrix transformMatrix = new Matrix(view.getMatrix());
+        Matrix transformMatrix = new Matrix();
+        view.getTransform(transformMatrix);
         transformMatrix.postRotate(rotation, xCenter, yCenter);
         view.setTransform(transformMatrix);
     }
@@ -53,7 +54,8 @@ public class MatrixManager {
             return false;
         }
 
-        Matrix transformMatrix = new Matrix(view.getMatrix());
+        Matrix transformMatrix = new Matrix();
+        view.getTransform(transformMatrix);
         switch (scaleType) {
             case CENTER:
                 applyCenter(view, transformMatrix);
@@ -66,6 +68,9 @@ public class MatrixManager {
                 break;
             case FIT_CENTER:
                 applyFitCenter(view, transformMatrix);
+                break;
+            case NONE:
+                transformMatrix.setScale(1, 1);
                 break;
         }
 

@@ -94,6 +94,8 @@ public interface VideoViewApi {
 
     void setScaleType(@NonNull ScaleType scaleType);
 
+    ScaleType getScaleType();
+
     void setMeasureBasedOnAspectRatioEnabled(boolean doNotMeasureBasedOnAspectRatio);
 
     /**

@@ -649,6 +649,12 @@ public class EMVideoView extends RelativeLayout {
      */
     public void setScaleType(@NonNull ScaleType scaleType) {
         videoViewImpl.setScaleType(scaleType);
+
+        int width = getWidth();
+        int height = getHeight();
+        if(width > 0 && height > 0) {
+            updateVideoShutters(width, height, videoViewImpl.getWidth(), videoViewImpl.getHeight());
+        }
     }
 
   /**
@@ -807,11 +813,19 @@ public class EMVideoView extends RelativeLayout {
     }
 
     protected int calculateVerticalShutterSize(int viewHeight, int videoHeight) {
+        if(videoViewImpl.getScaleType() == ScaleType.CENTER_CROP) {
+            return 0;
+        }
+
         int shutterSize = (viewHeight - videoHeight) / 2;
         return (viewHeight - videoHeight) % 2 == 0 ? shutterSize : shutterSize + 1;
     }
 
     protected int calculateSideShutterSize(int viewWidth, int videoWidth) {
+        if(videoViewImpl.getScaleType() == ScaleType.CENTER_CROP) {
+            return 0;
+        }
+
         int shutterSize = (viewWidth - videoWidth) / 2;
         return (viewWidth - videoWidth) % 2 == 0 ? shutterSize : shutterSize + 1;
     }

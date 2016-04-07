@@ -82,7 +82,7 @@ public class ResizingTextureView extends TextureView {
     protected Point videoSize = new Point(0, 0);
 
     @NonNull
-    protected ScaleType currentScaleType = ScaleType.CENTER_INSIDE;
+    protected ScaleType currentScaleType = ScaleType.NONE;
     @NonNull
     protected MatrixManager matrixManager = new MatrixManager();
 
@@ -91,7 +91,7 @@ public class ResizingTextureView extends TextureView {
     @IntRange(from = 0, to = 359)
     protected int requestedConfigurationRotation = 0;
 
-    protected boolean measureBasedOnAspectRatioEnabled;
+    private boolean measureBasedOnAspectRatioEnabled;
 
     public ResizingTextureView(Context context) {
         super(context);
@@ -114,6 +114,7 @@ public class ResizingTextureView extends TextureView {
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         if(!measureBasedOnAspectRatioEnabled) {
             super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+            notifyOnSizeChangeListener(getMeasuredWidth(), getMeasuredHeight());
             return;
         }
 
@@ -218,6 +219,10 @@ public class ResizingTextureView extends TextureView {
         if (matrixManager.ready()) {
             matrixManager.scale(this, scaleType);
         }
+    }
+
+    public ScaleType getScaleType() {
+        return currentScaleType;
     }
 
     public void setMeasureBasedOnAspectRatioEnabled(boolean measureBasedOnAspectRatioEnabled) {

@@ -27,8 +27,8 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
 import android.view.TextureView;
+import android.view.View;
 import android.view.ViewTreeObserver;
-
 import com.devbrackets.android.exomedia.core.video.scale.MatrixManager;
 import com.devbrackets.android.exomedia.core.video.scale.ScaleType;
 
@@ -39,6 +39,35 @@ import com.devbrackets.android.exomedia.core.video.scale.ScaleType;
 @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
 public class ResizingTextureView extends TextureView {
     protected static final int MAX_DEGREES = 360;
+
+    private boolean addGlobalLayoutListenerRequested;
+    private final Object globalLayoutListenerLock = new Object();
+
+    private final OnAttachStateChangeListener attachStateChangeListener = new OnAttachStateChangeListener() {
+        @Override
+        public void onViewAttachedToWindow(View v) {
+            removeOnAttachStateChangeListener(this);
+
+            synchronized (globalLayoutListenerLock) {
+                if(addGlobalLayoutListenerRequested) {
+                    addGlobalLayoutListenerRequested = false;
+                    getViewTreeObserver().addOnGlobalLayoutListener(globalLayoutListener);
+                }
+            }
+        }
+
+        @Override
+        public void onViewDetachedFromWindow(View v) {}
+    };
+
+    private final ViewTreeObserver.OnGlobalLayoutListener globalLayoutListener = new ViewTreeObserver.OnGlobalLayoutListener() {
+        @Override
+        public void onGlobalLayout() {
+            setScaleType(currentScaleType);
+            setVideoRotation(requestedUserRotation, requestedConfigurationRotation);
+            getViewTreeObserver().removeOnGlobalLayoutListener(this);
+        }
+    };
 
     public interface OnSizeChangeListener {
         void onVideoSurfaceSizeChange(int width, int height);
@@ -204,14 +233,15 @@ public class ResizingTextureView extends TextureView {
     }
 
     protected void updateMatrixOnLayout() {
-        getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
-            @Override
-            public void onGlobalLayout() {
-                setScaleType(currentScaleType);
-                setVideoRotation(requestedUserRotation, requestedConfigurationRotation);
-                getViewTreeObserver().removeOnGlobalLayoutListener(this);
+        synchronized (globalLayoutListenerLock) {
+            // if we're not attached defer adding the layout listener until we are
+            if(getWindowToken() == null) {
+                addGlobalLayoutListenerRequested = true;
+                addOnAttachStateChangeListener(attachStateChangeListener);
+            } else {
+                getViewTreeObserver().addOnGlobalLayoutListener(globalLayoutListener);
             }
-        });
+        }
     }
 
     protected void notifyOnSizeChangeListener(int width, int height) {

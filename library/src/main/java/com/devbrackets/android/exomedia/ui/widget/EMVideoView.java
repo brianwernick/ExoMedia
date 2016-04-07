@@ -651,6 +651,15 @@ public class EMVideoView extends RelativeLayout {
         videoViewImpl.setScaleType(scaleType);
     }
 
+  /**
+   * Measures the underlying {@link VideoViewApi} using the video's aspect ratio if {@code true}
+   *
+   * @param measureBasedOnAspectRatioEnabled whether to measure using the video's aspect ratio or not
+   */
+  public void setMeasureBasedOnAspectRatioEnabled(boolean measureBasedOnAspectRatioEnabled) {
+        videoViewImpl.setMeasureBasedOnAspectRatioEnabled(measureBasedOnAspectRatioEnabled);
+    }
+
     /**
      * Sets the rotation for the Video
      *

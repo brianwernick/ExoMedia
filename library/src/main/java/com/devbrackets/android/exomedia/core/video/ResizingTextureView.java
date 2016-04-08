@@ -82,7 +82,7 @@ public class ResizingTextureView extends TextureView {
     protected Point videoSize = new Point(0, 0);
 
     @NonNull
-    protected ScaleType currentScaleType = ScaleType.NONE;
+    protected ScaleType currentScaleType = ScaleType.FIT_CENTER;
     @NonNull
     protected MatrixManager matrixManager = new MatrixManager();
 

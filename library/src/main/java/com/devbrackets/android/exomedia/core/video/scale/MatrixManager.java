@@ -30,7 +30,8 @@ public class MatrixManager {
         float xCenter = (float)view.getWidth() / 2F;
         float yCenter = (float)view.getHeight() / 2F;
 
-        Matrix transformMatrix = new Matrix(view.getMatrix());
+        Matrix transformMatrix = new Matrix();
+        view.getTransform(transformMatrix);
         transformMatrix.postRotate(rotation, xCenter, yCenter);
         view.setTransform(transformMatrix);
     }
@@ -53,7 +54,8 @@ public class MatrixManager {
             return false;
         }
 
-        Matrix transformMatrix = new Matrix(view.getMatrix());
+        Matrix transformMatrix = new Matrix();
+        view.getTransform(transformMatrix);
         switch (scaleType) {
             case CENTER:
                 applyCenter(view, transformMatrix);
@@ -66,6 +68,9 @@ public class MatrixManager {
                 break;
             case FIT_CENTER:
                 applyFitCenter(view, transformMatrix);
+                break;
+            case NONE:
+                transformMatrix.setScale(1, 1);
                 break;
         }
 
@@ -82,7 +87,10 @@ public class MatrixManager {
      * @param transformMatrix The matrix to add the transformation to
      */
     protected void applyCenter(@NonNull TextureView view, @NonNull Matrix transformMatrix) {
-        applyScale(view, transformMatrix, 1, 1);
+        float xScale = (float) intrinsicVideoSize.x / view.getWidth();
+        float yScale = (float) intrinsicVideoSize.y / view.getHeight();
+
+        applyScale(view, transformMatrix, xScale, yScale);
     }
 
     /**
@@ -97,7 +105,9 @@ public class MatrixManager {
         float yScale = (float)view.getHeight() / intrinsicVideoSize.y;
 
         float scale = Math.max(xScale, yScale);
-        applyScale(view, transformMatrix, scale, scale);
+        xScale = scale / xScale;
+        yScale = scale / yScale;
+        applyScale(view, transformMatrix, xScale, yScale);
     }
 
     /**
@@ -109,14 +119,11 @@ public class MatrixManager {
      * @param transformMatrix The matrix to add the transformation to
      */
     protected void applyCenterInside(@NonNull TextureView view, @NonNull Matrix transformMatrix) {
-        float xScale = (float)view.getWidth() / intrinsicVideoSize.x;
-        float yScale = (float)view.getHeight() / intrinsicVideoSize.y;
-
-        //We min the resulting scale with 1 to make sure we aren't increasing the size
-        float scale = Math.min(xScale, yScale);
-        scale = Math.min(scale, 1F);
-
-        applyScale(view, transformMatrix, scale, scale);
+        if(intrinsicVideoSize.y <= view.getWidth() && intrinsicVideoSize.x <= view.getHeight()) {
+            applyCenter(view, transformMatrix);
+        } else {
+            applyFitCenter(view, transformMatrix);
+        }
     }
 
     /**
@@ -131,7 +138,9 @@ public class MatrixManager {
         float yScale = (float)view.getHeight() / intrinsicVideoSize.y;
 
         float scale = Math.min(xScale, yScale);
-        applyScale(view, transformMatrix, scale, scale);
+        xScale = scale / xScale;
+        yScale = scale / yScale;
+        applyScale(view, transformMatrix, xScale, yScale);
     }
 
     protected void applyScale(@NonNull TextureView view, @NonNull Matrix transformMatrix, float xScale, float yScale) {

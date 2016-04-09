@@ -195,9 +195,6 @@ public class TextureVideoView extends ResizingTextureView implements MediaContro
         }
 
         playRequested = false;
-        AudioManager am = (AudioManager) getContext().getApplicationContext().getSystemService(Context.AUDIO_SERVICE);
-        am.abandonAudioFocus(null);
-
         clearSurface();
     }
 
@@ -212,8 +209,6 @@ public class TextureVideoView extends ResizingTextureView implements MediaContro
         }
 
         playRequested = false;
-        AudioManager am = (AudioManager) getContext().getApplicationContext().getSystemService(Context.AUDIO_SERVICE);
-        am.abandonAudioFocus(null);
     }
 
     /**
@@ -319,9 +314,6 @@ public class TextureVideoView extends ResizingTextureView implements MediaContro
         if (uri == null) {
             return;
         }
-
-        AudioManager am = (AudioManager) getContext().getApplicationContext().getSystemService(Context.AUDIO_SERVICE);
-        am.requestAudioFocus(null, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN);
 
         currentBufferPercent = 0;
 

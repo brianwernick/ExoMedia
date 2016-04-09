@@ -9,4 +9,5 @@ public enum ScaleType {
     CENTER_CROP,
     CENTER_INSIDE,
     FIT_CENTER,
+    NONE
 }

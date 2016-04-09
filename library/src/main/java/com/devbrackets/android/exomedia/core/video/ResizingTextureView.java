@@ -29,8 +29,8 @@ import android.support.annotation.Nullable;
 import android.util.AttributeSet;
 import android.view.Surface;
 import android.view.TextureView;
+import android.view.View;
 import android.view.ViewTreeObserver;
-
 import com.devbrackets.android.exomedia.core.video.scale.MatrixManager;
 import com.devbrackets.android.exomedia.core.video.scale.ScaleType;
 
@@ -47,6 +47,35 @@ import javax.microedition.khronos.egl.EGLSurface;
 @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
 public class ResizingTextureView extends TextureView {
     protected static final int MAX_DEGREES = 360;
+
+    private boolean addGlobalLayoutListenerRequested;
+    private final Object globalLayoutListenerLock = new Object();
+
+    private final OnAttachStateChangeListener attachStateChangeListener = new OnAttachStateChangeListener() {
+        @Override
+        public void onViewAttachedToWindow(View v) {
+            removeOnAttachStateChangeListener(this);
+
+            synchronized (globalLayoutListenerLock) {
+                if(addGlobalLayoutListenerRequested) {
+                    addGlobalLayoutListenerRequested = false;
+                    getViewTreeObserver().addOnGlobalLayoutListener(globalLayoutListener);
+                }
+            }
+        }
+
+        @Override
+        public void onViewDetachedFromWindow(View v) {}
+    };
+
+    private final ViewTreeObserver.OnGlobalLayoutListener globalLayoutListener = new ViewTreeObserver.OnGlobalLayoutListener() {
+        @Override
+        public void onGlobalLayout() {
+            setScaleType(currentScaleType);
+            setVideoRotation(requestedUserRotation, requestedConfigurationRotation);
+            getViewTreeObserver().removeOnGlobalLayoutListener(this);
+        }
+    };
 
     /**
      * A version of the EGL14.EGL_CONTEXT_CLIENT_VERSION so that we can
@@ -96,7 +125,7 @@ public class ResizingTextureView extends TextureView {
     protected Point videoSize = new Point(0, 0);
 
     @NonNull
-    protected ScaleType currentScaleType = ScaleType.CENTER_INSIDE;
+    protected ScaleType currentScaleType = ScaleType.FIT_CENTER;
     @NonNull
     protected MatrixManager matrixManager = new MatrixManager();
 
@@ -107,6 +136,8 @@ public class ResizingTextureView extends TextureView {
 
     @Nullable
     Surface surface;
+
+    private boolean measureBasedOnAspectRatioEnabled;
 
     public ResizingTextureView(Context context) {
         super(context);
@@ -127,6 +158,12 @@ public class ResizingTextureView extends TextureView {
 
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+        if(!measureBasedOnAspectRatioEnabled) {
+            super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+            notifyOnSizeChangeListener(getMeasuredWidth(), getMeasuredHeight());
+            return;
+        }
+
         int width = getDefaultSize(videoSize.x, widthMeasureSpec);
         int height = getDefaultSize(videoSize.y, heightMeasureSpec);
 
@@ -224,32 +261,6 @@ public class ResizingTextureView extends TextureView {
         gl10.eglTerminate(display);
     }
 
-    public void setScaleType(@NonNull ScaleType scaleType) {
-        currentScaleType = scaleType;
-        if (matrixManager.ready()) {
-            matrixManager.scale(this, scaleType);
-        }
-    }
-
-    /**
-     * Sets the rotation for the Video
-     *
-     * @param rotation The rotation to apply to the video
-     * @param fromUser True if the rotation was requested by the user, false if it is from a video configuration
-     */
-    public void setVideoRotation(@IntRange(from = 0, to = 359) int rotation, boolean fromUser) {
-        setVideoRotation(fromUser ? rotation : requestedUserRotation, !fromUser ? rotation : requestedConfigurationRotation);
-    }
-
-    public void setVideoRotation(@IntRange(from = 0, to = 359) int userRotation, @IntRange(from = 0, to = 359) int configurationRotation) {
-        requestedUserRotation = userRotation;
-        requestedConfigurationRotation = configurationRotation;
-
-        if (matrixManager.ready()) {
-            matrixManager.rotate(this, (userRotation + configurationRotation) % MAX_DEGREES);
-        }
-    }
-
     /**
      * Updates the stored videoSize and updates the default buffer size
      * in the backing texture view.
@@ -276,15 +287,51 @@ public class ResizingTextureView extends TextureView {
         return true;
     }
 
+    public void setScaleType(@NonNull ScaleType scaleType) {
+        currentScaleType = scaleType;
+        if (matrixManager.ready()) {
+            matrixManager.scale(this, scaleType);
+        }
+    }
+
+    public ScaleType getScaleType() {
+        return currentScaleType;
+    }
+
+    public void setMeasureBasedOnAspectRatioEnabled(boolean measureBasedOnAspectRatioEnabled) {
+        this.measureBasedOnAspectRatioEnabled = measureBasedOnAspectRatioEnabled;
+        requestLayout();
+    }
+
+    /**
+     * Sets the rotation for the Video
+     *
+     * @param rotation The rotation to apply to the video
+     * @param fromUser True if the rotation was requested by the user, false if it is from a video configuration
+     */
+    public void setVideoRotation(@IntRange(from = 0, to = 359) int rotation, boolean fromUser) {
+        setVideoRotation(fromUser ? rotation : requestedUserRotation, !fromUser ? rotation : requestedConfigurationRotation);
+    }
+
+    public void setVideoRotation(@IntRange(from = 0, to = 359) int userRotation, @IntRange(from = 0, to = 359) int configurationRotation) {
+        requestedUserRotation = userRotation;
+        requestedConfigurationRotation = configurationRotation;
+
+        if (matrixManager.ready()) {
+            matrixManager.rotate(this, (userRotation + configurationRotation) % MAX_DEGREES);
+        }
+    }
+
     protected void updateMatrixOnLayout() {
-        getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
-            @Override
-            public void onGlobalLayout() {
-                setScaleType(currentScaleType);
-                setVideoRotation(requestedUserRotation, requestedConfigurationRotation);
-                getViewTreeObserver().removeOnGlobalLayoutListener(this);
+        synchronized (globalLayoutListenerLock) {
+            // if we're not attached defer adding the layout listener until we are
+            if(getWindowToken() == null) {
+                addGlobalLayoutListenerRequested = true;
+                addOnAttachStateChangeListener(attachStateChangeListener);
+            } else {
+                getViewTreeObserver().addOnGlobalLayoutListener(globalLayoutListener);
             }
-        });
+        }
     }
 
     protected void notifyOnSizeChangeListener(int width, int height) {

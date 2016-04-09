@@ -69,6 +69,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 @SuppressWarnings("unused")
 public class EMExoPlayer implements
@@ -105,6 +106,8 @@ public class EMExoPlayer implements
     private final ExoPlayer player;
     private final Handler mainHandler;
     private final CopyOnWriteArrayList<ExoPlayerListener> listeners;
+
+    private final AtomicBoolean stopped = new AtomicBoolean();
 
     private RenderBuildingState rendererBuildingState;
     private StateStore stateStore = new StateStore();
@@ -275,6 +278,8 @@ public class EMExoPlayer implements
 
         rendererBuilder.buildRenderers(this);
         prepared = true;
+
+        stopped.set(false);
     }
 
     public void onRenderers(TrackRenderer[] renderers, @Nullable BandwidthMeter bandwidthMeter) {
@@ -308,8 +313,10 @@ public class EMExoPlayer implements
     }
 
     public void stop() {
-        player.setPlayWhenReady(false);
-        player.stop();
+        if(!stopped.getAndSet(true)) {
+            player.setPlayWhenReady(false);
+            player.stop();
+        }
     }
 
     public void setPlayWhenReady(boolean playWhenReady) {

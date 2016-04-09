@@ -94,6 +94,10 @@ public interface VideoViewApi {
 
     void setScaleType(@NonNull ScaleType scaleType);
 
+    ScaleType getScaleType();
+
+    void setMeasureBasedOnAspectRatioEnabled(boolean doNotMeasureBasedOnAspectRatio);
+
     /**
      * Sets the rotation for the Video
      *

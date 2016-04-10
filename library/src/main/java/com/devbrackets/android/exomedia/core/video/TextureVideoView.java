@@ -195,7 +195,6 @@ public class TextureVideoView extends ResizingTextureView implements MediaContro
         }
 
         playRequested = false;
-        clearSurface();
     }
 
     public void suspend() {

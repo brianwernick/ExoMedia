@@ -157,7 +157,7 @@ public class ExoVideoView extends ResizingTextureView implements VideoViewApi, A
     public void stopPlayback() {
         emExoPlayer.stop();
         playRequested = false;
-        clearSurface();
+        listenerMux.clearSurfaceWhenReady(this);
     }
 
     @Override

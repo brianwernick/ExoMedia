@@ -141,6 +141,12 @@ public class NativeVideoView extends TextureVideoView implements VideoViewApi {
     }
 
     @Override
+    public void stopPlayback() {
+        super.stopPlayback();
+        listenerMux.clearSurfaceWhenReady(this);
+    }
+
+    @Override
     public void release() {
         //Purposefully left blank
     }

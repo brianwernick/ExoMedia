@@ -21,7 +21,6 @@ import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.res.Configuration;
 import android.graphics.Point;
-import android.opengl.GLES20;
 import android.os.Build;
 import android.support.annotation.IntRange;
 import android.support.annotation.NonNull;
@@ -234,10 +233,6 @@ public class ResizingTextureView extends TextureView {
         EGLSurface eglSurface = gl10.eglCreateWindowSurface(display, configs[0], surface, new int[] { EGL10.EGL_NONE });
 
         gl10.eglMakeCurrent(display, eglSurface, eglSurface, context);
-
-        GLES20.glClearColor(0, 0, 0, 1);
-        GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
-
         gl10.eglSwapBuffers(display, eglSurface);
         gl10.eglDestroySurface(display, eglSurface);
         gl10.eglMakeCurrent(display, EGL10.EGL_NO_SURFACE, EGL10.EGL_NO_SURFACE, EGL10.EGL_NO_CONTEXT);

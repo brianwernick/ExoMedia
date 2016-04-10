@@ -23,12 +23,15 @@ import android.support.annotation.Nullable;
 
 import com.devbrackets.android.exomedia.core.exoplayer.EMExoPlayer;
 import com.devbrackets.android.exomedia.core.listener.ExoPlayerListener;
+import com.devbrackets.android.exomedia.core.video.ResizingTextureView;
 import com.devbrackets.android.exomedia.listener.OnBufferUpdateListener;
 import com.devbrackets.android.exomedia.listener.OnCompletionListener;
 import com.devbrackets.android.exomedia.listener.OnErrorListener;
 import com.devbrackets.android.exomedia.listener.OnPreparedListener;
 import com.devbrackets.android.exomedia.listener.OnSeekCompletionListener;
 import com.google.android.exoplayer.ExoPlayer;
+
+import java.lang.ref.WeakReference;
 
 /**
  * An internal Listener that implements the listeners for the {@link EMExoPlayer},
@@ -56,8 +59,12 @@ public class EMListenerMux implements ExoPlayerListener, MediaPlayer.OnPreparedL
     @Nullable
     private OnErrorListener errorListener;
 
+    @NonNull
+    private WeakReference<ResizingTextureView> clearTextureView = new WeakReference<>(null);
+
     private boolean notifiedPrepared = false;
     private boolean notifiedCompleted = false;
+    private boolean clearRequested = false;
 
     public EMListenerMux(@NonNull EMListenerMuxNotifier notifier) {
         muxNotifier = notifier;
@@ -119,6 +126,17 @@ public class EMListenerMux implements ExoPlayerListener, MediaPlayer.OnPreparedL
         if (playbackState == ExoPlayer.STATE_READY && playWhenReady) {
             muxNotifier.onPreviewImageStateChanged(false);
         }
+
+        //Clears the textureView when requested
+        if (playbackState == ExoPlayer.STATE_IDLE && clearRequested) {
+            clearRequested = false;
+            ResizingTextureView textureView = clearTextureView.get();
+
+            if (textureView != null) {
+                textureView.clearSurface();
+                clearTextureView = new WeakReference<>(null);
+            }
+        }
     }
 
     @Override
@@ -131,6 +149,17 @@ public class EMListenerMux implements ExoPlayerListener, MediaPlayer.OnPreparedL
     @Override
     public void onVideoSizeChanged(int width, int height, int unAppliedRotationDegrees, float pixelWidthHeightRatio) {
         muxNotifier.onVideoSizeChanged(width, height, unAppliedRotationDegrees, pixelWidthHeightRatio);
+    }
+
+    /**
+     * Specifies the surface to clear when the playback reaches an appropriate state.
+     * Once the <code>textureView</code> is cleared, the reference will be removed
+     *
+     * @param textureView The {@link ResizingTextureView} to clear when the playback reaches an appropriate state
+     */
+    public void clearSurfaceWhenReady(@Nullable ResizingTextureView textureView) {
+        clearRequested = true;
+        clearTextureView = new WeakReference<>(textureView);
     }
 
     /**

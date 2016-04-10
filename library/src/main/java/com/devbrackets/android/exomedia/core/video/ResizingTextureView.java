@@ -26,6 +26,7 @@ import android.support.annotation.IntRange;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
+import android.view.Surface;
 import android.view.TextureView;
 import android.view.View;
 import android.view.ViewTreeObserver;
@@ -35,6 +36,12 @@ import com.devbrackets.android.exomedia.core.video.scale.ScaleType;
 
 import java.util.concurrent.locks.ReentrantLock;
 
+import javax.microedition.khronos.egl.EGL10;
+import javax.microedition.khronos.egl.EGLConfig;
+import javax.microedition.khronos.egl.EGLContext;
+import javax.microedition.khronos.egl.EGLDisplay;
+import javax.microedition.khronos.egl.EGLSurface;
+
 /**
  * A TextureView that reSizes itself according to the requested layout type
  * once we have a video
@@ -42,6 +49,41 @@ import java.util.concurrent.locks.ReentrantLock;
 @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
 public class ResizingTextureView extends TextureView {
     protected static final int MAX_DEGREES = 360;
+
+    /**
+     * A version of the EGL14.EGL_CONTEXT_CLIENT_VERSION so that we can
+     * reference it without being on API 17+
+     */
+    private static final int EGL_CONTEXT_CLIENT_VERSION = 0x3098;
+
+    /**
+     * Because the TextureView itself doesn't contain a method to clear the surface
+     * we need to use GL to perform teh clear ourselves.  This means initializing
+     * a GL context, and specifying attributes.  This is the attribute list for
+     * the configuration of that context
+     */
+    @SuppressWarnings("MismatchedReadAndWriteOfArray")
+    private static final int[] GL_CLEAR_CONFIG_ATTRIBUTES = {
+            EGL10.EGL_RED_SIZE, 8,
+            EGL10.EGL_GREEN_SIZE, 8,
+            EGL10.EGL_BLUE_SIZE, 8,
+            EGL10.EGL_ALPHA_SIZE, 8,
+            EGL10.EGL_RENDERABLE_TYPE, EGL10.EGL_WINDOW_BIT,
+            EGL10.EGL_NONE, 0,
+            EGL10.EGL_NONE
+    };
+
+    /**
+     * Because the TextureView itself doesn't contain a method to clear the surface
+     * we need to use GL to perform teh clear ourselves.  This means initializing
+     * a GL context, and specifying attributes.  This is the attribute list for
+     * that context
+     */
+    @SuppressWarnings("MismatchedReadAndWriteOfArray")
+    private static final int[] GL_CLEAR_CONTEXT_ATTRIBUTES = {
+            EGL_CONTEXT_CLIENT_VERSION, 2,
+            EGL10.EGL_NONE
+    };
 
     public interface OnSizeChangeListener {
         void onVideoSurfaceSizeChange(int width, int height);
@@ -55,6 +97,8 @@ public class ResizingTextureView extends TextureView {
     @NonNull
     protected Point videoSize = new Point(0, 0);
 
+    @Nullable
+    protected Surface surface;
     @NonNull
     protected ScaleType currentScaleType = ScaleType.FIT_CENTER;
     @NonNull
@@ -172,6 +216,29 @@ public class ResizingTextureView extends TextureView {
      */
     public void setOnSizeChangeListener(@Nullable OnSizeChangeListener listener) {
         this.onSizeChangeListener = listener;
+    }
+
+    public void clearSurface() {
+        if (surface == null) {
+            return;
+        }
+
+        EGL10 gl10 = (EGL10) EGLContext.getEGL();
+        EGLDisplay display = gl10.eglGetDisplay(EGL10.EGL_DEFAULT_DISPLAY);
+        gl10.eglInitialize(display, null);
+
+        EGLConfig[] configs = new EGLConfig[1];
+        gl10.eglChooseConfig(display, GL_CLEAR_CONFIG_ATTRIBUTES, configs, configs.length, new int[1]);
+        EGLContext context = gl10.eglCreateContext(display, configs[0], EGL10.EGL_NO_CONTEXT, GL_CLEAR_CONTEXT_ATTRIBUTES);
+        EGLSurface eglSurface = gl10.eglCreateWindowSurface(display, configs[0], surface, new int[] { EGL10.EGL_NONE });
+
+        gl10.eglMakeCurrent(display, eglSurface, eglSurface, context);
+        gl10.eglSwapBuffers(display, eglSurface);
+        gl10.eglDestroySurface(display, eglSurface);
+        gl10.eglMakeCurrent(display, EGL10.EGL_NO_SURFACE, EGL10.EGL_NO_SURFACE, EGL10.EGL_NO_CONTEXT);
+        gl10.eglDestroyContext(display, context);
+
+        gl10.eglTerminate(display);
     }
 
     /**

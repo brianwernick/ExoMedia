@@ -8,7 +8,8 @@ import android.widget.AdapterView;
 import android.widget.ListView;
 
 import com.devbrackets.android.exomediademo.R;
-import com.devbrackets.android.exomediademo.adapter.AudioSelectionListAdapter;
+import com.devbrackets.android.exomediademo.adapter.SampleListAdapter;
+import com.devbrackets.android.exomediademo.data.Samples;
 
 /**
  * A simple activity that allows the user to select a
@@ -27,7 +28,7 @@ public class AudioSelectionActivity extends AppCompatActivity implements Adapter
         }
 
         ListView exampleList = (ListView) findViewById(R.id.selection_activity_list);
-        exampleList.setAdapter(new AudioSelectionListAdapter(this));
+        exampleList.setAdapter(new SampleListAdapter(this, Samples.getAudioSamples()));
         exampleList.setOnItemClickListener(this);
     }
 

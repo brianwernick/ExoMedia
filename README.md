@@ -87,8 +87,9 @@ License
 
 Attribution
 -----------
-Uses [Material Design icons][Design Icons] icons by Google licensed under [Creative Commons 4.0][CC 4.0]  
-Uses [ExoPlayer][ExoPlayer] by Google licensed under [Apache 2.0][Apache 2.0]
+* Uses [AppCompat-v7](http://developer.android.com/tools/support-library/features.html#v7-appcompat) licensed under [Apache 2.0][Apache 2.0]
+* Uses [ExoPlayer][ExoPlayer] licensed under [Apache 2.0][Apache 2.0]
+* Uses [Material Design icons][Design Icons] licensed under [Creative Commons 4.0][CC 4.0]  
 
  [Apache 2.0]: http://www.apache.org/licenses/LICENSE-2.0
  [CC 4.0]: http://creativecommons.org/licenses/by/4.0/

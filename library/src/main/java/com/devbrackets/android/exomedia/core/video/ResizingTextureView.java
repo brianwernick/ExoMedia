@@ -21,6 +21,7 @@ import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.res.Configuration;
 import android.graphics.Point;
+import android.graphics.SurfaceTexture;
 import android.os.Build;
 import android.support.annotation.IntRange;
 import android.support.annotation.NonNull;
@@ -261,7 +262,13 @@ public class ResizingTextureView extends TextureView {
         }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH_MR1) {
-            getSurfaceTexture().setDefaultBufferSize(width, height);
+            SurfaceTexture surfaceTexture = getSurfaceTexture();
+            if(surfaceTexture != null) {
+                surfaceTexture.setDefaultBufferSize(width, height);
+            }
+            else {
+                return false;
+            }
         }
 
         return true;

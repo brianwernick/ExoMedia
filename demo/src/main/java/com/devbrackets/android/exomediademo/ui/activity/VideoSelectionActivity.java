@@ -8,7 +8,8 @@ import android.widget.AdapterView;
 import android.widget.ListView;
 
 import com.devbrackets.android.exomediademo.R;
-import com.devbrackets.android.exomediademo.adapter.VideoSelectionListAdapter;
+import com.devbrackets.android.exomediademo.adapter.SampleListAdapter;
+import com.devbrackets.android.exomediademo.data.Samples;
 
 /**
  * A simple activity that allows the user to select a
@@ -26,7 +27,7 @@ public class VideoSelectionActivity extends AppCompatActivity implements Adapter
         }
 
         ListView exampleList = (ListView) findViewById(R.id.selection_activity_list);
-        exampleList.setAdapter(new VideoSelectionListAdapter(this));
+        exampleList.setAdapter(new SampleListAdapter(this, Samples.getVideoSamples()));
         exampleList.setOnItemClickListener(this);
     }
 

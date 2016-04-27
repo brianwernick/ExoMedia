@@ -24,8 +24,10 @@ repositories {
 }
 
 dependencies {
-    //...
-    compile 'com.devbrackets.android:exomedia:3.0.0'
+    //stable
+    compile 'com.devbrackets.android:exomedia:2.5.6'
+    //or preview
+    compile 'com.devbrackets.android:exomedia:3.0.0-preview1'
 }
 ```
 
@@ -87,14 +89,15 @@ License
 
 Attribution
 -----------
-Uses [Material Design icons][Design Icons] icons by Google licensed under [Creative Commons 4.0][CC 4.0]  
-Uses [ExoPlayer][ExoPlayer] by Google licensed under [Apache 2.0][Apache 2.0]
+* Uses [AppCompat-v7](http://developer.android.com/tools/support-library/features.html#v7-appcompat) licensed under [Apache 2.0][Apache 2.0]
+* Uses [ExoPlayer][ExoPlayer] licensed under [Apache 2.0][Apache 2.0]
+* Uses [Material Design icons][Design Icons] licensed under [Creative Commons 4.0][CC 4.0]  
 
  [Apache 2.0]: http://www.apache.org/licenses/LICENSE-2.0
  [CC 4.0]: http://creativecommons.org/licenses/by/4.0/
  [CTS]: https://source.android.com/compatibility/cts/index.html
  [Design Icons]: https://github.com/google/material-design-icons
  [ExoPlayer]: https://github.com/google/ExoPlayer
- [Java Docs]: https://devbrackets.com/dev/libs/docs/exomedia/3.0.0/index.html
+ [Java Docs]: https://devbrackets.com/dev/libs/docs/exomedia/2.5.0/index.html
  [JCenter]: https://bintray.com/brianwernick/maven/ExoMedia/view#files
  [Website]: https://devbrackets.com/dev/libs/exomedia.html

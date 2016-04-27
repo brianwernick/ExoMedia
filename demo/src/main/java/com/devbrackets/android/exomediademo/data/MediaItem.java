@@ -1,7 +1,5 @@
 package com.devbrackets.android.exomediademo.data;
 
-import com.devbrackets.android.exomediademo.helper.AudioItems;
-import com.devbrackets.android.exomediademo.helper.VideoItems;
 import com.devbrackets.android.exomediademo.manager.PlaylistManager;
 import com.devbrackets.android.playlistcore.manager.IPlaylistItem;
 
@@ -11,23 +9,12 @@ import com.devbrackets.android.playlistcore.manager.IPlaylistItem;
  */
 public class MediaItem implements IPlaylistItem {
 
-    private String artworkUrl;
-    private String mediaUrl;
-    private String title;
+    private Samples.Sample sample;
     boolean isAudio;
 
-    public MediaItem(AudioItems.AudioItem audioItem) {
-        artworkUrl = audioItem.getArtworkUrl();
-        mediaUrl = audioItem.getMediaUrl();
-        title = audioItem.getTitle();
-        isAudio = true;
-    }
-
-    public MediaItem(VideoItems.VideoItem videoItem) {
-        artworkUrl = null;
-        mediaUrl = videoItem.getMediaUrl();
-        title = videoItem.getTitle();
-        isAudio = false;
+    public MediaItem(Samples.Sample sample, boolean isAudio) {
+        this.sample = sample;
+        this.isAudio = isAudio;
     }
 
     @Override
@@ -47,7 +34,7 @@ public class MediaItem implements IPlaylistItem {
 
     @Override
     public String getMediaUrl() {
-        return mediaUrl;
+        return sample.getMediaUrl();
     }
 
     @Override
@@ -57,17 +44,17 @@ public class MediaItem implements IPlaylistItem {
 
     @Override
     public String getThumbnailUrl() {
-        return artworkUrl;
+        return sample.getArtworkUrl();
     }
 
     @Override
     public String getArtworkUrl() {
-        return artworkUrl;
+        return sample.getArtworkUrl();
     }
 
     @Override
     public String getTitle() {
-        return title;
+        return sample.getTitle();
     }
 
     @Override

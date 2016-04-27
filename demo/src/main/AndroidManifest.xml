@@ -45,7 +45,7 @@
 
 
         <service
-            android:name=".service.AudioService"
+            android:name=".service.MediaService"
             android:enabled="true"
             android:exported="false">
         </service>

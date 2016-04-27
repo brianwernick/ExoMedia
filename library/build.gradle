@@ -2,9 +2,9 @@ apply plugin: 'com.android.library'
 apply plugin: 'maven'
 apply plugin: 'bintray-release'
 
-def versionMajor = 2
-def versionMinor = 5
-def versionPatch = 6
+def versionMajor = 3
+def versionMinor = 0
+def versionPatch = 0
 
 def libraryGroupId = 'com.devbrackets.android'
 def libraryBaseName = 'exomedia'
@@ -23,7 +23,7 @@ android {
     buildToolsVersion '23.0.3'
 
     defaultConfig {
-        minSdkVersion 10
+        minSdkVersion 14
         targetSdkVersion 23
 
         versionCode versionMajor * 10000 + versionMinor * 1000 + versionPatch * 100
@@ -56,7 +56,7 @@ uploadArchives {
             repository (url: "file://${System.env.HOME}/.m2/repository/")
             pom.groupId = libraryGroupId
             pom.artifactId = libraryBaseName
-            pom.version = libraryVersion + "-SNAPSHOT"
+            pom.version = libraryVersion //Normally I would append "-SNAPSHOT" but newer gradle/maven can't always find them
             pom.packaging = 'aar'
             uniqueVersion = false // don't put in a timestamp on the filename (other project will not be able to depend on it)
         }

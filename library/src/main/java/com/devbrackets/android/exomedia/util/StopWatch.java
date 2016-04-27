@@ -164,6 +164,17 @@ public class StopWatch {
     }
 
     /**
+     * Retrieves the current time for the stopwatch.  If the stopwatch is stopped then the
+     * ending time will be returned.
+     *
+     * @return The time in milliseconds
+     */
+    public int getTimeInt() {
+        long time = currentTime + storedTime;
+        return time < Integer.MAX_VALUE ? (int)time : Integer.MAX_VALUE;
+    }
+
+    /**
      * Sets the listener to be notified for each time update (tick)
      *
      * @param listener The listener or null

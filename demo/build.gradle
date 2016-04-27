@@ -4,6 +4,9 @@ dependencies {
     compile project(':library')
     compile 'com.android.support:appcompat-v7:23.3.0'
     compile 'com.squareup.picasso:picasso:2.5.2'
+
+    // Playlist support
+    compile 'com.devbrackets.android:playlistcore:1.0.2'
 }
 
 android {
@@ -12,7 +15,7 @@ android {
 
     defaultConfig {
         applicationId "com.devbrackets.android.exomediademo"
-        minSdkVersion 10
+        minSdkVersion 14
         targetSdkVersion 23
         versionCode 1
         versionName "1.0"

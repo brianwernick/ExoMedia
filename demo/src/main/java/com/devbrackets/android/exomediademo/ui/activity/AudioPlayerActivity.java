@@ -1,6 +1,7 @@
 package com.devbrackets.android.exomediademo.ui.activity;
 
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.ImageButton;
@@ -9,18 +10,18 @@ import android.widget.ProgressBar;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
-import com.devbrackets.android.exomedia.event.EMMediaProgressEvent;
-import com.devbrackets.android.exomedia.event.EMPlaylistItemChangedEvent;
-import com.devbrackets.android.exomedia.listener.EMPlaylistServiceCallback;
-import com.devbrackets.android.exomedia.listener.EMProgressCallback;
-import com.devbrackets.android.exomedia.manager.EMPlaylistManager;
-import com.devbrackets.android.exomedia.service.EMPlaylistService;
 import com.devbrackets.android.exomedia.util.TimeFormatUtil;
 import com.devbrackets.android.exomediademo.App;
 import com.devbrackets.android.exomediademo.R;
 import com.devbrackets.android.exomediademo.data.MediaItem;
-import com.devbrackets.android.exomediademo.helper.AudioItems;
+import com.devbrackets.android.exomediademo.data.Samples;
 import com.devbrackets.android.exomediademo.manager.PlaylistManager;
+import com.devbrackets.android.playlistcore.event.MediaProgress;
+import com.devbrackets.android.playlistcore.event.PlaylistItemChange;
+import com.devbrackets.android.playlistcore.listener.PlaylistListener;
+import com.devbrackets.android.playlistcore.listener.ProgressListener;
+import com.devbrackets.android.playlistcore.manager.IPlaylistItem;
+import com.devbrackets.android.playlistcore.service.PlaylistServiceCore;
 import com.squareup.picasso.Picasso;
 
 import java.util.LinkedList;
@@ -28,10 +29,10 @@ import java.util.List;
 
 /**
  * An example activity to show how to implement and audio UI
- * that interacts with the {@link EMPlaylistService} and {@link EMPlaylistManager}
- * classes.
+ * that interacts with the {@link com.devbrackets.android.playlistcore.service.BasePlaylistService}
+ * and {@link com.devbrackets.android.playlistcore.manager.BasePlaylistManager} classes.
  */
-public class AudioPlayerActivity extends AppCompatActivity implements EMPlaylistServiceCallback, EMProgressCallback {
+public class AudioPlayerActivity extends AppCompatActivity implements PlaylistListener, ProgressListener {
     public static final String EXTRA_INDEX = "EXTRA_INDEX";
     public static final int PLAYLIST_ID = 4; //Arbitrary, for the example
 
@@ -66,21 +67,23 @@ public class AudioPlayerActivity extends AppCompatActivity implements EMPlaylist
     @Override
     protected void onPause() {
         super.onPause();
-        playlistManager.unRegisterServiceCallbacks(this);
+        playlistManager.unRegisterPlaylistListener(this);
+        playlistManager.unRegisterProgressListener(this);
     }
 
     @Override
     protected void onResume() {
         super.onResume();
         playlistManager = App.getPlaylistManager();
-        playlistManager.registerServiceCallbacks(this);
+        playlistManager.registerPlaylistListener(this);
+        playlistManager.registerProgressListener(this);
 
         //Makes sure to retrieve the current playback information
         updateCurrentPlaybackInformation();
     }
 
     @Override
-    public boolean onPlaylistItemChanged(EMPlaylistManager.PlaylistItem currentItem, boolean hasNext, boolean hasPrevious) {
+    public boolean onPlaylistItemChanged(IPlaylistItem currentItem, boolean hasNext, boolean hasPrevious) {
         shouldSetDuration = true;
 
         //Updates the button states
@@ -94,14 +97,15 @@ public class AudioPlayerActivity extends AppCompatActivity implements EMPlaylist
     }
 
     @Override
-    public boolean onMediaStateChanged(EMPlaylistService.MediaState mediaState) {
-        switch (mediaState) {
+    public boolean onPlaybackStateChanged(@NonNull PlaylistServiceCore.PlaybackState playbackState) {
+        switch (playbackState) {
             case STOPPED:
                 finish();
                 break;
 
             case RETRIEVING:
             case PREPARING:
+            case SEEKING:
                 restartLoading();
                 break;
 
@@ -121,16 +125,16 @@ public class AudioPlayerActivity extends AppCompatActivity implements EMPlaylist
     }
 
     @Override
-    public boolean onProgressUpdated(EMMediaProgressEvent event) {
-        if (shouldSetDuration && event.getDuration() > 0) {
+    public boolean onProgressUpdated(@NonNull MediaProgress progress) {
+        if (shouldSetDuration && progress.getDuration() > 0) {
             shouldSetDuration = false;
-            setDuration(event.getDuration());
+            setDuration(progress.getDuration());
         }
 
         if (!userInteracting) {
-            seekBar.setSecondaryProgress((int) (event.getDuration() * event.getBufferPercentFloat()));
-            seekBar.setProgress((int)event.getPosition());
-            currentPositionView.setText(TimeFormatUtil.formatMs(event.getPosition()));
+            seekBar.setSecondaryProgress((int) (progress.getDuration() * progress.getBufferPercentFloat()));
+            seekBar.setProgress((int)progress.getPosition());
+            currentPositionView.setText(TimeFormatUtil.formatMs(progress.getPosition()));
         }
 
         return true;
@@ -140,17 +144,17 @@ public class AudioPlayerActivity extends AppCompatActivity implements EMPlaylist
      * Makes sure to update the UI to the current playback item.
      */
     private void updateCurrentPlaybackInformation() {
-        EMPlaylistItemChangedEvent itemChangedEvent = playlistManager.getCurrentItemChangedEvent();
+        PlaylistItemChange itemChangedEvent = playlistManager.getCurrentItemChange();
         if (itemChangedEvent != null) {
             onPlaylistItemChanged(itemChangedEvent.getCurrentItem(), itemChangedEvent.hasNext(), itemChangedEvent.hasPrevious());
         }
 
-        EMPlaylistService.MediaState currentMediaState = playlistManager.getCurrentMediaState();
-        if (currentMediaState != EMPlaylistService.MediaState.STOPPED) {
-            onMediaStateChanged(currentMediaState);
+        PlaylistServiceCore.PlaybackState currentPlaybackState = playlistManager.getCurrentPlaybackState();
+        if (currentPlaybackState != PlaylistServiceCore.PlaybackState.STOPPED) {
+            onPlaybackStateChanged(currentPlaybackState);
         }
 
-        EMMediaProgressEvent progressEvent = playlistManager.getCurrentProgress();
+        MediaProgress progressEvent = playlistManager.getCurrentProgress();
         if (progressEvent != null) {
             onProgressUpdated(progressEvent);
         }
@@ -198,7 +202,7 @@ public class AudioPlayerActivity extends AppCompatActivity implements EMPlaylist
      * @param isPlaying True if the audio item is currently playing
      */
     private void updatePlayPauseImage(boolean isPlaying) {
-        int resId = isPlaying ? R.drawable.exomedia_ic_pause_black : R.drawable.exomedia_ic_play_arrow_black;
+        int resId = isPlaying ? R.drawable.playlistcore_ic_pause_black : R.drawable.playlistcore_ic_play_arrow_black;
         playPauseButton.setImageResource(resId);
     }
 
@@ -246,18 +250,18 @@ public class AudioPlayerActivity extends AppCompatActivity implements EMPlaylist
         playlistManager = App.getPlaylistManager();
 
         //There is nothing to do if the currently playing values are the same
-        if (playlistManager.getPlayListId() == PLAYLIST_ID) {
+        if (playlistManager.getId() == PLAYLIST_ID) {
             return false;
         }
 
         List<MediaItem> mediaItems = new LinkedList<>();
-        for (AudioItems.AudioItem item : AudioItems.getItems()) {
-            MediaItem mediaItem = new MediaItem(item);
+        for (Samples.Sample sample : Samples.getAudioSamples()) {
+            MediaItem mediaItem = new MediaItem(sample, true);
             mediaItems.add(mediaItem);
         }
 
         playlistManager.setParameters(mediaItems, selectedIndex);
-        playlistManager.setPlaylistId(PLAYLIST_ID);
+        playlistManager.setId(PLAYLIST_ID);
 
         return true;
     }
@@ -317,8 +321,8 @@ public class AudioPlayerActivity extends AppCompatActivity implements EMPlaylist
      */
     private void startPlayback(boolean forceStart) {
         //If we are changing audio files, or we haven't played before then start the playback
-        if (forceStart || playlistManager.getCurrentIndex() != selectedIndex) {
-            playlistManager.setCurrentIndex(selectedIndex);
+        if (forceStart || playlistManager.getCurrentPosition() != selectedIndex) {
+            playlistManager.setCurrentPosition(selectedIndex);
             playlistManager.play(0, false);
         }
     }
@@ -351,6 +355,7 @@ public class AudioPlayerActivity extends AppCompatActivity implements EMPlaylist
         public void onStopTrackingTouch(SeekBar seekBar) {
             userInteracting = false;
 
+            //noinspection Range - seekPosition won't be less than 0
             playlistManager.invokeSeekEnded(seekPosition);
             seekPosition = -1;
         }

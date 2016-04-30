@@ -34,6 +34,7 @@ dependencies {
 Example
 -------
 The EMVideoView (EM for ExoMedia) can be added in your layout files like any other Android view.
+Note that the latter `ui.widget.EMVideoView` should only be used for versions above `3.0.0`.
 
 ```xml
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
@@ -41,11 +42,20 @@ The EMVideoView (EM for ExoMedia) can be added in your layout files like any oth
                 android:layout_width="match_parent"
                 android:layout_height="match_parent">
 
-    <com.devbrackets.android.exomedia.ui.widget.EMVideoView
-        android:id="@+id/video_view"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        EMVideoView:defaultControlsEnabled="true"/>
+	<!-- For versions below 3.0.0 -->	
+	<com.devbrackets.android.exomedia.EMVideoView
+		android:id="@+id/video_view"
+		android:layout_width="match_parent"
+		android:layout_height="match_parent"
+		EMVideoView:defaultControlsEnabled="true"/>
+		
+	<!-- For versions 3.+ -->
+	<com.devbrackets.android.exomedia.ui.widget.EMVideoView
+		android:id="@+id/video_view"
+		android:layout_width="match_parent"
+		android:layout_height="match_parent"
+		EMVideoView:defaultControlsEnabled="true"/>
+		
 </RelativeLayout>
 ```
 

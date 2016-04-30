@@ -633,17 +633,14 @@ public class EMExoPlayer implements
             return;
         }
 
-        //Retrieves all possible audio tracks
-//        int availableAudioTracks = getTrackCount(RENDER_AUDIO);
-//        for (int i = 0; i < availableAudioTracks; i++) {
-//            MediaFormat track = getTrackFormat(RENDER_AUDIO, i);
-//            //TODO figure out priority for selecting audio tracks
-//            //TODO can we determine what ENCODING the track is?
-//        }
+        //Restarts the media playback to allow the RenderBuilder to handle the audio channel determination
+        boolean playWhenReady = getPlayWhenReady();
+        long currentPosition = getCurrentPosition();
 
-//        audioCapabilities.supportsEncoding() //See AudioFormat.ENCODING_* values
-        //TODO: The ExoPlayer demo restarts the DemoExoPlayer [EMExoPlayer]
-        // see https://github.com/google/ExoPlayer/blob/master/demo/src/main/java/com/google/android/exoplayer/demo/PlayerActivity.java#L246
+        replaceRenderBuilder(rendererBuilder);
+
+        player.seekTo(currentPosition);
+        player.setPlayWhenReady(playWhenReady);
     }
 
     private void reportPlayerState() {

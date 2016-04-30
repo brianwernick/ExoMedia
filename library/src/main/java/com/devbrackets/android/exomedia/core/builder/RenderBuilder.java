@@ -72,6 +72,10 @@ public class RenderBuilder {
         this.streamType = streamType;
     }
 
+    public Context getContext() {
+        return context;
+    }
+
     public void buildRenderers(EMExoPlayer player) {
         //Create the Sample Source to be used by the renderers
         Allocator allocator = new DefaultAllocator(BUFFER_SEGMENT_SIZE);

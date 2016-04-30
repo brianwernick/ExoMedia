@@ -48,6 +48,8 @@ import com.google.android.exoplayer.MediaCodecVideoTrackRenderer;
 import com.google.android.exoplayer.MediaFormat;
 import com.google.android.exoplayer.TimeRange;
 import com.google.android.exoplayer.TrackRenderer;
+import com.google.android.exoplayer.audio.AudioCapabilities;
+import com.google.android.exoplayer.audio.AudioCapabilitiesReceiver;
 import com.google.android.exoplayer.audio.AudioTrack;
 import com.google.android.exoplayer.chunk.ChunkSampleSource;
 import com.google.android.exoplayer.chunk.Format;
@@ -72,6 +74,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 @SuppressWarnings("unused")
 public class EMExoPlayer implements
         ExoPlayer.Listener,
+        AudioCapabilitiesReceiver.Listener,
         ChunkSampleSource.EventListener,
         HlsSampleSource.EventListener,
         DefaultBandwidthMeter.EventListener,
@@ -116,6 +119,11 @@ public class EMExoPlayer implements
     private TrackRenderer audioRenderer;
 
     @Nullable
+    private AudioCapabilities audioCapabilities;
+    @Nullable
+    private AudioCapabilitiesReceiver audioCapabilitiesReceiver;
+
+    @Nullable
     private CaptionListener captionListener;
     @Nullable
     private Id3MetadataListener id3MetadataListener;
@@ -132,7 +140,6 @@ public class EMExoPlayer implements
     }
 
     public EMExoPlayer(@Nullable RenderBuilder rendererBuilder) {
-        this.rendererBuilder = rendererBuilder;
         player = ExoPlayer.Factory.newInstance(RENDER_COUNT, BUFFER_LENGTH_MIN, REBUFFER_LENGTH_MIN);
         player.addListener(this);
 
@@ -140,10 +147,16 @@ public class EMExoPlayer implements
         listeners = new CopyOnWriteArrayList<>();
         rendererBuildingState = RenderBuildingState.IDLE;
         player.setSelectedTrack(RENDER_CLOSED_CAPTION, DISABLED_TRACK);
+
+        replaceRenderBuilder(rendererBuilder);
     }
 
     public void replaceRenderBuilder(@Nullable RenderBuilder renderBuilder) {
         this.rendererBuilder = renderBuilder;
+        if (rendererBuilder != null && audioCapabilities == null) {
+            audioCapabilitiesReceiver = new AudioCapabilitiesReceiver(rendererBuilder.getContext(), this);
+            audioCapabilitiesReceiver.register();
+        }
 
         prepared = false;
         prepare();
@@ -189,6 +202,11 @@ public class EMExoPlayer implements
     public void blockingClearSurface() {
         surface = null;
         pushSurface(true);
+    }
+
+    @Nullable
+    public AudioCapabilities getAudioCapabilities() {
+        return audioCapabilities;
     }
 
     /**
@@ -323,10 +341,9 @@ public class EMExoPlayer implements
         }
 
         seekTo(0);
-
         setPlayWhenReady(true);
 
-        prepared = false;
+        forcePrepare();
         prepare();
 
         return true;
@@ -335,6 +352,11 @@ public class EMExoPlayer implements
     public void release() {
         if (rendererBuilder != null) {
             rendererBuilder.cancel();
+        }
+
+        if (audioCapabilitiesReceiver != null) {
+            audioCapabilitiesReceiver.unregister();
+            audioCapabilitiesReceiver = null;
         }
 
         rendererBuildingState = RenderBuildingState.IDLE;
@@ -598,6 +620,27 @@ public class EMExoPlayer implements
     @Override
     public void onUpstreamDiscarded(int sourceId, long mediaStartTimeMs, long mediaEndTimeMs) {
         //Purposefully left blank
+    }
+
+    @Override
+    public void onAudioCapabilitiesChanged(AudioCapabilities audioCapabilities) {
+        if (audioCapabilities.equals(this.audioCapabilities)) {
+            return;
+        }
+
+        this.audioCapabilities = audioCapabilities;
+        if (rendererBuilder == null) {
+            return;
+        }
+
+        //Restarts the media playback to allow the RenderBuilder to handle the audio channel determination
+        boolean playWhenReady = getPlayWhenReady();
+        long currentPosition = getCurrentPosition();
+
+        replaceRenderBuilder(rendererBuilder);
+
+        player.seekTo(currentPosition);
+        player.setPlayWhenReady(playWhenReady);
     }
 
     private void reportPlayerState() {

@@ -125,11 +125,13 @@ public class VideoControlsMobile extends VideoControls {
     @Override
     public void addExtraView(@NonNull View view) {
         extraViewsContainer.addView(view);
+        extraViewsContainer.setVisibility(VISIBLE);
     }
 
     @Override
     public void removeExtraView(@NonNull View view) {
         extraViewsContainer.removeView(view);
+        extraViewsContainer.setVisibility(extraViewsContainer.getChildCount() > 0 ? VISIBLE : GONE);
     }
 
     @NonNull

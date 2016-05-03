@@ -76,7 +76,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_toRightOf="@+id/exomedia_controls_current_time"
-                android:layout_toLeftOf="@+id/exomedia_controls_end_time"/>
+                android:layout_toLeftOf="@+id/exomedia_controls_end_time"
+                tools:ignore="RtlHardcoded"/>
 
             <TextView
                 android:id="@+id/exomedia_controls_end_time"
@@ -85,15 +86,18 @@
                 android:layout_toLeftOf="@+id/exomedia_controls_extra_container"
                 android:layout_centerVertical="true"
                 android:textColor="@android:color/white"
-                tools:text="99:99" />
+                tools:text="99:99"
+                tools:ignore="RtlHardcoded"/>
 
             <LinearLayout
                 android:id="@+id/exomedia_controls_extra_container"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginLeft="8dp"
                 android:layout_alignParentRight="true"
+                android:visibility="gone"
                 android:orientation="horizontal"
-                tools:ignore="UselessLeaf"/>
+                tools:ignore="RtlHardcoded,UselessLeaf"/>
         </RelativeLayout>
 
         <LinearLayout

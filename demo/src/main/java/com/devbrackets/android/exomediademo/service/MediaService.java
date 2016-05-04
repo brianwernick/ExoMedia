@@ -48,6 +48,12 @@ public class MediaService extends BasePlaylistService<MediaItem, PlaylistManager
         picasso = Picasso.with(getApplicationContext());
     }
 
+    @Override
+    protected void performOnMediaCompletion() {
+        performNext();
+        immediatelyPause = false;
+    }
+
     @NonNull
     @Override
     protected AudioPlayerApi getNewAudioPlayer() {
@@ -69,7 +75,6 @@ public class MediaService extends BasePlaylistService<MediaItem, PlaylistManager
     protected PlaylistManager getPlaylistManager() {
         return App.getPlaylistManager();
     }
-
 
     @NonNull
     @Override

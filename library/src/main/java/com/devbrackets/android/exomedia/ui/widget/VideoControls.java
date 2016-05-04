@@ -99,8 +99,10 @@ public abstract class VideoControls extends RelativeLayout {
 
     protected long hideDelay = -1;
 
+    protected boolean isLoading = false;
     protected boolean isVisible = true;
     protected boolean canViewHide = true;
+    protected boolean hideEmptyTextContainer = true;
 
     /**
      * Sets the current video position, updating the seek bar
@@ -138,6 +140,12 @@ public abstract class VideoControls extends RelativeLayout {
      * @param toVisible True if the view should be visible at the end of the animation
      */
     protected abstract void animateVisibility(boolean toVisible);
+
+    /**
+     * Update the current visibility of the text block independent of
+     * the controls visibility
+     */
+    protected abstract void updateTextContainerVisibility();
 
     public VideoControls(Context context) {
         super(context);
@@ -205,9 +213,10 @@ public abstract class VideoControls extends RelativeLayout {
      * @param isLoading True if loading progress should be shown
      */
     public void setLoading(boolean isLoading) {
+        this.isLoading = isLoading;
         loadingProgress.setVisibility(isLoading ? View.VISIBLE : View.INVISIBLE);
         controlsContainer.setVisibility(isLoading ? View.GONE : View.VISIBLE);
-        textContainer.setVisibility(isLoading ? View.GONE : View.VISIBLE);
+        textContainer.setVisibility(isLoading || (hideEmptyTextContainer && isTextContainerEmpty())? View.GONE : View.VISIBLE);
     }
 
     /**
@@ -252,6 +261,7 @@ public abstract class VideoControls extends RelativeLayout {
      */
     public void setTitle(@Nullable CharSequence title) {
         titleView.setText(title);
+        updateTextContainerVisibility();
     }
 
     /**
@@ -262,6 +272,7 @@ public abstract class VideoControls extends RelativeLayout {
      */
     public void setSubTitle(@Nullable CharSequence subTitle) {
         subTitleView.setText(subTitle);
+        updateTextContainerVisibility();
     }
 
     /**
@@ -273,6 +284,7 @@ public abstract class VideoControls extends RelativeLayout {
      */
     public void setDescription(@Nullable CharSequence description) {
         descriptionView.setText(description);
+        updateTextContainerVisibility();
     }
 
     /**
@@ -506,6 +518,17 @@ public abstract class VideoControls extends RelativeLayout {
     }
 
     /**
+     * Sets weather the text block and associated container will be hidden
+     * when no content is specified.
+     *
+     * @param hide If the empty text blocks can be hidden [default: true]
+     */
+    public void setHideEmptyTextContainer(boolean hide) {
+        this.hideEmptyTextContainer = hide;
+        updateTextContainerVisibility();
+    }
+
+    /**
      * Retrieves the view references from the xml layout
      */
     protected void retrieveViews() {
@@ -618,6 +641,27 @@ public abstract class VideoControls extends RelativeLayout {
                 updateProgress();
             }
         });
+    }
+
+    /**
+     * Determines if the <code>textContainer</code> doesn't have any text associated with it
+     * @return True if there is no text contained in the views in the <code>textContainer</code>
+     */
+    @SuppressWarnings("RedundantIfStatement")
+    protected boolean isTextContainerEmpty() {
+        if (titleView.getText() != null && titleView.getText().length() > 0) {
+            return false;
+        }
+
+        if (subTitleView.getText() != null && subTitleView.getText().length() > 0) {
+            return false;
+        }
+
+        if (descriptionView.getText() != null && descriptionView.getText().length() > 0) {
+            return false;
+        }
+
+        return true;
     }
 
     /**

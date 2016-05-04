@@ -33,6 +33,7 @@ import android.widget.ProgressBar;
 
 import com.devbrackets.android.exomedia.R;
 import com.devbrackets.android.exomedia.ui.animation.BottomViewHideShowAnimation;
+import com.devbrackets.android.exomedia.ui.animation.TopViewHideShowAnimation;
 import com.devbrackets.android.exomedia.util.EMResourceUtil;
 import com.devbrackets.android.exomedia.util.TimeFormatUtil;
 
@@ -284,12 +285,30 @@ public class VideoControlsLeanback extends VideoControls {
             return;
         }
 
-        //TODO: make sure these are correct... (views exist, and animation looks ok)
-        textContainer.startAnimation(new BottomViewHideShowAnimation(textContainer, toVisible, CONTROL_VISIBILITY_ANIMATION_LENGTH));
+        if (!hideEmptyTextContainer || !isTextContainerEmpty()) {
+            textContainer.startAnimation(new BottomViewHideShowAnimation(textContainer, toVisible, CONTROL_VISIBILITY_ANIMATION_LENGTH));
+        }
+
         controlsContainer.startAnimation(new BottomViewHideShowAnimation(controlsContainer, toVisible, CONTROL_VISIBILITY_ANIMATION_LENGTH));
 
         isVisible = toVisible;
         onVisibilityChanged();
+    }
+
+    @Override
+    protected void updateTextContainerVisibility() {
+        if (!isVisible || isLoading) {
+            return;
+        }
+
+        boolean emptyText = isTextContainerEmpty();
+        if (hideEmptyTextContainer && emptyText && textContainer.getVisibility() == VISIBLE) {
+            textContainer.clearAnimation();
+            textContainer.startAnimation(new TopViewHideShowAnimation(textContainer, false, CONTROL_VISIBILITY_ANIMATION_LENGTH));
+        } else if ((!hideEmptyTextContainer || !emptyText) && textContainer.getVisibility() != VISIBLE) {
+            textContainer.clearAnimation();
+            textContainer.startAnimation(new TopViewHideShowAnimation(textContainer, true, CONTROL_VISIBILITY_ANIMATION_LENGTH));
+        }
     }
 
     /**

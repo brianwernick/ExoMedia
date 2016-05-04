@@ -125,13 +125,11 @@ public class VideoControlsMobile extends VideoControls {
     @Override
     public void addExtraView(@NonNull View view) {
         extraViewsContainer.addView(view);
-        extraViewsContainer.setVisibility(VISIBLE);
     }
 
     @Override
     public void removeExtraView(@NonNull View view) {
         extraViewsContainer.removeView(view);
-        extraViewsContainer.setVisibility(extraViewsContainer.getChildCount() > 0 ? VISIBLE : GONE);
     }
 
     @NonNull
@@ -182,11 +180,30 @@ public class VideoControlsMobile extends VideoControls {
             return;
         }
 
-        textContainer.startAnimation(new TopViewHideShowAnimation(textContainer, toVisible, CONTROL_VISIBILITY_ANIMATION_LENGTH));
+        if (!hideEmptyTextContainer || !isTextContainerEmpty()) {
+            textContainer.startAnimation(new TopViewHideShowAnimation(textContainer, toVisible, CONTROL_VISIBILITY_ANIMATION_LENGTH));
+        }
+
         controlsContainer.startAnimation(new BottomViewHideShowAnimation(controlsContainer, toVisible, CONTROL_VISIBILITY_ANIMATION_LENGTH));
 
         isVisible = toVisible;
         onVisibilityChanged();
+    }
+
+    @Override
+    protected void updateTextContainerVisibility() {
+        if (!isVisible || isLoading) {
+            return;
+        }
+
+        boolean emptyText = isTextContainerEmpty();
+        if (hideEmptyTextContainer && emptyText && textContainer.getVisibility() == VISIBLE) {
+            textContainer.clearAnimation();
+            textContainer.startAnimation(new TopViewHideShowAnimation(textContainer, false, CONTROL_VISIBILITY_ANIMATION_LENGTH));
+        } else if ((!hideEmptyTextContainer || !emptyText) && textContainer.getVisibility() != VISIBLE) {
+            textContainer.clearAnimation();
+            textContainer.startAnimation(new TopViewHideShowAnimation(textContainer, true, CONTROL_VISIBILITY_ANIMATION_LENGTH));
+        }
     }
 
     /**

@@ -64,7 +64,7 @@
 
             <TextView
                 android:id="@+id/exomedia_controls_current_time"
-                android:layout_width="50sp"
+                android:layout_width="60sp"
                 android:layout_height="wrap_content"
                 android:layout_alignParentLeft="true"
                 android:layout_centerVertical="true"
@@ -84,7 +84,7 @@
 
             <TextView
                 android:id="@+id/exomedia_controls_end_time"
-                android:layout_width="50sp"
+                android:layout_width="60sp"
                 android:layout_height="wrap_content"
                 android:layout_centerVertical="true"
                 android:layout_toLeftOf="@+id/exomedia_controls_extra_container"

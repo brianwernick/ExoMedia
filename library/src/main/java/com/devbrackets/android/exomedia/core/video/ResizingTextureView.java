@@ -265,8 +265,7 @@ public class ResizingTextureView extends TextureView {
             SurfaceTexture surfaceTexture = getSurfaceTexture();
             if(surfaceTexture != null) {
                 surfaceTexture.setDefaultBufferSize(width, height);
-            }
-            else {
+            } else {
                 return false;
             }
         }

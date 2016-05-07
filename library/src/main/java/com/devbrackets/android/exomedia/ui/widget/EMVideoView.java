@@ -132,19 +132,7 @@ public class EMVideoView extends RelativeLayout {
         super.onConfigurationChanged(newConfig);
 
         //Makes sure the shutters are the correct size
-        getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
-            @Override
-            public void onGlobalLayout() {
-                updateVideoShutters(getWidth(), getHeight(), videoViewImpl.getWidth(), videoViewImpl.getHeight());
-
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-                    getViewTreeObserver().removeOnGlobalLayoutListener(this);
-                } else {
-                    //noinspection deprecation
-                    getViewTreeObserver().removeGlobalOnLayoutListener(this);
-                }
-            }
-        });
+        getViewTreeObserver().addOnGlobalLayoutListener(new GlobalLayoutShutterListener());
 
         forceLayout();
         invalidate();
@@ -939,6 +927,23 @@ public class EMVideoView extends RelativeLayout {
             }
 
             return true;
+        }
+    }
+
+    /**
+     * Listens to the global layout to update the shutter sizes
+     */
+    protected class GlobalLayoutShutterListener implements ViewTreeObserver.OnGlobalLayoutListener {
+        @Override
+        public void onGlobalLayout() {
+            updateVideoShutters(getWidth(), getHeight(), videoViewImpl.getWidth(), videoViewImpl.getHeight());
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+                getViewTreeObserver().removeOnGlobalLayoutListener(this);
+            } else {
+                //noinspection deprecation
+                getViewTreeObserver().removeGlobalOnLayoutListener(this);
+            }
         }
     }
 }

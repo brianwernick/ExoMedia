@@ -64,6 +64,12 @@ public interface VideoViewApi {
 
     void stopPlayback();
 
+    /**
+     * Prepares the media previously specified for playback.  This should only be called after
+     * the playback has completed to restart playback from the beginning.
+     *
+     * @return {@code true} if the media was successfully restarted
+     */
     boolean restart();
 
     void suspend();

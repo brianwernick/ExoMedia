@@ -67,24 +67,12 @@ public class VideoControlsMobile extends VideoControls {
         return R.layout.exomedia_default_controls_mobile;
     }
 
-    /**
-     * Sets the current video position, updating the seek bar
-     * and the current time field
-     *
-     * @param position The position in milliseconds
-     */
     @Override
     public void setPosition(@IntRange(from = 0) long position) {
         currentTime.setText(TimeFormatUtil.formatMs(position));
         seekBar.setProgress((int) position);
     }
 
-    /**
-     * Sets the video duration in Milliseconds to display
-     * at the end of the progress bar
-     *
-     * @param duration The duration of the video in milliseconds
-     */
     @Override
     public void setDuration(@IntRange(from = 0) long duration) {
         if (duration != seekBar.getMax()) {
@@ -102,9 +90,6 @@ public class VideoControlsMobile extends VideoControls {
         }
     }
 
-    /**
-     * Retrieves the view references from the xml layout
-     */
     @Override
     protected void retrieveViews() {
         super.retrieveViews();
@@ -112,10 +97,6 @@ public class VideoControlsMobile extends VideoControls {
         extraViewsContainer = (LinearLayout) findViewById(R.id.exomedia_controls_extra_container);
     }
 
-    /**
-     * Registers any internal listeners to perform the playback controls,
-     * such as play/pause, next, and previous
-     */
     @Override
     protected void registerListeners() {
         super.registerListeners();
@@ -149,12 +130,6 @@ public class VideoControlsMobile extends VideoControls {
         return children;
     }
 
-    /**
-     * After the specified delay the view will be hidden.  If the user is interacting
-     * with the controls then we wait until after they are done to start the delay.
-     *
-     * @param delay The delay in milliseconds to wait to start the hide animation
-     */
     @Override
     public void hideDelayed(long delay) {
         hideDelay = delay;

@@ -183,6 +183,9 @@ public class TextureVideoView extends ResizingTextureView implements MediaContro
         return currentState == State.PREPARED || currentState == State.PLAYING || currentState == State.PAUSED;
     }
 
+    /**
+     * Performs the functionality to stop the video in playback
+     */
     public void stopPlayback() {
         currentState = State.IDLE;
 
@@ -197,6 +200,10 @@ public class TextureVideoView extends ResizingTextureView implements MediaContro
         playRequested = false;
     }
 
+    /**
+     * Cleans up the resources being held.  This should only be called when
+     * destroying the video view
+     */
     public void suspend() {
         currentState = State.IDLE;
 
@@ -301,12 +308,12 @@ public class TextureVideoView extends ResizingTextureView implements MediaContro
         onInfoListener = listener;
     }
 
-    private boolean isReady() {
-        return currentState != State.ERROR && currentState != State.IDLE && currentState != State.PREPARING;
-    }
-
     public int getAudioSessionId() {
         return mediaPlayer.getAudioSessionId();
+    }
+
+    protected boolean isReady() {
+        return currentState != State.ERROR && currentState != State.IDLE && currentState != State.PREPARING;
     }
 
     protected void openVideo(@Nullable Uri uri) {

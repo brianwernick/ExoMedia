@@ -22,6 +22,10 @@ import android.view.animation.Animation;
 import android.view.animation.AnimationSet;
 import android.view.animation.TranslateAnimation;
 
+/**
+ * An animation used to slide {@link com.devbrackets.android.exomedia.ui.widget.VideoControls}
+ * in and out from the top of the screen when changing visibilities.
+ */
 public class TopViewHideShowAnimation extends AnimationSet {
 
     private View animationView;

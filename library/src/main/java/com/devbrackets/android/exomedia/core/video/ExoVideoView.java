@@ -105,11 +105,6 @@ public class ExoVideoView extends ResizingTextureView implements VideoViewApi, A
         emExoPlayer.seekTo(0);
     }
 
-    /**
-     * If the video has completed playback, calling {@code restart} will seek to the beginning of the video, and play it.
-     *
-     * @return {@code true} if the video was successfully restarted, otherwise {@code false}
-     */
     @Override
     public boolean restart() {
         if(!emExoPlayer.restart()) {

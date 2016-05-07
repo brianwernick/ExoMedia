@@ -16,9 +16,26 @@
 
 package com.devbrackets.android.exomedia.listener;
 
+/**
+ * Interface definition for a callback to be invoked when the media
+ * has external seek requests
+ */
 public interface VideoControlsSeekListener {
 
+    /**
+     * Occurs when the media has entered a state of waiting until the
+     * {@link #onSeekEnded(int)} is called.
+     *
+     * @return {@code true} if the state has been handled
+     */
     boolean onSeekStarted();
 
+    /**
+     * Occurs when the media has finalized the request to seek.  This
+     * may be called after {@link #onSeekStarted()} or on its own.
+     *
+     * @param seekTime The time in milliseconds to seek to
+     * @return {@code true} if the seek has been handled
+     */
     boolean onSeekEnded(int seekTime);
 }

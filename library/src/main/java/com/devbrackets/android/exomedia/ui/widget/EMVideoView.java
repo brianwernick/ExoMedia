@@ -160,54 +160,6 @@ public class EMVideoView extends RelativeLayout {
         super.setOnTouchListener(listener);
     }
 
-    private void setup(Context context, @Nullable AttributeSet attrs) {
-        initView(context, attrs);
-        readAttributes(context, attrs);
-    }
-
-    /**
-     * Reads the attributes associated with this view, setting any values found
-     *
-     * @param context The context to retrieve the styled attributes with
-     * @param attrs The {@link AttributeSet} to retrieve the values from
-     */
-    private void readAttributes(Context context, @Nullable AttributeSet attrs) {
-        if (attrs == null || isInEditMode()) {
-            return;
-        }
-
-        TypedArray typedArray = context.obtainStyledAttributes(attrs, R.styleable.EMVideoView);
-        if (typedArray == null) {
-            return;
-        }
-
-        //Updates the VideoControls if specified
-        boolean useDefaultControls = typedArray.getBoolean(R.styleable.EMVideoView_useDefaultControls, false);
-        if (useDefaultControls) {
-            setControls(EMDeviceUtil.isDeviceTV(getContext()) ? new VideoControlsLeanback(getContext()) : new VideoControlsMobile(getContext()));
-        }
-
-        typedArray.recycle();
-    }
-
-    protected void initView(Context context, @Nullable AttributeSet attrs) {
-        inflateVideoView(context, attrs);
-
-        shutterBottom = findViewById(R.id.exomedia_video_shutter_bottom);
-        shutterTop = findViewById(R.id.exomedia_video_shutter_top);
-        shutterLeft = findViewById(R.id.exomedia_video_shutter_left);
-        shutterRight = findViewById(R.id.exomedia_video_shutter_right);
-
-        previewImageView = (ImageView) findViewById(R.id.exomedia_video_preview_image);
-        videoViewImpl = (VideoViewApi) findViewById(R.id.exomedia_video_view);
-
-        muxNotifier = new MuxNotifier();
-        listenerMux = new EMListenerMux(muxNotifier);
-
-        videoViewImpl.setListenerMux(listenerMux);
-        videoViewImpl.setOnSizeChangedListener(muxNotifier);
-    }
-
     /**
      * <b><em>WARNING:</em></b> Use of this method may cause memory leaks.
      * <p>
@@ -640,17 +592,17 @@ public class EMVideoView extends RelativeLayout {
 
         int width = getWidth();
         int height = getHeight();
-        if(width > 0 && height > 0) {
+        if (width > 0 && height > 0) {
             updateVideoShutters(width, height, videoViewImpl.getWidth(), videoViewImpl.getHeight());
         }
     }
 
-  /**
-   * Measures the underlying {@link VideoViewApi} using the video's aspect ratio if {@code true}
-   *
-   * @param measureBasedOnAspectRatioEnabled whether to measure using the video's aspect ratio or not
-   */
-  public void setMeasureBasedOnAspectRatioEnabled(boolean measureBasedOnAspectRatioEnabled) {
+    /**
+     * Measures the underlying {@link VideoViewApi} using the video's aspect ratio if {@code true}
+     *
+     * @param measureBasedOnAspectRatioEnabled whether to measure using the video's aspect ratio or not
+     */
+    public void setMeasureBasedOnAspectRatioEnabled(boolean measureBasedOnAspectRatioEnabled) {
         videoViewImpl.setMeasureBasedOnAspectRatioEnabled(measureBasedOnAspectRatioEnabled);
     }
 
@@ -706,6 +658,69 @@ public class EMVideoView extends RelativeLayout {
      */
     public void setOnErrorListener(OnErrorListener listener) {
         listenerMux.setOnErrorListener(listener);
+    }
+
+    /**
+     * Performs the functionality to setup the initial properties including
+     * determining the backing implementation and reading xml attributes
+     *
+     * @param context The context to use for setting up the view
+     * @param attrs The xml attributes associated with this instance
+     */
+    protected void setup(Context context, @Nullable AttributeSet attrs) {
+        initView(context, attrs);
+        readAttributes(context, attrs);
+    }
+
+    /**
+     * Reads the attributes associated with this view, setting any values found
+     *
+     * @param context The context to retrieve the styled attributes with
+     * @param attrs The {@link AttributeSet} to retrieve the values from
+     */
+    protected void readAttributes(Context context, @Nullable AttributeSet attrs) {
+        if (attrs == null || isInEditMode()) {
+            return;
+        }
+
+        TypedArray typedArray = context.obtainStyledAttributes(attrs, R.styleable.EMVideoView);
+        if (typedArray == null) {
+            return;
+        }
+
+        //Updates the VideoControls if specified
+        boolean useDefaultControls = typedArray.getBoolean(R.styleable.EMVideoView_useDefaultControls, false);
+        if (useDefaultControls) {
+            setControls(EMDeviceUtil.isDeviceTV(getContext()) ? new VideoControlsLeanback(getContext()) : new VideoControlsMobile(getContext()));
+        }
+
+        typedArray.recycle();
+    }
+
+    /**
+     * Performs the initialization of the view including inflating the correct
+     * backing layout, linking the implementation, and finding the necessary view
+     * references.
+     *
+     * @param context The context for the initialization
+     * @param attrs The xml attributes associated with this instance
+     */
+    protected void initView(Context context, @Nullable AttributeSet attrs) {
+        inflateVideoView(context, attrs);
+
+        shutterBottom = findViewById(R.id.exomedia_video_shutter_bottom);
+        shutterTop = findViewById(R.id.exomedia_video_shutter_top);
+        shutterLeft = findViewById(R.id.exomedia_video_shutter_left);
+        shutterRight = findViewById(R.id.exomedia_video_shutter_right);
+
+        previewImageView = (ImageView) findViewById(R.id.exomedia_video_preview_image);
+        videoViewImpl = (VideoViewApi) findViewById(R.id.exomedia_video_view);
+
+        muxNotifier = new MuxNotifier();
+        listenerMux = new EMListenerMux(muxNotifier);
+
+        videoViewImpl.setListenerMux(listenerMux);
+        videoViewImpl.setOnSizeChangedListener(muxNotifier);
     }
 
     /**
@@ -801,7 +816,7 @@ public class EMVideoView extends RelativeLayout {
     }
 
     protected int calculateVerticalShutterSize(int viewHeight, int videoHeight) {
-        if(videoViewImpl.getScaleType() == ScaleType.CENTER_CROP) {
+        if (videoViewImpl.getScaleType() == ScaleType.CENTER_CROP) {
             return 0;
         }
 
@@ -810,7 +825,7 @@ public class EMVideoView extends RelativeLayout {
     }
 
     protected int calculateSideShutterSize(int viewWidth, int videoWidth) {
-        if(videoViewImpl.getScaleType() == ScaleType.CENTER_CROP) {
+        if (videoViewImpl.getScaleType() == ScaleType.CENTER_CROP) {
             return 0;
         }
 

@@ -17,6 +17,7 @@
 package com.devbrackets.android.exomedia;
 
 import android.content.Context;
+import android.media.AudioManager;
 import android.net.Uri;
 import android.os.Build;
 import android.support.annotation.FloatRange;
@@ -50,10 +51,10 @@ import java.util.Map;
  */
 @SuppressWarnings("UnusedDeclaration")
 public class EMAudioPlayer {
-    private EMListenerMux listenerMux;
+    protected EMListenerMux listenerMux;
 
     protected MediaPlayerApi mediaPlayerImpl;
-    private int overriddenDuration = -1;
+    protected int overriddenDuration = -1;
 
     public EMAudioPlayer(Context context) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN  && EMDeviceUtil.isDeviceCTSCompliant()) {
@@ -77,6 +78,15 @@ public class EMAudioPlayer {
         return mediaPlayerImpl.getAudioSessionId();
     }
 
+    /**
+     * Sets the audio stream type for this MediaPlayer. See {@link AudioManager}
+     * for a list of stream types. Must call this method before prepare() or
+     * prepareAsync() in order for the target stream type to become effective
+     * thereafter.
+     *
+     * @param streamType The audio stream type
+     * @see android.media.AudioManager
+     */
     public void setAudioStreamType(int streamType) {
         mediaPlayerImpl.setAudioStreamType(streamType);
     }
@@ -106,6 +116,10 @@ public class EMAudioPlayer {
         overrideDuration(-1);
     }
 
+    /**
+     * Prepares the media specified with {@link #setDataSource(Context, Uri)} or
+     * {@link #setDataSource(Context, Uri, RenderBuilder)} in an asynchronous manner
+     */
     public void prepareAsync() {
         mediaPlayerImpl.prepareAsync();
     }
@@ -195,6 +209,9 @@ public class EMAudioPlayer {
         mediaPlayerImpl.stopPlayback();
     }
 
+    /**
+     * Releases the resources associated with this media player
+     */
     public void release() {
         mediaPlayerImpl.release();
     }

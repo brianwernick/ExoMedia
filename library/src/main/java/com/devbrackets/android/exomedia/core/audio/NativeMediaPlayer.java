@@ -44,7 +44,7 @@ public class NativeMediaPlayer extends MediaPlayer implements MediaPlayerApi, Me
 
     @Override
     public void setDataSource(Context context, Uri uri) {
-        setDataSource(context, uri, (RenderBuilder)null);
+        setDataSource(context, uri, (RenderBuilder) null);
     }
 
     @Override
@@ -76,14 +76,9 @@ public class NativeMediaPlayer extends MediaPlayer implements MediaPlayerApi, Me
         stop();
     }
 
-    /**
-     * If the media has completed playback, calling {@code restart} will seek to the beginning of the media, and play it.
-     *
-     * @return {@code true} if the media was successfully restarted, otherwise {@code false}
-     */
-  @Override
+    @Override
     public boolean restart() {
-        if(!listenerMux.isPrepared()) {
+        if (!listenerMux.isPrepared()) {
             return false;
         }
 

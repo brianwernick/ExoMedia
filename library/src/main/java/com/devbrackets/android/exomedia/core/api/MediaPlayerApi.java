@@ -17,6 +17,7 @@
 package com.devbrackets.android.exomedia.core.api;
 
 import android.content.Context;
+import android.media.AudioManager;
 import android.net.Uri;
 import android.support.annotation.FloatRange;
 import android.support.annotation.IntRange;
@@ -41,6 +42,10 @@ public interface MediaPlayerApi {
 
     void setDataSource(Context context, Uri uri, RenderBuilder renderBuilder);
 
+    /**
+     * Prepares the media specified with {@link #setDataSource(Context, Uri)} or
+     * {@link #setDataSource(Context, Uri, RenderBuilder)} in an asynchronous manner
+     */
     void prepareAsync();
 
     boolean isPlaying();
@@ -51,8 +56,17 @@ public interface MediaPlayerApi {
 
     void stopPlayback();
 
+    /**
+     * Prepares the media previously specified for playback.  This should only be called after
+     * the playback has completed to restart playback from the beginning.
+     *
+     * @return {@code true} if the media was successfully restarted
+     */
     boolean restart();
 
+    /**
+     * Releases the resources associated with this media player
+     */
     void release();
 
     void reset();
@@ -68,6 +82,15 @@ public interface MediaPlayerApi {
 
     int getAudioSessionId();
 
+    /**
+     * Sets the audio stream type for this MediaPlayer. See {@link AudioManager}
+     * for a list of stream types. Must call this method before prepare() or
+     * prepareAsync() in order for the target stream type to become effective
+     * thereafter.
+     *
+     * @param streamType The audio stream type
+     * @see android.media.AudioManager
+     */
     void setAudioStreamType(int streamType);
 
     boolean trackSelectionAvailable();

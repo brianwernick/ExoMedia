@@ -218,6 +218,11 @@ public class ResizingTextureView extends TextureView {
         this.onSizeChangeListener = listener;
     }
 
+    /**
+     * Clears the frames from the current surface.  This should only be called when
+     * the implementing video view has finished playback or otherwise released
+     * the surface
+     */
     public void clearSurface() {
         if (surface == null) {
             return;

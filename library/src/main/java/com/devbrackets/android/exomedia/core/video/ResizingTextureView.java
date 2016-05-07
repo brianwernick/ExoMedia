@@ -47,7 +47,6 @@ import javax.microedition.khronos.egl.EGLSurface;
  * A TextureView that reSizes itself according to the requested layout type
  * once we have a video
  */
-@TargetApi(Build.VERSION_CODES.JELLY_BEAN)
 public class ResizingTextureView extends TextureView {
     protected static final int MAX_DEGREES = 360;
 
@@ -391,12 +390,21 @@ public class ResizingTextureView extends TextureView {
         }
     }
 
+    /**
+     * Listens to the global layout to reapply the scale and rotation
+     */
     private class GlobalLayoutMatrixListener implements ViewTreeObserver.OnGlobalLayoutListener {
         @Override
         public void onGlobalLayout() {
             setScaleType(currentScaleType);
             setVideoRotation(requestedUserRotation, requestedConfigurationRotation);
-            getViewTreeObserver().removeOnGlobalLayoutListener(this);
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+                getViewTreeObserver().removeOnGlobalLayoutListener(this);
+            } else {
+                //noinspection deprecation
+                getViewTreeObserver().removeGlobalOnLayoutListener(this);
+            }
         }
     }
 }

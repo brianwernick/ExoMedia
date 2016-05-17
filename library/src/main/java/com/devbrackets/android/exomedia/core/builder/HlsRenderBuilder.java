@@ -95,7 +95,6 @@ public class HlsRenderBuilder extends RenderBuilder {
     protected final class AsyncRendererBuilder implements ManifestCallback<HlsPlaylist> {
         protected final Context context;
         protected final String userAgent;
-        protected final String url;
         protected final int streamType;
         protected final EMExoPlayer player;
         protected final ManifestFetcher<HlsPlaylist> playlistFetcher;
@@ -105,7 +104,6 @@ public class HlsRenderBuilder extends RenderBuilder {
         public AsyncRendererBuilder(Context context, String userAgent, String url, EMExoPlayer player, int streamType) {
             this.context = context;
             this.userAgent = userAgent;
-            this.url = url;
             this.streamType = streamType;
             this.player = player;
 
@@ -140,6 +138,10 @@ public class HlsRenderBuilder extends RenderBuilder {
         }
 
         protected void buildRenderers(HlsPlaylist playlist) {
+            if (canceled) {
+                return;
+            }
+
             Handler mainHandler = player.getMainHandler();
             LoadControl loadControl = new DefaultLoadControl(new DefaultAllocator(BUFFER_SEGMENT_SIZE));
             DefaultBandwidthMeter bandwidthMeter = new DefaultBandwidthMeter(mainHandler, player);
@@ -165,7 +167,7 @@ public class HlsRenderBuilder extends RenderBuilder {
 
             //Create the Sample Source to be used by the renders
             DataSource dataSource = createDataSource(context, bandwidthMeter, userAgent);
-            HlsChunkSource chunkSource = new HlsChunkSource(true, dataSource, url, playlist, DefaultHlsTrackSelector.newDefaultInstance(context),
+            HlsChunkSource chunkSource = new HlsChunkSource(true, dataSource, playlist, DefaultHlsTrackSelector.newDefaultInstance(context),
                     bandwidthMeter, timestampAdjusterProvider, HlsChunkSource.ADAPTIVE_MODE_SPLICE);
             HlsSampleSource sampleSource = new HlsSampleSource(chunkSource, loadControl,
                     BUFFER_SEGMENTS_TOTAL * BUFFER_SEGMENT_SIZE, mainHandler, player, EMExoPlayer.RENDER_VIDEO);

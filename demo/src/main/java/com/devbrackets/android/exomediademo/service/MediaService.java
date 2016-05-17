@@ -187,7 +187,7 @@ public class MediaService extends BasePlaylistService<MediaItem, PlaylistManager
         @Override
         public void onBitmapLoaded(Bitmap bitmap, Picasso.LoadedFrom from) {
             lockScreenArtwork = bitmap;
-            onLockScreenArtworkUpdated();
+            onRemoteViewArtworkUpdated();
         }
 
         @Override

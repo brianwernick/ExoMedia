@@ -102,10 +102,6 @@ public class ExoMediaPlayer implements MediaPlayerApi {
 
     @Override
     public void seekTo(@IntRange(from = 0) int milliseconds) {
-        if (!listenerMux.isPrepared()) {
-            return;
-        }
-
         emExoPlayer.seekTo(milliseconds);
     }
 
@@ -213,6 +209,11 @@ public class ExoMediaPlayer implements MediaPlayerApi {
     public void setListenerMux(EMListenerMux listenerMux) {
         this.listenerMux = listenerMux;
         emExoPlayer.addListener(listenerMux);
+    }
+
+    @Override
+    public void onMediaPrepared() {
+        //Purposefully left blank
     }
 
     /**

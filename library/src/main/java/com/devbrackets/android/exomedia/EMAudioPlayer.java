@@ -171,10 +171,6 @@ public class EMAudioPlayer {
      * @param milliSeconds The time to move the playback to
      */
     public void seekTo(int milliSeconds) {
-        if (milliSeconds > getDuration()) {
-            milliSeconds = getDuration();
-        }
-
         mediaPlayerImpl.seekTo(milliSeconds);
     }
 
@@ -370,8 +366,8 @@ public class EMAudioPlayer {
         }
 
         @Override
-        public void onBufferUpdated(int percent) {
-            //purposefully left blank
+        public void onPrepared() {
+            mediaPlayerImpl.onMediaPrepared();
         }
     }
 }

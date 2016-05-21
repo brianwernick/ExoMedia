@@ -52,7 +52,7 @@ import java.util.Map;
  * as the backing media player.
  */
 @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
-public class ExoVideoView extends ResizingTextureView implements VideoViewApi, AudioCapabilitiesReceiver.Listener, ResizingTextureView.OnSizeChangeListener  {
+public class ExoVideoView extends ResizingTextureView implements VideoViewApi, AudioCapabilitiesReceiver.Listener {
     protected static final String USER_AGENT_FORMAT = "EMVideoView %s / Android %s / %s";
 
     protected EMExoPlayer emExoPlayer;
@@ -61,9 +61,6 @@ public class ExoVideoView extends ResizingTextureView implements VideoViewApi, A
 
     protected EMListenerMux listenerMux;
     protected boolean playRequested = false;
-
-    @Nullable
-    protected OnSurfaceSizeChanged onSurfaceSizeChangedListener;
 
     public ExoVideoView(Context context) {
         super(context);
@@ -203,13 +200,6 @@ public class ExoVideoView extends ResizingTextureView implements VideoViewApi, A
     }
 
     @Override
-    public void onVideoSurfaceSizeChange(int width, int height) {
-        if (onSurfaceSizeChangedListener != null) {
-            onSurfaceSizeChangedListener.onSurfaceSizeChanged(width, height);
-        }
-    }
-
-    @Override
     public void onAudioCapabilitiesChanged(AudioCapabilities audioCapabilities) {
         if (!audioCapabilities.equals(this.audioCapabilities)) {
             this.audioCapabilities = audioCapabilities;
@@ -239,11 +229,6 @@ public class ExoVideoView extends ResizingTextureView implements VideoViewApi, A
         }
     }
 
-    @Override
-    public void setOnSizeChangedListener(@Nullable OnSurfaceSizeChanged listener) {
-        onSurfaceSizeChangedListener = listener;
-    }
-
     protected void setup() {
         audioCapabilitiesReceiver = new AudioCapabilitiesReceiver(getContext().getApplicationContext(), this);
         audioCapabilitiesReceiver.register();
@@ -252,7 +237,7 @@ public class ExoVideoView extends ResizingTextureView implements VideoViewApi, A
         //Sets the internal listener
         emExoPlayer.setMetadataListener(null);
         setSurfaceTextureListener(new EMExoVideoSurfaceTextureListener());
-        setOnSizeChangeListener(this);
+
         updateVideoSize(0, 0);
     }
 

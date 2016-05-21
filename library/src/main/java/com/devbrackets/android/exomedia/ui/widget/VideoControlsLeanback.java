@@ -33,6 +33,7 @@ import android.widget.ProgressBar;
 
 import com.devbrackets.android.exomedia.R;
 import com.devbrackets.android.exomedia.ui.animation.BottomViewHideShowAnimation;
+import com.devbrackets.android.exomedia.ui.animation.TopViewHideShowAnimation;
 import com.devbrackets.android.exomedia.util.EMResourceUtil;
 import com.devbrackets.android.exomedia.util.TimeFormatUtil;
 
@@ -92,24 +93,12 @@ public class VideoControlsLeanback extends VideoControls {
         return R.layout.exomedia_default_controls_leanback;
     }
 
-    /**
-     * Sets the current video position, updating the seek bar
-     * and the current time field
-     *
-     * @param position The position in milliseconds
-     */
     @Override
     public void setPosition(long position) {
         currentTime.setText(TimeFormatUtil.formatMs(position));
         progressBar.setProgress((int) position);
     }
 
-    /**
-     * Sets the video duration in Milliseconds to display
-     * at the end of the progress bar
-     *
-     * @param duration The duration of the video in milliseconds
-     */
     @Override
     public void setDuration(long duration) {
         if (duration != progressBar.getMax()) {
@@ -125,12 +114,6 @@ public class VideoControlsLeanback extends VideoControls {
         currentTime.setText(TimeFormatUtil.formatMs(position));
     }
 
-    /**
-     * Sets the state list drawable resource id to use for the Rewind button.
-     * <b><em>NOTE:</em></b> The Rewind button is only shown on TV layouts
-     *
-     * @param resourceId The resourceId or 0
-     */
     @Override
     public void setRewindImageResource(@DrawableRes int resourceId) {
         if (rewindButton == null) {
@@ -144,12 +127,6 @@ public class VideoControlsLeanback extends VideoControls {
         }
     }
 
-    /**
-     * Sets the state list drawable resource id to use for the Fast Forward button.
-     * <b><em>NOTE:</em></b> The Fast Forward button is only shown on TV layouts
-     *
-     * @param resourceId The resourceId or 0
-     */
     @Override
     public void setFastForwardImageResource(@DrawableRes int resourceId) {
         if (fastForwardButton == null) {
@@ -163,16 +140,6 @@ public class VideoControlsLeanback extends VideoControls {
         }
     }
 
-    /**
-     * Sets the button state for the Rewind button.  This will just
-     * change the images specified with {@link #setRewindImageResource(int)},
-     * or use the defaults if they haven't been set
-     * <p>
-     * This method will NOT re-add buttons that have previously been removed with
-     * {@link #setRewindButtonRemoved(boolean)}.
-     *
-     * @param enabled If the Rewind button is enabled [default: false]
-     */
     @Override
     public void setRewindButtonEnabled(boolean enabled) {
         if (rewindButton != null) {
@@ -180,16 +147,6 @@ public class VideoControlsLeanback extends VideoControls {
         }
     }
 
-    /**
-     * Sets the button state for the Fast Forward button.  This will just
-     * change the images specified with {@link #setFastForwardImageResource(int)},
-     * or use the defaults if they haven't been set
-     * <p>
-     * This method will NOT re-add buttons that have previously been removed with
-     * {@link #setFastForwardButtonRemoved(boolean)}.
-     *
-     * @param enabled If the Rewind button is enabled [default: false]
-     */
     @Override
     public void setFastForwardButtonEnabled(boolean enabled) {
         if (fastForwardButton != null) {
@@ -197,12 +154,6 @@ public class VideoControlsLeanback extends VideoControls {
         }
     }
 
-    /**
-     * Adds or removes the Rewind button.  This will change the visibility
-     * of the button, if you want to change the enabled/disabled images see {@link #setRewindButtonEnabled(boolean)}
-     *
-     * @param removed If the Rewind button should be removed [default: true]
-     */
     @Override
     public void setRewindButtonRemoved(boolean removed) {
         if (rewindButton != null) {
@@ -210,12 +161,6 @@ public class VideoControlsLeanback extends VideoControls {
         }
     }
 
-    /**
-     * Adds or removes the FastForward button.  This will change the visibility
-     * of the button, if you want to change the enabled/disabled images see {@link #setFastForwardButtonEnabled(boolean)}
-     *
-     * @param removed If the FastForward button should be removed [default: true]
-     */
     @Override
     public void setFastForwardButtonRemoved(boolean removed) {
         if (fastForwardButton != null) {
@@ -223,9 +168,6 @@ public class VideoControlsLeanback extends VideoControls {
         }
     }
 
-    /**
-     * Retrieves the view references from the xml layout
-     */
     @Override
     protected void retrieveViews() {
         super.retrieveViews();
@@ -236,10 +178,6 @@ public class VideoControlsLeanback extends VideoControls {
         rippleIndicator = (ImageView) findViewById(R.id.exomedia_controls_leanback_ripple);
     }
 
-    /**
-     * Registers any internal listeners to perform the playback controls,
-     * such as play/pause, next, and previous
-     */
     @Override
     protected void registerListeners() {
         super.registerListeners();
@@ -264,9 +202,6 @@ public class VideoControlsLeanback extends VideoControls {
         nextButton.setOnFocusChangeListener(buttonFocusChangeListener);
     }
 
-    /**
-     * Updates the drawables used for the buttons to AppCompatTintDrawables
-     */
     @Override
     protected void updateButtonDrawables() {
         super.updateButtonDrawables();
@@ -284,12 +219,30 @@ public class VideoControlsLeanback extends VideoControls {
             return;
         }
 
-        //TODO: make sure these are correct... (views exist, and animation looks ok)
-        textContainer.startAnimation(new BottomViewHideShowAnimation(textContainer, toVisible, CONTROL_VISIBILITY_ANIMATION_LENGTH));
+        if (!hideEmptyTextContainer || !isTextContainerEmpty()) {
+            textContainer.startAnimation(new BottomViewHideShowAnimation(textContainer, toVisible, CONTROL_VISIBILITY_ANIMATION_LENGTH));
+        }
+
         controlsContainer.startAnimation(new BottomViewHideShowAnimation(controlsContainer, toVisible, CONTROL_VISIBILITY_ANIMATION_LENGTH));
 
         isVisible = toVisible;
         onVisibilityChanged();
+    }
+
+    @Override
+    protected void updateTextContainerVisibility() {
+        if (!isVisible || isLoading) {
+            return;
+        }
+
+        boolean emptyText = isTextContainerEmpty();
+        if (hideEmptyTextContainer && emptyText && textContainer.getVisibility() == VISIBLE) {
+            textContainer.clearAnimation();
+            textContainer.startAnimation(new TopViewHideShowAnimation(textContainer, false, CONTROL_VISIBILITY_ANIMATION_LENGTH));
+        } else if ((!hideEmptyTextContainer || !emptyText) && textContainer.getVisibility() != VISIBLE) {
+            textContainer.clearAnimation();
+            textContainer.startAnimation(new TopViewHideShowAnimation(textContainer, true, CONTROL_VISIBILITY_ANIMATION_LENGTH));
+        }
     }
 
     /**

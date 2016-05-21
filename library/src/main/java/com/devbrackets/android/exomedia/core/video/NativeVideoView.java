@@ -25,9 +25,14 @@ import android.support.annotation.Nullable;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 
+import com.devbrackets.android.exomedia.annotation.TrackRenderType;
 import com.devbrackets.android.exomedia.core.EMListenerMux;
 import com.devbrackets.android.exomedia.core.api.VideoViewApi;
 import com.devbrackets.android.exomedia.core.builder.RenderBuilder;
+import com.google.android.exoplayer.MediaFormat;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  * A {@link VideoViewApi} implementation that uses the
@@ -136,8 +141,30 @@ public class NativeVideoView extends TextureVideoView implements VideoViewApi {
     }
 
     @Override
+    public void stopPlayback() {
+        super.stopPlayback();
+        listenerMux.clearSurfaceWhenReady(this);
+    }
+
+    @Override
     public void release() {
         //Purposefully left blank
+    }
+
+    @Override
+    public boolean trackSelectionAvailable() {
+        return false;
+    }
+
+    @Override
+    public void setTrack(@TrackRenderType int trackType, int trackIndex) {
+        //Purposefully left blank
+    }
+
+    @Nullable
+    @Override
+    public Map<Integer, List<MediaFormat>> getAvailableTracks() {
+        return null;
     }
 
     @Override
@@ -152,7 +179,7 @@ public class NativeVideoView extends TextureVideoView implements VideoViewApi {
     }
 
     @Override
-    public void updateAspectRatio(float aspectRatio) {
+    public void onVideoSizeChanged(int width, int height) {
         //Purposefully left blank
     }
 

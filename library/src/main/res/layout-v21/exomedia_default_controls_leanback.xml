@@ -80,7 +80,7 @@
                 android:paddingEnd="16dp"
                 android:paddingStart="16dp"
                 android:textColor="@android:color/white"
-                tools:text="00:00"/>
+                tools:text="1:06:29"/>
 
             <TextView
                 android:id="@+id/exomedia_controls_end_time"
@@ -92,7 +92,7 @@
                 android:paddingStart="16dp"
                 android:textColor="@android:color/white"
                 tools:ignore="RelativeOverlap"
-                tools:text="99:99"/>
+                tools:text="1:23:49"/>
 
             <ImageView
                 android:id="@+id/exomedia_controls_leanback_ripple"

@@ -14,7 +14,7 @@ import com.devbrackets.android.exomedia.util.TimeFormatUtil;
 import com.devbrackets.android.exomediademo.App;
 import com.devbrackets.android.exomediademo.R;
 import com.devbrackets.android.exomediademo.data.MediaItem;
-import com.devbrackets.android.exomediademo.helper.AudioItems;
+import com.devbrackets.android.exomediademo.data.Samples;
 import com.devbrackets.android.exomediademo.manager.PlaylistManager;
 import com.devbrackets.android.playlistcore.event.MediaProgress;
 import com.devbrackets.android.playlistcore.event.PlaylistItemChange;
@@ -255,8 +255,8 @@ public class AudioPlayerActivity extends AppCompatActivity implements PlaylistLi
         }
 
         List<MediaItem> mediaItems = new LinkedList<>();
-        for (AudioItems.AudioItem item : AudioItems.getItems()) {
-            MediaItem mediaItem = new MediaItem(item);
+        for (Samples.Sample sample : Samples.getAudioSamples()) {
+            MediaItem mediaItem = new MediaItem(sample, true);
             mediaItems.add(mediaItem);
         }
 

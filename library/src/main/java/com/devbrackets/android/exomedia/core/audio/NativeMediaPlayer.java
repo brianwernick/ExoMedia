@@ -19,17 +19,25 @@ package com.devbrackets.android.exomedia.core.audio;
 import android.content.Context;
 import android.media.MediaPlayer;
 import android.net.Uri;
+import android.support.annotation.Nullable;
 import android.util.Log;
 
+import com.devbrackets.android.exomedia.annotation.TrackRenderType;
 import com.devbrackets.android.exomedia.core.EMListenerMux;
 import com.devbrackets.android.exomedia.core.api.MediaPlayerApi;
 import com.devbrackets.android.exomedia.core.builder.RenderBuilder;
+import com.google.android.exoplayer.MediaFormat;
+
+import java.util.List;
+import java.util.Map;
 
 public class NativeMediaPlayer extends MediaPlayer implements MediaPlayerApi, MediaPlayer.OnBufferingUpdateListener {
     private static final String TAG = "NativeMediaPlayer";
 
     protected int currentBufferPercent = 0;
     protected EMListenerMux listenerMux;
+
+    protected int requestedSeek;
 
     public NativeMediaPlayer(Context context) {
         super();
@@ -38,12 +46,13 @@ public class NativeMediaPlayer extends MediaPlayer implements MediaPlayerApi, Me
 
     @Override
     public void setDataSource(Context context, Uri uri) {
-        setDataSource(context, uri, (RenderBuilder)null);
+        setDataSource(context, uri, (RenderBuilder) null);
     }
 
     @Override
     public void setDataSource(Context context, Uri uri, RenderBuilder renderBuilder) {
         try {
+            requestedSeek = 0;
             super.setDataSource(context, uri);
         } catch (Exception e) {
             Log.d(TAG, "MediaPlayer: error setting data source", e);
@@ -70,14 +79,9 @@ public class NativeMediaPlayer extends MediaPlayer implements MediaPlayerApi, Me
         stop();
     }
 
-    /**
-     * If the media has completed playback, calling {@code restart} will seek to the beginning of the media, and play it.
-     *
-     * @return {@code true} if the media was successfully restarted, otherwise {@code false}
-     */
-  @Override
+    @Override
     public boolean restart() {
-        if(!listenerMux.isPrepared()) {
+        if (!listenerMux.isPrepared()) {
             return false;
         }
 
@@ -114,11 +118,28 @@ public class NativeMediaPlayer extends MediaPlayer implements MediaPlayerApi, Me
 
     @Override
     public void seekTo(int msec) {
-        if (!listenerMux.isPrepared()) {
-            return;
+        if (listenerMux.isPrepared()) {
+            super.seekTo(msec);
+            requestedSeek = 0;
+        } else {
+            requestedSeek = msec;
         }
+    }
 
-        super.seekTo(msec);
+    @Override
+    public boolean trackSelectionAvailable() {
+        return false;
+    }
+
+    @Override
+    public void setTrack(@TrackRenderType int trackType, int trackIndex) {
+        //Purposefully left blank
+    }
+
+    @Nullable
+    @Override
+    public Map<Integer, List<MediaFormat>> getAvailableTracks() {
+        return null;
     }
 
     @Override
@@ -135,5 +156,12 @@ public class NativeMediaPlayer extends MediaPlayer implements MediaPlayerApi, Me
     @Override
     public void onBufferingUpdate(MediaPlayer mp, int percent) {
         currentBufferPercent = percent;
+    }
+
+    @Override
+    public void onMediaPrepared() {
+        if (requestedSeek != 0) {
+            seekTo(requestedSeek);
+        }
     }
 }

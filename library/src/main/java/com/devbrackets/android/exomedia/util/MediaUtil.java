@@ -26,10 +26,6 @@ public class MediaUtil {
         //Purposefully left blank
     }
 
-    public static boolean isLocalFile(String url) {
-        return !(url == null || url.isEmpty()) && (url.startsWith("file") || url.startsWith("/"));
-    }
-
     /**
      * If the passed uri contains a protocol (e.g. Http, file) then it
      * will be returned without any changes.  If the uri does not contain

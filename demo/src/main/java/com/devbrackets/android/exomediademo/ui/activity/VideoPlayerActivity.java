@@ -7,7 +7,7 @@ import com.devbrackets.android.exomedia.ui.widget.EMVideoView;
 import com.devbrackets.android.exomediademo.App;
 import com.devbrackets.android.exomediademo.R;
 import com.devbrackets.android.exomediademo.data.MediaItem;
-import com.devbrackets.android.exomediademo.helper.VideoItems;
+import com.devbrackets.android.exomediademo.data.Samples;
 import com.devbrackets.android.exomediademo.manager.PlaylistManager;
 import com.devbrackets.android.exomediademo.playlist.VideoApi;
 import com.devbrackets.android.playlistcore.manager.BasePlaylistManager;
@@ -60,7 +60,6 @@ public class VideoPlayerActivity extends Activity {
         playlistManager.invokeStop();
     }
 
-
     /**
      * Retrieves the extra associated with the selected playlist index
      * so that we can start playing the correct item.
@@ -87,13 +86,13 @@ public class VideoPlayerActivity extends Activity {
         playlistManager = App.getPlaylistManager();
 
         List<MediaItem> mediaItems = new LinkedList<>();
-        for (VideoItems.VideoItem item : VideoItems.getItems()) {
-            MediaItem mediaItem = new MediaItem(item);
+        for (Samples.Sample sample : Samples.getVideoSamples()) {
+            MediaItem mediaItem = new MediaItem(sample, false);
             mediaItems.add(mediaItem);
         }
 
         playlistManager.setAllowedMediaType(BasePlaylistManager.AUDIO | BasePlaylistManager.VIDEO);
         playlistManager.setParameters(mediaItems, selectedIndex);
-        playlistManager.setId( PLAYLIST_ID);
+        playlistManager.setId(PLAYLIST_ID);
     }
 }

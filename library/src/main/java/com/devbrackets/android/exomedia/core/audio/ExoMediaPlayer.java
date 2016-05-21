@@ -23,30 +23,33 @@ import android.net.Uri;
 import android.os.Build;
 import android.support.annotation.FloatRange;
 import android.support.annotation.IntRange;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 
 import com.devbrackets.android.exomedia.BuildConfig;
+import com.devbrackets.android.exomedia.annotation.TrackRenderType;
 import com.devbrackets.android.exomedia.core.EMListenerMux;
+import com.devbrackets.android.exomedia.core.api.MediaPlayerApi;
 import com.devbrackets.android.exomedia.core.builder.DashRenderBuilder;
 import com.devbrackets.android.exomedia.core.builder.HlsRenderBuilder;
 import com.devbrackets.android.exomedia.core.builder.RenderBuilder;
 import com.devbrackets.android.exomedia.core.builder.SmoothStreamRenderBuilder;
 import com.devbrackets.android.exomedia.core.exoplayer.EMExoPlayer;
-import com.devbrackets.android.exomedia.core.api.MediaPlayerApi;
 import com.devbrackets.android.exomedia.type.MediaSourceType;
-import com.google.android.exoplayer.audio.AudioCapabilities;
-import com.google.android.exoplayer.audio.AudioCapabilitiesReceiver;
+import com.google.android.exoplayer.MediaFormat;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  * A {@link MediaPlayerApi} implementation that uses the ExoPlayer
  * as the backing media player.
  */
 @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
-public class ExoMediaPlayer implements MediaPlayerApi, AudioCapabilitiesReceiver.Listener {
+public class ExoMediaPlayer implements MediaPlayerApi {
     protected static final String USER_AGENT_FORMAT = "EMAudioPlayer %s / Android %s / %s";
 
     protected EMExoPlayer emExoPlayer;
-    protected AudioCapabilities audioCapabilities;
-    protected AudioCapabilitiesReceiver audioCapabilitiesReceiver;
 
     protected Context context;
     protected EMListenerMux listenerMux;
@@ -54,25 +57,21 @@ public class ExoMediaPlayer implements MediaPlayerApi, AudioCapabilitiesReceiver
 
     protected int audioStreamType = AudioManager.STREAM_MUSIC;
 
-    public ExoMediaPlayer(Context context) {
+    public ExoMediaPlayer(@NonNull Context context) {
         this.context = context;
 
-        audioCapabilitiesReceiver = new AudioCapabilitiesReceiver(context, this);
-        audioCapabilitiesReceiver.register();
         emExoPlayer = new EMExoPlayer(null);
-
-        //Sets the internal listener
         emExoPlayer.setMetadataListener(null);
     }
 
     @Override
-    public void setDataSource(Context context, Uri uri) {
+    public void setDataSource(@NonNull Context context, @Nullable Uri uri) {
         RenderBuilder builder = uri == null ? null : getRendererBuilder(MediaSourceType.get(uri), uri);
         setDataSource(context, uri, builder);
     }
 
     @Override
-    public void setDataSource(Context context, Uri uri, RenderBuilder renderBuilder) {
+    public void setDataSource(Context context, @Nullable Uri uri, @Nullable RenderBuilder renderBuilder) {
         if (uri == null) {
             emExoPlayer.replaceRenderBuilder(null);
         } else {
@@ -103,10 +102,6 @@ public class ExoMediaPlayer implements MediaPlayerApi, AudioCapabilitiesReceiver
 
     @Override
     public void seekTo(@IntRange(from = 0) int milliseconds) {
-        if (!listenerMux.isPrepared()) {
-            return;
-        }
-
         emExoPlayer.seekTo(milliseconds);
     }
 
@@ -177,11 +172,6 @@ public class ExoMediaPlayer implements MediaPlayerApi, AudioCapabilitiesReceiver
     @Override
     public void release() {
         emExoPlayer.release();
-
-        if (audioCapabilitiesReceiver != null) {
-            audioCapabilitiesReceiver.unregister();
-            audioCapabilitiesReceiver = null;
-        }
     }
 
     @Override
@@ -200,16 +190,30 @@ public class ExoMediaPlayer implements MediaPlayerApi, AudioCapabilitiesReceiver
     }
 
     @Override
+    public boolean trackSelectionAvailable() {
+        return true;
+    }
+
+    @Override
+    public void setTrack(@TrackRenderType int trackType, int trackIndex) {
+        emExoPlayer.setSelectedTrack(trackType, trackIndex);
+    }
+
+    @Nullable
+    @Override
+    public Map<Integer, List<MediaFormat>> getAvailableTracks() {
+        return emExoPlayer.getAvailableTracks();
+    }
+
+    @Override
     public void setListenerMux(EMListenerMux listenerMux) {
         this.listenerMux = listenerMux;
         emExoPlayer.addListener(listenerMux);
     }
 
     @Override
-    public void onAudioCapabilitiesChanged(AudioCapabilities audioCapabilities) {
-        if (!audioCapabilities.equals(this.audioCapabilities)) {
-            this.audioCapabilities = audioCapabilities;
-        }
+    public void onMediaPrepared() {
+        //Purposefully left blank
     }
 
     /**

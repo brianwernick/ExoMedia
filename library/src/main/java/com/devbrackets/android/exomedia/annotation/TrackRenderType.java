@@ -14,20 +14,22 @@
  * limitations under the License.
  */
 
-package com.devbrackets.android.exomedia.listener;
+package com.devbrackets.android.exomedia.annotation;
 
-/**
- * Interface definition for a callback to be invoked when the visibility
- * of the {@link com.devbrackets.android.exomedia.ui.widget.VideoControls} changes
- */
-public interface VideoControlsVisibilityListener {
-    /**
-     * Occurs when the DefaultControls becomes visible
-     */
-    void onControlsShown();
+import android.support.annotation.IntDef;
 
-    /**
-     * Occurs when the DefaultControls becomes hidden
-     */
-    void onControlsHidden();
+import com.devbrackets.android.exomedia.core.exoplayer.EMExoPlayer;
+
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+
+@IntDef({
+        EMExoPlayer.RENDER_AUDIO,
+        EMExoPlayer.RENDER_VIDEO,
+        EMExoPlayer.RENDER_CLOSED_CAPTION,
+        EMExoPlayer.RENDER_TIMED_METADATA
+})
+@Retention(RetentionPolicy.SOURCE)
+public @interface TrackRenderType {
+    //Purposefully left blank
 }

@@ -19,11 +19,18 @@ package com.devbrackets.android.exomedia.core.api;
 import android.net.Uri;
 import android.support.annotation.FloatRange;
 import android.support.annotation.IntRange;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.view.View;
 
+import com.devbrackets.android.exomedia.annotation.TrackRenderType;
 import com.devbrackets.android.exomedia.core.EMListenerMux;
 import com.devbrackets.android.exomedia.core.builder.RenderBuilder;
+import com.devbrackets.android.exomedia.core.video.scale.ScaleType;
+import com.google.android.exoplayer.MediaFormat;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  * The basic APIs expected in the backing video view
@@ -57,6 +64,12 @@ public interface VideoViewApi {
 
     void stopPlayback();
 
+    /**
+     * Prepares the media previously specified for playback.  This should only be called after
+     * the playback has completed to restart playback from the beginning.
+     *
+     * @return {@code true} if the media was successfully restarted
+     */
     boolean restart();
 
     void suspend();
@@ -72,11 +85,38 @@ public interface VideoViewApi {
     @IntRange(from = 0, to = 100)
     int getBufferedPercent();
 
+    boolean trackSelectionAvailable();
+
+    void setTrack(@TrackRenderType int trackType, int trackIndex);
+
+    /**
+     * Retrieves a list of available tracks to select from.  Typically {@link #trackSelectionAvailable()}
+     * should be called before this.
+     *
+     * @return A list of available tracks associated with each track type (see {@link com.devbrackets.android.exomedia.annotation.TrackRenderType})
+     */
+    @Nullable
+    Map<Integer, List<MediaFormat>> getAvailableTracks();
+
+    void setScaleType(@NonNull ScaleType scaleType);
+
+    ScaleType getScaleType();
+
+    void setMeasureBasedOnAspectRatioEnabled(boolean doNotMeasureBasedOnAspectRatio);
+
+    /**
+     * Sets the rotation for the Video
+     *
+     * @param rotation The rotation to apply to the video
+     * @param fromUser True if the rotation was requested by the user, false if it is from a video configuration
+     */
+    void setVideoRotation(@IntRange(from = 0, to = 359) int rotation, boolean fromUser);
+
     void setOnTouchListener(View.OnTouchListener listener);
 
     void setListenerMux(EMListenerMux listenerMux);
 
-    void updateAspectRatio(float aspectRatio);
+    void onVideoSizeChanged(int width, int height);
 
     void setOnSizeChangedListener(@Nullable OnSurfaceSizeChanged listener);
 }

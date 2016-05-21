@@ -103,7 +103,6 @@ public class StopWatch {
         }
 
         tickRunnable.performTick();
-
     }
 
     /**
@@ -171,7 +170,7 @@ public class StopWatch {
      */
     public int getTimeInt() {
         long time = currentTime + storedTime;
-        return time < Integer.MAX_VALUE ? (int)time : Integer.MAX_VALUE;
+        return time < Integer.MAX_VALUE ? (int) time : Integer.MAX_VALUE;
     }
 
     /**

@@ -26,6 +26,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.support.annotation.DrawableRes;
 import android.support.annotation.FloatRange;
+import android.support.annotation.IntRange;
 import android.support.annotation.LayoutRes;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -39,10 +40,12 @@ import android.widget.ImageView;
 import android.widget.RelativeLayout;
 
 import com.devbrackets.android.exomedia.R;
+import com.devbrackets.android.exomedia.annotation.TrackRenderType;
 import com.devbrackets.android.exomedia.core.EMListenerMux;
 import com.devbrackets.android.exomedia.core.api.VideoViewApi;
 import com.devbrackets.android.exomedia.core.builder.RenderBuilder;
 import com.devbrackets.android.exomedia.core.exoplayer.EMExoPlayer;
+import com.devbrackets.android.exomedia.core.video.scale.ScaleType;
 import com.devbrackets.android.exomedia.listener.OnBufferUpdateListener;
 import com.devbrackets.android.exomedia.listener.OnCompletionListener;
 import com.devbrackets.android.exomedia.listener.OnErrorListener;
@@ -51,6 +54,10 @@ import com.devbrackets.android.exomedia.listener.OnSeekCompletionListener;
 import com.devbrackets.android.exomedia.util.EMDeviceUtil;
 import com.devbrackets.android.exomedia.util.Repeater;
 import com.devbrackets.android.exomedia.util.StopWatch;
+import com.google.android.exoplayer.MediaFormat;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  * This is a support VideoView that will use the standard VideoView on devices below
@@ -125,19 +132,7 @@ public class EMVideoView extends RelativeLayout {
         super.onConfigurationChanged(newConfig);
 
         //Makes sure the shutters are the correct size
-        getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
-            @Override
-            public void onGlobalLayout() {
-                updateVideoShutters(getWidth(), getHeight(), videoViewImpl.getWidth(), videoViewImpl.getHeight());
-
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-                    getViewTreeObserver().removeOnGlobalLayoutListener(this);
-                } else {
-                    //noinspection deprecation
-                    getViewTreeObserver().removeGlobalOnLayoutListener(this);
-                }
-            }
-        });
+        getViewTreeObserver().addOnGlobalLayoutListener(new GlobalLayoutShutterListener());
 
         forceLayout();
         invalidate();
@@ -163,54 +158,6 @@ public class EMVideoView extends RelativeLayout {
         shutterBottom.setOnTouchListener(listener);
 
         super.setOnTouchListener(listener);
-    }
-
-    private void setup(Context context, @Nullable AttributeSet attrs) {
-        initView(context, attrs);
-        readAttributes(context, attrs);
-    }
-
-    /**
-     * Reads the attributes associated with this view, setting any values found
-     *
-     * @param context The context to retrieve the styled attributes with
-     * @param attrs The {@link AttributeSet} to retrieve the values from
-     */
-    private void readAttributes(Context context, @Nullable AttributeSet attrs) {
-        if (attrs == null || isInEditMode()) {
-            return;
-        }
-
-        TypedArray typedArray = context.obtainStyledAttributes(attrs, R.styleable.EMVideoView);
-        if (typedArray == null) {
-            return;
-        }
-
-        //Updates the VideoControls if specified
-        boolean useDefaultControls = typedArray.getBoolean(R.styleable.EMVideoView_useDefaultControls, false);
-        if (useDefaultControls) {
-            setControls(EMDeviceUtil.isDeviceTV(getContext()) ? new VideoControlsLeanback(getContext()) : new VideoControlsMobile(getContext()));
-        }
-
-        typedArray.recycle();
-    }
-
-    protected void initView(Context context, @Nullable AttributeSet attrs) {
-        inflateVideoView(context, attrs);
-
-        shutterBottom = findViewById(R.id.exomedia_video_shutter_bottom);
-        shutterTop = findViewById(R.id.exomedia_video_shutter_top);
-        shutterLeft = findViewById(R.id.exomedia_video_shutter_left);
-        shutterRight = findViewById(R.id.exomedia_video_shutter_right);
-
-        previewImageView = (ImageView) findViewById(R.id.exomedia_video_preview_image);
-        videoViewImpl = (VideoViewApi) findViewById(R.id.exomedia_video_view);
-
-        muxNotifier = new MuxNotifier();
-        listenerMux = new EMListenerMux(muxNotifier);
-
-        videoViewImpl.setListenerMux(listenerMux);
-        videoViewImpl.setOnSizeChangedListener(muxNotifier);
     }
 
     /**
@@ -377,7 +324,7 @@ public class EMVideoView extends RelativeLayout {
      * Sets the Uri location for the video to play
      *
      * @param uri The video's Uri
-     * @param renderBuilder    RenderBuilder that should be used
+     * @param renderBuilder RenderBuilder that should be used
      */
     public void setVideoURI(@Nullable Uri uri, @Nullable RenderBuilder renderBuilder) {
         videoUri = uri;
@@ -490,23 +437,22 @@ public class EMVideoView extends RelativeLayout {
         }
     }
 
-  /**
-   * If the video has completed playback, calling {@code restart} will seek to the beginning of the video, and play it.
-   *
-   * @return {@code true} if the video was successfully restarted, otherwise {@code false}
-   */
-  public boolean restart() {
-        if(videoUri == null) {
+    /**
+     * If the video has completed playback, calling {@code restart} will seek to the beginning of the video, and play it.
+     *
+     * @return {@code true} if the video was successfully restarted, otherwise {@code false}
+     */
+    public boolean restart() {
+        if (videoUri == null) {
             return false;
         }
 
-        if(videoViewImpl.restart()) {
+        if (videoViewImpl.restart()) {
             if (videoControls != null) {
                 videoControls.restartLoading();
             }
             return true;
-        }
-        else {
+        } else {
             return false;
         }
     }
@@ -610,6 +556,71 @@ public class EMVideoView extends RelativeLayout {
     }
 
     /**
+     * Determines if the current video player implementation supports
+     * track selection for audio or video tracks.
+     *
+     * @return True if tracks can be manually specified
+     */
+    public boolean trackSelectionAvailable() {
+        return videoViewImpl.trackSelectionAvailable();
+    }
+
+    /**
+     * Changes to the track with <code>trackIndex</code> for the specified
+     * <code>trackType</code>
+     *
+     * @param trackType The type for the track to switch to the selected index
+     * @param trackIndex The index for the track to swith to
+     */
+    public void setTrack(@TrackRenderType int trackType, int trackIndex) {
+        videoViewImpl.setTrack(trackType, trackIndex);
+    }
+
+    /**
+     * Retrieves a list of available tracks to select from.  Typically {@link #trackSelectionAvailable()}
+     * should be called before this.
+     *
+     * @return A list of available tracks associated with each track type (see {@link com.devbrackets.android.exomedia.annotation.TrackRenderType})
+     */
+    @Nullable
+    public Map<Integer, List<MediaFormat>> getAvailableTracks() {
+        return videoViewImpl.getAvailableTracks();
+    }
+
+    /**
+     * Sets how the video should be scaled in the view
+     *
+     * @param scaleType how to scale the videos
+     */
+    public void setScaleType(@NonNull ScaleType scaleType) {
+        videoViewImpl.setScaleType(scaleType);
+
+        int width = getWidth();
+        int height = getHeight();
+        if (width > 0 && height > 0) {
+            updateVideoShutters(width, height, videoViewImpl.getWidth(), videoViewImpl.getHeight());
+        }
+    }
+
+    /**
+     * Measures the underlying {@link VideoViewApi} using the video's aspect ratio if {@code true}
+     *
+     * @param measureBasedOnAspectRatioEnabled whether to measure using the video's aspect ratio or not
+     */
+    public void setMeasureBasedOnAspectRatioEnabled(boolean measureBasedOnAspectRatioEnabled) {
+        videoViewImpl.setMeasureBasedOnAspectRatioEnabled(measureBasedOnAspectRatioEnabled);
+    }
+
+    /**
+     * Sets the rotation for the Video
+     *
+     * @param rotation The rotation to apply to the video
+     */
+    public void setVideoRotation(@IntRange(from = 0, to = 359) int rotation) {
+        videoViewImpl.setVideoRotation(rotation, true);
+    }
+
+    /**
      * Sets the listener to inform of VideoPlayer prepared events
      *
      * @param listener The listener
@@ -655,6 +666,69 @@ public class EMVideoView extends RelativeLayout {
     }
 
     /**
+     * Performs the functionality to setup the initial properties including
+     * determining the backing implementation and reading xml attributes
+     *
+     * @param context The context to use for setting up the view
+     * @param attrs The xml attributes associated with this instance
+     */
+    protected void setup(Context context, @Nullable AttributeSet attrs) {
+        initView(context, attrs);
+        readAttributes(context, attrs);
+    }
+
+    /**
+     * Reads the attributes associated with this view, setting any values found
+     *
+     * @param context The context to retrieve the styled attributes with
+     * @param attrs The {@link AttributeSet} to retrieve the values from
+     */
+    protected void readAttributes(Context context, @Nullable AttributeSet attrs) {
+        if (attrs == null || isInEditMode()) {
+            return;
+        }
+
+        TypedArray typedArray = context.obtainStyledAttributes(attrs, R.styleable.EMVideoView);
+        if (typedArray == null) {
+            return;
+        }
+
+        //Updates the VideoControls if specified
+        boolean useDefaultControls = typedArray.getBoolean(R.styleable.EMVideoView_useDefaultControls, false);
+        if (useDefaultControls) {
+            setControls(EMDeviceUtil.isDeviceTV(getContext()) ? new VideoControlsLeanback(getContext()) : new VideoControlsMobile(getContext()));
+        }
+
+        typedArray.recycle();
+    }
+
+    /**
+     * Performs the initialization of the view including inflating the correct
+     * backing layout, linking the implementation, and finding the necessary view
+     * references.
+     *
+     * @param context The context for the initialization
+     * @param attrs The xml attributes associated with this instance
+     */
+    protected void initView(Context context, @Nullable AttributeSet attrs) {
+        inflateVideoView(context, attrs);
+
+        shutterBottom = findViewById(R.id.exomedia_video_shutter_bottom);
+        shutterTop = findViewById(R.id.exomedia_video_shutter_top);
+        shutterLeft = findViewById(R.id.exomedia_video_shutter_left);
+        shutterRight = findViewById(R.id.exomedia_video_shutter_right);
+
+        previewImageView = (ImageView) findViewById(R.id.exomedia_video_preview_image);
+        videoViewImpl = (VideoViewApi) findViewById(R.id.exomedia_video_view);
+
+        muxNotifier = new MuxNotifier();
+        listenerMux = new EMListenerMux(muxNotifier);
+
+        videoViewImpl.setListenerMux(listenerMux);
+        videoViewImpl.setOnSizeChangedListener(muxNotifier);
+    }
+
+    /**
      * Inflates the video view layout, replacing the {@link ViewStub} with the
      * correct backing implementation.
      *
@@ -676,11 +750,11 @@ public class EMVideoView extends RelativeLayout {
      * {@link com.devbrackets.android.exomedia.core.video.NativeVideoView}
      * , and an ExoPlayer backed video view on the remaining devices via
      * {@link com.devbrackets.android.exomedia.core.video.ExoVideoView}.
-     *
+     * <p>
      * In the rare cases that the default implementations need to be extended, or replaced, the
      * user can override the value with the attributes <code>videoViewApiImplLegacy</code>
      * and <code>videoViewApiImpl</code>.
-     *
+     * <p>
      * <b>NOTE:</b> overriding the default implementations may cause inconsistencies and isn't
      * recommended.
      *
@@ -747,16 +821,27 @@ public class EMVideoView extends RelativeLayout {
     }
 
     protected int calculateVerticalShutterSize(int viewHeight, int videoHeight) {
+        if (videoViewImpl.getScaleType() == ScaleType.CENTER_CROP) {
+            return 0;
+        }
+
         int shutterSize = (viewHeight - videoHeight) / 2;
-        return (viewHeight - videoHeight) % 2 == 0 ? shutterSize : shutterSize +1;
+        return (viewHeight - videoHeight) % 2 == 0 ? shutterSize : shutterSize + 1;
     }
 
     protected int calculateSideShutterSize(int viewWidth, int videoWidth) {
+        if (videoViewImpl.getScaleType() == ScaleType.CENTER_CROP) {
+            return 0;
+        }
+
         int shutterSize = (viewWidth - videoWidth) / 2;
-        return (viewWidth - videoWidth) % 2 == 0 ? shutterSize : shutterSize +1;
+        return (viewWidth - videoWidth) % 2 == 0 ? shutterSize : shutterSize + 1;
     }
 
     protected class MuxNotifier extends EMListenerMux.EMListenerMuxNotifier implements VideoViewApi.OnSurfaceSizeChanged {
+        public static final int ROTATION_90 = 90;
+        public static final int ROTATION_270 = 270;
+
         @Override
         public boolean shouldNotifyCompletion(long endLeeway) {
             return getCurrentPosition() + endLeeway >= getDuration();
@@ -790,23 +875,20 @@ public class EMVideoView extends RelativeLayout {
         }
 
         @Override
+        @SuppressWarnings("SuspiciousNameCombination")
         public void onVideoSizeChanged(int width, int height, int unAppliedRotationDegrees, float pixelWidthHeightRatio) {
-            //Makes sure we have the correct aspect ratio
-            float videoAspectRatio = height == 0 ? 1 : (width * pixelWidthHeightRatio) / height;
-            videoViewImpl.updateAspectRatio(videoAspectRatio);
+            //NOTE: Android 5.0+ will always have an unAppliedRotationDegrees of 0 (ExoPlayer already handles it)
+            videoViewImpl.setVideoRotation(unAppliedRotationDegrees, false);
 
-            //Since the ExoPlayer will occasionally return an unscaled video size, we will make sure
-            // we are using scaled values when updating the shutters
-            if (width < getWidth() && height < getHeight()) {
-                width = getWidth();
-                height = (int)(width / videoAspectRatio);
-                if (height > getHeight()) {
-                    height = getHeight();
-                    width = (int)(height * videoAspectRatio);
-                }
+            //If we applied a rotation make sure to update the width, height, and ratio
+            if (unAppliedRotationDegrees == ROTATION_90 || unAppliedRotationDegrees == ROTATION_270) {
+                int rotatedHeight = height;
+                height = width;
+                width = rotatedHeight;
+                pixelWidthHeightRatio = 1 / pixelWidthHeightRatio;
             }
 
-            updateVideoShutters(getWidth(), getHeight(), width, height);
+            onVideoSizeChanged(width, height, pixelWidthHeightRatio);
         }
 
         @Override
@@ -822,6 +904,26 @@ public class EMVideoView extends RelativeLayout {
             if (previewImageView != null) {
                 previewImageView.setVisibility(toVisible ? View.VISIBLE : View.GONE);
             }
+        }
+
+        public void onVideoSizeChanged(int width, int height, float pixelWidthHeightRatio) {
+            videoViewImpl.onVideoSizeChanged(width, height);
+
+            //Since the ExoPlayer will occasionally return an unscaled video size, we will make sure
+            // we are using scaled values when updating the shutters
+            if (width < getWidth() && height < getHeight()) {
+                //Makes sure we have the correct aspect ratio
+                float videoAspectRatio = height == 0 ? 1 : (width * pixelWidthHeightRatio) / height;
+
+                width = getWidth();
+                height = (int) (width / videoAspectRatio);
+                if (height > getHeight()) {
+                    height = getHeight();
+                    width = (int) (height * videoAspectRatio);
+                }
+            }
+
+            updateVideoShutters(getWidth(), getHeight(), width, height);
         }
     }
 
@@ -852,6 +954,23 @@ public class EMVideoView extends RelativeLayout {
             }
 
             return true;
+        }
+    }
+
+    /**
+     * Listens to the global layout to update the shutter sizes
+     */
+    protected class GlobalLayoutShutterListener implements ViewTreeObserver.OnGlobalLayoutListener {
+        @Override
+        public void onGlobalLayout() {
+            updateVideoShutters(getWidth(), getHeight(), videoViewImpl.getWidth(), videoViewImpl.getHeight());
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+                getViewTreeObserver().removeOnGlobalLayoutListener(this);
+            } else {
+                //noinspection deprecation
+                getViewTreeObserver().removeGlobalOnLayoutListener(this);
+            }
         }
     }
 }

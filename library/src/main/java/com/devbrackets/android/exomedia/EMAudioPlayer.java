@@ -17,10 +17,13 @@
 package com.devbrackets.android.exomedia;
 
 import android.content.Context;
+import android.media.AudioManager;
 import android.net.Uri;
 import android.os.Build;
 import android.support.annotation.FloatRange;
+import android.support.annotation.Nullable;
 
+import com.devbrackets.android.exomedia.annotation.TrackRenderType;
 import com.devbrackets.android.exomedia.core.EMListenerMux;
 import com.devbrackets.android.exomedia.core.api.MediaPlayerApi;
 import com.devbrackets.android.exomedia.core.audio.ExoMediaPlayer;
@@ -33,6 +36,10 @@ import com.devbrackets.android.exomedia.listener.OnErrorListener;
 import com.devbrackets.android.exomedia.listener.OnPreparedListener;
 import com.devbrackets.android.exomedia.listener.OnSeekCompletionListener;
 import com.devbrackets.android.exomedia.util.EMDeviceUtil;
+import com.google.android.exoplayer.MediaFormat;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  * An AudioPlayer that uses the ExoPlayer as the backing architecture.  If the current device
@@ -44,10 +51,10 @@ import com.devbrackets.android.exomedia.util.EMDeviceUtil;
  */
 @SuppressWarnings("UnusedDeclaration")
 public class EMAudioPlayer {
-    private EMListenerMux listenerMux;
+    protected EMListenerMux listenerMux;
 
     protected MediaPlayerApi mediaPlayerImpl;
-    private int overriddenDuration = -1;
+    protected int overriddenDuration = -1;
 
     public EMAudioPlayer(Context context) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN  && EMDeviceUtil.isDeviceCTSCompliant()) {
@@ -71,6 +78,15 @@ public class EMAudioPlayer {
         return mediaPlayerImpl.getAudioSessionId();
     }
 
+    /**
+     * Sets the audio stream type for this MediaPlayer. See {@link AudioManager}
+     * for a list of stream types. Must call this method before prepare() or
+     * prepareAsync() in order for the target stream type to become effective
+     * thereafter.
+     *
+     * @param streamType The audio stream type
+     * @see android.media.AudioManager
+     */
     public void setAudioStreamType(int streamType) {
         mediaPlayerImpl.setAudioStreamType(streamType);
     }
@@ -100,6 +116,10 @@ public class EMAudioPlayer {
         overrideDuration(-1);
     }
 
+    /**
+     * Prepares the media specified with {@link #setDataSource(Context, Uri)} or
+     * {@link #setDataSource(Context, Uri, RenderBuilder)} in an asynchronous manner
+     */
     public void prepareAsync() {
         mediaPlayerImpl.prepareAsync();
     }
@@ -151,10 +171,6 @@ public class EMAudioPlayer {
      * @param milliSeconds The time to move the playback to
      */
     public void seekTo(int milliSeconds) {
-        if (milliSeconds > getDuration()) {
-            milliSeconds = getDuration();
-        }
-
         mediaPlayerImpl.seekTo(milliSeconds);
     }
 
@@ -189,6 +205,9 @@ public class EMAudioPlayer {
         mediaPlayerImpl.stopPlayback();
     }
 
+    /**
+     * Releases the resources associated with this media player
+     */
     public void release() {
         mediaPlayerImpl.release();
     }
@@ -239,6 +258,38 @@ public class EMAudioPlayer {
      */
     public int getBufferPercentage() {
         return mediaPlayerImpl.getBufferedPercent();
+    }
+
+    /**
+     * Determines if the current video player implementation supports
+     * track selection for audio or video tracks.
+     *
+     * @return True if tracks can be manually specified
+     */
+    public boolean trackSelectionAvailable() {
+        return mediaPlayerImpl.trackSelectionAvailable();
+    }
+
+    /**
+     * Changes to the track with <code>trackIndex</code> for the specified
+     * <code>trackType</code>
+     *
+     * @param trackType The type for the track to switch to the selected index
+     * @param trackIndex The index for the track to swith to
+     */
+    public void setTrack(@TrackRenderType int trackType, int trackIndex) {
+        mediaPlayerImpl.setTrack(trackType, trackIndex);
+    }
+
+    /**
+     * Retrieves a list of available tracks to select from.  Typically {@link #trackSelectionAvailable()}
+     * should be called before this.
+     *
+     * @return A list of available tracks associated with each track type (see {@link com.devbrackets.android.exomedia.annotation.TrackRenderType})
+     */
+    @Nullable
+    public Map<Integer, List<MediaFormat>> getAvailableTracks() {
+        return mediaPlayerImpl.getAvailableTracks();
     }
 
     /**
@@ -315,8 +366,8 @@ public class EMAudioPlayer {
         }
 
         @Override
-        public void onBufferUpdated(int percent) {
-            //purposefully left blank
+        public void onPrepared() {
+            mediaPlayerImpl.onMediaPrepared();
         }
     }
 }

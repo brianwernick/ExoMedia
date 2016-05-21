@@ -18,7 +18,6 @@ package com.devbrackets.android.exomedia.ui.widget;
 
 import android.annotation.TargetApi;
 import android.content.Context;
-import android.content.res.Configuration;
 import android.content.res.TypedArray;
 import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
@@ -35,7 +34,6 @@ import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewStub;
-import android.view.ViewTreeObserver;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 
@@ -71,11 +69,6 @@ import java.util.Map;
 @SuppressWarnings("UnusedDeclaration")
 public class EMVideoView extends RelativeLayout {
     private static final String TAG = EMVideoView.class.getSimpleName();
-
-    protected View shutterTop;
-    protected View shutterBottom;
-    protected View shutterRight;
-    protected View shutterLeft;
 
     @Nullable
     protected VideoControls videoControls;
@@ -128,35 +121,8 @@ public class EMVideoView extends RelativeLayout {
     }
 
     @Override
-    protected void onConfigurationChanged(Configuration newConfig) {
-        super.onConfigurationChanged(newConfig);
-
-        //Makes sure the shutters are the correct size
-        getViewTreeObserver().addOnGlobalLayoutListener(new GlobalLayoutShutterListener());
-
-        forceLayout();
-        invalidate();
-    }
-
-    @Override
-    protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
-        super.onLayout(changed, left, top, right, bottom);
-
-        if (changed) {
-            updateVideoShutters(right, bottom, videoViewImpl.getWidth(), videoViewImpl.getHeight());
-        }
-    }
-
-    @Override
     public void setOnTouchListener(OnTouchListener listener) {
         videoViewImpl.setOnTouchListener(listener);
-
-        //Sets the onTouch listener for the shutters
-        shutterLeft.setOnTouchListener(listener);
-        shutterRight.setOnTouchListener(listener);
-        shutterTop.setOnTouchListener(listener);
-        shutterBottom.setOnTouchListener(listener);
-
         super.setOnTouchListener(listener);
     }
 
@@ -238,29 +204,6 @@ public class EMVideoView extends RelativeLayout {
      */
     public ImageView getPreviewImageView() {
         return previewImageView;
-    }
-
-    /**
-     * Sets the color for the video shutters (the black bars above and below the video)
-     *
-     * @param color The color
-     */
-    public void setShutterColor(int color) {
-        if (shutterTop != null) {
-            shutterTop.setBackgroundColor(color);
-        }
-
-        if (shutterBottom != null) {
-            shutterBottom.setBackgroundColor(color);
-        }
-
-        if (shutterLeft != null) {
-            shutterLeft.setBackgroundColor(color);
-        }
-
-        if (shutterRight != null) {
-            shutterRight.setBackgroundColor(color);
-        }
     }
 
     public void setControls(@Nullable VideoControls controls) {
@@ -589,12 +532,6 @@ public class EMVideoView extends RelativeLayout {
      */
     public void setScaleType(@NonNull ScaleType scaleType) {
         videoViewImpl.setScaleType(scaleType);
-
-        int width = getWidth();
-        int height = getHeight();
-        if (width > 0 && height > 0) {
-            updateVideoShutters(width, height, videoViewImpl.getWidth(), videoViewImpl.getHeight());
-        }
     }
 
     /**
@@ -708,11 +645,6 @@ public class EMVideoView extends RelativeLayout {
     protected void initView(Context context, @Nullable AttributeSet attrs) {
         inflateVideoView(context, attrs);
 
-        shutterBottom = findViewById(R.id.exomedia_video_shutter_bottom);
-        shutterTop = findViewById(R.id.exomedia_video_shutter_top);
-        shutterLeft = findViewById(R.id.exomedia_video_shutter_left);
-        shutterRight = findViewById(R.id.exomedia_video_shutter_right);
-
         previewImageView = (ImageView) findViewById(R.id.exomedia_video_preview_image);
         videoViewImpl = (VideoViewApi) findViewById(R.id.exomedia_video_view);
 
@@ -720,7 +652,6 @@ public class EMVideoView extends RelativeLayout {
         listenerMux = new EMListenerMux(muxNotifier);
 
         videoViewImpl.setListenerMux(listenerMux);
-        videoViewImpl.setOnSizeChangedListener(muxNotifier);
     }
 
     /**
@@ -789,51 +720,7 @@ public class EMVideoView extends RelativeLayout {
         pollRepeater.stop();
     }
 
-    protected void updateVideoShutters(int viewWidth, int viewHeight, int videoWidth, int videoHeight) {
-        //Sets the horizontal shutter (top and bottom) sizes
-        int shutterHeight = calculateVerticalShutterSize(viewHeight, videoHeight);
-        if (shutterTop != null) {
-            shutterTop.getLayoutParams().height = shutterHeight;
-            shutterTop.requestLayout();
-        }
-
-        if (shutterBottom != null) {
-            shutterBottom.getLayoutParams().height = shutterHeight;
-            shutterBottom.requestLayout();
-        }
-
-        //Sets the vertical shutter (left and right) sizes
-        int shutterWidth = calculateSideShutterSize(viewWidth, videoWidth);
-        if (shutterLeft != null) {
-            shutterLeft.getLayoutParams().width = shutterWidth;
-            shutterLeft.requestLayout();
-        }
-
-        if (shutterRight != null) {
-            shutterRight.getLayoutParams().width = shutterWidth;
-            shutterRight.requestLayout();
-        }
-    }
-
-    protected int calculateVerticalShutterSize(int viewHeight, int videoHeight) {
-        if (videoViewImpl.getScaleType() == ScaleType.CENTER_CROP) {
-            return 0;
-        }
-
-        int shutterSize = (viewHeight - videoHeight) / 2;
-        return (viewHeight - videoHeight) % 2 == 0 ? shutterSize : shutterSize + 1;
-    }
-
-    protected int calculateSideShutterSize(int viewWidth, int videoWidth) {
-        if (videoViewImpl.getScaleType() == ScaleType.CENTER_CROP) {
-            return 0;
-        }
-
-        int shutterSize = (viewWidth - videoWidth) / 2;
-        return (viewWidth - videoWidth) % 2 == 0 ? shutterSize : shutterSize + 1;
-    }
-
-    protected class MuxNotifier extends EMListenerMux.EMListenerMuxNotifier implements VideoViewApi.OnSurfaceSizeChanged {
+    protected class MuxNotifier extends EMListenerMux.EMListenerMuxNotifier {
         public static final int ROTATION_90 = 90;
         public static final int ROTATION_270 = 270;
 
@@ -858,11 +745,6 @@ public class EMVideoView extends RelativeLayout {
         }
 
         @Override
-        public void onSurfaceSizeChanged(int width, int height) {
-            updateVideoShutters(getWidth(), getHeight(), width, height);
-        }
-
-        @Override
         @SuppressWarnings("SuspiciousNameCombination")
         public void onVideoSizeChanged(int width, int height, int unAppliedRotationDegrees, float pixelWidthHeightRatio) {
             //NOTE: Android 5.0+ will always have an unAppliedRotationDegrees of 0 (ExoPlayer already handles it)
@@ -873,10 +755,9 @@ public class EMVideoView extends RelativeLayout {
                 int rotatedHeight = height;
                 height = width;
                 width = rotatedHeight;
-                pixelWidthHeightRatio = 1 / pixelWidthHeightRatio;
             }
 
-            onVideoSizeChanged(width, height, pixelWidthHeightRatio);
+            videoViewImpl.onVideoSizeChanged(width, height);
         }
 
         @Override
@@ -892,26 +773,6 @@ public class EMVideoView extends RelativeLayout {
             if (previewImageView != null) {
                 previewImageView.setVisibility(toVisible ? View.VISIBLE : View.GONE);
             }
-        }
-
-        public void onVideoSizeChanged(int width, int height, float pixelWidthHeightRatio) {
-            videoViewImpl.onVideoSizeChanged(width, height);
-
-            //Since the ExoPlayer will occasionally return an unscaled video size, we will make sure
-            // we are using scaled values when updating the shutters
-            if (width < getWidth() && height < getHeight()) {
-                //Makes sure we have the correct aspect ratio
-                float videoAspectRatio = height == 0 ? 1 : (width * pixelWidthHeightRatio) / height;
-
-                width = getWidth();
-                height = (int) (width / videoAspectRatio);
-                if (height > getHeight()) {
-                    height = getHeight();
-                    width = (int) (height * videoAspectRatio);
-                }
-            }
-
-            updateVideoShutters(getWidth(), getHeight(), width, height);
         }
     }
 
@@ -942,23 +803,6 @@ public class EMVideoView extends RelativeLayout {
             }
 
             return true;
-        }
-    }
-
-    /**
-     * Listens to the global layout to update the shutter sizes
-     */
-    protected class GlobalLayoutShutterListener implements ViewTreeObserver.OnGlobalLayoutListener {
-        @Override
-        public void onGlobalLayout() {
-            updateVideoShutters(getWidth(), getHeight(), videoViewImpl.getWidth(), videoViewImpl.getHeight());
-
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-                getViewTreeObserver().removeOnGlobalLayoutListener(this);
-            } else {
-                //noinspection deprecation
-                getViewTreeObserver().removeGlobalOnLayoutListener(this);
-            }
         }
     }
 }

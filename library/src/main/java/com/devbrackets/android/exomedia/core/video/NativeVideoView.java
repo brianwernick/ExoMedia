@@ -180,12 +180,9 @@ public class NativeVideoView extends TextureVideoView implements VideoViewApi {
 
     @Override
     public void onVideoSizeChanged(int width, int height) {
-        //Purposefully left blank
-    }
-
-    @Override
-    public void setOnSizeChangedListener(@Nullable OnSurfaceSizeChanged listener) {
-        //Purposefully left blank
+        if (updateVideoSize(width, height)) {
+            requestLayout();
+        }
     }
 
     protected void setup() {

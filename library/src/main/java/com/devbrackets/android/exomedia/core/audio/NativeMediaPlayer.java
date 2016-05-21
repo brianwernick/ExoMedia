@@ -37,6 +37,8 @@ public class NativeMediaPlayer extends MediaPlayer implements MediaPlayerApi, Me
     protected int currentBufferPercent = 0;
     protected EMListenerMux listenerMux;
 
+    protected int requestedSeek;
+
     public NativeMediaPlayer(Context context) {
         super();
         setOnBufferingUpdateListener(this);
@@ -50,6 +52,7 @@ public class NativeMediaPlayer extends MediaPlayer implements MediaPlayerApi, Me
     @Override
     public void setDataSource(Context context, Uri uri, RenderBuilder renderBuilder) {
         try {
+            requestedSeek = 0;
             super.setDataSource(context, uri);
         } catch (Exception e) {
             Log.d(TAG, "MediaPlayer: error setting data source", e);
@@ -115,11 +118,12 @@ public class NativeMediaPlayer extends MediaPlayer implements MediaPlayerApi, Me
 
     @Override
     public void seekTo(int msec) {
-        if (!listenerMux.isPrepared()) {
-            return;
+        if (listenerMux.isPrepared()) {
+            super.seekTo(msec);
+            requestedSeek = 0;
+        } else {
+            requestedSeek = msec;
         }
-
-        super.seekTo(msec);
     }
 
     @Override
@@ -152,5 +156,12 @@ public class NativeMediaPlayer extends MediaPlayer implements MediaPlayerApi, Me
     @Override
     public void onBufferingUpdate(MediaPlayer mp, int percent) {
         currentBufferPercent = percent;
+    }
+
+    @Override
+    public void onMediaPrepared() {
+        if (requestedSeek != 0) {
+            seekTo(requestedSeek);
+        }
     }
 }

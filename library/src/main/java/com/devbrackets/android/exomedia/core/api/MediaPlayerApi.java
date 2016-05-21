@@ -113,4 +113,6 @@ public interface MediaPlayerApi {
     void setWakeMode(Context context, int mode);
 
     void setListenerMux(EMListenerMux listenerMux);
+
+    void onMediaPrepared();
 }

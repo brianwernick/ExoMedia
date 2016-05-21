@@ -36,6 +36,7 @@ import com.devbrackets.android.exomedia.core.builder.RenderBuilder;
 import com.devbrackets.android.exomedia.core.builder.SmoothStreamRenderBuilder;
 import com.devbrackets.android.exomedia.core.exoplayer.EMExoPlayer;
 import com.devbrackets.android.exomedia.type.MediaSourceType;
+import com.devbrackets.android.exomedia.util.MediaSourceUtil;
 import com.google.android.exoplayer.MediaFormat;
 
 import java.util.List;
@@ -66,7 +67,7 @@ public class ExoMediaPlayer implements MediaPlayerApi {
 
     @Override
     public void setDataSource(@NonNull Context context, @Nullable Uri uri) {
-        RenderBuilder builder = uri == null ? null : getRendererBuilder(MediaSourceType.get(uri), uri);
+        RenderBuilder builder = uri == null ? null : getRendererBuilder(MediaSourceUtil.getType(uri), uri);
         setDataSource(context, uri, builder);
     }
 
@@ -223,7 +224,7 @@ public class ExoMediaPlayer implements MediaPlayerApi {
      * @param uri The audio item's Uri
      * @return The appropriate RenderBuilder
      */
-    protected RenderBuilder getRendererBuilder(MediaSourceType renderType, Uri uri) {
+    protected RenderBuilder getRendererBuilder(@NonNull MediaSourceType renderType, @NonNull Uri uri) {
         switch (renderType) {
             case HLS:
                 return new HlsRenderBuilder(context, getUserAgent(), uri.toString(), audioStreamType);

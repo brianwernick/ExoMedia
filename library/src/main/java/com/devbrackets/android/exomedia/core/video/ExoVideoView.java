@@ -23,6 +23,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.support.annotation.FloatRange;
 import android.support.annotation.IntRange;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
 import android.view.Surface;
@@ -38,6 +39,7 @@ import com.devbrackets.android.exomedia.core.builder.SmoothStreamRenderBuilder;
 import com.devbrackets.android.exomedia.core.exoplayer.EMExoPlayer;
 import com.devbrackets.android.exomedia.core.api.VideoViewApi;
 import com.devbrackets.android.exomedia.type.MediaSourceType;
+import com.devbrackets.android.exomedia.util.MediaSourceUtil;
 import com.google.android.exoplayer.MediaFormat;
 import com.google.android.exoplayer.audio.AudioCapabilities;
 import com.google.android.exoplayer.audio.AudioCapabilitiesReceiver;
@@ -85,7 +87,7 @@ public class ExoVideoView extends ResizingTextureView implements VideoViewApi, A
 
     @Override
     public void setVideoUri(@Nullable Uri uri) {
-        RenderBuilder builder = uri == null ? null : getRendererBuilder(MediaSourceType.get(uri), uri);
+        RenderBuilder builder = uri == null ? null : getRendererBuilder(MediaSourceUtil.getType(uri), uri);
         setVideoUri(uri, builder);
     }
 
@@ -261,7 +263,7 @@ public class ExoVideoView extends ResizingTextureView implements VideoViewApi, A
      * @param uri The video's Uri
      * @return The appropriate RenderBuilder
      */
-    protected RenderBuilder getRendererBuilder(MediaSourceType renderType, Uri uri) {
+    protected RenderBuilder getRendererBuilder(@NonNull MediaSourceType renderType, @NonNull Uri uri) {
         switch (renderType) {
             case HLS:
                 return new HlsRenderBuilder(getContext().getApplicationContext(), getUserAgent(), uri.toString());

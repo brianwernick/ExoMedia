@@ -19,7 +19,6 @@ package com.devbrackets.android.exomedia;
 import android.content.Context;
 import android.media.AudioManager;
 import android.net.Uri;
-import android.os.Build;
 import android.support.annotation.FloatRange;
 import android.support.annotation.Nullable;
 
@@ -35,7 +34,7 @@ import com.devbrackets.android.exomedia.listener.OnCompletionListener;
 import com.devbrackets.android.exomedia.listener.OnErrorListener;
 import com.devbrackets.android.exomedia.listener.OnPreparedListener;
 import com.devbrackets.android.exomedia.listener.OnSeekCompletionListener;
-import com.devbrackets.android.exomedia.util.EMDeviceUtil;
+import com.devbrackets.android.exomedia.util.DeviceUtil;
 import com.google.android.exoplayer.MediaFormat;
 
 import java.util.List;
@@ -57,7 +56,11 @@ public class EMAudioPlayer {
     protected int overriddenDuration = -1;
 
     public EMAudioPlayer(Context context) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN  && EMDeviceUtil.isDeviceCTSCompliant()) {
+        this(context, new DeviceUtil());
+    }
+
+    public EMAudioPlayer(Context context, DeviceUtil deviceUtil) {
+        if (deviceUtil.supportsExoPlayer(context)) {
             mediaPlayerImpl = new ExoMediaPlayer(context);
         } else {
             mediaPlayerImpl = new NativeMediaPlayer(context);

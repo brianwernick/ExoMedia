@@ -49,7 +49,7 @@ import com.devbrackets.android.exomedia.listener.OnCompletionListener;
 import com.devbrackets.android.exomedia.listener.OnErrorListener;
 import com.devbrackets.android.exomedia.listener.OnPreparedListener;
 import com.devbrackets.android.exomedia.listener.OnSeekCompletionListener;
-import com.devbrackets.android.exomedia.util.EMDeviceUtil;
+import com.devbrackets.android.exomedia.util.DeviceUtil;
 import com.devbrackets.android.exomedia.util.Repeater;
 import com.devbrackets.android.exomedia.util.StopWatch;
 import com.google.android.exoplayer.MediaFormat;
@@ -77,6 +77,7 @@ public class EMVideoView extends RelativeLayout {
     protected Uri videoUri;
     protected VideoViewApi videoViewImpl;
     protected Repeater pollRepeater = new Repeater();
+    protected DeviceUtil deviceUtil = new DeviceUtil();
 
     protected int positionOffset = 0;
     protected int overriddenDuration = -1;
@@ -628,7 +629,7 @@ public class EMVideoView extends RelativeLayout {
         //Updates the VideoControls if specified
         boolean useDefaultControls = typedArray.getBoolean(R.styleable.EMVideoView_useDefaultControls, false);
         if (useDefaultControls) {
-            setControls(EMDeviceUtil.isDeviceTV(getContext()) ? new VideoControlsLeanback(getContext()) : new VideoControlsMobile(getContext()));
+            setControls(deviceUtil.isDeviceTV(getContext()) ? new VideoControlsLeanback(getContext()) : new VideoControlsMobile(getContext()));
         }
 
         typedArray.recycle();
@@ -690,7 +691,7 @@ public class EMVideoView extends RelativeLayout {
      */
     @LayoutRes
     protected int getVideoViewApiImplementation(@NonNull Context context, @Nullable AttributeSet attrs) {
-        boolean useLegacy = Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN || !EMDeviceUtil.isDeviceCTSCompliant();
+        boolean useLegacy = !deviceUtil.supportsExoPlayer(context);
         int defaultVideoViewApiImplRes = useLegacy ? R.layout.exomedia_default_native_video_view : R.layout.exomedia_default_exo_video_view;
 
         if (attrs == null || isInEditMode()) {

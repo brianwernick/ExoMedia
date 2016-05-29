@@ -31,6 +31,16 @@ import com.google.android.exoplayer.MediaFormat;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * A simple MediaPlayer implementation that extends the
+ * one provided by the system to add integration with
+ * the {@link EMListenerMux} and to mitigate state errors.
+ * <p>
+ * NOTE: The <code>listenerMux</code> shouldn't be null when any
+ * method utilizing it is called, however there are some cases on
+ * Amazon devices where they incorrectly call these methods when
+ * setting up the MediaPlayer (when in IDLE state)
+ */
 public class NativeMediaPlayer extends MediaPlayer implements MediaPlayerApi, MediaPlayer.OnBufferingUpdateListener {
     private static final String TAG = "NativeMediaPlayer";
 
@@ -71,7 +81,10 @@ public class NativeMediaPlayer extends MediaPlayer implements MediaPlayerApi, Me
     @Override
     public void start() {
         super.start();
-        listenerMux.setNotifiedCompleted(false);
+
+        if (listenerMux != null) {
+            listenerMux.setNotifiedCompleted(false);
+        }
     }
 
     @Override
@@ -81,7 +94,7 @@ public class NativeMediaPlayer extends MediaPlayer implements MediaPlayerApi, Me
 
     @Override
     public boolean restart() {
-        if (!listenerMux.isPrepared()) {
+        if (listenerMux == null || !listenerMux.isPrepared()) {
             return false;
         }
 
@@ -95,7 +108,7 @@ public class NativeMediaPlayer extends MediaPlayer implements MediaPlayerApi, Me
 
     @Override
     public int getDuration() {
-        if (!listenerMux.isPrepared()) {
+        if (listenerMux == null || !listenerMux.isPrepared()) {
             return 0;
         }
 
@@ -104,7 +117,7 @@ public class NativeMediaPlayer extends MediaPlayer implements MediaPlayerApi, Me
 
     @Override
     public int getCurrentPosition() {
-        if (!listenerMux.isPrepared()) {
+        if (listenerMux == null || !listenerMux.isPrepared()) {
             return 0;
         }
 
@@ -118,7 +131,7 @@ public class NativeMediaPlayer extends MediaPlayer implements MediaPlayerApi, Me
 
     @Override
     public void seekTo(int msec) {
-        if (listenerMux.isPrepared()) {
+        if (listenerMux != null && listenerMux.isPrepared()) {
             super.seekTo(msec);
             requestedSeek = 0;
         } else {

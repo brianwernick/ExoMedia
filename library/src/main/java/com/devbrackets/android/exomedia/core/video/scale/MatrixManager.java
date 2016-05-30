@@ -119,7 +119,7 @@ public class MatrixManager {
      * @param transformMatrix The matrix to add the transformation to
      */
     protected void applyCenterInside(@NonNull TextureView view, @NonNull Matrix transformMatrix) {
-        if(intrinsicVideoSize.y <= view.getWidth() && intrinsicVideoSize.x <= view.getHeight()) {
+        if(intrinsicVideoSize.x <= view.getWidth() && intrinsicVideoSize.y <= view.getHeight()) {
             applyCenter(view, transformMatrix);
         } else {
             applyFitCenter(view, transformMatrix);

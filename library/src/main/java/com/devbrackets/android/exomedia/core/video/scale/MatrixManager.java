@@ -10,9 +10,6 @@ import android.view.TextureView;
 public class MatrixManager {
     private static final String TAG = "MatrixManager";
 
-    public static final int ROTATION_90 = 90;
-    public static final int ROTATION_270 = 270;
-
     @NonNull
     protected Point intrinsicVideoSize = new Point(0, 0);
 
@@ -29,12 +26,7 @@ public class MatrixManager {
         intrinsicVideoSize.y = height;
     }
 
-    public void rotateScale(@NonNull TextureView view, @IntRange(from = 0, to = 359) int rotation, @NonNull ScaleType scaleType) {
-        rotate(view, rotation);
-        scale(view, scaleType);
-    }
-
-    protected void rotate(@NonNull TextureView view, @IntRange(from = 0, to = 359) int rotation) {
+    public void rotate(@NonNull TextureView view, @IntRange(from = 0, to = 359) int rotation) {
         view.setRotation(rotation);
     }
 
@@ -45,7 +37,7 @@ public class MatrixManager {
      * @param scaleType The type of scaling to use for the specified view
      * @return True if the scale was applied
      */
-    protected boolean scale(@NonNull TextureView view, @NonNull ScaleType scaleType) {
+    public boolean scale(@NonNull TextureView view, @NonNull ScaleType scaleType) {
 
         if (intrinsicVideoSize.x == 0 || intrinsicVideoSize.y == 0) {
             Log.d(TAG, "Unable to apply scale with an intrinsic video size of " + intrinsicVideoSize.toString());
@@ -117,7 +109,7 @@ public class MatrixManager {
      * @param view The view to apply the transformation to
      */
     protected void applyCenterInside(@NonNull TextureView view) {
-        if(intrinsicVideoSize.y <= view.getWidth() && intrinsicVideoSize.x <= view.getHeight()) {
+        if(intrinsicVideoSize.x <= view.getWidth() && intrinsicVideoSize.y <= view.getHeight()) {
             applyCenter(view);
         } else {
             applyFitCenter(view);
@@ -141,13 +133,6 @@ public class MatrixManager {
     }
 
     protected void applyScale(@NonNull TextureView view, float xScale, float yScale) {
-
-        if (view.getRotation() == ROTATION_90 || view.getRotation() == ROTATION_270){
-            float scaleTemp = xScale;
-            xScale = yScale *  view.getHeight() / view.getWidth();
-            yScale = scaleTemp *  view.getWidth() / view.getHeight();
-        }
-
         view.setScaleX(xScale);
         view.setScaleY(yScale);
     }

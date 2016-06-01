@@ -261,7 +261,6 @@ public class ResizingTextureView extends TextureView {
         matrixManager.setIntrinsicVideoSize(width, height);
 
         setScaleType(currentScaleType);
-        setVideoRotation(requestedUserRotation, requestedConfigurationRotation);
 
         updateMatrixOnLayout();
 

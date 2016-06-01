@@ -27,7 +27,7 @@ import android.support.annotation.IntRange;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
-import android.view.Surface;
+import android.util.Log;
 import android.view.TextureView;
 import android.view.View;
 import android.view.ViewTreeObserver;
@@ -48,6 +48,7 @@ import javax.microedition.khronos.egl.EGLSurface;
  * once we have a video
  */
 public class ResizingTextureView extends TextureView {
+    private static final String TAG = "ResizingTextureView";
     protected static final int MAX_DEGREES = 360;
 
     /**
@@ -97,8 +98,6 @@ public class ResizingTextureView extends TextureView {
     @NonNull
     protected Point videoSize = new Point(0, 0);
 
-    @Nullable
-    protected Surface surface;
     @NonNull
     protected ScaleType currentScaleType = ScaleType.FIT_CENTER;
     @NonNull
@@ -224,26 +223,30 @@ public class ResizingTextureView extends TextureView {
      * the surface
      */
     public void clearSurface() {
-        if (surface == null) {
+        if (getSurfaceTexture() == null) {
             return;
         }
 
-        EGL10 gl10 = (EGL10) EGLContext.getEGL();
-        EGLDisplay display = gl10.eglGetDisplay(EGL10.EGL_DEFAULT_DISPLAY);
-        gl10.eglInitialize(display, null);
+        try {
+            EGL10 gl10 = (EGL10) EGLContext.getEGL();
+            EGLDisplay display = gl10.eglGetDisplay(EGL10.EGL_DEFAULT_DISPLAY);
+            gl10.eglInitialize(display, null);
 
-        EGLConfig[] configs = new EGLConfig[1];
-        gl10.eglChooseConfig(display, GL_CLEAR_CONFIG_ATTRIBUTES, configs, configs.length, new int[1]);
-        EGLContext context = gl10.eglCreateContext(display, configs[0], EGL10.EGL_NO_CONTEXT, GL_CLEAR_CONTEXT_ATTRIBUTES);
-        EGLSurface eglSurface = gl10.eglCreateWindowSurface(display, configs[0], surface, new int[] { EGL10.EGL_NONE });
+            EGLConfig[] configs = new EGLConfig[1];
+            gl10.eglChooseConfig(display, GL_CLEAR_CONFIG_ATTRIBUTES, configs, configs.length, new int[1]);
+            EGLContext context = gl10.eglCreateContext(display, configs[0], EGL10.EGL_NO_CONTEXT, GL_CLEAR_CONTEXT_ATTRIBUTES);
+            EGLSurface eglSurface = gl10.eglCreateWindowSurface(display, configs[0], getSurfaceTexture(), new int[]{EGL10.EGL_NONE});
 
-        gl10.eglMakeCurrent(display, eglSurface, eglSurface, context);
-        gl10.eglSwapBuffers(display, eglSurface);
-        gl10.eglDestroySurface(display, eglSurface);
-        gl10.eglMakeCurrent(display, EGL10.EGL_NO_SURFACE, EGL10.EGL_NO_SURFACE, EGL10.EGL_NO_CONTEXT);
-        gl10.eglDestroyContext(display, context);
+            gl10.eglMakeCurrent(display, eglSurface, eglSurface, context);
+            gl10.eglSwapBuffers(display, eglSurface);
+            gl10.eglDestroySurface(display, eglSurface);
+            gl10.eglMakeCurrent(display, EGL10.EGL_NO_SURFACE, EGL10.EGL_NO_SURFACE, EGL10.EGL_NO_CONTEXT);
+            gl10.eglDestroyContext(display, context);
 
-        gl10.eglTerminate(display);
+            gl10.eglTerminate(display);
+        } catch (Exception e) {
+            Log.e(TAG, "Error clearing surface", e);
+        }
     }
 
     /**

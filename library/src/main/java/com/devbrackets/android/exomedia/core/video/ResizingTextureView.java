@@ -291,7 +291,7 @@ public class ResizingTextureView extends TextureView {
     public void setScaleType(@NonNull ScaleType scaleType) {
         currentScaleType = scaleType;
         if (matrixManager.ready()) {
-            matrixManager.scale(this, currentScaleType);
+            matrixManager.scale(this, scaleType);
         }
     }
 

@@ -431,8 +431,7 @@ public class TextureVideoView extends ResizingTextureView implements MediaContro
     protected class TextureVideoViewSurfaceListener implements SurfaceTextureListener {
         @Override
         public void onSurfaceTextureAvailable(SurfaceTexture surfaceTexture, int width, int height) {
-            surface = new Surface(surfaceTexture);
-            mediaPlayer.setSurface(surface);
+            mediaPlayer.setSurface(new Surface(surfaceTexture));
             if (playRequested) {
                 start();
             }

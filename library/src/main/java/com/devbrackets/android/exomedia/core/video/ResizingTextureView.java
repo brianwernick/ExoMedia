@@ -28,7 +28,6 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
 import android.util.Log;
-import android.view.Surface;
 import android.view.TextureView;
 import android.view.View;
 import android.view.ViewTreeObserver;
@@ -99,8 +98,6 @@ public class ResizingTextureView extends TextureView {
     @NonNull
     protected Point videoSize = new Point(0, 0);
 
-    @Nullable
-    protected Surface surface;
     @NonNull
     protected ScaleType currentScaleType = ScaleType.FIT_CENTER;
     @NonNull

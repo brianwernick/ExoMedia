@@ -274,8 +274,7 @@ public class ExoVideoView extends ResizingTextureView implements VideoViewApi, A
     protected class EMExoVideoSurfaceTextureListener implements TextureView.SurfaceTextureListener {
         @Override
         public void onSurfaceTextureAvailable(SurfaceTexture surfaceTexture, int width, int height) {
-            surface = new Surface(surfaceTexture);
-            emExoPlayer.setSurface(surface);
+            emExoPlayer.setSurface(new Surface(surfaceTexture));
             if (playRequested) {
                 emExoPlayer.setPlayWhenReady(true);
             }

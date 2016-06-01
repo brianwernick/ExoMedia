@@ -64,11 +64,10 @@
 
             <TextView
                 android:id="@+id/exomedia_controls_current_time"
-                android:layout_width="60sp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_alignParentLeft="true"
                 android:layout_centerVertical="true"
-                android:gravity="right"
                 android:textColor="@android:color/white"
                 tools:ignore="RtlHardcoded"
                 tools:text="1:06:29"/>
@@ -84,11 +83,10 @@
 
             <TextView
                 android:id="@+id/exomedia_controls_end_time"
-                android:layout_width="60sp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_centerVertical="true"
                 android:layout_toLeftOf="@+id/exomedia_controls_extra_container"
-                android:gravity="left"
                 android:textColor="@android:color/white"
                 tools:ignore="RtlHardcoded"
                 tools:text="1:23:49"/>

@@ -38,6 +38,7 @@ public class MatrixManager {
      * @return True if the scale was applied
      */
     public boolean scale(@NonNull TextureView view, @NonNull ScaleType scaleType) {
+
         if (intrinsicVideoSize.x == 0 || intrinsicVideoSize.y == 0) {
             Log.d(TAG, "Unable to apply scale with an intrinsic video size of " + intrinsicVideoSize.toString());
             return false;

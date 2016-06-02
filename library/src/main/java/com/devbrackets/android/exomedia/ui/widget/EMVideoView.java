@@ -722,9 +722,6 @@ public class EMVideoView extends RelativeLayout {
     }
 
     protected class MuxNotifier extends EMListenerMux.EMListenerMuxNotifier {
-        public static final int ROTATION_90 = 90;
-        public static final int ROTATION_270 = 270;
-
         @Override
         public boolean shouldNotifyCompletion(long endLeeway) {
             return getCurrentPosition() + endLeeway >= getDuration();

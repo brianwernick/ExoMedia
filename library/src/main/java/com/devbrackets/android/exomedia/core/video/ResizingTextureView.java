@@ -99,8 +99,6 @@ public class ResizingTextureView extends TextureView {
     protected Point videoSize = new Point(0, 0);
 
     @NonNull
-    protected ScaleType currentScaleType = ScaleType.FIT_CENTER;
-    @NonNull
     protected MatrixManager matrixManager = new MatrixManager();
 
     @NonNull
@@ -259,9 +257,6 @@ public class ResizingTextureView extends TextureView {
      */
     protected boolean updateVideoSize(int width, int height) {
         matrixManager.setIntrinsicVideoSize(width, height);
-
-        updateRotateScale();
-
         updateMatrixOnLayout();
 
         videoSize.x = width;
@@ -289,14 +284,7 @@ public class ResizingTextureView extends TextureView {
      * @param scaleType The scale type to use
      */
     public void setScaleType(@NonNull ScaleType scaleType) {
-        currentScaleType = scaleType;
-        updateRotateScale();
-    }
-
-    protected void updateRotateScale(){
-        if (matrixManager.ready()) {
-            matrixManager.rotateScale(this, (requestedUserRotation + requestedConfigurationRotation) % MAX_DEGREES, currentScaleType);
-        }
+        matrixManager.scale(this, scaleType);
     }
 
     /**
@@ -306,7 +294,7 @@ public class ResizingTextureView extends TextureView {
      */
     @NonNull
     public ScaleType getScaleType() {
-        return currentScaleType;
+        return matrixManager.getCurrentScaleType();
     }
 
     /**
@@ -341,7 +329,7 @@ public class ResizingTextureView extends TextureView {
         requestedUserRotation = userRotation;
         requestedConfigurationRotation = configurationRotation;
 
-        updateRotateScale();
+        matrixManager.rotate(this, (userRotation + configurationRotation) % MAX_DEGREES);
     }
 
     /**
@@ -404,12 +392,13 @@ public class ResizingTextureView extends TextureView {
     }
 
     /**
-     * Listens to the global layout to reapply the scale and rotation
+     * Listens to the global layout to reapply the scale
      */
     private class GlobalLayoutMatrixListener implements ViewTreeObserver.OnGlobalLayoutListener {
         @Override
         public void onGlobalLayout() {
-            updateRotateScale();
+            // Updates the scale to make sure one is applied
+            setScaleType(matrixManager.getCurrentScaleType());
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
                 getViewTreeObserver().removeOnGlobalLayoutListener(this);

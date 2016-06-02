@@ -260,8 +260,7 @@ public class ResizingTextureView extends TextureView {
     protected boolean updateVideoSize(int width, int height) {
         matrixManager.setIntrinsicVideoSize(width, height);
 
-        setScaleType(currentScaleType);
-        setVideoRotation(requestedUserRotation, requestedConfigurationRotation);
+        updateRotateScale();
 
         updateMatrixOnLayout();
 
@@ -291,8 +290,12 @@ public class ResizingTextureView extends TextureView {
      */
     public void setScaleType(@NonNull ScaleType scaleType) {
         currentScaleType = scaleType;
+        updateRotateScale();
+    }
+
+    protected void updateRotateScale(){
         if (matrixManager.ready()) {
-            matrixManager.scale(this, currentScaleType);
+            matrixManager.rotateScale(this, (requestedUserRotation + requestedConfigurationRotation) % MAX_DEGREES, currentScaleType);
         }
     }
 
@@ -338,7 +341,7 @@ public class ResizingTextureView extends TextureView {
         requestedUserRotation = userRotation;
         requestedConfigurationRotation = configurationRotation;
 
-        matrixManager.rotate(this, (requestedUserRotation + requestedConfigurationRotation) % MAX_DEGREES);
+        updateRotateScale();
     }
 
     /**
@@ -406,7 +409,7 @@ public class ResizingTextureView extends TextureView {
     private class GlobalLayoutMatrixListener implements ViewTreeObserver.OnGlobalLayoutListener {
         @Override
         public void onGlobalLayout() {
-            setScaleType(currentScaleType);
+            updateRotateScale();
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
                 getViewTreeObserver().removeOnGlobalLayoutListener(this);

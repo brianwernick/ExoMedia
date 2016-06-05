@@ -27,7 +27,7 @@ dependencies {
     //stable
     compile 'com.devbrackets.android:exomedia:2.5.6'
     //or preview
-    compile 'com.devbrackets.android:exomedia:3.0.0-preview1'
+    compile 'com.devbrackets.android:exomedia:3.0.0-preview3'
 }
 ```
 

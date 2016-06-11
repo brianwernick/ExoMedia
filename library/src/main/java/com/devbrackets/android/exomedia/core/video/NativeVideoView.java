@@ -137,6 +137,10 @@ public class NativeVideoView extends TextureVideoView implements VideoViewApi {
         seekTo(0);
         start();
 
+        //Makes sure the listeners get the onPrepared callback
+        listenerMux.setNotifiedPrepared(false);
+        listenerMux.setNotifiedCompleted(false);
+
         return true;
     }
 

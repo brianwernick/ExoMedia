@@ -2,6 +2,7 @@ package com.devbrackets.android.exomediademo.ui.activity;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 
 import com.devbrackets.android.exomedia.ui.widget.EMVideoView;
 import com.devbrackets.android.exomediademo.App;
@@ -10,13 +11,15 @@ import com.devbrackets.android.exomediademo.data.MediaItem;
 import com.devbrackets.android.exomediademo.data.Samples;
 import com.devbrackets.android.exomediademo.manager.PlaylistManager;
 import com.devbrackets.android.exomediademo.playlist.VideoApi;
+import com.devbrackets.android.playlistcore.listener.PlaylistListener;
 import com.devbrackets.android.playlistcore.manager.BasePlaylistManager;
+import com.devbrackets.android.playlistcore.service.PlaylistServiceCore;
 
 import java.util.LinkedList;
 import java.util.List;
 
 
-public class VideoPlayerActivity extends Activity {
+public class VideoPlayerActivity extends Activity implements PlaylistListener<MediaItem> {
     public static final String EXTRA_INDEX = "EXTRA_INDEX";
     public static final int PLAYLIST_ID = 6; //Arbitrary, for the example (different from audio)
 
@@ -55,9 +58,37 @@ public class VideoPlayerActivity extends Activity {
     }
 
     @Override
+    protected void onPause() {
+        super.onPause();
+        playlistManager.unRegisterPlaylistListener(this);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        playlistManager = App.getPlaylistManager();
+        playlistManager.registerPlaylistListener(this);
+    }
+
+    @Override
     protected void onDestroy() {
         super.onDestroy();
         playlistManager.invokeStop();
+    }
+
+    @Override
+    public boolean onPlaylistItemChanged(MediaItem currentItem, boolean hasNext, boolean hasPrevious) {
+        return false;
+    }
+
+    @Override
+    public boolean onPlaybackStateChanged(@NonNull PlaylistServiceCore.PlaybackState playbackState) {
+        if (playbackState == PlaylistServiceCore.PlaybackState.STOPPED) {
+            finish();
+            return true;
+        }
+
+        return false;
     }
 
     /**

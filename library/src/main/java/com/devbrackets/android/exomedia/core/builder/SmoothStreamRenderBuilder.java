@@ -132,6 +132,10 @@ public class SmoothStreamRenderBuilder extends RenderBuilder {
 
         @Override
         public void onSingleManifest(SmoothStreamingManifest manifest) {
+            buildRenderers(manifest);
+        }
+
+        protected void buildRenderers(SmoothStreamingManifest manifest) {
             if (canceled) {
                 return;
             }
@@ -152,10 +156,10 @@ public class SmoothStreamRenderBuilder extends RenderBuilder {
                 }
             }
 
-            buildRenderers(drmSessionManager);
+            buildTrackRenderers(drmSessionManager);
         }
 
-        protected void buildRenderers(DrmSessionManager drmSessionManager) {
+        protected void buildTrackRenderers(DrmSessionManager drmSessionManager) {
             Handler mainHandler = player.getMainHandler();
             LoadControl loadControl = new DefaultLoadControl(new DefaultAllocator(BUFFER_SEGMENT_SIZE));
             DefaultBandwidthMeter bandwidthMeter = new DefaultBandwidthMeter(mainHandler, player);

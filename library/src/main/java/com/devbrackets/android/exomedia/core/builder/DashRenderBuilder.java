@@ -81,6 +81,7 @@ public class DashRenderBuilder extends RenderBuilder {
     public DashRenderBuilder(Context context, String userAgent, String url, int streamType) {
         super(context, userAgent, url, streamType);
     }
+
     @Override
     public void buildRenderers(EMExoPlayer player) {
         currentAsyncBuilder = new AsyncRendererBuilder(context, userAgent, uri, player, streamType);
@@ -203,10 +204,10 @@ public class DashRenderBuilder extends RenderBuilder {
                 }
             }
 
-            buildRenderers(drmSessionManager, filterHdContent);
+            buildTrackRenderers(drmSessionManager, filterHdContent);
         }
 
-        protected void buildRenderers(DrmSessionManager drmSessionManager, boolean filterHdContent) {
+        protected void buildTrackRenderers(DrmSessionManager drmSessionManager, boolean filterHdContent) {
             Handler mainHandler = player.getMainHandler();
             LoadControl loadControl = new DefaultLoadControl(new DefaultAllocator(BUFFER_SEGMENT_SIZE));
             DefaultBandwidthMeter bandwidthMeter = new DefaultBandwidthMeter(mainHandler, player);
@@ -238,7 +239,7 @@ public class DashRenderBuilder extends RenderBuilder {
 
             //Build the renderers
             MediaCodecVideoTrackRenderer videoRenderer = new MediaCodecVideoTrackRenderer(context, sampleSourceVideo, MediaCodecSelector.DEFAULT,
-                    MediaCodec.VIDEO_SCALING_MODE_SCALE_TO_FIT, MAX_JOIN_TIME, mainHandler, player, DROPPED_FRAME_NOTIFICATION_AMOUNT);
+                    MediaCodec.VIDEO_SCALING_MODE_SCALE_TO_FIT, MAX_JOIN_TIME, drmSessionManager, true, mainHandler, player, DROPPED_FRAME_NOTIFICATION_AMOUNT);
             EMMediaCodecAudioTrackRenderer audioRenderer = new EMMediaCodecAudioTrackRenderer(sampleSourceAudio, MediaCodecSelector.DEFAULT,
                     drmSessionManager, true, mainHandler, player, AudioCapabilities.getCapabilities(context), streamType);
             TextTrackRenderer captionsRenderer = new TextTrackRenderer(sampleSourceCC, player, mainHandler.getLooper());

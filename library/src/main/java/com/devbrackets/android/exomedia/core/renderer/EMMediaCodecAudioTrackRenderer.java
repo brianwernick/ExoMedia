@@ -50,6 +50,10 @@ public class EMMediaCodecAudioTrackRenderer extends MediaCodecAudioTrackRenderer
         super(source, mediaCodecSelector, drmSessionManager, playClearSamplesWithoutKeys, eventHandler, eventListener, audioCapabilities, streamType);
     }
 
+    public EMMediaCodecAudioTrackRenderer(SampleSource[] sources, MediaCodecSelector mediaCodecSelector, DrmSessionManager drmSessionManager, boolean playClearSamplesWithoutKeys, Handler eventHandler, EventListener eventListener, AudioCapabilities audioCapabilities, int streamType) {
+        super(sources, mediaCodecSelector, drmSessionManager, playClearSamplesWithoutKeys, eventHandler, eventListener, audioCapabilities, streamType);
+    }
+
     @Override
     protected void onAudioSessionId(int audioSessionId) {
         this.audioSessionId = audioSessionId;

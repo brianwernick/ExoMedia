@@ -327,7 +327,6 @@ public class EMVideoView extends RelativeLayout {
      */
     public void seekTo(int milliSeconds) {
         if (videoControls != null) {
-            videoControls.show();
             videoControls.showLoading(false);
         }
 

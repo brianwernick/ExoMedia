@@ -260,7 +260,7 @@ public class EMVideoView extends RelativeLayout {
         videoViewImpl.setVideoUri(uri);
 
         if (videoControls != null) {
-            videoControls.restartLoading();
+            videoControls.showLoading(true);
         }
     }
 
@@ -275,7 +275,7 @@ public class EMVideoView extends RelativeLayout {
         videoViewImpl.setVideoUri(uri, renderBuilder);
 
         if (videoControls != null) {
-            videoControls.restartLoading();
+            videoControls.showLoading(true);
         }
     }
 
@@ -328,7 +328,7 @@ public class EMVideoView extends RelativeLayout {
     public void seekTo(int milliSeconds) {
         if (videoControls != null) {
             videoControls.show();
-            videoControls.restartLoading();
+            videoControls.showLoading(false);
         }
 
         videoViewImpl.seekTo(milliSeconds);
@@ -393,7 +393,7 @@ public class EMVideoView extends RelativeLayout {
 
         if (videoViewImpl.restart()) {
             if (videoControls != null) {
-                videoControls.restartLoading();
+                videoControls.showLoading(true);
             }
             return true;
         } else {
@@ -750,7 +750,7 @@ public class EMVideoView extends RelativeLayout {
         @Override
         public void onSeekComplete() {
             if (videoControls != null) {
-                videoControls.loadCompleted();
+                videoControls.finishLoading();
             }
         }
 
@@ -766,7 +766,7 @@ public class EMVideoView extends RelativeLayout {
         public void onPrepared() {
             if (videoControls != null) {
                 videoControls.setDuration(getDuration());
-                videoControls.loadCompleted();
+                videoControls.finishLoading();
             }
         }
 

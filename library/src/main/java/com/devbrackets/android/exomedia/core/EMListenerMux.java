@@ -141,6 +141,7 @@ public class EMListenerMux implements ExoPlayerListener, MediaPlayer.OnPreparedL
 
     @Override
     public void onSeekComplete() {
+        muxNotifier.onSeekComplete();
         if (seekCompletionListener != null) {
             seekCompletionListener.onSeekComplete();
         }
@@ -277,6 +278,10 @@ public class EMListenerMux implements ExoPlayerListener, MediaPlayer.OnPreparedL
     }
 
     public static abstract class EMListenerMuxNotifier {
+        public void onSeekComplete() {
+            //Purposefully left blank
+        }
+
         public void onBufferUpdated(int percent) {
             //Purposefully left blank
         }

@@ -134,7 +134,7 @@ public class VideoControlsMobile extends VideoControls {
     public void hideDelayed(long delay) {
         hideDelay = delay;
 
-        if (delay < 0 || !canViewHide) {
+        if (delay < 0 || !canViewHide || isLoading) {
             return;
         }
 
@@ -159,7 +159,9 @@ public class VideoControlsMobile extends VideoControls {
             textContainer.startAnimation(new TopViewHideShowAnimation(textContainer, toVisible, CONTROL_VISIBILITY_ANIMATION_LENGTH));
         }
 
-        controlsContainer.startAnimation(new BottomViewHideShowAnimation(controlsContainer, toVisible, CONTROL_VISIBILITY_ANIMATION_LENGTH));
+        if (!isLoading) {
+            controlsContainer.startAnimation(new BottomViewHideShowAnimation(controlsContainer, toVisible, CONTROL_VISIBILITY_ANIMATION_LENGTH));
+        }
 
         isVisible = toVisible;
         onVisibilityChanged();
@@ -167,7 +169,7 @@ public class VideoControlsMobile extends VideoControls {
 
     @Override
     protected void updateTextContainerVisibility() {
-        if (!isVisible || isLoading) {
+        if (!isVisible) {
             return;
         }
 
@@ -179,6 +181,32 @@ public class VideoControlsMobile extends VideoControls {
             textContainer.clearAnimation();
             textContainer.startAnimation(new TopViewHideShowAnimation(textContainer, true, CONTROL_VISIBILITY_ANIMATION_LENGTH));
         }
+    }
+
+    @Override
+    public void showLoading(boolean initialLoad) {
+        if (isLoading) {
+            return;
+        }
+
+        isLoading = true;
+        controlsContainer.setVisibility(View.GONE);
+        loadingProgress.setVisibility(View.VISIBLE);
+
+        show();
+    }
+
+    @Override
+    public void finishLoading() {
+        if (!isLoading) {
+            return;
+        }
+
+        isLoading = false;
+        controlsContainer.setVisibility(View.VISIBLE);
+        loadingProgress.setVisibility(View.GONE);
+
+        updatePlaybackState(videoView != null && videoView.isPlaying());
     }
 
     /**

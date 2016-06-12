@@ -110,10 +110,9 @@ public class ExoVideoView extends ResizingTextureView implements VideoViewApi, A
             return false;
         }
 
-        listenerMux.setNotifiedCompleted(false);
-
         //Makes sure the listeners get the onPrepared callback
         listenerMux.setNotifiedPrepared(false);
+        listenerMux.setNotifiedCompleted(false);
 
         return true;
     }

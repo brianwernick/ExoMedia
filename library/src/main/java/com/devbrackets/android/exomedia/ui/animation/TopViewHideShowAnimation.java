@@ -16,6 +16,8 @@
 
 package com.devbrackets.android.exomedia.ui.animation;
 
+import android.support.v4.view.animation.FastOutLinearInInterpolator;
+import android.support.v4.view.animation.LinearOutSlowInInterpolator;
 import android.view.View;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
@@ -48,6 +50,7 @@ public class TopViewHideShowAnimation extends AnimationSet {
         int startY = toVisible ? -view.getHeight() : 0;
         int endY = toVisible ? 0 : -view.getHeight();
         TranslateAnimation translateAnimation = new TranslateAnimation(0, 0, startY, endY);
+        translateAnimation.setInterpolator(toVisible ? new LinearOutSlowInInterpolator() : new FastOutLinearInInterpolator());
         translateAnimation.setDuration(duration);
 
 

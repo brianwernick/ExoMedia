@@ -17,6 +17,8 @@
 package com.devbrackets.android.exomedia.ui.animation;
 
 import android.content.Context;
+import android.support.v4.view.animation.FastOutLinearInInterpolator;
+import android.support.v4.view.animation.LinearOutSlowInInterpolator;
 import android.util.DisplayMetrics;
 import android.view.Display;
 import android.view.View;
@@ -51,6 +53,7 @@ public class BottomViewHideShowAnimation extends AnimationSet {
         int startY = toVisible ? getHideShowDelta(view) : 0;
         int endY = toVisible ? 0 : getHideShowDelta(view);
         TranslateAnimation translateAnimation = new TranslateAnimation(0, 0, startY, endY);
+        translateAnimation.setInterpolator(toVisible ? new LinearOutSlowInInterpolator() : new FastOutLinearInInterpolator());
         translateAnimation.setDuration(duration);
 
 

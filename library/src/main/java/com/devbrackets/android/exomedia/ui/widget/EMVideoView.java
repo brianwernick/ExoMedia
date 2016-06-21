@@ -116,7 +116,7 @@ public class EMVideoView extends RelativeLayout {
     protected void onDetachedFromWindow() {
         super.onDetachedFromWindow();
 
-        if (releaseOnDetachFromWindow) {
+        if (!isInEditMode() && releaseOnDetachFromWindow) {
             release();
         }
     }
@@ -610,6 +610,10 @@ public class EMVideoView extends RelativeLayout {
      * @param attrs The xml attributes associated with this instance
      */
     protected void setup(Context context, @Nullable AttributeSet attrs) {
+        if (isInEditMode()) {
+            return;
+        }
+
         initView(context, attrs);
         readAttributes(context, attrs);
     }
@@ -621,7 +625,7 @@ public class EMVideoView extends RelativeLayout {
      * @param attrs The {@link AttributeSet} to retrieve the values from
      */
     protected void readAttributes(Context context, @Nullable AttributeSet attrs) {
-        if (attrs == null || isInEditMode()) {
+        if (attrs == null) {
             return;
         }
 
@@ -698,7 +702,7 @@ public class EMVideoView extends RelativeLayout {
         boolean useLegacy = !deviceUtil.supportsExoPlayer(context);
         int defaultVideoViewApiImplRes = useLegacy ? R.layout.exomedia_default_native_video_view : R.layout.exomedia_default_exo_video_view;
 
-        if (attrs == null || isInEditMode()) {
+        if (attrs == null) {
             return defaultVideoViewApiImplRes;
         }
 

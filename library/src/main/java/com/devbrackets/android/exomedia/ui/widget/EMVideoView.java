@@ -614,33 +614,9 @@ public class EMVideoView extends RelativeLayout {
             return;
         }
 
-        initView(context, attrs);
-        readAttributes(context, attrs);
-    }
-
-    /**
-     * Reads the attributes associated with this view, setting any values found
-     *
-     * @param context The context to retrieve the styled attributes with
-     * @param attrs The {@link AttributeSet} to retrieve the values from
-     */
-    protected void readAttributes(Context context, @Nullable AttributeSet attrs) {
-        if (attrs == null) {
-            return;
-        }
-
-        TypedArray typedArray = context.obtainStyledAttributes(attrs, R.styleable.EMVideoView);
-        if (typedArray == null) {
-            return;
-        }
-
-        //Updates the VideoControls if specified
-        boolean useDefaultControls = typedArray.getBoolean(R.styleable.EMVideoView_useDefaultControls, false);
-        if (useDefaultControls) {
-            setControls(deviceUtil.isDeviceTV(getContext()) ? new VideoControlsLeanback(getContext()) : new VideoControlsMobile(getContext()));
-        }
-
-        typedArray.recycle();
+        AttributeContainer attributeContainer = new AttributeContainer(context, attrs);
+        initView(context, attributeContainer);
+        postInit(attributeContainer);
     }
 
     /**
@@ -649,10 +625,10 @@ public class EMVideoView extends RelativeLayout {
      * references.
      *
      * @param context The context for the initialization
-     * @param attrs The xml attributes associated with this instance
+     * @param attributeContainer The attributes associated with this instance
      */
-    protected void initView(Context context, @Nullable AttributeSet attrs) {
-        inflateVideoView(context, attrs);
+    protected void initView(Context context, @NonNull AttributeContainer attributeContainer) {
+        inflateVideoView(context, attributeContainer);
 
         previewImageView = (ImageView) findViewById(R.id.exomedia_video_preview_image);
         videoViewImpl = (VideoViewApi) findViewById(R.id.exomedia_video_view);
@@ -664,17 +640,29 @@ public class EMVideoView extends RelativeLayout {
     }
 
     /**
+     * Handles any setup that needs to be performed after {@link #initView(Context, AttributeContainer)}
+     * is performed.
+     *
+     * @param attributeContainer The attributes associated with this instance
+     */
+    protected void postInit(@NonNull AttributeContainer attributeContainer) {
+        if (attributeContainer.useDefaultControls) {
+            setControls(deviceUtil.isDeviceTV(getContext()) ? new VideoControlsLeanback(getContext()) : new VideoControlsMobile(getContext()));
+        }
+    }
+
+    /**
      * Inflates the video view layout, replacing the {@link ViewStub} with the
      * correct backing implementation.
      *
      * @param context The context to use for inflating the correct video view
-     * @param attrs The attributes for retrieving custom backing implementations.
+     * @param attributeContainer The attributes for retrieving custom backing implementations.
      */
-    protected void inflateVideoView(@NonNull Context context, @Nullable AttributeSet attrs) {
+    protected void inflateVideoView(@NonNull Context context, @NonNull AttributeContainer attributeContainer) {
         View.inflate(context, R.layout.exomedia_video_view_layout, this);
         ViewStub videoViewStub = (ViewStub) findViewById(R.id.video_view_api_impl_stub);
 
-        videoViewStub.setLayoutResource(getVideoViewApiImplementation(context, attrs));
+        videoViewStub.setLayoutResource(getVideoViewApiImplementation(context, attributeContainer));
         videoViewStub.inflate();
     }
 
@@ -694,30 +682,13 @@ public class EMVideoView extends RelativeLayout {
      * recommended.
      *
      * @param context The Context to use when retrieving the backing video view implementation
-     * @param attrs The attributes to use for finding overridden video view implementations
+     * @param attributeContainer The attributes to use for finding overridden video view implementations
      * @return The layout resource for the backing implementation on the current device
      */
     @LayoutRes
-    protected int getVideoViewApiImplementation(@NonNull Context context, @Nullable AttributeSet attrs) {
+    protected int getVideoViewApiImplementation(@NonNull Context context, @NonNull AttributeContainer attributeContainer) {
         boolean useLegacy = !deviceUtil.supportsExoPlayer(context);
-        int defaultVideoViewApiImplRes = useLegacy ? R.layout.exomedia_default_native_video_view : R.layout.exomedia_default_exo_video_view;
-
-        if (attrs == null) {
-            return defaultVideoViewApiImplRes;
-        }
-
-        //If there aren't any EMVideoView styles specified, return the default implementation
-        TypedArray typedArray = context.obtainStyledAttributes(attrs, R.styleable.EMVideoView);
-        if (typedArray == null) {
-            return defaultVideoViewApiImplRes;
-        }
-
-        //Retrieves the specified implementation
-        int styleableRes = useLegacy ? R.styleable.EMVideoView_videoViewApiImplLegacy : R.styleable.EMVideoView_videoViewApiImpl;
-        int videoViewApiImplRes = typedArray.getResourceId(styleableRes, defaultVideoViewApiImplRes);
-        typedArray.recycle();
-
-        return videoViewApiImplRes;
+        return useLegacy ? attributeContainer.apiImplLegacyResourceId : attributeContainer.apiImplResourceId;
     }
 
     /**
@@ -808,6 +779,62 @@ public class EMVideoView extends RelativeLayout {
             }
 
             return true;
+        }
+    }
+
+    /**
+     * A simple class that will retrieve the attributes and provide a simplified
+     * interaction than passing around the {@link AttributeSet}
+     */
+    protected class AttributeContainer {
+        /**
+         * Specifies if the {@link VideoControls} should be added to the view.  These
+         * can be added through source code with {@link #setControls(VideoControls)}
+         */
+        private boolean useDefaultControls = false;
+        /**
+         * Specifies if the {@link VideoViewApi} implementations should use the {@link android.view.SurfaceView}
+         * implementations.  If this is false then the implementations will be based on
+         * the {@link android.view.TextureView}.
+         * //TODO: add reasoning each is useful
+         */
+        private boolean useSurfaceViewBacking = false;
+        /**
+         * The resource id that points to a custom implementation for the <code>ExoPlayer</code>
+         * backed {@link VideoViewApi}
+         */
+        private int apiImplResourceId = R.layout.exomedia_default_exo_video_view;
+        /**
+         * The resource id that points to a custom implementation for the Android {@link android.media.MediaPlayer}
+         * backed {@link VideoViewApi}.  This will only be used on devices that do not support the
+         * <code>ExoPlayer</code> (see {@link DeviceUtil#supportsExoPlayer(Context)} for details)
+         */
+        private int apiImplLegacyResourceId = R.layout.exomedia_default_native_video_view;
+
+        /**
+         * Reads the attributes associated with this view, setting any values found
+         *
+         * @param context The context to retrieve the styled attributes with
+         * @param attrs The {@link AttributeSet} to retrieve the values from
+         */
+        public AttributeContainer(@NonNull Context context, @Nullable AttributeSet attrs) {
+            if (attrs == null) {
+                return;
+            }
+
+            TypedArray typedArray = context.obtainStyledAttributes(attrs, R.styleable.EMVideoView);
+            if (typedArray == null) {
+                return;
+            }
+
+            useDefaultControls = typedArray.getBoolean(R.styleable.EMVideoView_useDefaultControls, useDefaultControls);
+            useSurfaceViewBacking = typedArray.getBoolean(R.styleable.EMVideoView_useSurfaceViewBacking, useSurfaceViewBacking);
+
+            //TODO: this needs to changed based on useSurfaceViewBacking
+            apiImplLegacyResourceId = typedArray.getResourceId(R.styleable.EMVideoView_videoViewApiImplLegacy, apiImplLegacyResourceId);
+            apiImplResourceId = typedArray.getResourceId(R.styleable.EMVideoView_videoViewApiImplLegacy, apiImplResourceId);
+
+            typedArray.recycle();
         }
     }
 }

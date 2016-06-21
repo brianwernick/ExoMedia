@@ -130,12 +130,9 @@ public class NativeVideoView extends TextureVideoView implements VideoViewApi {
      */
     @Override
     public boolean restart() {
-        if(currentState != State.COMPLETED) {
+        if (!delegate.restart()) {
             return false;
         }
-
-        seekTo(0);
-        start();
 
         //Makes sure the listeners get the onPrepared callback
         listenerMux.setNotifiedPrepared(false);

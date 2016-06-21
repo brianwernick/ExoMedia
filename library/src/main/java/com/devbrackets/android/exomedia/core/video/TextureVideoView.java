@@ -19,18 +19,17 @@ package com.devbrackets.android.exomedia.core.video;
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.graphics.SurfaceTexture;
-import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Build;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.Surface;
 import android.widget.MediaController;
 
-import java.io.IOException;
+import com.devbrackets.android.exomedia.core.video.delegate.NativeDelegate;
+
 import java.util.Map;
 
 /**
@@ -45,44 +44,8 @@ import java.util.Map;
  * <li>The {@link MediaController}</li>
  * </ul>
  */
-public class TextureVideoView extends ResizingTextureView implements MediaController.MediaPlayerControl {
-    private static final String TAG = "TextureVideoView";
-
-    protected enum State {
-        ERROR,
-        IDLE,
-        PREPARING,
-        PREPARED,
-        PLAYING,
-        PAUSED,
-        COMPLETED
-    }
-
-    protected Map<String, String> headers;
-
-    protected State currentState = State.IDLE;
-
-    protected MediaPlayer mediaPlayer;
-
-    protected boolean playRequested = false;
-    protected int requestedSeek;
-    protected int currentBufferPercent;
-
-    @NonNull
-    protected InternalListeners internalListeners = new InternalListeners();
-
-    @Nullable
-    protected MediaPlayer.OnCompletionListener onCompletionListener;
-    @Nullable
-    protected MediaPlayer.OnPreparedListener onPreparedListener;
-    @Nullable
-    protected MediaPlayer.OnBufferingUpdateListener onBufferingUpdateListener;
-    @Nullable
-    protected MediaPlayer.OnSeekCompleteListener onSeekCompleteListener;
-    @Nullable
-    protected MediaPlayer.OnErrorListener onErrorListener;
-    @Nullable
-    protected MediaPlayer.OnInfoListener onInfoListener;
+public class TextureVideoView extends ResizingTextureView implements MediaController.MediaPlayerControl, NativeDelegate.Callback {
+    protected NativeDelegate delegate;
 
     public TextureVideoView(Context context) {
         super(context);
@@ -107,97 +70,72 @@ public class TextureVideoView extends ResizingTextureView implements MediaContro
 
     @Override
     public void start() {
-        if (isReady()) {
-            mediaPlayer.start();
-            requestFocus();
-            currentState = State.PLAYING;
-        }
-
-        playRequested = true;
+        delegate.start();
+        requestFocus();
     }
 
     @Override
     public void pause() {
-        if (isReady() && mediaPlayer.isPlaying()) {
-            mediaPlayer.pause();
-            currentState = State.PAUSED;
-        }
-
-        playRequested = false;
+        delegate.pause();
     }
 
     @Override
     public int getDuration() {
-        if (isReady()) {
-            return mediaPlayer.getDuration();
-        }
-
-        return 0;
+        return delegate.getDuration();
     }
 
     @Override
     public int getCurrentPosition() {
-        if (isReady()) {
-            return mediaPlayer.getCurrentPosition();
-        }
-
-        return 0;
+        return delegate.getCurrentPosition();
     }
 
     @Override
     public void seekTo(int msec) {
-        if (isReady()) {
-            mediaPlayer.seekTo(msec);
-            requestedSeek = 0;
-        } else {
-            requestedSeek = msec;
-        }
+        delegate.seekTo(msec);
     }
 
     @Override
     public boolean isPlaying() {
-        return isReady() && mediaPlayer.isPlaying();
+        return delegate.isPlaying();
     }
 
     @Override
     public int getBufferPercentage() {
-        if (mediaPlayer != null) {
-            return currentBufferPercent;
-        }
-
-        return 0;
+        return delegate.getBufferPercentage();
     }
 
     @Override
     public boolean canPause() {
-        return currentState == State.PREPARED || currentState == State.PLAYING;
+        return delegate.canPause();
     }
 
     @Override
     public boolean canSeekBackward() {
-        return currentState == State.PREPARED || currentState == State.PLAYING || currentState == State.PAUSED;
+        return delegate.canSeekBackward();
     }
 
     @Override
     public boolean canSeekForward() {
-        return currentState == State.PREPARED || currentState == State.PLAYING || currentState == State.PAUSED;
+        return delegate.canSeekForward();
+    }
+
+    @Override
+    public int getAudioSessionId() {
+        return delegate.getAudioSessionId();
+    }
+
+    @Override
+    public void videoSizeChanged(int width, int height) {
+        if (updateVideoSize(width, height)) {
+            requestLayout();
+        }
     }
 
     /**
      * Performs the functionality to stop the video in playback
      */
     public void stopPlayback() {
-        currentState = State.IDLE;
-
-        if (isReady()) {
-            try {
-                mediaPlayer.stop();
-            } catch (Exception e) {
-                Log.d(TAG, "stopPlayback: error calling mediaPlayer.stop()", e);
-            }
-        }
-
-        playRequested = false;
+        delegate.stopPlayback();
     }
 
     /**
@@ -205,16 +143,7 @@ public class TextureVideoView extends ResizingTextureView implements MediaContro
      * destroying the video view
      */
     public void suspend() {
-        currentState = State.IDLE;
-
-        try {
-            mediaPlayer.reset();
-            mediaPlayer.release();
-        } catch (Exception e) {
-            Log.d(TAG, "stopPlayback: error calling mediaPlayer.reset() or mediaPlayer.release()", e);
-        }
-
-        playRequested = false;
+        delegate.suspend();
     }
 
     /**
@@ -229,19 +158,16 @@ public class TextureVideoView extends ResizingTextureView implements MediaContro
     /**
      * Sets video URI using specific headers.
      *
-     * @param uri     The Uri for the video to play
-     * @param headers the headers for the URI request.
-     *                Note that the cross domain redirection is allowed by default, but that can be
-     *                changed with key/value pairs through the headers parameter with
-     *                "android-allow-cross-domain-redirect" as the key and "0" or "1" as the value
-     *                to disallow or allow cross domain redirection.
+     * @param uri The Uri for the video to play
+     * @param headers The headers for the URI request.
+     * Note that the cross domain redirection is allowed by default, but that can be
+     * changed with key/value pairs through the headers parameter with
+     * "android-allow-cross-domain-redirect" as the key and "0" or "1" as the value
+     * to disallow or allow cross domain redirection.
      */
     public void setVideoURI(Uri uri, @Nullable Map<String, String> headers) {
-        this.headers = headers;
-        requestedSeek = 0;
-        playRequested = false;
+        delegate.setVideoURI(uri, headers);
 
-        openVideo(uri);
         requestLayout();
         invalidate();
     }
@@ -253,7 +179,7 @@ public class TextureVideoView extends ResizingTextureView implements MediaContro
      * @param listener The callback that will be run
      */
     public void setOnPreparedListener(@Nullable MediaPlayer.OnPreparedListener listener) {
-        onPreparedListener = listener;
+        delegate.setOnPreparedListener(listener);
     }
 
     /**
@@ -263,7 +189,7 @@ public class TextureVideoView extends ResizingTextureView implements MediaContro
      * @param listener The callback that will be run
      */
     public void setOnCompletionListener(@Nullable MediaPlayer.OnCompletionListener listener) {
-        onCompletionListener = listener;
+        delegate.setOnCompletionListener(listener);
     }
 
     /**
@@ -273,7 +199,7 @@ public class TextureVideoView extends ResizingTextureView implements MediaContro
      * @param listener the callback that will be run.
      */
     public void setOnBufferingUpdateListener(@Nullable MediaPlayer.OnBufferingUpdateListener listener) {
-        onBufferingUpdateListener = listener;
+        delegate.setOnBufferingUpdateListener(listener);
     }
 
     /**
@@ -283,7 +209,7 @@ public class TextureVideoView extends ResizingTextureView implements MediaContro
      * @param listener the callback that will be run
      */
     public void setOnSeekCompleteListener(@Nullable MediaPlayer.OnSeekCompleteListener listener) {
-        onSeekCompleteListener = listener;
+        delegate.setOnSeekCompleteListener(listener);
     }
 
     /**
@@ -295,7 +221,7 @@ public class TextureVideoView extends ResizingTextureView implements MediaContro
      * @param listener The callback that will be run
      */
     public void setOnErrorListener(@Nullable MediaPlayer.OnErrorListener listener) {
-        onErrorListener = listener;
+        delegate.setOnErrorListener(listener);
     }
 
     /**
@@ -305,39 +231,12 @@ public class TextureVideoView extends ResizingTextureView implements MediaContro
      * @param listener The callback that will be run
      */
     public void setOnInfoListener(@Nullable MediaPlayer.OnInfoListener listener) {
-        onInfoListener = listener;
+        delegate.setOnInfoListener(listener);
     }
 
-    public int getAudioSessionId() {
-        return mediaPlayer.getAudioSessionId();
-    }
+    protected void setup(@NonNull Context context, @Nullable AttributeSet attrs) {
+        delegate = new NativeDelegate(context, this);
 
-    protected boolean isReady() {
-        return currentState != State.ERROR && currentState != State.IDLE && currentState != State.PREPARING;
-    }
-
-    protected void openVideo(@Nullable Uri uri) {
-        if (uri == null) {
-            return;
-        }
-
-        currentBufferPercent = 0;
-
-        try {
-            mediaPlayer.setDataSource(getContext().getApplicationContext(), uri, headers);
-            mediaPlayer.prepareAsync();
-
-            currentState = State.PREPARING;
-        } catch (IOException | IllegalArgumentException ex) {
-            Log.w(TAG, "Unable to open content: " + uri, ex);
-            currentState = State.ERROR;
-
-            internalListeners.onError(mediaPlayer, MediaPlayer.MEDIA_ERROR_UNKNOWN, 0);
-        }
-    }
-
-    protected void setup(Context context, @Nullable AttributeSet attrs) {
-        initMediaPlayer();
         setSurfaceTextureListener(new TextureVideoViewSurfaceListener());
 
         setFocusable(true);
@@ -345,111 +244,17 @@ public class TextureVideoView extends ResizingTextureView implements MediaContro
         requestFocus();
 
         updateVideoSize(0, 0);
-        currentState = State.IDLE;
-    }
-
-    protected void initMediaPlayer() {
-        mediaPlayer = new MediaPlayer();
-
-        mediaPlayer.setOnInfoListener(internalListeners);
-        mediaPlayer.setOnErrorListener(internalListeners);
-        mediaPlayer.setOnPreparedListener(internalListeners);
-        mediaPlayer.setOnCompletionListener(internalListeners);
-        mediaPlayer.setOnSeekCompleteListener(internalListeners);
-        mediaPlayer.setOnBufferingUpdateListener(internalListeners);
-        mediaPlayer.setOnVideoSizeChangedListener(internalListeners);
-
-        mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
-        mediaPlayer.setScreenOnWhilePlaying(true);
-    }
-
-    protected class InternalListeners implements MediaPlayer.OnBufferingUpdateListener, MediaPlayer.OnErrorListener, MediaPlayer.OnPreparedListener,
-            MediaPlayer.OnCompletionListener, MediaPlayer.OnSeekCompleteListener, MediaPlayer.OnInfoListener, MediaPlayer.OnVideoSizeChangedListener {
-        @Override
-        public void onBufferingUpdate(MediaPlayer mp, int percent) {
-            currentBufferPercent = percent;
-            if (onBufferingUpdateListener != null) {
-                onBufferingUpdateListener.onBufferingUpdate(mp, percent);
-            }
-        }
-
-        @Override
-        public void onCompletion(MediaPlayer mp) {
-            currentState = State.COMPLETED;
-            if (onCompletionListener != null) {
-                onCompletionListener.onCompletion(mediaPlayer);
-            }
-        }
-
-        @Override
-        public void onSeekComplete(MediaPlayer mp) {
-            if (onSeekCompleteListener != null) {
-                onSeekCompleteListener.onSeekComplete(mp);
-            }
-        }
-
-        @Override
-        public boolean onError(MediaPlayer mp, int what, int extra) {
-            Log.d(TAG, "Error: " + what + "," + extra);
-            currentState = State.ERROR;
-
-            return onErrorListener == null || onErrorListener.onError(mediaPlayer, what, extra);
-        }
-
-        @Override
-        public void onPrepared(MediaPlayer mp) {
-            currentState = State.PREPARED;
-
-            if (onPreparedListener != null) {
-                onPreparedListener.onPrepared(mediaPlayer);
-            }
-
-            updateVideoSize(mp.getVideoWidth(), mp.getVideoHeight());
-
-            if (requestedSeek != 0) {
-                seekTo(requestedSeek);
-            }
-
-            if (playRequested) {
-                start();
-            }
-        }
-
-        @Override
-        public boolean onInfo(MediaPlayer mp, int what, int extra) {
-            return onInfoListener == null || onInfoListener.onInfo(mp, what, extra);
-        }
-
-        @Override
-        public void onVideoSizeChanged(MediaPlayer mp, int width, int height) {
-            if (updateVideoSize(mp.getVideoWidth(), mp.getVideoHeight())) {
-                requestLayout();
-            }
-        }
     }
 
     protected class TextureVideoViewSurfaceListener implements SurfaceTextureListener {
         @Override
         public void onSurfaceTextureAvailable(SurfaceTexture surfaceTexture, int width, int height) {
-            mediaPlayer.setSurface(new Surface(surfaceTexture));
-            if (playRequested) {
-                start();
-            }
+            delegate.onSurfaceReady(new Surface(surfaceTexture));
         }
 
         @Override
         public void onSurfaceTextureSizeChanged(SurfaceTexture surface, int width, int height) {
-            if (mediaPlayer == null || width <= 0 || height <= 0) {
-                return;
-            }
-
-            if (requestedSeek != 0) {
-                seekTo(requestedSeek);
-            }
-
-            if (playRequested) {
-                start();
-            }
+            delegate.onSurfaceSizeChanged(width, height);
         }
 
         @Override

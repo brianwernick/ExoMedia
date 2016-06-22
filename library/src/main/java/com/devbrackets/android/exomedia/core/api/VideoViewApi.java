@@ -62,6 +62,9 @@ public interface VideoViewApi {
 
     void pause();
 
+    /**
+     * Performs the functionality to stop the video in playback
+     */
     void stopPlayback();
 
     /**

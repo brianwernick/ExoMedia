@@ -23,7 +23,7 @@ import android.support.annotation.Nullable;
 
 import com.devbrackets.android.exomedia.core.exoplayer.EMExoPlayer;
 import com.devbrackets.android.exomedia.core.listener.ExoPlayerListener;
-import com.devbrackets.android.exomedia.core.video.ResizingTextureView;
+import com.devbrackets.android.exomedia.core.video.delegate.ClearableSurface;
 import com.devbrackets.android.exomedia.listener.OnBufferUpdateListener;
 import com.devbrackets.android.exomedia.listener.OnCompletionListener;
 import com.devbrackets.android.exomedia.listener.OnErrorListener;
@@ -60,7 +60,7 @@ public class EMListenerMux implements ExoPlayerListener, MediaPlayer.OnPreparedL
     private OnErrorListener errorListener;
 
     @NonNull
-    private WeakReference<ResizingTextureView> clearTextureView = new WeakReference<>(null);
+    private WeakReference<ClearableSurface> clearableSurfaceRef = new WeakReference<>(null);
 
     private boolean notifiedPrepared = false;
     private boolean notifiedCompleted = false;
@@ -130,11 +130,11 @@ public class EMListenerMux implements ExoPlayerListener, MediaPlayer.OnPreparedL
         //Clears the textureView when requested
         if (playbackState == ExoPlayer.STATE_IDLE && clearRequested) {
             clearRequested = false;
-            ResizingTextureView textureView = clearTextureView.get();
+            ClearableSurface clearableSurface = clearableSurfaceRef.get();
 
-            if (textureView != null) {
-                textureView.clearSurface();
-                clearTextureView = new WeakReference<>(null);
+            if (clearableSurface != null) {
+                clearableSurface.clearSurface();
+                clearableSurfaceRef = new WeakReference<>(null);
             }
         }
     }
@@ -154,13 +154,13 @@ public class EMListenerMux implements ExoPlayerListener, MediaPlayer.OnPreparedL
 
     /**
      * Specifies the surface to clear when the playback reaches an appropriate state.
-     * Once the <code>textureView</code> is cleared, the reference will be removed
+     * Once the <code>clearableSurface</code> is cleared, the reference will be removed
      *
-     * @param textureView The {@link ResizingTextureView} to clear when the playback reaches an appropriate state
+     * @param clearableSurface The {@link ClearableSurface} to clear when the playback reaches an appropriate state
      */
-    public void clearSurfaceWhenReady(@Nullable ResizingTextureView textureView) {
+    public void clearSurfaceWhenReady(@Nullable ClearableSurface clearableSurface) {
         clearRequested = true;
-        clearTextureView = new WeakReference<>(textureView);
+        clearableSurfaceRef = new WeakReference<>(clearableSurface);
     }
 
     /**

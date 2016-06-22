@@ -23,7 +23,6 @@ import android.support.annotation.FloatRange;
 import android.support.annotation.IntRange;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.telecom.Call;
 import android.view.Surface;
 
 import com.devbrackets.android.exomedia.BuildConfig;
@@ -55,9 +54,11 @@ public class ExoVideoDelegate implements AudioCapabilitiesReceiver.Listener {
     protected boolean playRequested = false;
 
     protected Context context;
+    protected ClearableSurface clearableSurface;
 
-    public ExoVideoDelegate(@NonNull Context context) {
+    public ExoVideoDelegate(@NonNull Context context, @NonNull ClearableSurface clearableSurface) {
         this.context = context;
+        this.clearableSurface = clearableSurface;
     }
 
     @Override
@@ -126,7 +127,7 @@ public class ExoVideoDelegate implements AudioCapabilitiesReceiver.Listener {
     public void stopPlayback() {
         emExoPlayer.stop();
         playRequested = false;
-        listenerMux.clearSurfaceWhenReady(this);
+        listenerMux.clearSurfaceWhenReady(clearableSurface);
     }
 
     public void suspend() {

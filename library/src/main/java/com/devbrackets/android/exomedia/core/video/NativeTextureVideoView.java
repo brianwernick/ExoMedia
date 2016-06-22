@@ -321,7 +321,7 @@ public class NativeTextureVideoView extends ResizingTextureView implements Media
     }
 
     protected void setup(@NonNull Context context, @Nullable AttributeSet attrs) {
-        delegate = new NativeVideoDelegate(context, this);
+        delegate = new NativeVideoDelegate(context, this, this);
 
         setSurfaceTextureListener(new TextureVideoViewSurfaceListener());
 

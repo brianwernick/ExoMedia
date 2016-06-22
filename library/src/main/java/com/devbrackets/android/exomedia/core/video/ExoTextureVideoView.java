@@ -174,7 +174,7 @@ public class ExoTextureVideoView extends ResizingTextureView implements VideoVie
     }
 
     protected void setup() {
-        delegate = new ExoVideoDelegate(getContext());
+        delegate = new ExoVideoDelegate(getContext(), this);
 
         setSurfaceTextureListener(new EMExoVideoSurfaceTextureListener());
         updateVideoSize(0, 0);

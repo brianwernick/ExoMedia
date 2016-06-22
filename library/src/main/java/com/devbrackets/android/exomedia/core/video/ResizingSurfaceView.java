@@ -32,6 +32,7 @@ import android.view.SurfaceView;
 import android.view.View;
 import android.view.ViewTreeObserver;
 
+import com.devbrackets.android.exomedia.core.video.delegate.ClearableSurface;
 import com.devbrackets.android.exomedia.core.video.scale.MatrixManager;
 import com.devbrackets.android.exomedia.core.video.scale.ScaleType;
 
@@ -47,7 +48,7 @@ import javax.microedition.khronos.egl.EGLSurface;
  * A SurfaceView that reSizes itself according to the requested layout type
  * once we have a video
  */
-public class ResizingSurfaceView extends SurfaceView {
+public class ResizingSurfaceView extends SurfaceView implements ClearableSurface {
     private static final String TAG = "ResizingSurfaceView";
     protected static final int MAX_DEGREES = 360;
 
@@ -220,6 +221,7 @@ public class ResizingSurfaceView extends SurfaceView {
      * the implementing video view has finished playback or otherwise released
      * the surface
      */
+    @Override
     public void clearSurface() {
         try {
             EGL10 gl10 = (EGL10) EGLContext.getEGL();

@@ -60,6 +60,7 @@ public class NativeVideoDelegate implements MediaController.MediaPlayerControl {
 
     protected Context context;
     protected Callback callback;
+    protected ClearableSurface clearableSurface;
 
     protected MediaPlayer mediaPlayer;
 
@@ -85,9 +86,10 @@ public class NativeVideoDelegate implements MediaController.MediaPlayerControl {
     @Nullable
     protected MediaPlayer.OnInfoListener onInfoListener;
 
-    public NativeVideoDelegate(@NonNull Context context, @NonNull Callback callback) {
+    public NativeVideoDelegate(@NonNull Context context, @NonNull Callback callback, @NonNull ClearableSurface clearableSurface) {
         this.context = context;
         this.callback = callback;
+        this.clearableSurface = clearableSurface;
 
         initMediaPlayer();
         currentState = State.IDLE;
@@ -191,7 +193,7 @@ public class NativeVideoDelegate implements MediaController.MediaPlayerControl {
         }
 
         playRequested = false;
-        listenerMux.clearSurfaceWhenReady(this);
+        listenerMux.clearSurfaceWhenReady(clearableSurface);
     }
 
     /**

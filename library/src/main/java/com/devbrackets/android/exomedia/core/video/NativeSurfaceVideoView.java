@@ -316,7 +316,7 @@ public class NativeSurfaceVideoView extends ResizingSurfaceView implements Media
     }
 
     protected void setup(@NonNull Context context, @Nullable AttributeSet attrs) {
-        delegate = new NativeVideoDelegate(context, this);
+        delegate = new NativeVideoDelegate(context, this, this);
 
         getHolder().addCallback(new HolderCallback());
 

@@ -173,7 +173,7 @@ public class ExoSurfaceVideoView extends ResizingSurfaceView implements VideoVie
     }
 
     protected void setup() {
-        delegate = new ExoVideoDelegate(getContext());
+        delegate = new ExoVideoDelegate(getContext(), this);
 
         getHolder().addCallback(new HolderCallback());
         updateVideoSize(0, 0);

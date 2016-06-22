@@ -5,7 +5,7 @@ import android.support.annotation.IntRange;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Log;
-import android.view.TextureView;
+import android.view.View;
 
 import java.lang.ref.WeakReference;
 
@@ -25,7 +25,7 @@ public class MatrixManager {
     @Nullable
     protected ScaleType requestedScaleType = null;
     @NonNull
-    protected WeakReference<TextureView> requestedModificationView = new WeakReference<>(null);
+    protected WeakReference<View> requestedModificationView = new WeakReference<>(null);
 
     public void reset() {
         setIntrinsicVideoSize(0, 0);
@@ -56,7 +56,7 @@ public class MatrixManager {
     }
 
     @SuppressWarnings("SuspiciousNameCombination")
-    public void rotate(@NonNull TextureView view, @IntRange(from = 0, to = 359) int rotation) {
+    public void rotate(@NonNull View view, @IntRange(from = 0, to = 359) int rotation) {
         if (!ready()) {
             requestedRotation = rotation;
             requestedModificationView = new WeakReference<>(view);
@@ -83,11 +83,11 @@ public class MatrixManager {
     /**
      * Performs the requested scaling on the <code>view</code>'s matrix
      *
-     * @param view The TextureView to alter the matrix to achieve the requested scale type
+     * @param view The View to alter the matrix to achieve the requested scale type
      * @param scaleType The type of scaling to use for the specified view
      * @return True if the scale was applied
      */
-    public boolean scale(@NonNull TextureView view, @NonNull ScaleType scaleType) {
+    public boolean scale(@NonNull View view, @NonNull ScaleType scaleType) {
         if (!ready()) {
             requestedScaleType = scaleType;
             requestedModificationView = new WeakReference<>(view);
@@ -128,7 +128,7 @@ public class MatrixManager {
      *
      * @param view The view to apply the transformation to
      */
-    protected void applyCenter(@NonNull TextureView view) {
+    protected void applyCenter(@NonNull View view) {
         float xScale = (float) intrinsicVideoSize.x / view.getWidth();
         float yScale = (float) intrinsicVideoSize.y / view.getHeight();
 
@@ -141,7 +141,7 @@ public class MatrixManager {
      *
      * @param view The view to apply the transformation to
      */
-    protected void applyCenterCrop(@NonNull TextureView view) {
+    protected void applyCenterCrop(@NonNull View view) {
         float xScale = (float)view.getWidth() / intrinsicVideoSize.x;
         float yScale = (float)view.getHeight() / intrinsicVideoSize.y;
 
@@ -159,7 +159,7 @@ public class MatrixManager {
      *
      * @param view The view to apply the transformation to
      */
-    protected void applyCenterInside(@NonNull TextureView view) {
+    protected void applyCenterInside(@NonNull View view) {
         if(intrinsicVideoSize.x <= view.getWidth() && intrinsicVideoSize.y <= view.getHeight()) {
             applyCenter(view);
         } else {
@@ -173,7 +173,7 @@ public class MatrixManager {
      *
      * @param view The view to apply the transformation to
      */
-    protected void applyFitCenter(@NonNull TextureView view) {
+    protected void applyFitCenter(@NonNull View view) {
         float xScale = (float)view.getWidth() / intrinsicVideoSize.x;
         float yScale = (float)view.getHeight() / intrinsicVideoSize.y;
 
@@ -190,7 +190,7 @@ public class MatrixManager {
      * @param xScale The scale to apply to the x axis
      * @param yScale The scale to apply to the y axis
      */
-    protected void setScale(@NonNull TextureView view, float xScale, float yScale) {
+    protected void setScale(@NonNull View view, float xScale, float yScale) {
         //If the width and height have been swapped, we need to re-calculate the scales based on the swapped sizes
         boolean currentWidthHeightSwapped = ((currentRotation / QUARTER_ROTATION) % 2) == 1;
         if (currentWidthHeightSwapped){
@@ -208,7 +208,7 @@ public class MatrixManager {
      * ready to apply those modifications.
      */
     protected void applyRequestedModifications() {
-        TextureView view = requestedModificationView.get();
+        View view = requestedModificationView.get();
 
         if (view != null) {
             if (requestedRotation != null) {

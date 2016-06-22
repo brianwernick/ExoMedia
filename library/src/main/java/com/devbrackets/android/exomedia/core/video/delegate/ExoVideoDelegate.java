@@ -59,6 +59,8 @@ public class ExoVideoDelegate implements AudioCapabilitiesReceiver.Listener {
     public ExoVideoDelegate(@NonNull Context context, @NonNull ClearableSurface clearableSurface) {
         this.context = context;
         this.clearableSurface = clearableSurface;
+
+        setup();
     }
 
     @Override

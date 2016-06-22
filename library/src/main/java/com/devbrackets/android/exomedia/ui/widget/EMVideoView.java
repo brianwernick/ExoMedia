@@ -670,9 +670,9 @@ public class EMVideoView extends RelativeLayout {
      * Retrieves the layout resource to use for the backing video view implementation.  By
      * default this uses the Android {@link android.widget.VideoView} on legacy devices with
      * APIs below Jellybean (16) or that don't pass the Compatibility Test Suite [CTS] via
-     * {@link com.devbrackets.android.exomedia.core.video.NativeVideoView}
+     * {@link com.devbrackets.android.exomedia.core.video.NativeTextureVideoView}
      * , and an ExoPlayer backed video view on the remaining devices via
-     * {@link com.devbrackets.android.exomedia.core.video.ExoVideoView}.
+     * {@link com.devbrackets.android.exomedia.core.video.ExoTextureVideoView}.
      * <p>
      * In the rare cases that the default implementations need to be extended, or replaced, the
      * user can override the value with the attributes <code>videoViewApiImplLegacy</code>
@@ -803,13 +803,13 @@ public class EMVideoView extends RelativeLayout {
          * The resource id that points to a custom implementation for the <code>ExoPlayer</code>
          * backed {@link VideoViewApi}
          */
-        private int apiImplResourceId = R.layout.exomedia_default_exo_video_view;
+        private int apiImplResourceId = R.layout.exomedia_default_exo_texture_video_view;
         /**
          * The resource id that points to a custom implementation for the Android {@link android.media.MediaPlayer}
          * backed {@link VideoViewApi}.  This will only be used on devices that do not support the
          * <code>ExoPlayer</code> (see {@link DeviceUtil#supportsExoPlayer(Context)} for details)
          */
-        private int apiImplLegacyResourceId = R.layout.exomedia_default_native_video_view;
+        private int apiImplLegacyResourceId = R.layout.exomedia_default_native_texture_video_view;
 
         /**
          * Reads the attributes associated with this view, setting any values found
@@ -830,9 +830,12 @@ public class EMVideoView extends RelativeLayout {
             useDefaultControls = typedArray.getBoolean(R.styleable.EMVideoView_useDefaultControls, useDefaultControls);
             useSurfaceViewBacking = typedArray.getBoolean(R.styleable.EMVideoView_useSurfaceViewBacking, useSurfaceViewBacking);
 
-            //TODO: this needs to changed based on useSurfaceViewBacking
-            apiImplLegacyResourceId = typedArray.getResourceId(R.styleable.EMVideoView_videoViewApiImplLegacy, apiImplLegacyResourceId);
+            //Resets the default implementations based on useSurfaceViewBacking
+            apiImplResourceId = useSurfaceViewBacking ? R.layout.exomedia_default_exo_surface_video_view : R.layout.exomedia_default_exo_texture_video_view;
+            apiImplLegacyResourceId = useSurfaceViewBacking ? R.layout.exomedia_default_native_surface_video_view : R.layout.exomedia_default_native_texture_video_view;
+
             apiImplResourceId = typedArray.getResourceId(R.styleable.EMVideoView_videoViewApiImplLegacy, apiImplResourceId);
+            apiImplLegacyResourceId = typedArray.getResourceId(R.styleable.EMVideoView_videoViewApiImplLegacy, apiImplLegacyResourceId);
 
             typedArray.recycle();
         }

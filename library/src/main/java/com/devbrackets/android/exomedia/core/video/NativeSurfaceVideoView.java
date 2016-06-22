@@ -21,14 +21,22 @@ import android.content.Context;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Build;
+import android.support.annotation.FloatRange;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
+import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.widget.MediaController;
 
-import com.devbrackets.android.exomedia.core.video.delegate.NativeDelegate;
+import com.devbrackets.android.exomedia.annotation.TrackRenderType;
+import com.devbrackets.android.exomedia.core.EMListenerMux;
+import com.devbrackets.android.exomedia.core.api.VideoViewApi;
+import com.devbrackets.android.exomedia.core.builder.RenderBuilder;
+import com.devbrackets.android.exomedia.core.video.delegate.NativeVideoDelegate;
+import com.google.android.exoplayer.MediaFormat;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -39,26 +47,27 @@ import java.util.Map;
  * <li>The {@link MediaController}</li>
  * </ul>
  */
-public class NativeVideoSurfaceView extends ResizingSurfaceView implements MediaController.MediaPlayerControl, NativeDelegate.Callback {
-    protected NativeDelegate delegate;
+public class NativeSurfaceVideoView extends ResizingSurfaceView implements MediaController.MediaPlayerControl, NativeVideoDelegate.Callback, VideoViewApi {
+    protected OnTouchListener touchListener;
+    protected NativeVideoDelegate delegate;
 
-    public NativeVideoSurfaceView(Context context) {
+    public NativeSurfaceVideoView(Context context) {
         super(context);
         setup(context, null);
     }
 
-    public NativeVideoSurfaceView(Context context, AttributeSet attrs) {
+    public NativeSurfaceVideoView(Context context, AttributeSet attrs) {
         super(context, attrs);
         setup(context, attrs);
     }
 
-    public NativeVideoSurfaceView(Context context, AttributeSet attrs, int defStyleAttr) {
+    public NativeSurfaceVideoView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         setup(context, attrs);
     }
 
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
-    public NativeVideoSurfaceView(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
+    public NativeSurfaceVideoView(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
         super(context, attrs, defStyleAttr, defStyleRes);
         setup(context, attrs);
     }
@@ -126,11 +135,88 @@ public class NativeVideoSurfaceView extends ResizingSurfaceView implements Media
         }
     }
 
+    @Override
+    public boolean onTouchEvent(MotionEvent ev) {
+        boolean flag = false;
+        if (touchListener != null) {
+            flag = touchListener.onTouch(this, ev);
+        }
+
+        return flag || super.onTouchEvent(ev);
+    }
+
+    @Override
+    public void setOnTouchListener(OnTouchListener listener) {
+        touchListener = listener;
+        super.setOnTouchListener(listener);
+    }
+
+    @Override
+    public void setVideoUri(@Nullable Uri uri) {
+        setVideoUri(uri, null);
+    }
+
+    @Override
+    public void setVideoUri(@Nullable Uri uri, @Nullable RenderBuilder renderBuilder) {
+        setVideoURI(uri);
+    }
+
+    @Override
+    public boolean setVolume(@FloatRange(from = 0.0, to = 1.0) float volume) {
+        return false;
+    }
+
+    @Override
+    public int getBufferedPercent() {
+        return getBufferPercentage();
+    }
+
     /**
-     * Performs the functionality to stop the video in playback
+     * If the video has completed playback, calling {@code restart} will seek to the beginning of the video, and play it.
+     *
+     * @return {@code true} if the video was successfully restarted, otherwise {@code false}
      */
+    @Override
+    public boolean restart() {
+        return delegate.restart();
+    }
+
+    @Override
     public void stopPlayback() {
         delegate.stopPlayback();
+    }
+
+    @Override
+    public void release() {
+        //Purposefully left blank
+    }
+
+    @Override
+    public boolean trackSelectionAvailable() {
+        return false;
+    }
+
+    @Override
+    public void setTrack(@TrackRenderType int trackType, int trackIndex) {
+        //Purposefully left blank
+    }
+
+    @Nullable
+    @Override
+    public Map<Integer, List<MediaFormat>> getAvailableTracks() {
+        return null;
+    }
+
+    @Override
+    public void setListenerMux(EMListenerMux listenerMux) {
+        delegate.setListenerMux(listenerMux);
+    }
+
+    @Override
+    public void onVideoSizeChanged(int width, int height) {
+        if (updateVideoSize(width, height)) {
+            requestLayout();
+        }
     }
 
     /**
@@ -230,7 +316,7 @@ public class NativeVideoSurfaceView extends ResizingSurfaceView implements Media
     }
 
     protected void setup(@NonNull Context context, @Nullable AttributeSet attrs) {
-        delegate = new NativeDelegate(context, this);
+        delegate = new NativeVideoDelegate(context, this);
 
         getHolder().addCallback(new HolderCallback());
 

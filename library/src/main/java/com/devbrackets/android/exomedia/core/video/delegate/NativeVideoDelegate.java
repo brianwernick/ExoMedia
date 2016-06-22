@@ -1,3 +1,19 @@
+/*
+ * Copyright (C) 2016 Brian Wernick
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.devbrackets.android.exomedia.core.video.delegate;
 
 import android.content.Context;
@@ -10,6 +26,8 @@ import android.util.Log;
 import android.view.Surface;
 import android.widget.MediaController;
 
+import com.devbrackets.android.exomedia.core.EMListenerMux;
+
 import java.io.IOException;
 import java.util.Map;
 
@@ -21,7 +39,7 @@ import static android.content.ContentValues.TAG;
  * to simplify support for both the {@link android.view.TextureView}
  * and {@link android.view.SurfaceView} implementations
  */
-public class NativeDelegate implements MediaController.MediaPlayerControl {
+public class NativeVideoDelegate implements MediaController.MediaPlayerControl {
     public interface Callback {
         void videoSizeChanged(int width, int height);
     }
@@ -49,6 +67,8 @@ public class NativeDelegate implements MediaController.MediaPlayerControl {
     protected int requestedSeek;
     protected int currentBufferPercent;
 
+    protected EMListenerMux listenerMux;
+
     @NonNull
     protected InternalListeners internalListeners = new InternalListeners();
 
@@ -65,7 +85,7 @@ public class NativeDelegate implements MediaController.MediaPlayerControl {
     @Nullable
     protected MediaPlayer.OnInfoListener onInfoListener;
 
-    public NativeDelegate(@NonNull Context context, @NonNull Callback callback) {
+    public NativeVideoDelegate(@NonNull Context context, @NonNull Callback callback) {
         this.context = context;
         this.callback = callback;
 
@@ -81,6 +101,7 @@ public class NativeDelegate implements MediaController.MediaPlayerControl {
         }
 
         playRequested = true;
+        listenerMux.setNotifiedCompleted(false);
     }
 
     @Override
@@ -95,20 +116,20 @@ public class NativeDelegate implements MediaController.MediaPlayerControl {
 
     @Override
     public int getDuration() {
-        if (isReady()) {
-            return mediaPlayer.getDuration();
+        if (!listenerMux.isPrepared() || !isReady()) {
+            return 0;
         }
 
-        return 0;
+        return mediaPlayer.getDuration();
     }
 
     @Override
     public int getCurrentPosition() {
-        if (isReady()) {
-            return mediaPlayer.getCurrentPosition();
+        if (!listenerMux.isPrepared() || !isReady()) {
+            return 0;
         }
 
-        return 0;
+        return mediaPlayer.getCurrentPosition();
     }
 
     @Override
@@ -170,6 +191,7 @@ public class NativeDelegate implements MediaController.MediaPlayerControl {
         }
 
         playRequested = false;
+        listenerMux.clearSurfaceWhenReady(this);
     }
 
     /**
@@ -197,6 +219,10 @@ public class NativeDelegate implements MediaController.MediaPlayerControl {
         seekTo(0);
         start();
 
+        //Makes sure the listeners get the onPrepared callback
+        listenerMux.setNotifiedPrepared(false);
+        listenerMux.setNotifiedCompleted(false);
+
         return true;
     }
 
@@ -216,6 +242,16 @@ public class NativeDelegate implements MediaController.MediaPlayerControl {
         playRequested = false;
 
         openVideo(uri);
+    }
+
+    public void setListenerMux(EMListenerMux listenerMux) {
+        this.listenerMux = listenerMux;
+
+        setOnCompletionListener(listenerMux);
+        setOnPreparedListener(listenerMux);
+        setOnBufferingUpdateListener(listenerMux);
+        setOnSeekCompleteListener(listenerMux);
+        setOnErrorListener(listenerMux);
     }
 
     /**

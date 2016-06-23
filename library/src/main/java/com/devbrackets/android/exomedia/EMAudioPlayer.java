@@ -24,6 +24,7 @@ import android.support.annotation.Nullable;
 
 import com.devbrackets.android.exomedia.annotation.TrackRenderType;
 import com.devbrackets.android.exomedia.core.EMListenerMux;
+import com.devbrackets.android.exomedia.core.EMListenerMuxNotifier;
 import com.devbrackets.android.exomedia.core.api.MediaPlayerApi;
 import com.devbrackets.android.exomedia.core.audio.ExoMediaPlayer;
 import com.devbrackets.android.exomedia.core.audio.NativeMediaPlayer;
@@ -348,7 +349,7 @@ public class EMAudioPlayer {
         pause();
     }
 
-    private class MuxNotifier extends EMListenerMux.EMListenerMuxNotifier {
+    private class MuxNotifier extends EMListenerMuxNotifier {//EMListenerMux.EMListenerMuxNotifier
         @Override
         public boolean shouldNotifyCompletion(long endLeeway) {
             return getCurrentPosition() + endLeeway >= getDuration();
@@ -366,6 +367,11 @@ public class EMAudioPlayer {
         @Override
         public void onMediaPlaybackEnded() {
            onPlaybackEnded();
+        }
+
+        @Override
+        public void onSeekCompletion() {
+            
         }
 
         @Override

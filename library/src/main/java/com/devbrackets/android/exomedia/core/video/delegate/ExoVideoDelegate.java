@@ -14,23 +14,20 @@
  * limitations under the License.
  */
 
-package com.devbrackets.android.exomedia.core.audio;
+package com.devbrackets.android.exomedia.core.video.delegate;
 
-import android.annotation.TargetApi;
 import android.content.Context;
-import android.media.AudioManager;
 import android.net.Uri;
 import android.os.Build;
 import android.support.annotation.FloatRange;
 import android.support.annotation.IntRange;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.util.Log;
+import android.view.Surface;
 
 import com.devbrackets.android.exomedia.BuildConfig;
 import com.devbrackets.android.exomedia.annotation.TrackRenderType;
 import com.devbrackets.android.exomedia.core.EMListenerMux;
-import com.devbrackets.android.exomedia.core.api.MediaPlayerApi;
 import com.devbrackets.android.exomedia.core.builder.DashRenderBuilderWV;
 import com.devbrackets.android.exomedia.core.builder.HlsRenderBuilder;
 import com.devbrackets.android.exomedia.core.builder.RenderBuilder;
@@ -40,41 +37,48 @@ import com.devbrackets.android.exomedia.core.exoplayer.EMExoPlayer;
 import com.devbrackets.android.exomedia.type.MediaSourceType;
 import com.devbrackets.android.exomedia.util.MediaSourceUtil;
 import com.google.android.exoplayer.MediaFormat;
+import com.google.android.exoplayer.audio.AudioCapabilities;
+import com.google.android.exoplayer.audio.AudioCapabilitiesReceiver;
 
 import java.util.List;
 import java.util.Map;
 
-/**
- * A {@link MediaPlayerApi} implementation that uses the ExoPlayer
- * as the backing media player.
- */
-@TargetApi(Build.VERSION_CODES.JELLY_BEAN)
-public class ExoMediaPlayer implements MediaPlayerApi {
-    protected static final String USER_AGENT_FORMAT = "EMAudioPlayer %s / Android %s / %s";
+
+public class ExoVideoDelegate implements AudioCapabilitiesReceiver.Listener {
+    protected static final String USER_AGENT_FORMAT = "EMVideoView %s / Android %s / %s";
 
     protected EMExoPlayer emExoPlayer;
+    protected AudioCapabilities audioCapabilities;
+    protected AudioCapabilitiesReceiver audioCapabilitiesReceiver;
 
-    protected Context context;
     protected EMListenerMux listenerMux;
     protected boolean playRequested = false;
 
-    protected int audioStreamType = AudioManager.STREAM_MUSIC;
+    protected Context context;
+    protected ClearableSurface clearableSurface;
 
-    public ExoMediaPlayer(@NonNull Context context) {
+    public ExoVideoDelegate(@NonNull Context context, @NonNull ClearableSurface clearableSurface) {
         this.context = context;
+        this.clearableSurface = clearableSurface;
 
-        emExoPlayer = new EMExoPlayer(null);
-        emExoPlayer.setMetadataListener(null);
+        setup();
     }
 
     @Override
-    public void setDataSource(@NonNull Context context, @Nullable Uri uri) {
+    public void onAudioCapabilitiesChanged(AudioCapabilities audioCapabilities) {
+        if (!audioCapabilities.equals(this.audioCapabilities)) {
+            this.audioCapabilities = audioCapabilities;
+        }
+    }
+
+    public void setVideoUri(@Nullable Uri uri) {
         RenderBuilder builder = uri == null ? null : getRendererBuilder(MediaSourceUtil.getType(uri), uri);
-        setDataSource(context, uri, builder);
+        setVideoUri(uri, builder);
     }
 
-    @Override
-    public void setDataSource(Context context, @Nullable Uri uri, @Nullable RenderBuilder renderBuilder) {
+    public void setVideoUri(@Nullable Uri uri, @Nullable RenderBuilder renderBuilder) {
+        playRequested = false;
+
         if (uri == null) {
             emExoPlayer.replaceRenderBuilder(null);
         } else {
@@ -87,69 +91,53 @@ public class ExoMediaPlayer implements MediaPlayerApi {
         emExoPlayer.seekTo(0);
     }
 
-    @Override
-    public void prepareAsync() {
-        emExoPlayer.prepare();
+    public boolean restart() {
+        if(!emExoPlayer.restart()) {
+            return false;
+        }
+
+        //Makes sure the listeners get the onPrepared callback
+        listenerMux.setNotifiedPrepared(false);
+        listenerMux.setNotifiedCompleted(false);
+
+        return true;
     }
 
-    @Override
-    public void reset() {
-        //Purposefully left blank
+    public boolean setVolume(@FloatRange(from = 0.0, to = 1.0) float volume) {
+        emExoPlayer.setVolume(volume);
+        return true;
     }
 
-    @Override
-    public void setVolume(@FloatRange(from = 0.0, to = 1.0) float left, @FloatRange(from = 0.0, to = 1.0) float right) {
-        //Averages the volume since the ExoPlayer only takes a single channel
-        emExoPlayer.setVolume((left + right) / 2);
-    }
-
-    @Override
     public void seekTo(@IntRange(from = 0) int milliseconds) {
         emExoPlayer.seekTo(milliseconds);
     }
 
-    @Override
     public boolean isPlaying() {
         return emExoPlayer.getPlayWhenReady();
     }
 
-    @Override
     public void start() {
         emExoPlayer.setPlayWhenReady(true);
         listenerMux.setNotifiedCompleted(false);
         playRequested = true;
     }
 
-    @Override
     public void pause() {
         emExoPlayer.setPlayWhenReady(false);
         playRequested = false;
     }
 
-    @Override
     public void stopPlayback() {
         emExoPlayer.stop();
         playRequested = false;
+        listenerMux.clearSurfaceWhenReady(clearableSurface);
     }
 
-    /**
-     * If the media has completed playback, calling {@code restart} will seek to the beginning of the media, and play it.
-     *
-     * @return {@code true} if the media was successfully restarted, otherwise {@code false}
-     */
-    @Override
-    public boolean restart() {
-        if(!emExoPlayer.restart()) {
-            return false;
-        }
-
-        listenerMux.setNotifiedCompleted(false);
-        listenerMux.setNotifiedPrepared(false);
-
-        return true;
+    public void suspend() {
+        emExoPlayer.release();
+        playRequested = false;
     }
 
-    @Override
     public int getDuration() {
         if (!listenerMux.isPrepared()) {
             return 0;
@@ -158,7 +146,6 @@ public class ExoMediaPlayer implements MediaPlayerApi {
         return (int)emExoPlayer.getDuration();
     }
 
-    @Override
     public int getCurrentPosition() {
         if (!listenerMux.isPrepared()) {
             return 0;
@@ -167,88 +154,86 @@ public class ExoMediaPlayer implements MediaPlayerApi {
         return (int)emExoPlayer.getCurrentPosition();
     }
 
-    @Override
     public int getBufferedPercent() {
         return emExoPlayer.getBufferedPercentage();
     }
 
-    @Override
-    public void release() {
-        emExoPlayer.release();
-    }
-
-    @Override
-    public int getAudioSessionId() {
-        return emExoPlayer.getAudioSessionId();
-    }
-
-    @Override
-    public void setAudioStreamType(int streamType) {
-        this.audioStreamType = streamType;
-    }
-
-    @Override
-    public void setWakeMode(Context context, int mode) {
-        emExoPlayer.setWakeMode(context, mode);
-    }
-
-    @Override
     public boolean trackSelectionAvailable() {
         return true;
     }
 
-    @Override
     public void setTrack(@TrackRenderType int trackType, int trackIndex) {
         emExoPlayer.setSelectedTrack(trackType, trackIndex);
     }
 
     @Nullable
-    @Override
     public Map<Integer, List<MediaFormat>> getAvailableTracks() {
         return emExoPlayer.getAvailableTracks();
     }
 
-    @Override
+    public void release() {
+        emExoPlayer.release();
+
+        if (audioCapabilitiesReceiver != null) {
+            audioCapabilitiesReceiver.unregister();
+            audioCapabilitiesReceiver = null;
+        }
+    }
+
     public void setListenerMux(EMListenerMux listenerMux) {
         this.listenerMux = listenerMux;
         emExoPlayer.addListener(listenerMux);
     }
 
-    @Override
-    public void onMediaPrepared() {
-        //Purposefully left blank
-    }
-
-    /**
-     * Creates and returns the correct render builder for the specified AudioType and uri.
-     *
-     * @param renderType The RenderType to use for creating the correct RenderBuilder
-     * @param uri The audio item's Uri
-     * @return The appropriate RenderBuilder
-     */
-    protected RenderBuilder getRendererBuilder(@NonNull MediaSourceType renderType, @NonNull Uri uri) {
-        Log.i("WideVineTest", "getRendererBuilder Exomediaplayer");
-        switch (renderType) {
-            case HLS:
-                return new HlsRenderBuilder(context, getUserAgent(), uri.toString(), audioStreamType);
-            case DASH:
-                return new DashRenderBuilderWV(context, getUserAgent(), uri.toString(),
-                        new WidevineTestMediaDrmCallback("", "widevine_test"), audioStreamType);
-                //return new DashRenderBuilder(context, getUserAgent(), uri.toString(), audioStreamType);
-            case SMOOTH_STREAM:
-                return new SmoothStreamRenderBuilder(context, getUserAgent(), uri.toString(), audioStreamType);
-            default:
-                return new RenderBuilder(context, getUserAgent(), uri.toString(), audioStreamType);
+    public void onSurfaceReady(Surface surface) {
+        emExoPlayer.setSurface(surface);
+        if (playRequested) {
+            emExoPlayer.setPlayWhenReady(true);
         }
     }
 
+    public void onSurfaceDestroyed() {
+        emExoPlayer.blockingClearSurface();
+    }
+
     /**
-     * Retrieves the user agent that the EMAudioPlayer will use when communicating
+     * Retrieves the user agent that the EMVideoView will use when communicating
      * with media servers
      *
-     * @return The String user agent for the EMAudioPlayer
+     * @return The String user agent for the EMVideoView
      */
-    protected String getUserAgent() {
+    public String getUserAgent() {
         return String.format(USER_AGENT_FORMAT, BuildConfig.VERSION_NAME + " (" + BuildConfig.VERSION_CODE + ")", Build.VERSION.RELEASE, Build.MODEL);
+    }
+
+    protected void setup() {
+        audioCapabilitiesReceiver = new AudioCapabilitiesReceiver(context.getApplicationContext(), this);
+        audioCapabilitiesReceiver.register();
+        emExoPlayer = new EMExoPlayer(null);
+
+        //Sets the internal listener
+        emExoPlayer.setMetadataListener(null);
+    }
+
+    /**
+     * Creates and returns the correct render builder for the specified VideoType and uri.
+     *
+     * @param renderType The RenderType to use for creating the correct RenderBuilder
+     * @param uri The video's Uri
+     * @return The appropriate RenderBuilder
+     */
+    protected RenderBuilder getRendererBuilder(@NonNull MediaSourceType renderType, @NonNull Uri uri) {
+        switch (renderType) {
+            case HLS:
+                return new HlsRenderBuilder(context.getApplicationContext(), getUserAgent(), uri.toString());
+            case DASH:
+                return new DashRenderBuilderWV(context.getApplicationContext(), getUserAgent(), uri.toString(),
+                        new WidevineTestMediaDrmCallback("", "widevine_test"));
+                //return new DashRenderBuilder(context.getApplicationContext(), getUserAgent(), uri.toString());
+            case SMOOTH_STREAM:
+                return new SmoothStreamRenderBuilder(context.getApplicationContext(), getUserAgent(), uri.toString());
+            default:
+                return new RenderBuilder(context.getApplicationContext(), getUserAgent(), uri.toString());
+        }
     }
 }

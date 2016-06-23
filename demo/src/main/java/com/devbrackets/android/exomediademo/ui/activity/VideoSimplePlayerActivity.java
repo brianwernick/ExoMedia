@@ -2,10 +2,10 @@ package com.devbrackets.android.exomediademo.ui.activity;
 
 import android.app.Activity;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.RelativeLayout;
 
 import com.devbrackets.android.exomedia.ui.widget.EMVideoView;
 import com.devbrackets.android.exomediademo.App;
@@ -14,23 +14,25 @@ import com.devbrackets.android.exomediademo.data.MediaItem;
 import com.devbrackets.android.exomediademo.data.Samples;
 import com.devbrackets.android.exomediademo.manager.PlaylistManager;
 import com.devbrackets.android.exomediademo.playlist.VideoApi;
-import com.devbrackets.android.playlistcore.listener.PlaylistListener;
 import com.devbrackets.android.playlistcore.manager.BasePlaylistManager;
-import com.devbrackets.android.playlistcore.service.PlaylistServiceCore;
+import com.google.android.exoplayer.AspectRatioFrameLayout;
 
 import java.util.LinkedList;
 import java.util.List;
 
 
-public class VideoPlayerActivity extends Activity implements PlaylistListener<MediaItem> {
+public class VideoSimplePlayerActivity extends Activity {
     public static final String EXTRA_INDEX = "EXTRA_INDEX";
     public static final int PLAYLIST_ID = 6; //Arbitrary, for the example (different from audio)
 
+    protected AspectRatioFrameLayout aspectRatioFrameLayout;
     protected EMVideoView emVideoView;
     protected PlaylistManager playlistManager;
 
     protected int selectedIndex;
     protected boolean pausedInOnStop = false;
+
+    protected VideoApi videoApi;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,37 +63,9 @@ public class VideoPlayerActivity extends Activity implements PlaylistListener<Me
     }
 
     @Override
-    protected void onPause() {
-        super.onPause();
-        playlistManager.unRegisterPlaylistListener(this);
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        playlistManager = App.getPlaylistManager();
-        playlistManager.registerPlaylistListener(this);
-    }
-
-    @Override
     protected void onDestroy() {
         super.onDestroy();
         playlistManager.invokeStop();
-    }
-
-    @Override
-    public boolean onPlaylistItemChanged(MediaItem currentItem, boolean hasNext, boolean hasPrevious) {
-        return false;
-    }
-
-    @Override
-    public boolean onPlaybackStateChanged(@NonNull PlaylistServiceCore.PlaybackState playbackState) {
-        if (playbackState == PlaylistServiceCore.PlaybackState.STOPPED) {
-            finish();
-            return true;
-        }
-
-        return false;
     }
 
     /**
@@ -110,17 +84,29 @@ public class VideoPlayerActivity extends Activity implements PlaylistListener<Me
         LayoutInflater inflater = LayoutInflater.from(this);
         View inflatedLayout = null;
         if(playlistManager.getCurrentItem().getSample().getHasDrm()){
-            inflatedLayout= inflater.inflate(R.layout.emvideoview_withdrm, null, false);
+            inflatedLayout= inflater.inflate(R.layout.emvideoview_withdrm, null, false); //surfacebacking case
         } else {
-            inflatedLayout= inflater.inflate(R.layout.emvideoview_nodrm, null, false);
+            inflatedLayout= inflater.inflate(R.layout.emvideoview_nodrm, null, false);   //textureview
         }
 
-        ViewGroup.LayoutParams layoutParams = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
+        RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
+        layoutParams.addRule(RelativeLayout.CENTER_IN_PARENT, RelativeLayout.TRUE);
         addContentView(inflatedLayout, layoutParams);
-        emVideoView = (EMVideoView) inflatedLayout;
+        emVideoView = (EMVideoView) inflatedLayout.findViewById(R.id.video_play_activity_video_view);
 
-        playlistManager.setVideoPlayer(new VideoApi(emVideoView));
+        aspectRatioFrameLayout = (AspectRatioFrameLayout) inflatedLayout.findViewById(R.id.video_frame);
+        emVideoView.setAspectRatioView(aspectRatioFrameLayout);
+
+
+        videoApi = new VideoApi(emVideoView);
+        configEMVideoView();
+
+        playlistManager.setVideoPlayer(videoApi);
         playlistManager.play(0, false);
+    }
+
+    private void configEMVideoView() {
+        emVideoView.getVideoControls().pauseWhenIsSeeking = false; //true to pause while seekTo
     }
 
     /**
@@ -131,13 +117,12 @@ public class VideoPlayerActivity extends Activity implements PlaylistListener<Me
         playlistManager = App.getPlaylistManager();
 
         List<MediaItem> mediaItems = new LinkedList<>();
-        for (Samples.Sample sample : Samples.getVideoSamples()) {
-            MediaItem mediaItem = new MediaItem(sample, false);
-            mediaItems.add(mediaItem);
-        }
+
+        mediaItems.add(new MediaItem(Samples.getVideoSamples().get(selectedIndex), false));
 
         playlistManager.setAllowedMediaType(BasePlaylistManager.AUDIO | BasePlaylistManager.VIDEO);
         playlistManager.setParameters(mediaItems, selectedIndex);
         playlistManager.setId(PLAYLIST_ID);
     }
+
 }

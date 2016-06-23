@@ -25,6 +25,7 @@ import android.view.View;
 
 import com.devbrackets.android.exomedia.annotation.TrackRenderType;
 import com.devbrackets.android.exomedia.core.EMListenerMux;
+import com.devbrackets.android.exomedia.core.EMListenerMuxDrm;
 import com.devbrackets.android.exomedia.core.builder.RenderBuilder;
 import com.devbrackets.android.exomedia.core.video.scale.ScaleType;
 import com.google.android.exoplayer.MediaFormat;
@@ -62,6 +63,9 @@ public interface VideoViewApi {
 
     void pause();
 
+    /**
+     * Performs the functionality to stop the video in playback
+     */
     void stopPlayback();
 
     /**
@@ -115,6 +119,8 @@ public interface VideoViewApi {
     void setOnTouchListener(View.OnTouchListener listener);
 
     void setListenerMux(EMListenerMux listenerMux);
+
+    void setListenerMuxDrm(EMListenerMuxDrm listenerMux);
 
     void onVideoSizeChanged(int width, int height);
 }

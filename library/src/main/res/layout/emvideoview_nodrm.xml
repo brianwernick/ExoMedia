@@ -1,0 +1,10 @@
+<com.devbrackets.android.exomedia.ui.widget.EMVideoView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:EMVideoView="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/video_play_activity_video_view"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    EMVideoView:useDefaultControls="true"
+    EMVideoView:drmControl="false"
+    EMVideoView:useSurfaceViewBacking="false"/>

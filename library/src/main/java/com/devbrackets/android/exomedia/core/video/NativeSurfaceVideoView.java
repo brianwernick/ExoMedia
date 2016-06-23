@@ -31,6 +31,7 @@ import android.widget.MediaController;
 
 import com.devbrackets.android.exomedia.annotation.TrackRenderType;
 import com.devbrackets.android.exomedia.core.EMListenerMux;
+import com.devbrackets.android.exomedia.core.EMListenerMuxDrm;
 import com.devbrackets.android.exomedia.core.api.VideoViewApi;
 import com.devbrackets.android.exomedia.core.builder.RenderBuilder;
 import com.devbrackets.android.exomedia.core.video.delegate.NativeVideoDelegate;
@@ -210,6 +211,11 @@ public class NativeSurfaceVideoView extends ResizingSurfaceView implements Media
     @Override
     public void setListenerMux(EMListenerMux listenerMux) {
         delegate.setListenerMux(listenerMux);
+    }
+
+    @Override
+    public void setListenerMuxDrm(EMListenerMuxDrm listenerMux) {
+
     }
 
     @Override

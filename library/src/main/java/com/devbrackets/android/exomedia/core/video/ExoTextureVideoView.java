@@ -29,6 +29,7 @@ import android.view.Surface;
 
 import com.devbrackets.android.exomedia.annotation.TrackRenderType;
 import com.devbrackets.android.exomedia.core.EMListenerMux;
+import com.devbrackets.android.exomedia.core.EMListenerMuxDrm;
 import com.devbrackets.android.exomedia.core.api.VideoViewApi;
 import com.devbrackets.android.exomedia.core.builder.RenderBuilder;
 import com.devbrackets.android.exomedia.core.video.delegate.ExoVideoDelegate;
@@ -156,7 +157,10 @@ public class ExoTextureVideoView extends ResizingTextureView implements VideoVie
         delegate.setListenerMux(listenerMux);
     }
 
-    @Override
+    public void setListenerMuxDrm(EMListenerMuxDrm listenerMux) {
+
+    }
+
     public void onVideoSizeChanged(int width, int height) {
         if (updateVideoSize(width, height)) {
             requestLayout();

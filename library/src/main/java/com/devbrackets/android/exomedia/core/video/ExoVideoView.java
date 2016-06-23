@@ -20,7 +20,7 @@ import android.annotation.TargetApi;
 import android.content.Context;
 import android.os.Build;
 import android.util.AttributeSet;
-
+import com.devbrackets.android.exomedia.core.EMListenerMuxDrm;
 import com.devbrackets.android.exomedia.core.api.VideoViewApi;
 
 /**
@@ -47,5 +47,10 @@ public class ExoVideoView extends ExoTextureVideoView {
 
     public ExoVideoView(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
         super(context, attrs, defStyleAttr, defStyleRes);
+    }
+
+    @Override
+    public void setListenerMuxDrm(EMListenerMuxDrm listenerMux) {
+
     }
 }

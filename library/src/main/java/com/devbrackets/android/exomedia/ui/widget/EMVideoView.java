@@ -30,16 +30,20 @@ import android.support.annotation.LayoutRes;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewStub;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
+import android.widget.Toast;
 
 import com.devbrackets.android.exomedia.R;
 import com.devbrackets.android.exomedia.annotation.TrackRenderType;
 import com.devbrackets.android.exomedia.core.EMListenerMux;
+import com.devbrackets.android.exomedia.core.EMListenerMuxDrm;
+import com.devbrackets.android.exomedia.core.EMListenerMuxNotifier;
 import com.devbrackets.android.exomedia.core.api.VideoViewApi;
 import com.devbrackets.android.exomedia.core.builder.RenderBuilder;
 import com.devbrackets.android.exomedia.core.exoplayer.EMExoPlayer;
@@ -52,6 +56,7 @@ import com.devbrackets.android.exomedia.listener.OnSeekCompletionListener;
 import com.devbrackets.android.exomedia.util.DeviceUtil;
 import com.devbrackets.android.exomedia.util.Repeater;
 import com.devbrackets.android.exomedia.util.StopWatch;
+import com.google.android.exoplayer.AspectRatioFrameLayout;
 import com.google.android.exoplayer.MediaFormat;
 
 import java.util.List;
@@ -87,8 +92,20 @@ public class EMVideoView extends RelativeLayout {
 
     protected MuxNotifier muxNotifier = new MuxNotifier();
     protected EMListenerMux listenerMux;
+    protected EMListenerMuxDrm listenerMuxDrm;
 
     protected boolean releaseOnDetachFromWindow = true;
+
+    private AspectRatioFrameLayout aspectRatioView;
+
+    private long lastPosition = 0;
+    private boolean isSeeking;
+    private boolean playBackEnded = true;
+
+    public EMVideoView(Context context, boolean isDrm) {
+        super(context);
+        setup(context, null);
+    }
 
     public EMVideoView(Context context) {
         super(context);
@@ -326,6 +343,20 @@ public class EMVideoView extends RelativeLayout {
      * @param milliSeconds The time to move the playback to
      */
     public void seekTo(int milliSeconds) {
+
+        if(milliSeconds > 100){
+            milliSeconds = milliSeconds - 100;
+        }
+
+        videoControls.setLoading(true);
+
+        if(playBackEnded) {
+            videoControls.setLoading(false);//.restartLoading();
+            videoControls.updatePlaybackState(true);
+            start();
+            playBackEnded = false;
+        }
+
         if (videoControls != null) {
             videoControls.showLoading(false);
         }
@@ -348,7 +379,13 @@ public class EMVideoView extends RelativeLayout {
      * prepared (see {@link #setOnPreparedListener(OnPreparedListener)})
      */
     public void start() {
-        videoViewImpl.start();
+        playBackEnded = false;
+        if((Math.abs(getCurrentPosition() - getDuration())<100) && getDuration()>0){//getDuration()==-1 possible Live case
+            Log.i(TAG, "diferencia onCompletion " + Math.abs(getCurrentPosition() - getDuration()));
+            restart();
+        } else {
+            videoViewImpl.start();
+        }
         setKeepScreenOn(true);
 
         if (videoControls != null) {
@@ -563,7 +600,11 @@ public class EMVideoView extends RelativeLayout {
      * @param listener The listener
      */
     public void setOnPreparedListener(OnPreparedListener listener) {
-        listenerMux.setOnPreparedListener(listener);
+        if(listenerMux != null){
+            listenerMux.setOnPreparedListener(listener);
+        } else if(listenerMuxDrm != null){
+            listenerMuxDrm.setOnPreparedListener(listener);
+        }
     }
 
     /**
@@ -572,7 +613,11 @@ public class EMVideoView extends RelativeLayout {
      * @param listener The listener
      */
     public void setOnCompletionListener(OnCompletionListener listener) {
-        listenerMux.setOnCompletionListener(listener);
+        if(listenerMux != null){
+            listenerMux.setOnCompletionListener(listener);
+        } else if(listenerMuxDrm != null){
+            listenerMuxDrm.setOnCompletionListener(listener);
+        }
     }
 
     /**
@@ -581,7 +626,11 @@ public class EMVideoView extends RelativeLayout {
      * @param listener The listener
      */
     public void setOnBufferUpdateListener(OnBufferUpdateListener listener) {
-        listenerMux.setOnBufferUpdateListener(listener);
+        if(listenerMux != null){
+            listenerMux.setOnBufferUpdateListener(listener);
+        } else if(listenerMuxDrm != null){
+            listenerMuxDrm.setOnBufferUpdateListener(listener);
+        }
     }
 
     /**
@@ -590,7 +639,11 @@ public class EMVideoView extends RelativeLayout {
      * @param listener The listener
      */
     public void setOnSeekCompletionListener(OnSeekCompletionListener listener) {
-        listenerMux.setOnSeekCompletionListener(listener);
+        if(listenerMux != null){
+            listenerMux.setOnSeekCompletionListener(listener);
+        } else if(listenerMuxDrm != null){
+            listenerMuxDrm.setOnSeekCompletionListener(listener);
+        }
     }
 
     /**
@@ -599,7 +652,11 @@ public class EMVideoView extends RelativeLayout {
      * @param listener The listener
      */
     public void setOnErrorListener(OnErrorListener listener) {
-        listenerMux.setOnErrorListener(listener);
+        if(listenerMux != null){
+            listenerMux.setOnErrorListener(listener);
+        } else if(listenerMuxDrm != null){
+            listenerMuxDrm.setOnErrorListener(listener);
+        }
     }
 
     /**
@@ -637,6 +694,16 @@ public class EMVideoView extends RelativeLayout {
         listenerMux = new EMListenerMux(muxNotifier);
 
         videoViewImpl.setListenerMux(listenerMux);
+
+//        TypedArray typedArray = context.obtainStyledAttributes(attrs, R.styleable.EMVideoView);
+//        boolean isDrm = typedArray.getBoolean(R.styleable.EMVideoView_drmControl, false);
+//        if(!isDrm){
+//            listenerMux = new EMListenerMux(muxNotifier);
+//            videoViewImpl.setListenerMux(listenerMux);
+//        } else {
+//            listenerMuxDrm = new EMListenerMuxDrm(muxNotifier);
+//            videoViewImpl.setListenerMuxDrm(listenerMuxDrm);
+//        }
     }
 
     /**
@@ -696,11 +763,27 @@ public class EMVideoView extends RelativeLayout {
      * procedures from running that we no longer need.
      */
     protected void onPlaybackEnded() {
-        stopPlayback();
+        if(!checkIfErrorLoadingNewVideo()){
+            stopPlayback();
+        } else {
+            Toast.makeText(getContext(), "Error loading video", Toast.LENGTH_SHORT).show();
+            seekTo(0);
+            start();
+        }
+        videoControls.setLoading(false);
         pollRepeater.stop();
+        playBackEnded = true;
     }
 
-    protected class MuxNotifier extends EMListenerMux.EMListenerMuxNotifier {
+    private boolean checkIfErrorLoadingNewVideo() {
+        return getDuration()==0?true:false;
+    }
+
+    public void setAspectRatioView(AspectRatioFrameLayout aspectRatioView) {
+        this.aspectRatioView = aspectRatioView;
+    }
+
+    protected class MuxNotifier extends EMListenerMuxNotifier {
         @Override
         public boolean shouldNotifyCompletion(long endLeeway) {
             return getCurrentPosition() + endLeeway >= getDuration();
@@ -721,6 +804,14 @@ public class EMVideoView extends RelativeLayout {
             onPlaybackEnded();
         }
 
+        /**
+         * Definido abstracto en EMListenerMuxNotifier
+         */
+        @Override
+        public void onSeekCompletion() {
+            videoControls.setLoading(false);
+        }
+
         @Override
         public void onSeekComplete() {
             if (videoControls != null) {
@@ -734,6 +825,12 @@ public class EMVideoView extends RelativeLayout {
             //NOTE: Android 5.0+ will always have an unAppliedRotationDegrees of 0 (ExoPlayer already handles it)
             videoViewImpl.setVideoRotation(unAppliedRotationDegrees, false);
             videoViewImpl.onVideoSizeChanged(width, height);
+
+            if (aspectRatioView != null) {
+                aspectRatioView.setAspectRatio(
+                        height == 0 ? 1 : (width * pixelWidthHeightRatio) / height);
+                Log.i(TAG, "videoframe onVideoSizeChanged");
+            }
         }
 
         @Override

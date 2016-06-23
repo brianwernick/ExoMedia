@@ -25,15 +25,17 @@ import android.support.annotation.FloatRange;
 import android.support.annotation.IntRange;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.util.Log;
 
 import com.devbrackets.android.exomedia.BuildConfig;
 import com.devbrackets.android.exomedia.annotation.TrackRenderType;
 import com.devbrackets.android.exomedia.core.EMListenerMux;
 import com.devbrackets.android.exomedia.core.api.MediaPlayerApi;
-import com.devbrackets.android.exomedia.core.builder.DashRenderBuilder;
+import com.devbrackets.android.exomedia.core.builder.DashRenderBuilderWV;
 import com.devbrackets.android.exomedia.core.builder.HlsRenderBuilder;
 import com.devbrackets.android.exomedia.core.builder.RenderBuilder;
 import com.devbrackets.android.exomedia.core.builder.SmoothStreamRenderBuilder;
+import com.devbrackets.android.exomedia.core.builder.WidevineTestMediaDrmCallback;
 import com.devbrackets.android.exomedia.core.exoplayer.EMExoPlayer;
 import com.devbrackets.android.exomedia.type.MediaSourceType;
 import com.devbrackets.android.exomedia.util.MediaSourceUtil;
@@ -225,11 +227,14 @@ public class ExoMediaPlayer implements MediaPlayerApi {
      * @return The appropriate RenderBuilder
      */
     protected RenderBuilder getRendererBuilder(@NonNull MediaSourceType renderType, @NonNull Uri uri) {
+        Log.i("WideVineTest", "getRendererBuilder Exomediaplayer");
         switch (renderType) {
             case HLS:
                 return new HlsRenderBuilder(context, getUserAgent(), uri.toString(), audioStreamType);
             case DASH:
-                return new DashRenderBuilder(context, getUserAgent(), uri.toString(), audioStreamType);
+                return new DashRenderBuilderWV(context, getUserAgent(), uri.toString(),
+                        new WidevineTestMediaDrmCallback("", "widevine_test"), audioStreamType);
+                //return new DashRenderBuilder(context, getUserAgent(), uri.toString(), audioStreamType);
             case SMOOTH_STREAM:
                 return new SmoothStreamRenderBuilder(context, getUserAgent(), uri.toString(), audioStreamType);
             default:

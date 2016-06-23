@@ -20,10 +20,12 @@ import android.media.MediaPlayer;
 import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.view.SurfaceView;
 
 import com.devbrackets.android.exomedia.core.exoplayer.EMExoPlayer;
 import com.devbrackets.android.exomedia.core.listener.ExoPlayerListener;
-import com.devbrackets.android.exomedia.core.video.delegate.ClearableSurface;
+import com.devbrackets.android.exomedia.core.video.ResizingSurfaceView;
+import com.devbrackets.android.exomedia.core.video.ResizingTextureView;
 import com.devbrackets.android.exomedia.listener.OnBufferUpdateListener;
 import com.devbrackets.android.exomedia.listener.OnCompletionListener;
 import com.devbrackets.android.exomedia.listener.OnErrorListener;
@@ -38,7 +40,7 @@ import java.lang.ref.WeakReference;
  * Android VideoView, and the Android MediaPlayer to output to the correct
  * error listeners.
  */
-public class EMListenerMux implements ExoPlayerListener, MediaPlayer.OnPreparedListener, MediaPlayer.OnCompletionListener, MediaPlayer.OnErrorListener,
+public class EMListenerMuxDrm implements ExoPlayerListener, MediaPlayer.OnPreparedListener, MediaPlayer.OnCompletionListener, MediaPlayer.OnErrorListener,
         MediaPlayer.OnBufferingUpdateListener, MediaPlayer.OnSeekCompleteListener {
     //The amount of time the current position can be off the duration to call the onCompletion listener
     private static final long COMPLETED_DURATION_LEEWAY = 1000;
@@ -60,13 +62,13 @@ public class EMListenerMux implements ExoPlayerListener, MediaPlayer.OnPreparedL
     private OnErrorListener errorListener;
 
     @NonNull
-    private WeakReference<ClearableSurface> clearableSurfaceRef = new WeakReference<>(null);
+    private WeakReference<ResizingSurfaceView> clearTextureView = new WeakReference<>(null);
 
     private boolean notifiedPrepared = false;
     private boolean notifiedCompleted = false;
     private boolean clearRequested = false;
 
-    public EMListenerMux(@NonNull EMListenerMuxNotifier notifier) {
+    public EMListenerMuxDrm(@NonNull EMListenerMuxNotifier notifier) {
         muxNotifier = notifier;
     }
 
@@ -131,11 +133,11 @@ public class EMListenerMux implements ExoPlayerListener, MediaPlayer.OnPreparedL
         //Clears the textureView when requested
         if (playbackState == ExoPlayer.STATE_IDLE && clearRequested) {
             clearRequested = false;
-            ClearableSurface clearableSurface = clearableSurfaceRef.get();
+            SurfaceView textureView = clearTextureView.get();
 
-            if (clearableSurface != null) {
-                clearableSurface.clearSurface();
-                clearableSurfaceRef = new WeakReference<>(null);
+            if (textureView != null) {
+                textureView.getHolder().getSurface().release();//.clearSurface();
+                clearTextureView = new WeakReference<>(null);
             }
         }
     }
@@ -156,13 +158,13 @@ public class EMListenerMux implements ExoPlayerListener, MediaPlayer.OnPreparedL
 
     /**
      * Specifies the surface to clear when the playback reaches an appropriate state.
-     * Once the <code>clearableSurface</code> is cleared, the reference will be removed
+     * Once the <code>textureView</code> is cleared, the reference will be removed
      *
-     * @param clearableSurface The {@link ClearableSurface} to clear when the playback reaches an appropriate state
+     * @param textureView The {@link ResizingTextureView} to clear when the playback reaches an appropriate state
      */
-    public void clearSurfaceWhenReady(@Nullable ClearableSurface clearableSurface) {
+    public void clearSurfaceWhenReady(@Nullable ResizingSurfaceView textureView) {
         clearRequested = true;
-        clearableSurfaceRef = new WeakReference<>(clearableSurface);
+        clearTextureView = new WeakReference<>(textureView);
     }
 
     /**
@@ -279,6 +281,7 @@ public class EMListenerMux implements ExoPlayerListener, MediaPlayer.OnPreparedL
         });
     }
 
+//    Now it has its own class ********************************************************************
 //    public static abstract class EMListenerMuxNotifier {
 //        public void onSeekComplete() {
 //            //Purposefully left blank

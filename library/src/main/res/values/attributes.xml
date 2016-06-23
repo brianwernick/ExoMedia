@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <declare-styleable name="EMVideoView">
+        <attr name="drmControl" format="boolean" />
         <attr name="useDefaultControls" format="boolean" />
         <attr name="useSurfaceViewBacking" format="boolean" />
         <attr name="videoViewApiImpl" format="reference" />

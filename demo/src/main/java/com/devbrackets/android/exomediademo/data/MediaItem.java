@@ -66,4 +66,8 @@ public class MediaItem implements IPlaylistItem {
     public String getArtist() {
         return "Unknown Artist";
     }
+
+    public Samples.Sample getSample() {
+        return sample;
+    }
 }

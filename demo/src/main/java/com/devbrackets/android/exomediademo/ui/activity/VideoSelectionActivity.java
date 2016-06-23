@@ -37,8 +37,8 @@ public class VideoSelectionActivity extends AppCompatActivity implements Adapter
     }
 
     private void startVideoPlayerActivity(int selectedIndex) {
-        Intent intent = new Intent(this, FullScreenVideoPlayerActivity.class);
-        intent.putExtra(VideoPlayerActivity.EXTRA_INDEX, selectedIndex);
+        Intent intent = new Intent(this, VideoSimplePlayerActivity.class);//FullScreenVideoPlayerActivity
+        intent.putExtra(VideoSimplePlayerActivity.EXTRA_INDEX, selectedIndex);
         startActivity(intent);
     }
 }

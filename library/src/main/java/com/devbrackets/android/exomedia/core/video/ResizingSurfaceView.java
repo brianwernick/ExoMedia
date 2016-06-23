@@ -365,7 +365,15 @@ public class ResizingSurfaceView extends SurfaceView implements ClearableSurface
     }
 
     /**
+<<<<<<< HEAD
      * This is separated from the {@link ResizingSurfaceView#onAttachedToWindow()}
+=======
+<<<<<<< HEAD
+     * This is separated from the {@link ResizingTextureView#onAttachedToWindow()}
+=======
+     * This is separated from the {@link ResizingSurfaceView#onAttachedToWindow()}
+>>>>>>> feature/drmissue243
+>>>>>>> master
      * so that we have control over when it is added and removed
      */
     private class AttachedListener implements OnAttachStateChangeListener {

@@ -75,6 +75,8 @@ public abstract class VideoControls extends RelativeLayout {
     protected Drawable defaultPreviousDrawable;
     protected Drawable defaultNextDrawable;
 
+    public boolean pauseWhenIsSeeking = true;
+
     @NonNull
     protected Handler visibilityHandler = new Handler();
     @NonNull
@@ -220,6 +222,31 @@ public abstract class VideoControls extends RelativeLayout {
     }
 
     /**
+     * Used to update the control view visibilities to indicate that the video
+     * is loading.  This is different from using {@link #loadCompleted()} and
+     * because those update additional information.
+     *
+     * @param isLoading True if loading progress should be shown
+     */
+    public void setLoading(boolean isLoading) {
+        this.isLoading = isLoading;
+        loadingProgress.setVisibility(isLoading ? View.VISIBLE : View.INVISIBLE);
+        controlsContainer.setVisibility(isLoading ? View.GONE : View.VISIBLE);
+        textContainer.setVisibility(isLoading || (hideEmptyTextContainer && isTextContainerEmpty()) ? View.GONE : View.VISIBLE);
+    }
+
+    /**
+     * Used to inform the controls to finalize their setup.  This
+     * means replacing the loading animation with the PlayPause button
+     */
+    public void loadCompleted() {
+        setLoading(false);
+        updatePlaybackState(videoView != null && videoView.isPlaying());
+    }
+
+    /**
+=======
+>>>>>>> master
      * Informs the controls that the playback state has changed.  This will
      * update to display the correct views, and manage progress polling.
      *
@@ -581,6 +608,10 @@ public abstract class VideoControls extends RelativeLayout {
     protected void onPlayPauseClick() {
         if (buttonsListener == null || !buttonsListener.onPlayPauseClicked()) {
             internalListener.onPlayPauseClicked();
+        } else if(!videoView.isPlaying() && buttonsListener.onPlayPauseClicked()){
+            videoView.start();
+        } else if(videoView.isPlaying() && buttonsListener.onPlayPauseClicked()){
+            videoView.pause();
         }
     }
 
@@ -725,7 +756,7 @@ public abstract class VideoControls extends RelativeLayout {
                 return false;
             }
 
-            if (videoView.isPlaying()) {
+            if (videoView.isPlaying() && pauseWhenIsSeeking) {
                 pausedForSeek = true;
                 videoView.pause();
             }

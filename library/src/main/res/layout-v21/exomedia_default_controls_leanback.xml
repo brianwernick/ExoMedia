@@ -4,9 +4,10 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:background="@android:color/black">
+    tools:background="@android:color/white">
 
     <LinearLayout
+        android:id="@+id/exomedia_controls_parent"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
@@ -19,19 +20,20 @@
             android:id="@+id/exomedia_controls_text_container"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:background="@drawable/exomedia_default_controls_text_background"
             android:orientation="vertical"
-            android:paddingTop="16dp"
             android:paddingBottom="16dp"
             android:paddingLeft="16dp"
-            android:paddingRight="16dp">
+            android:paddingRight="16dp"
+            android:paddingTop="16dp">
 
             <TextView
                 android:id="@+id/exomedia_controls_title"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
                 android:textColor="@android:color/white"
                 android:textSize="28sp"
-                android:layout_marginBottom="8dp"
                 android:textStyle="bold"
                 tools:text="The Video Title"/>
 
@@ -69,7 +71,8 @@
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="#FF43B2E5">
+            android:background="#FF43B2E5"
+            android:minHeight="@dimen/exomedia_leanback_controls_height">
 
             <TextView
                 android:id="@+id/exomedia_controls_current_time"

@@ -24,17 +24,13 @@ repositories {
 }
 
 dependencies {
-    //stable
-    compile 'com.devbrackets.android:exomedia:2.5.6'
-    //or preview
-    compile 'com.devbrackets.android:exomedia:3.0.0-preview1'
+    compile 'com.devbrackets.android:exomedia:3.0.0'
 }
 ```
 
 Example
 -------
 The EMVideoView (EM for ExoMedia) can be added in your layout files like any other Android view.
-Note that the latter `ui.widget.EMVideoView` should only be used for versions `3.0.0` and above.
 
 ```xml
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
@@ -42,14 +38,6 @@ Note that the latter `ui.widget.EMVideoView` should only be used for versions `3
                 android:layout_width="match_parent"
                 android:layout_height="match_parent">
 
-	<!-- For versions below 3.0.0 -->	
-	<com.devbrackets.android.exomedia.EMVideoView
-		android:id="@+id/video_view"
-		android:layout_width="match_parent"
-		android:layout_height="match_parent"
-		EMVideoView:defaultControlsEnabled="true"/>
-		
-	<!-- For versions 3.+ -->
 	<com.devbrackets.android.exomedia.ui.widget.EMVideoView
 		android:id="@+id/video_view"
 		android:layout_width="match_parent"
@@ -72,7 +60,7 @@ private void setupVideoView() {
 }
 
 @Override
-public void onPrepared(MediaPlayer mp) {
+public void onPrepared() {
 	//Starts the video playback as soon as it is ready
 	emVideoView.start();
 }
@@ -108,6 +96,6 @@ Attribution
  [CTS]: https://source.android.com/compatibility/cts/index.html
  [Design Icons]: https://github.com/google/material-design-icons
  [ExoPlayer]: https://github.com/google/ExoPlayer
- [Java Docs]: https://devbrackets.com/dev/libs/docs/exomedia/2.5.0/index.html
+ [Java Docs]: https://devbrackets.com/dev/libs/docs/exomedia/3.0.0/index.html
  [JCenter]: https://bintray.com/brianwernick/maven/ExoMedia/view#files
  [Website]: https://devbrackets.com/dev/libs/exomedia.html

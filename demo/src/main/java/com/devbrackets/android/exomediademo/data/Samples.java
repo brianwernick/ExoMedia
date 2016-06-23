@@ -36,6 +36,7 @@ public class Samples {
         videoSamples.add(new Sample("Smooth Stream - Caminandes: Llama Drama by Blender", "http://amssamples.streaming.mediaservices.windows.net/634cd01c-6822-4630-8444-8dd6279f94c6/CaminandesLlamaDrama4K.ism/manifest"));
         videoSamples.add(new Sample("Smooth Stream - Tears of Steel Teaser by Blender", "http://amssamples.streaming.mediaservices.windows.net/3d7eaff9-39fa-442f-81cc-f2ea7db1797e/TearsOfSteelTeaser.ism/manifest"));
         videoSamples.add(new Sample("WEBM - Big Buck Bunny", "http://video.webmfiles.org/big-buck-bunny_trailer.webm"));
+        videoSamples.add(new Sample("WV: Secure SD (MP4,H264)", "https://storage.googleapis.com/wvmedia/cenc/h264/tears/tears_sd.mpd", null, true));
     }
 
     @NonNull
@@ -59,6 +60,8 @@ public class Samples {
         private String mediaUrl;
         @Nullable
         private String artworkUrl;
+        @Nullable
+        private boolean hasDrm;
 
         public Sample(@NonNull String title, @NonNull String mediaUrl) {
             this(title, mediaUrl, null);
@@ -68,6 +71,13 @@ public class Samples {
             this.title = title;
             this.mediaUrl = mediaUrl;
             this.artworkUrl = artworkUrl;
+        }
+
+        public Sample(@NonNull String title, @NonNull String mediaUrl, @Nullable String artworkUrl, @Nullable boolean hasDrm) {
+            this.artworkUrl = artworkUrl;
+            this.hasDrm = hasDrm;
+            this.mediaUrl = mediaUrl;
+            this.title = title;
         }
 
         @NonNull
@@ -83,6 +93,11 @@ public class Samples {
         @Nullable
         public String getArtworkUrl() {
             return artworkUrl;
+        }
+
+        @Nullable
+        public boolean getHasDrm() {
+            return hasDrm;
         }
     }
 }

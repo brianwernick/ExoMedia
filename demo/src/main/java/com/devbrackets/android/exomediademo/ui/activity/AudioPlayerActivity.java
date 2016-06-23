@@ -20,7 +20,6 @@ import com.devbrackets.android.playlistcore.event.MediaProgress;
 import com.devbrackets.android.playlistcore.event.PlaylistItemChange;
 import com.devbrackets.android.playlistcore.listener.PlaylistListener;
 import com.devbrackets.android.playlistcore.listener.ProgressListener;
-import com.devbrackets.android.playlistcore.manager.IPlaylistItem;
 import com.devbrackets.android.playlistcore.service.PlaylistServiceCore;
 import com.squareup.picasso.Picasso;
 
@@ -32,7 +31,7 @@ import java.util.List;
  * that interacts with the {@link com.devbrackets.android.playlistcore.service.BasePlaylistService}
  * and {@link com.devbrackets.android.playlistcore.manager.BasePlaylistManager} classes.
  */
-public class AudioPlayerActivity extends AppCompatActivity implements PlaylistListener, ProgressListener {
+public class AudioPlayerActivity extends AppCompatActivity implements PlaylistListener<MediaItem>, ProgressListener {
     public static final String EXTRA_INDEX = "EXTRA_INDEX";
     public static final int PLAYLIST_ID = 4; //Arbitrary, for the example
 
@@ -83,7 +82,7 @@ public class AudioPlayerActivity extends AppCompatActivity implements PlaylistLi
     }
 
     @Override
-    public boolean onPlaylistItemChanged(IPlaylistItem currentItem, boolean hasNext, boolean hasPrevious) {
+    public boolean onPlaylistItemChanged(MediaItem currentItem, boolean hasNext, boolean hasPrevious) {
         shouldSetDuration = true;
 
         //Updates the button states
@@ -144,7 +143,7 @@ public class AudioPlayerActivity extends AppCompatActivity implements PlaylistLi
      * Makes sure to update the UI to the current playback item.
      */
     private void updateCurrentPlaybackInformation() {
-        PlaylistItemChange itemChangedEvent = playlistManager.getCurrentItemChange();
+        PlaylistItemChange<MediaItem> itemChangedEvent = playlistManager.getCurrentItemChange();
         if (itemChangedEvent != null) {
             onPlaylistItemChanged(itemChangedEvent.getCurrentItem(), itemChangedEvent.hasNext(), itemChangedEvent.hasPrevious());
         }

@@ -19,12 +19,12 @@ package com.devbrackets.android.exomedia;
 import android.content.Context;
 import android.media.AudioManager;
 import android.net.Uri;
-import android.os.Build;
 import android.support.annotation.FloatRange;
 import android.support.annotation.Nullable;
 
 import com.devbrackets.android.exomedia.annotation.TrackRenderType;
 import com.devbrackets.android.exomedia.core.EMListenerMux;
+import com.devbrackets.android.exomedia.core.EMListenerMuxNotifier;
 import com.devbrackets.android.exomedia.core.api.MediaPlayerApi;
 import com.devbrackets.android.exomedia.core.audio.ExoMediaPlayer;
 import com.devbrackets.android.exomedia.core.audio.NativeMediaPlayer;
@@ -35,7 +35,7 @@ import com.devbrackets.android.exomedia.listener.OnCompletionListener;
 import com.devbrackets.android.exomedia.listener.OnErrorListener;
 import com.devbrackets.android.exomedia.listener.OnPreparedListener;
 import com.devbrackets.android.exomedia.listener.OnSeekCompletionListener;
-import com.devbrackets.android.exomedia.util.EMDeviceUtil;
+import com.devbrackets.android.exomedia.util.DeviceUtil;
 import com.google.android.exoplayer.MediaFormat;
 
 import java.util.List;
@@ -57,7 +57,11 @@ public class EMAudioPlayer {
     protected int overriddenDuration = -1;
 
     public EMAudioPlayer(Context context) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN  && EMDeviceUtil.isDeviceCTSCompliant()) {
+        this(context, new DeviceUtil());
+    }
+
+    public EMAudioPlayer(Context context, DeviceUtil deviceUtil) {
+        if (deviceUtil.supportsExoPlayer(context)) {
             mediaPlayerImpl = new ExoMediaPlayer(context);
         } else {
             mediaPlayerImpl = new NativeMediaPlayer(context);
@@ -345,7 +349,7 @@ public class EMAudioPlayer {
         pause();
     }
 
-    private class MuxNotifier extends EMListenerMux.EMListenerMuxNotifier {
+    private class MuxNotifier extends EMListenerMuxNotifier {//EMListenerMux.EMListenerMuxNotifier
         @Override
         public boolean shouldNotifyCompletion(long endLeeway) {
             return getCurrentPosition() + endLeeway >= getDuration();
@@ -363,6 +367,11 @@ public class EMAudioPlayer {
         @Override
         public void onMediaPlaybackEnded() {
            onPlaybackEnded();
+        }
+
+        @Override
+        public void onSeekCompletion() {
+            
         }
 
         @Override

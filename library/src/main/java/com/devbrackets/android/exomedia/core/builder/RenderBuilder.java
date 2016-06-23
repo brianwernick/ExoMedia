@@ -83,11 +83,11 @@ public class RenderBuilder {
         DataSource dataSource = createDataSource(context, bandwidthMeter, userAgent);
 
         ExtractorSampleSource sampleSource = new ExtractorSampleSource(Uri.parse(MediaUtil.getUriWithProtocol(uri)), dataSource,
-               allocator, BUFFER_SEGMENT_SIZE * BUFFER_SEGMENTS_TOTAL);
+               allocator, BUFFER_SEGMENT_SIZE * BUFFER_SEGMENTS_TOTAL, player.getMainHandler(), player, 0);
 
         //Create the Renderers
         MediaCodecVideoTrackRenderer videoRenderer = new MediaCodecVideoTrackRenderer(context, sampleSource, MediaCodecSelector.DEFAULT,
-                MediaCodec.VIDEO_SCALING_MODE_SCALE_TO_FIT, MAX_JOIN_TIME, null, true, player.getMainHandler(), player, DROPPED_FRAME_NOTIFICATION_AMOUNT);
+                MediaCodec.VIDEO_SCALING_MODE_SCALE_TO_FIT, MAX_JOIN_TIME, player.getMainHandler(), player, DROPPED_FRAME_NOTIFICATION_AMOUNT);
         EMMediaCodecAudioTrackRenderer audioRenderer = new EMMediaCodecAudioTrackRenderer(sampleSource, MediaCodecSelector.DEFAULT, null, true,
                 player.getMainHandler(), player, AudioCapabilities.getCapabilities(context), streamType);
         TrackRenderer captionsRenderer = new TextTrackRenderer(sampleSource, player, player.getMainHandler().getLooper());

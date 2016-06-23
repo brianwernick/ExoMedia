@@ -1,0 +1,19 @@
+<com.google.android.exoplayer.AspectRatioFrameLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/video_frame"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_gravity="center">
+
+    <com.devbrackets.android.exomedia.ui.widget.EMVideoView
+        xmlns:EMVideoView="http://schemas.android.com/apk/res-auto"
+        android:id="@+id/video_play_activity_video_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        EMVideoView:useDefaultControls="true"
+        EMVideoView:drmControl="true"
+        EMVideoView:useSurfaceViewBacking="true"
+        android:layout_gravity="center"
+        android:gravity="center"/>
+
+</com.google.android.exoplayer.AspectRatioFrameLayout>

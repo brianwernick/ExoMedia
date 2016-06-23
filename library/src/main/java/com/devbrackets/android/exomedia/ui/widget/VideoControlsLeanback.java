@@ -25,6 +25,7 @@ import android.support.annotation.IntRange;
 import android.util.AttributeSet;
 import android.view.KeyEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.view.animation.TranslateAnimation;
 import android.widget.ImageButton;
@@ -33,7 +34,6 @@ import android.widget.ProgressBar;
 
 import com.devbrackets.android.exomedia.R;
 import com.devbrackets.android.exomedia.ui.animation.BottomViewHideShowAnimation;
-import com.devbrackets.android.exomedia.ui.animation.TopViewHideShowAnimation;
 import com.devbrackets.android.exomedia.util.EMResourceUtil;
 import com.devbrackets.android.exomedia.util.TimeFormatUtil;
 
@@ -48,6 +48,7 @@ public class VideoControlsLeanback extends VideoControls {
     protected ProgressBar progressBar;
 
     protected ImageView rippleIndicator;
+    protected ViewGroup controlsParent;
 
     protected ImageButton fastForwardButton;
     protected ImageButton rewindButton;
@@ -79,6 +80,7 @@ public class VideoControlsLeanback extends VideoControls {
         super.setup(context);
         internalListener = new LeanbackInternalListener();
         registerForInput();
+        setFocusable(true);
     }
 
     @Override
@@ -176,6 +178,7 @@ public class VideoControlsLeanback extends VideoControls {
         rewindButton = (ImageButton) findViewById(R.id.exomedia_controls_rewind_btn);
         fastForwardButton = (ImageButton) findViewById(R.id.exomedia_controls_fast_forward_btn);
         rippleIndicator = (ImageView) findViewById(R.id.exomedia_controls_leanback_ripple);
+        controlsParent = (ViewGroup) findViewById(R.id.exomedia_controls_parent);
     }
 
     @Override
@@ -219,11 +222,9 @@ public class VideoControlsLeanback extends VideoControls {
             return;
         }
 
-        if (!hideEmptyTextContainer || !isTextContainerEmpty()) {
-            textContainer.startAnimation(new BottomViewHideShowAnimation(textContainer, toVisible, CONTROL_VISIBILITY_ANIMATION_LENGTH));
+        if (!isLoading) {
+            controlsParent.startAnimation(new BottomViewHideShowAnimation(controlsParent, toVisible, CONTROL_VISIBILITY_ANIMATION_LENGTH));
         }
-
-        controlsContainer.startAnimation(new BottomViewHideShowAnimation(controlsContainer, toVisible, CONTROL_VISIBILITY_ANIMATION_LENGTH));
 
         isVisible = toVisible;
         onVisibilityChanged();
@@ -231,18 +232,46 @@ public class VideoControlsLeanback extends VideoControls {
 
     @Override
     protected void updateTextContainerVisibility() {
-        if (!isVisible || isLoading) {
+        if (!isVisible) {
             return;
         }
 
         boolean emptyText = isTextContainerEmpty();
         if (hideEmptyTextContainer && emptyText && textContainer.getVisibility() == VISIBLE) {
             textContainer.clearAnimation();
-            textContainer.startAnimation(new TopViewHideShowAnimation(textContainer, false, CONTROL_VISIBILITY_ANIMATION_LENGTH));
+            textContainer.startAnimation(new BottomViewHideShowAnimation(textContainer, false, CONTROL_VISIBILITY_ANIMATION_LENGTH));
         } else if ((!hideEmptyTextContainer || !emptyText) && textContainer.getVisibility() != VISIBLE) {
             textContainer.clearAnimation();
-            textContainer.startAnimation(new TopViewHideShowAnimation(textContainer, true, CONTROL_VISIBILITY_ANIMATION_LENGTH));
+            textContainer.startAnimation(new BottomViewHideShowAnimation(textContainer, true, CONTROL_VISIBILITY_ANIMATION_LENGTH));
         }
+    }
+
+    @Override
+    public void showLoading(boolean initialLoad) {
+        if (isLoading) {
+            return;
+        }
+
+        isLoading = true;
+        controlsContainer.setVisibility(View.GONE);
+        rippleIndicator.setVisibility(View.GONE);
+        loadingProgress.setVisibility(View.VISIBLE);
+
+        show();
+    }
+
+    @Override
+    public void finishLoading() {
+        if (!isLoading) {
+            return;
+        }
+
+        isLoading = false;
+        controlsContainer.setVisibility(View.VISIBLE);
+        rippleIndicator.setVisibility(View.VISIBLE);
+        loadingProgress.setVisibility(View.GONE);
+
+        updatePlaybackState(videoView != null && videoView.isPlaying());
     }
 
     /**

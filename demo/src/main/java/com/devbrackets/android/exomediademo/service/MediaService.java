@@ -137,20 +137,46 @@ public class MediaService extends BasePlaylistService<MediaItem, PlaylistManager
     @Override
     protected boolean playVideoItem() {
         if (super.playVideoItem()) {
-            EMVideoView videoView = ((VideoApi) getPlaylistManager().getVideoPlayer()).getVideoView();
-            updateVideoControlsText(videoView.getVideoControls());
+            updateVideoControls();
             return true;
         }
 
         return false;
     }
 
-    private void updateVideoControlsText(@Nullable VideoControls videoControls) {
-        if (videoControls != null && currentPlaylistItem != null) {
+    /**
+     * Helper method used to verify we can access the EMVideoView#getVideoControls()
+     * to update both the text and available next/previous buttons
+     */
+    private void updateVideoControls() {
+        VideoApi videoApi = (VideoApi) getPlaylistManager().getVideoPlayer();
+        if (videoApi == null) {
+            return;
+        }
+
+        EMVideoView videoView = videoApi.getVideoView();
+        if (videoView == null) {
+            return;
+        }
+
+        VideoControls videoControls = videoView.getVideoControls();
+        if (videoControls != null) {
+            updateVideoControlsText(videoControls);
+            updateVideoControlsButtons(videoControls);
+        }
+    }
+
+    private void updateVideoControlsText(@NonNull VideoControls videoControls) {
+        if (currentPlaylistItem != null) {
             videoControls.setTitle(currentPlaylistItem.getTitle());
             videoControls.setSubTitle(currentPlaylistItem.getAlbum());
             videoControls.setDescription(currentPlaylistItem.getArtist());
         }
+    }
+
+    private void updateVideoControlsButtons(@NonNull VideoControls videoControls) {
+        videoControls.setPreviousButtonEnabled(getPlaylistManager().isPreviousAvailable());
+        videoControls.setNextButtonEnabled(getPlaylistManager().isNextAvailable());
     }
 
     /**

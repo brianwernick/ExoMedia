@@ -23,18 +23,16 @@ import android.content.Context;
 import android.media.AudioManager;
 import android.media.MediaCodec;
 import android.os.Build;
-import android.os.Handler;
 
 import com.devbrackets.android.exomedia.core.exoplayer.EMExoPlayer;
 import com.devbrackets.android.exomedia.core.renderer.EMMediaCodecAudioTrackRenderer;
 import com.google.android.exoplayer.DefaultLoadControl;
 import com.google.android.exoplayer.LoadControl;
 import com.google.android.exoplayer.MediaCodecSelector;
-import com.google.android.exoplayer.MediaCodecUtil;
 import com.google.android.exoplayer.MediaCodecVideoTrackRenderer;
+import com.google.android.exoplayer.SampleSource;
 import com.google.android.exoplayer.TrackRenderer;
 import com.google.android.exoplayer.audio.AudioCapabilities;
-import com.google.android.exoplayer.chunk.VideoFormatSelectorUtil;
 import com.google.android.exoplayer.hls.DefaultHlsTrackSelector;
 import com.google.android.exoplayer.hls.HlsChunkSource;
 import com.google.android.exoplayer.hls.HlsMasterPlaylist;
@@ -46,6 +44,7 @@ import com.google.android.exoplayer.metadata.MetadataTrackRenderer;
 import com.google.android.exoplayer.metadata.id3.Id3Frame;
 import com.google.android.exoplayer.metadata.id3.Id3Parser;
 import com.google.android.exoplayer.text.TextTrackRenderer;
+import com.google.android.exoplayer.text.eia608.Eia608TrackRenderer;
 import com.google.android.exoplayer.upstream.DataSource;
 import com.google.android.exoplayer.upstream.DefaultAllocator;
 import com.google.android.exoplayer.upstream.DefaultBandwidthMeter;
@@ -142,45 +141,60 @@ public class HlsRenderBuilder extends RenderBuilder {
                 return;
             }
 
-            Handler mainHandler = player.getMainHandler();
-            LoadControl loadControl = new DefaultLoadControl(new DefaultAllocator(BUFFER_SEGMENT_SIZE));
-            DefaultBandwidthMeter bandwidthMeter = new DefaultBandwidthMeter(mainHandler, player);
-            PtsTimestampAdjusterProvider timestampAdjusterProvider = new PtsTimestampAdjusterProvider();
+            boolean hasClosedCaptions = false;
+            boolean hasMultipleAudioTracks = false;
 
             //Calculates the Chunk variant indices
             int[] variantIndices;
             if (playlist instanceof HlsMasterPlaylist) {
                 HlsMasterPlaylist masterPlaylist = (HlsMasterPlaylist) playlist;
-
-                try {
-                    variantIndices = VideoFormatSelectorUtil.selectVideoFormatsForDefaultDisplay(context, masterPlaylist.variants, null, false);
-                } catch (MediaCodecUtil.DecoderQueryException e) {
-                    player.onRenderersError(e);
-                    return;
-                }
-
-                if (variantIndices.length == 0) {
-                    player.onRenderersError(new IllegalStateException("No variants selected."));
-                    return;
-                }
+                hasClosedCaptions = !masterPlaylist.subtitles.isEmpty();
+                hasMultipleAudioTracks = !masterPlaylist.audios.isEmpty();
             }
 
-            //Create the Sample Source to be used by the renders
-            DataSource dataSource = createDataSource(context, bandwidthMeter, userAgent);
-            HlsChunkSource chunkSource = new HlsChunkSource(true, dataSource, playlist, DefaultHlsTrackSelector.newDefaultInstance(context),
+            buildTrackRenderers(playlist, hasClosedCaptions, hasMultipleAudioTracks);
+        }
+
+        protected void buildTrackRenderers(HlsPlaylist playlist, boolean hasClosedCaptions, boolean hasMultipleAudioTracks) {
+            LoadControl loadControl = new DefaultLoadControl(new DefaultAllocator(BUFFER_SEGMENT_SIZE));
+            DefaultBandwidthMeter bandwidthMeter = new DefaultBandwidthMeter(player.getMainHandler(), player);
+            PtsTimestampAdjusterProvider timestampAdjusterProvider = new PtsTimestampAdjusterProvider();
+
+
+            //Create the Sample Source to be used by the Video Renderer
+            DataSource dataSourceVideo = createDataSource(context, bandwidthMeter, userAgent);
+            HlsChunkSource chunkSourceVideo = new HlsChunkSource(true, dataSourceVideo, playlist, DefaultHlsTrackSelector.newDefaultInstance(context),
                     bandwidthMeter, timestampAdjusterProvider, HlsChunkSource.ADAPTIVE_MODE_SPLICE);
-            HlsSampleSource sampleSource = new HlsSampleSource(chunkSource, loadControl,
-                    BUFFER_SEGMENTS_TOTAL * BUFFER_SEGMENT_SIZE, mainHandler, player, EMExoPlayer.RENDER_VIDEO);
+            HlsSampleSource sampleSourceVideo = new HlsSampleSource(chunkSourceVideo, loadControl,
+                    BUFFER_SEGMENTS_TOTAL * BUFFER_SEGMENT_SIZE, player.getMainHandler(), player, EMExoPlayer.RENDER_VIDEO);
+
+
+            //Create the Sample Source to be used by the Audio Renderer
+            DataSource dataSourceAudio = new DefaultUriDataSource(context, bandwidthMeter, userAgent);
+            HlsChunkSource chunkSourceAudio = new HlsChunkSource(false, dataSourceAudio, playlist, DefaultHlsTrackSelector.newAudioInstance(),
+                    bandwidthMeter, timestampAdjusterProvider, HlsChunkSource.ADAPTIVE_MODE_SPLICE);
+            HlsSampleSource sampleSourceAudio = new HlsSampleSource(chunkSourceAudio, loadControl, BUFFER_SEGMENTS_AUDIO * BUFFER_SEGMENT_SIZE,
+                    player.getMainHandler(), player, EMExoPlayer.RENDER_AUDIO);
+            SampleSource[] sampleSourcesAudio = hasMultipleAudioTracks ? new SampleSource[] {sampleSourceVideo, sampleSourceAudio} : new SampleSource[] {sampleSourceVideo};
+
+
+            //Create the Sample Source to be used by the Closed Captions Renderer
+            DataSource dataSourceCC = createDataSource(context, bandwidthMeter, userAgent);
+            HlsChunkSource chunkSourceCC = new HlsChunkSource(false, dataSourceCC, playlist, DefaultHlsTrackSelector.newSubtitleInstance(),
+                    bandwidthMeter, timestampAdjusterProvider, HlsChunkSource.ADAPTIVE_MODE_SPLICE);
+            HlsSampleSource sampleSourceCC = new HlsSampleSource(chunkSourceCC, loadControl,
+                    BUFFER_SEGMENTS_TEXT * BUFFER_SEGMENT_SIZE, player.getMainHandler(), player, EMExoPlayer.RENDER_CLOSED_CAPTION);
 
 
             //Build the renderers
-            MediaCodecVideoTrackRenderer videoRenderer = new MediaCodecVideoTrackRenderer(context, sampleSource, MediaCodecSelector.DEFAULT,
-                    MediaCodec.VIDEO_SCALING_MODE_SCALE_TO_FIT, MAX_JOIN_TIME, mainHandler, player, DROPPED_FRAME_NOTIFICATION_AMOUNT);
-            EMMediaCodecAudioTrackRenderer audioRenderer = new EMMediaCodecAudioTrackRenderer(sampleSource, MediaCodecSelector.DEFAULT, null, true,
+            MediaCodecVideoTrackRenderer videoRenderer = new MediaCodecVideoTrackRenderer(context, sampleSourceVideo, MediaCodecSelector.DEFAULT,
+                    MediaCodec.VIDEO_SCALING_MODE_SCALE_TO_FIT, MAX_JOIN_TIME, player.getMainHandler(), player, DROPPED_FRAME_NOTIFICATION_AMOUNT);
+            EMMediaCodecAudioTrackRenderer audioRenderer = new EMMediaCodecAudioTrackRenderer(sampleSourcesAudio, MediaCodecSelector.DEFAULT, null, true,
                     player.getMainHandler(), player, AudioCapabilities.getCapabilities(context), streamType);
-            TextTrackRenderer captionsRenderer = new TextTrackRenderer(sampleSource, player, mainHandler.getLooper());
-            MetadataTrackRenderer<List<Id3Frame>> id3Renderer = new MetadataTrackRenderer<>(sampleSource, new Id3Parser(),
-                    player, mainHandler.getLooper());
+            TrackRenderer captionsRenderer = hasClosedCaptions ? new TextTrackRenderer(sampleSourceCC, player, player.getMainHandler().getLooper()) :
+                    new Eia608TrackRenderer(sampleSourceVideo, player, player.getMainHandler().getLooper());
+            MetadataTrackRenderer<List<Id3Frame>> id3Renderer = new MetadataTrackRenderer<>(sampleSourceVideo, new Id3Parser(),
+                    player, player.getMainHandler().getLooper());
 
 
             //Populate the Render list to pass back to the callback

@@ -46,6 +46,7 @@ import com.google.android.exoplayer.dash.mpd.UtcTimingElement;
 import com.google.android.exoplayer.dash.mpd.UtcTimingElementResolver;
 import com.google.android.exoplayer.dash.mpd.UtcTimingElementResolver.UtcTimingCallback;
 import com.google.android.exoplayer.drm.DrmSessionManager;
+import com.google.android.exoplayer.drm.MediaDrmCallback;
 import com.google.android.exoplayer.drm.StreamingDrmSessionManager;
 import com.google.android.exoplayer.drm.UnsupportedDrmException;
 import com.google.android.exoplayer.text.TextTrackRenderer;
@@ -64,27 +65,34 @@ import java.io.IOException;
  * DASH streams.
  */
 @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
-public class DashRenderBuilder extends RenderBuilder {
-    private static final String TAG = "DashRendererBuilder";
+public class DashRenderBuilderWV extends RenderBuilder {
+    private static final String TAG = "DashRenderBuilderWV";
     protected static final int LIVE_EDGE_LATENCY_MS = 30000;
 
     protected static final int SECURITY_LEVEL_UNKNOWN = -1;
     protected static final int SECURITY_LEVEL_1 = 1;
     protected static final int SECURITY_LEVEL_3 = 3;
 
+    private MediaDrmCallback drmCallback;
+
     protected AsyncRendererBuilder currentAsyncBuilder;
 
-    public DashRenderBuilder(Context context, String userAgent, String url) {
+    public DashRenderBuilderWV(Context context, String userAgent, String url, MediaDrmCallback drmCallback) {
         this(context, userAgent, url, AudioManager.STREAM_MUSIC);
+        this.drmCallback = drmCallback;
     }
 
-    public DashRenderBuilder(Context context, String userAgent, String url, int streamType) {
+    public DashRenderBuilderWV(Context context, String userAgent, String url, int streamType) {
+      super(context, userAgent, url, streamType);
+    }
+
+    public DashRenderBuilderWV(Context context, String userAgent, String url, MediaDrmCallback drmCallback, int streamType) {
         super(context, userAgent, url, streamType);
     }
 
     @Override
     public void buildRenderers(EMExoPlayer player) {
-        currentAsyncBuilder = new AsyncRendererBuilder(context, userAgent, uri, player, streamType);
+        currentAsyncBuilder = new AsyncRendererBuilder(context, userAgent, uri, drmCallback, player, streamType);
         currentAsyncBuilder.init();
     }
 
@@ -103,6 +111,7 @@ public class DashRenderBuilder extends RenderBuilder {
     protected final class AsyncRendererBuilder implements ManifestFetcher.ManifestCallback<MediaPresentationDescription>, UtcTimingCallback {
        protected final Context context;
        protected final String userAgent;
+       private final MediaDrmCallback drmCallback;
        protected final int streamType;
        protected final EMExoPlayer player;
        protected final ManifestFetcher<MediaPresentationDescription> manifestFetcher;
@@ -112,7 +121,8 @@ public class DashRenderBuilder extends RenderBuilder {
         protected boolean canceled;
         protected long elapsedRealtimeOffset;
 
-        public AsyncRendererBuilder(Context context, String userAgent, String url, EMExoPlayer player, int streamType) {
+        public AsyncRendererBuilder(Context context, String userAgent, String url, MediaDrmCallback drmCallback, EMExoPlayer player, int streamType) {
+            this.drmCallback = drmCallback;
             this.context = context;
             this.userAgent = userAgent;
             this.streamType = streamType;
@@ -196,7 +206,7 @@ public class DashRenderBuilder extends RenderBuilder {
                     return;
                 }
                 try {
-                    drmSessionManager = StreamingDrmSessionManager.newWidevineInstance(player.getPlaybackLooper(), null, null, player.getMainHandler(), player);
+                    drmSessionManager = StreamingDrmSessionManager.newWidevineInstance(player.getPlaybackLooper(), drmCallback, null, player.getMainHandler(), player);
                     filterHdContent = getWidevineSecurityLevel(drmSessionManager) != SECURITY_LEVEL_1;
                 } catch (UnsupportedDrmException e) {
                     player.onRenderersError(e);

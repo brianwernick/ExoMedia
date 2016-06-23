@@ -75,6 +75,8 @@ public abstract class VideoControls extends RelativeLayout {
     protected Drawable defaultPreviousDrawable;
     protected Drawable defaultNextDrawable;
 
+    public boolean pauseWhenIsSeeking = true;
+
     @NonNull
     protected Handler visibilityHandler = new Handler();
     @NonNull
@@ -147,6 +149,20 @@ public abstract class VideoControls extends RelativeLayout {
      */
     protected abstract void updateTextContainerVisibility();
 
+    /**
+     * Update the controls to indicate that the video
+     * is loading.
+     *
+     * @param initialLoad <code>True</code> if the loading is the initial state, not for seeking or buffering
+     */
+    public abstract void showLoading(boolean initialLoad);
+
+    /**
+     * Update the controls to indicate that the video is no longer loading
+     * which will re-display the play/pause, progress, etc. controls
+     */
+    public abstract void finishLoading();
+
     public VideoControls(Context context) {
         super(context);
         setup(context);
@@ -207,7 +223,7 @@ public abstract class VideoControls extends RelativeLayout {
 
     /**
      * Used to update the control view visibilities to indicate that the video
-     * is loading.  This is different from using {@link #loadCompleted()} and {@link #restartLoading()}
+     * is loading.  This is different from using {@link #loadCompleted()} and
      * because those update additional information.
      *
      * @param isLoading True if loading progress should be shown
@@ -216,7 +232,7 @@ public abstract class VideoControls extends RelativeLayout {
         this.isLoading = isLoading;
         loadingProgress.setVisibility(isLoading ? View.VISIBLE : View.INVISIBLE);
         controlsContainer.setVisibility(isLoading ? View.GONE : View.VISIBLE);
-        textContainer.setVisibility(isLoading || (hideEmptyTextContainer && isTextContainerEmpty())? View.GONE : View.VISIBLE);
+        textContainer.setVisibility(isLoading || (hideEmptyTextContainer && isTextContainerEmpty()) ? View.GONE : View.VISIBLE);
     }
 
     /**
@@ -229,6 +245,8 @@ public abstract class VideoControls extends RelativeLayout {
     }
 
     /**
+=======
+>>>>>>> master
      * Informs the controls that the playback state has changed.  This will
      * update to display the correct views, and manage progress polling.
      *
@@ -244,14 +262,6 @@ public abstract class VideoControls extends RelativeLayout {
             progressPollRepeater.stop();
             show();
         }
-    }
-
-    /**
-     * Used to inform the controls to return to the loading stage.
-     * This is the opposite of {@link #loadCompleted()}
-     */
-    public void restartLoading() {
-        setLoading(true);
     }
 
     /**
@@ -496,7 +506,7 @@ public abstract class VideoControls extends RelativeLayout {
     public void hideDelayed(long delay) {
         hideDelay = delay;
 
-        if (delay < 0 || !canViewHide) {
+        if (delay < 0 || !canViewHide || isLoading) {
             return;
         }
 
@@ -598,6 +608,10 @@ public abstract class VideoControls extends RelativeLayout {
     protected void onPlayPauseClick() {
         if (buttonsListener == null || !buttonsListener.onPlayPauseClicked()) {
             internalListener.onPlayPauseClicked();
+        } else if(!videoView.isPlaying() && buttonsListener.onPlayPauseClicked()){
+            videoView.start();
+        } else if(videoView.isPlaying() && buttonsListener.onPlayPauseClicked()){
+            videoView.pause();
         }
     }
 
@@ -665,7 +679,7 @@ public abstract class VideoControls extends RelativeLayout {
     }
 
     /**
-     * Performs the functionality to inform the callback and post bus events
+     * Performs the functionality to inform the callback
      * that the DefaultControls visibility has changed
      */
     protected void onVisibilityChanged() {
@@ -742,7 +756,7 @@ public abstract class VideoControls extends RelativeLayout {
                 return false;
             }
 
-            if (videoView.isPlaying()) {
+            if (videoView.isPlaying() && pauseWhenIsSeeking) {
                 pausedForSeek = true;
                 videoView.pause();
             }

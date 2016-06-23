@@ -21,14 +21,14 @@ import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.res.Configuration;
 import android.graphics.Point;
-import android.graphics.SurfaceTexture;
 import android.os.Build;
 import android.support.annotation.IntRange;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
 import android.util.Log;
-import android.view.TextureView;
+import android.view.SurfaceHolder;
+import android.view.SurfaceView;
 import android.view.View;
 import android.view.ViewTreeObserver;
 
@@ -45,11 +45,11 @@ import javax.microedition.khronos.egl.EGLDisplay;
 import javax.microedition.khronos.egl.EGLSurface;
 
 /**
- * A TextureView that reSizes itself according to the requested layout type
+ * A SurfaceView that reSizes itself according to the requested layout type
  * once we have a video
  */
-public class ResizingTextureView extends TextureView implements ClearableSurface {
-    private static final String TAG = "ResizingTextureView";
+public class ResizingSurfaceView extends SurfaceView implements ClearableSurface {
+    private static final String TAG = "ResizingSurfaceView";
     protected static final int MAX_DEGREES = 360;
 
     /**
@@ -99,7 +99,6 @@ public class ResizingTextureView extends TextureView implements ClearableSurface
     @NonNull
     protected Point videoSize = new Point(0, 0);
 
-    @NonNull
     protected MatrixManager matrixManager = new MatrixManager();
 
     @NonNull
@@ -114,22 +113,22 @@ public class ResizingTextureView extends TextureView implements ClearableSurface
     @IntRange(from = 0, to = 359)
     protected int requestedConfigurationRotation = 0;
 
-    protected boolean measureBasedOnAspectRatio;
+    protected boolean measureBasedOnAspectRatio = true;
 
-    public ResizingTextureView(Context context) {
+    public ResizingSurfaceView(Context context) {
         super(context);
     }
 
-    public ResizingTextureView(Context context, AttributeSet attrs) {
+    public ResizingSurfaceView(Context context, AttributeSet attrs) {
         super(context, attrs);
     }
 
-    public ResizingTextureView(Context context, AttributeSet attrs, int defStyleAttr) {
+    public ResizingSurfaceView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
     }
 
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
-    public ResizingTextureView(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
+    public ResizingSurfaceView(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
         super(context, attrs, defStyleAttr, defStyleRes);
     }
 
@@ -223,10 +222,6 @@ public class ResizingTextureView extends TextureView implements ClearableSurface
      */
     @Override
     public void clearSurface() {
-        if (getSurfaceTexture() == null) {
-            return;
-        }
-
         try {
             EGL10 gl10 = (EGL10) EGLContext.getEGL();
             EGLDisplay display = gl10.eglGetDisplay(EGL10.EGL_DEFAULT_DISPLAY);
@@ -235,7 +230,7 @@ public class ResizingTextureView extends TextureView implements ClearableSurface
             EGLConfig[] configs = new EGLConfig[1];
             gl10.eglChooseConfig(display, GL_CLEAR_CONFIG_ATTRIBUTES, configs, configs.length, new int[1]);
             EGLContext context = gl10.eglCreateContext(display, configs[0], EGL10.EGL_NO_CONTEXT, GL_CLEAR_CONTEXT_ATTRIBUTES);
-            EGLSurface eglSurface = gl10.eglCreateWindowSurface(display, configs[0], getSurfaceTexture(), new int[]{EGL10.EGL_NONE});
+            EGLSurface eglSurface = gl10.eglCreateWindowSurface(display, configs[0], this, new int[]{EGL10.EGL_NONE});
 
             gl10.eglMakeCurrent(display, eglSurface, eglSurface, context);
             gl10.eglSwapBuffers(display, eglSurface);
@@ -268,13 +263,9 @@ public class ResizingTextureView extends TextureView implements ClearableSurface
             return false;
         }
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH_MR1) {
-            SurfaceTexture surfaceTexture = getSurfaceTexture();
-            if(surfaceTexture != null) {
-                surfaceTexture.setDefaultBufferSize(width, height);
-            } else {
-                return false;
-            }
+        SurfaceHolder holder = getHolder();
+        if (holder != null) {
+            holder.setFixedSize(width, height);
         }
 
         return true;
@@ -373,7 +364,11 @@ public class ResizingTextureView extends TextureView implements ClearableSurface
     }
 
     /**
+<<<<<<< HEAD
      * This is separated from the {@link ResizingTextureView#onAttachedToWindow()}
+=======
+     * This is separated from the {@link ResizingSurfaceView#onAttachedToWindow()}
+>>>>>>> feature/drmissue243
      * so that we have control over when it is added and removed
      */
     private class AttachedListener implements OnAttachStateChangeListener {

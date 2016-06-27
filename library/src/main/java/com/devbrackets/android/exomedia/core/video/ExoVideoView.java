@@ -281,7 +281,9 @@ public class ExoVideoView extends ResizingTextureView implements VideoViewApi, A
 
         @Override
         public boolean onSurfaceTextureDestroyed(SurfaceTexture surfaceTexture) {
+            Surface surface = emExoPlayer.getSurface();
             emExoPlayer.blockingClearSurface();
+            surface.release();
             surfaceTexture.release();
 
             return true;

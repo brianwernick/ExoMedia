@@ -202,6 +202,10 @@ public class EMExoPlayer implements
     }
 
     public void blockingClearSurface() {
+        if (surface != null) {
+            surface.release();
+        }
+
         surface = null;
         pushSurface(true);
     }

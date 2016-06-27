@@ -1,6 +1,7 @@
 package com.devbrackets.android.exomediademo;
 
 import android.app.Application;
+import android.os.StrictMode;
 
 import com.devbrackets.android.exomediademo.manager.PlaylistManager;
 
@@ -11,6 +12,7 @@ public class App extends Application {
 
     @Override
     public void onCreate() {
+        enableStrictMode();
         super.onCreate();
 
         application = this;
@@ -31,5 +33,21 @@ public class App extends Application {
 
     public static App getApplication() {
         return application;
+    }
+
+    private void enableStrictMode() {
+        StrictMode.setThreadPolicy(new StrictMode.ThreadPolicy.Builder()
+                .detectDiskReads()
+                .detectDiskWrites()
+                .detectNetwork()
+                .penaltyLog()
+                .build());
+
+        StrictMode.setVmPolicy(new StrictMode.VmPolicy.Builder()
+                .detectLeakedSqlLiteObjects()
+                .detectLeakedClosableObjects()
+                .penaltyLog()
+                .penaltyDeath()
+                .build());
     }
 }

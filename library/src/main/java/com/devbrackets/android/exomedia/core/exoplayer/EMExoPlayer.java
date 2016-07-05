@@ -227,7 +227,7 @@ public class EMExoPlayer implements
         }
 
         Map<Integer, List<MediaFormat>> trackMap = new ArrayMap<>();
-        int[] trackTypes = new int[] {RENDER_AUDIO, RENDER_VIDEO, RENDER_CLOSED_CAPTION, RENDER_TIMED_METADATA};
+        int[] trackTypes = new int[]{RENDER_AUDIO, RENDER_VIDEO, RENDER_CLOSED_CAPTION, RENDER_TIMED_METADATA};
 
         //Populates the map with all available tracks
         for (int type : trackTypes) {
@@ -319,7 +319,7 @@ public class EMExoPlayer implements
     }
 
     public void stop() {
-        if(!stopped.getAndSet(true)) {
+        if (!stopped.getAndSet(true)) {
             player.setPlayWhenReady(false);
             player.stop();
         }
@@ -335,14 +335,14 @@ public class EMExoPlayer implements
         stateStore.setMostRecentState(stateStore.isLastReportedPlayWhenReady(), StateStore.STATE_SEEKING);
     }
 
-  /**
-   * Seeks to the beginning of the media, and plays it. This method will not succeed if playback state is not {@code ExoPlayer.STATE_IDLE} or {@code ExoPlayer.STATE_ENDED}.
-   *
-   * @return {@code true} if the media was successfully restarted, otherwise {@code false}
-   */
-  public boolean restart() {
+    /**
+     * Seeks to the beginning of the media, and plays it. This method will not succeed if playback state is not {@code ExoPlayer.STATE_IDLE} or {@code ExoPlayer.STATE_ENDED}.
+     *
+     * @return {@code true} if the media was successfully restarted, otherwise {@code false}
+     */
+    public boolean restart() {
         int playbackState = getPlaybackState();
-        if(playbackState != ExoPlayer.STATE_IDLE && playbackState != ExoPlayer.STATE_ENDED) {
+        if (playbackState != ExoPlayer.STATE_IDLE && playbackState != ExoPlayer.STATE_ENDED) {
             return false;
         }
 
@@ -381,7 +381,7 @@ public class EMExoPlayer implements
 
     public int getAudioSessionId() {
         if (audioRenderer != null) {
-            return ((EMMediaCodecAudioTrackRenderer)audioRenderer).getAudioSessionId();
+            return ((EMMediaCodecAudioTrackRenderer) audioRenderer).getAudioSessionId();
         }
 
         return 0;

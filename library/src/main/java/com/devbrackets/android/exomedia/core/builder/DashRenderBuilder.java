@@ -19,10 +19,10 @@ package com.devbrackets.android.exomedia.core.builder;
 
 import android.annotation.TargetApi;
 import android.content.Context;
-import android.media.AudioManager;
 import android.media.MediaCodec;
 import android.os.Build;
 import android.os.Handler;
+import android.support.annotation.Nullable;
 import android.util.Log;
 
 import com.devbrackets.android.exomedia.core.exoplayer.EMExoPlayer;
@@ -46,6 +46,7 @@ import com.google.android.exoplayer.dash.mpd.UtcTimingElement;
 import com.google.android.exoplayer.dash.mpd.UtcTimingElementResolver;
 import com.google.android.exoplayer.dash.mpd.UtcTimingElementResolver.UtcTimingCallback;
 import com.google.android.exoplayer.drm.DrmSessionManager;
+import com.google.android.exoplayer.drm.MediaDrmCallback;
 import com.google.android.exoplayer.drm.StreamingDrmSessionManager;
 import com.google.android.exoplayer.drm.UnsupportedDrmException;
 import com.google.android.exoplayer.text.TextTrackRenderer;
@@ -75,16 +76,20 @@ public class DashRenderBuilder extends RenderBuilder {
     protected AsyncRendererBuilder currentAsyncBuilder;
 
     public DashRenderBuilder(Context context, String userAgent, String url) {
-        this(context, userAgent, url, AudioManager.STREAM_MUSIC);
+        super(context, userAgent, url);
     }
 
     public DashRenderBuilder(Context context, String userAgent, String url, int streamType) {
         super(context, userAgent, url, streamType);
     }
 
+    public DashRenderBuilder(Context context, String userAgent, String uri, @Nullable MediaDrmCallback drmCallback, int streamType) {
+        super(context, userAgent, uri, drmCallback, streamType);
+    }
+
     @Override
     public void buildRenderers(EMExoPlayer player) {
-        currentAsyncBuilder = new AsyncRendererBuilder(context, userAgent, uri, player, streamType);
+        currentAsyncBuilder = new AsyncRendererBuilder(context, userAgent, uri, drmCallback, player, streamType);
         currentAsyncBuilder.init();
     }
 
@@ -101,21 +106,24 @@ public class DashRenderBuilder extends RenderBuilder {
     }
 
     protected final class AsyncRendererBuilder implements ManifestFetcher.ManifestCallback<MediaPresentationDescription>, UtcTimingCallback {
-       protected final Context context;
-       protected final String userAgent;
-       protected final int streamType;
-       protected final EMExoPlayer player;
-       protected final ManifestFetcher<MediaPresentationDescription> manifestFetcher;
-       protected MediaPresentationDescription currentManifest;
-       protected final UriDataSource manifestDataSource;
+        protected final Context context;
+        protected final String userAgent;
+        protected final int streamType;
+        @Nullable
+        protected final MediaDrmCallback drmCallback;
+        protected final EMExoPlayer player;
+        protected final ManifestFetcher<MediaPresentationDescription> manifestFetcher;
+        protected MediaPresentationDescription currentManifest;
+        protected final UriDataSource manifestDataSource;
 
         protected boolean canceled;
         protected long elapsedRealtimeOffset;
 
-        public AsyncRendererBuilder(Context context, String userAgent, String url, EMExoPlayer player, int streamType) {
+        public AsyncRendererBuilder(Context context, String userAgent, String url, @Nullable MediaDrmCallback drmCallback, EMExoPlayer player, int streamType) {
             this.context = context;
             this.userAgent = userAgent;
             this.streamType = streamType;
+            this.drmCallback = drmCallback;
             this.player = player;
 
             MediaPresentationDescriptionParser parser = new MediaPresentationDescriptionParser();
@@ -196,7 +204,7 @@ public class DashRenderBuilder extends RenderBuilder {
                     return;
                 }
                 try {
-                    drmSessionManager = StreamingDrmSessionManager.newWidevineInstance(player.getPlaybackLooper(), null, null, player.getMainHandler(), player);
+                    drmSessionManager = StreamingDrmSessionManager.newWidevineInstance(player.getPlaybackLooper(), drmCallback, null, player.getMainHandler(), player);
                     filterHdContent = getWidevineSecurityLevel(drmSessionManager) != SECURITY_LEVEL_1;
                 } catch (UnsupportedDrmException e) {
                     player.onRenderersError(e);

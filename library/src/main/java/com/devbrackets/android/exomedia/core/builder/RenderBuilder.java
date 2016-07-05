@@ -24,6 +24,7 @@ import android.media.AudioManager;
 import android.media.MediaCodec;
 import android.net.Uri;
 import android.os.Build;
+import android.support.annotation.Nullable;
 
 import com.devbrackets.android.exomedia.core.exoplayer.EMExoPlayer;
 import com.devbrackets.android.exomedia.core.renderer.EMMediaCodecAudioTrackRenderer;
@@ -32,6 +33,7 @@ import com.google.android.exoplayer.MediaCodecSelector;
 import com.google.android.exoplayer.MediaCodecVideoTrackRenderer;
 import com.google.android.exoplayer.TrackRenderer;
 import com.google.android.exoplayer.audio.AudioCapabilities;
+import com.google.android.exoplayer.drm.MediaDrmCallback;
 import com.google.android.exoplayer.extractor.ExtractorSampleSource;
 import com.google.android.exoplayer.text.TextTrackRenderer;
 import com.google.android.exoplayer.upstream.Allocator;
@@ -43,7 +45,7 @@ import com.google.android.exoplayer.upstream.TransferListener;
 
 /**
  * A default RenderBuilder that can process general
- * media urls including mkv, mp4, mp4, aac, etc.
+ * media urls including mkv, mp3, mp4, aac, etc.
  */
 @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
 public class RenderBuilder {
@@ -60,15 +62,22 @@ public class RenderBuilder {
     protected final String userAgent;
     protected final String uri;
     protected final int streamType;
+    @Nullable
+    protected final MediaDrmCallback drmCallback;
 
     public RenderBuilder(Context context, String userAgent, String uri) {
         this(context, userAgent, uri, AudioManager.STREAM_MUSIC);
     }
 
     public RenderBuilder(Context context, String userAgent, String uri, int streamType) {
+        this(context, userAgent, uri, null, streamType);
+    }
+
+    public RenderBuilder(Context context, String userAgent, String uri, @Nullable MediaDrmCallback drmCallback, int streamType) {
         this.uri = uri;
         this.userAgent = userAgent;
         this.context = context;
+        this.drmCallback = drmCallback;
         this.streamType = streamType;
     }
 

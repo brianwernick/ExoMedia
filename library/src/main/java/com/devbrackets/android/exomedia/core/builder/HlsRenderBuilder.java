@@ -20,9 +20,9 @@ package com.devbrackets.android.exomedia.core.builder;
 
 import android.annotation.TargetApi;
 import android.content.Context;
-import android.media.AudioManager;
 import android.media.MediaCodec;
 import android.os.Build;
+import android.support.annotation.Nullable;
 
 import com.devbrackets.android.exomedia.core.exoplayer.EMExoPlayer;
 import com.devbrackets.android.exomedia.core.renderer.EMMediaCodecAudioTrackRenderer;
@@ -33,6 +33,7 @@ import com.google.android.exoplayer.MediaCodecVideoTrackRenderer;
 import com.google.android.exoplayer.SampleSource;
 import com.google.android.exoplayer.TrackRenderer;
 import com.google.android.exoplayer.audio.AudioCapabilities;
+import com.google.android.exoplayer.drm.MediaDrmCallback;
 import com.google.android.exoplayer.hls.DefaultHlsTrackSelector;
 import com.google.android.exoplayer.hls.HlsChunkSource;
 import com.google.android.exoplayer.hls.HlsMasterPlaylist;
@@ -66,16 +67,20 @@ public class HlsRenderBuilder extends RenderBuilder {
     protected AsyncRendererBuilder currentAsyncBuilder;
 
     public HlsRenderBuilder(Context context, String userAgent, String url) {
-        this(context, userAgent, url, AudioManager.STREAM_MUSIC);
+        super(context, userAgent, url);
     }
 
     public HlsRenderBuilder(Context context, String userAgent, String url, int streamType) {
         super(context, userAgent, url, streamType);
     }
 
+    public HlsRenderBuilder(Context context, String userAgent, String uri, @Nullable MediaDrmCallback drmCallback, int streamType) {
+        super(context, userAgent, uri, drmCallback, streamType);
+    }
+
     @Override
     public void buildRenderers(EMExoPlayer player) {
-        currentAsyncBuilder = new AsyncRendererBuilder(context, userAgent, uri, player, streamType);
+        currentAsyncBuilder = new AsyncRendererBuilder(context, userAgent, uri, drmCallback, player, streamType);
         currentAsyncBuilder.init();
     }
 
@@ -95,15 +100,18 @@ public class HlsRenderBuilder extends RenderBuilder {
         protected final Context context;
         protected final String userAgent;
         protected final int streamType;
+        @Nullable
+        protected final MediaDrmCallback drmCallback;
         protected final EMExoPlayer player;
         protected final ManifestFetcher<HlsPlaylist> playlistFetcher;
 
         protected boolean canceled;
 
-        public AsyncRendererBuilder(Context context, String userAgent, String url, EMExoPlayer player, int streamType) {
+        public AsyncRendererBuilder(Context context, String userAgent, String url, @Nullable MediaDrmCallback drmCallback, EMExoPlayer player, int streamType) {
             this.context = context;
             this.userAgent = userAgent;
             this.streamType = streamType;
+            this.drmCallback = drmCallback;
             this.player = player;
 
             HlsPlaylistParser parser = new HlsPlaylistParser();

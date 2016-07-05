@@ -20,10 +20,11 @@ package com.devbrackets.android.exomedia.core.builder;
 
 import android.annotation.TargetApi;
 import android.content.Context;
-import android.media.AudioManager;
 import android.media.MediaCodec;
 import android.os.Build;
 import android.os.Handler;
+import android.support.annotation.Nullable;
+
 import com.devbrackets.android.exomedia.core.exoplayer.EMExoPlayer;
 import com.devbrackets.android.exomedia.core.renderer.EMMediaCodecAudioTrackRenderer;
 import com.google.android.exoplayer.DefaultLoadControl;
@@ -36,6 +37,7 @@ import com.google.android.exoplayer.chunk.ChunkSampleSource;
 import com.google.android.exoplayer.chunk.ChunkSource;
 import com.google.android.exoplayer.chunk.FormatEvaluator;
 import com.google.android.exoplayer.drm.DrmSessionManager;
+import com.google.android.exoplayer.drm.MediaDrmCallback;
 import com.google.android.exoplayer.drm.StreamingDrmSessionManager;
 import com.google.android.exoplayer.drm.UnsupportedDrmException;
 import com.google.android.exoplayer.smoothstreaming.DefaultSmoothStreamingTrackSelector;
@@ -65,16 +67,20 @@ public class SmoothStreamRenderBuilder extends RenderBuilder {
     protected AsyncRendererBuilder currentAsyncBuilder;
 
     public SmoothStreamRenderBuilder(Context context, String userAgent, String url) {
-        this(context, userAgent, url, AudioManager.STREAM_MUSIC);
+        super(context, userAgent, url);
     }
 
     public SmoothStreamRenderBuilder(Context context, String userAgent, String url, int streamType) {
         super(context, userAgent, getManifestUri(url), streamType);
     }
 
+    public SmoothStreamRenderBuilder(Context context, String userAgent, String uri, @Nullable MediaDrmCallback drmCallback, int streamType) {
+        super(context, userAgent, uri, drmCallback, streamType);
+    }
+
     @Override
     public void buildRenderers(EMExoPlayer player) {
-        currentAsyncBuilder = new AsyncRendererBuilder(context, userAgent, uri, player, streamType);
+        currentAsyncBuilder = new AsyncRendererBuilder(context, userAgent, uri, drmCallback, player, streamType);
         currentAsyncBuilder.init();
     }
 
@@ -99,15 +105,18 @@ public class SmoothStreamRenderBuilder extends RenderBuilder {
         protected final Context context;
         protected final String userAgent;
         protected final int streamType;
+        @Nullable
+        protected final MediaDrmCallback drmCallback;
         protected final EMExoPlayer player;
         protected final ManifestFetcher<SmoothStreamingManifest> manifestFetcher;
 
         protected boolean canceled;
 
-        public AsyncRendererBuilder(Context context, String userAgent, String url, EMExoPlayer player, int streamType) {
+        public AsyncRendererBuilder(Context context, String userAgent, String url, @Nullable MediaDrmCallback drmCallback, EMExoPlayer player, int streamType) {
             this.context = context;
             this.userAgent = userAgent;
             this.streamType = streamType;
+            this.drmCallback = drmCallback;
             this.player = player;
             SmoothStreamingManifestParser parser = new SmoothStreamingManifestParser();
             manifestFetcher = new ManifestFetcher<>(url, createManifestDataSource(null, userAgent), parser);
@@ -149,7 +158,7 @@ public class SmoothStreamRenderBuilder extends RenderBuilder {
                 }
 
                 try {
-                    drmSessionManager = new StreamingDrmSessionManager(manifest.protectionElement.uuid, player.getPlaybackLooper(), null, null, player.getMainHandler(), player);
+                    drmSessionManager = new StreamingDrmSessionManager(manifest.protectionElement.uuid, player.getPlaybackLooper(), drmCallback, null, player.getMainHandler(), player);
                 } catch (UnsupportedDrmException e) {
                     player.onRenderersError(e);
                     return;

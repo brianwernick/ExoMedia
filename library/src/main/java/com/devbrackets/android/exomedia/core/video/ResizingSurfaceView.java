@@ -32,7 +32,6 @@ import android.view.SurfaceView;
 import android.view.View;
 import android.view.ViewTreeObserver;
 
-import com.devbrackets.android.exomedia.core.video.delegate.ClearableSurface;
 import com.devbrackets.android.exomedia.core.video.scale.MatrixManager;
 import com.devbrackets.android.exomedia.core.video.scale.ScaleType;
 

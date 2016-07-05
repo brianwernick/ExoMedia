@@ -17,6 +17,7 @@
 package com.devbrackets.android.exomedia.core.video.exo;
 
 import android.content.Context;
+import android.media.AudioManager;
 import android.net.Uri;
 import android.os.Build;
 import android.support.annotation.FloatRange;
@@ -33,8 +34,9 @@ import com.devbrackets.android.exomedia.core.builder.HlsRenderBuilder;
 import com.devbrackets.android.exomedia.core.builder.RenderBuilder;
 import com.devbrackets.android.exomedia.core.builder.SmoothStreamRenderBuilder;
 import com.devbrackets.android.exomedia.core.exoplayer.EMExoPlayer;
-import com.devbrackets.android.exomedia.core.video.delegate.ClearableSurface;
+import com.devbrackets.android.exomedia.core.video.ClearableSurface;
 import com.devbrackets.android.exomedia.type.MediaSourceType;
+import com.devbrackets.android.exomedia.util.DrmProvider;
 import com.devbrackets.android.exomedia.util.MediaSourceUtil;
 import com.google.android.exoplayer.MediaFormat;
 import com.google.android.exoplayer.audio.AudioCapabilities;
@@ -57,8 +59,11 @@ public class ExoVideoDelegate implements AudioCapabilitiesReceiver.Listener {
     protected Context context;
     protected ClearableSurface clearableSurface;
 
+    @Nullable
+    protected DrmProvider drmProvider;
+
     public ExoVideoDelegate(@NonNull Context context, @NonNull ClearableSurface clearableSurface) {
-        this.context = context;
+        this.context = context.getApplicationContext();
         this.clearableSurface = clearableSurface;
 
         setup();
@@ -89,6 +94,17 @@ public class ExoVideoDelegate implements AudioCapabilitiesReceiver.Listener {
         //Makes sure the listeners get the onPrepared callback
         listenerMux.setNotifiedPrepared(false);
         emExoPlayer.seekTo(0);
+    }
+
+    /**
+     * Sets the {@link DrmProvider} to use when handling DRM for media.
+     * This should be called before specifying the videos uri or path<br />
+     * <b>NOTE:</b> DRM is only supported on API 18 +
+     *
+     * @param drmProvider The provider to use when handling DRM media
+     */
+    public void setDrmProvider(@Nullable DrmProvider drmProvider) {
+        this.drmProvider = drmProvider;
     }
 
     public boolean restart() {
@@ -202,12 +218,13 @@ public class ExoVideoDelegate implements AudioCapabilitiesReceiver.Listener {
      *
      * @return The String user agent for the EMVideoView
      */
+    @NonNull
     public String getUserAgent() {
         return String.format(USER_AGENT_FORMAT, BuildConfig.VERSION_NAME + " (" + BuildConfig.VERSION_CODE + ")", Build.VERSION.RELEASE, Build.MODEL);
     }
 
     protected void setup() {
-        audioCapabilitiesReceiver = new AudioCapabilitiesReceiver(context.getApplicationContext(), this);
+        audioCapabilitiesReceiver = new AudioCapabilitiesReceiver(context, this);
         audioCapabilitiesReceiver.register();
         emExoPlayer = new EMExoPlayer(null);
 
@@ -225,13 +242,13 @@ public class ExoVideoDelegate implements AudioCapabilitiesReceiver.Listener {
     protected RenderBuilder getRendererBuilder(@NonNull MediaSourceType renderType, @NonNull Uri uri) {
         switch (renderType) {
             case HLS:
-                return new HlsRenderBuilder(context.getApplicationContext(), getUserAgent(), uri.toString());
+                return new HlsRenderBuilder(context, getUserAgent(), uri.toString(), drmProvider == null ? null : drmProvider.getHlsCallback(), AudioManager.STREAM_MUSIC);
             case DASH:
-                return new DashRenderBuilder(context.getApplicationContext(), getUserAgent(), uri.toString());
+                return new DashRenderBuilder(context, getUserAgent(), uri.toString(), drmProvider == null ? null : drmProvider.getDashCallback(), AudioManager.STREAM_MUSIC);
             case SMOOTH_STREAM:
-                return new SmoothStreamRenderBuilder(context.getApplicationContext(), getUserAgent(), uri.toString());
+                return new SmoothStreamRenderBuilder(context, getUserAgent(), uri.toString(), drmProvider == null ? null : drmProvider.getSmoothStreamCallback(), AudioManager.STREAM_MUSIC);
             default:
-                return new RenderBuilder(context.getApplicationContext(), getUserAgent(), uri.toString());
+                return new RenderBuilder(context, getUserAgent(), uri.toString(), drmProvider == null ? null : drmProvider.getDefaultCallback(), AudioManager.STREAM_MUSIC);
         }
     }
 }

@@ -35,6 +35,7 @@ import com.devbrackets.android.exomedia.listener.OnErrorListener;
 import com.devbrackets.android.exomedia.listener.OnPreparedListener;
 import com.devbrackets.android.exomedia.listener.OnSeekCompletionListener;
 import com.devbrackets.android.exomedia.util.DeviceUtil;
+import com.devbrackets.android.exomedia.util.DrmProvider;
 import com.google.android.exoplayer.MediaFormat;
 
 import java.util.List;
@@ -117,6 +118,17 @@ public class EMAudioPlayer {
     public void setDataSource(Context context, Uri uri, RenderBuilder renderBuilder) {
         mediaPlayerImpl.setDataSource(context, uri, renderBuilder);
         overrideDuration(-1);
+    }
+
+    /**
+     * Sets the {@link DrmProvider} to use when handling DRM for media.
+     * This should be called before specifying the data source<br />
+     * <b>NOTE:</b> DRM is only supported on API 18 +
+     *
+     * @param drmProvider The provider to use when handling DRM media
+     */
+    public void setDrmProvider(@Nullable DrmProvider drmProvider) {
+        mediaPlayerImpl.setDrmProvider(drmProvider);
     }
 
     /**

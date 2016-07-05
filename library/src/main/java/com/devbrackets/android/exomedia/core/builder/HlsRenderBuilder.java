@@ -22,6 +22,7 @@ import android.annotation.TargetApi;
 import android.content.Context;
 import android.media.MediaCodec;
 import android.os.Build;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
 import com.devbrackets.android.exomedia.core.exoplayer.EMExoPlayer;
@@ -64,15 +65,15 @@ import java.util.List;
 @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
 public class HlsRenderBuilder extends RenderBuilder {
 
-    public HlsRenderBuilder(Context context, String userAgent, String url) {
-        super(context, userAgent, url);
+    public HlsRenderBuilder(@NonNull Context context, @NonNull String userAgent, @NonNull String uri) {
+        super(context, userAgent, uri);
     }
 
-    public HlsRenderBuilder(Context context, String userAgent, String url, int streamType) {
-        super(context, userAgent, url, streamType);
+    public HlsRenderBuilder(@NonNull Context context, @NonNull String userAgent, @NonNull String uri, int streamType) {
+        super(context, userAgent, uri, streamType);
     }
 
-    public HlsRenderBuilder(Context context, String userAgent, String uri, @Nullable MediaDrmCallback drmCallback, int streamType) {
+    public HlsRenderBuilder(@NonNull Context context, @NonNull String userAgent, @NonNull String uri, @Nullable MediaDrmCallback drmCallback, int streamType) {
         super(context, userAgent, uri, drmCallback, streamType);
     }
 

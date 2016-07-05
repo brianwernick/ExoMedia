@@ -27,7 +27,7 @@ import android.view.Surface;
 import android.widget.MediaController;
 
 import com.devbrackets.android.exomedia.core.EMListenerMux;
-import com.devbrackets.android.exomedia.core.video.delegate.ClearableSurface;
+import com.devbrackets.android.exomedia.core.video.ClearableSurface;
 
 import java.io.IOException;
 import java.util.Map;

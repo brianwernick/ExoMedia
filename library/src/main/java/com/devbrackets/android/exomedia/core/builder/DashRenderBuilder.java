@@ -22,6 +22,7 @@ import android.content.Context;
 import android.media.MediaCodec;
 import android.os.Build;
 import android.os.Handler;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
@@ -73,15 +74,15 @@ public class DashRenderBuilder extends RenderBuilder {
     protected static final int SECURITY_LEVEL_1 = 1;
     protected static final int SECURITY_LEVEL_3 = 3;
 
-    public DashRenderBuilder(Context context, String userAgent, String url) {
-        super(context, userAgent, url);
+    public DashRenderBuilder(@NonNull Context context, @NonNull String userAgent, @NonNull String uri) {
+        super(context, userAgent, uri);
     }
 
-    public DashRenderBuilder(Context context, String userAgent, String url, int streamType) {
-        super(context, userAgent, url, streamType);
+    public DashRenderBuilder(@NonNull Context context, @NonNull String userAgent, @NonNull String uri, int streamType) {
+        super(context, userAgent, uri, streamType);
     }
 
-    public DashRenderBuilder(Context context, String userAgent, String uri, @Nullable MediaDrmCallback drmCallback, int streamType) {
+    public DashRenderBuilder(@NonNull Context context, @NonNull String userAgent, @NonNull String uri, @Nullable MediaDrmCallback drmCallback, int streamType) {
         super(context, userAgent, uri, drmCallback, streamType);
     }
 

@@ -1,4 +1,4 @@
-package com.devbrackets.android.exomedia.core.video.delegate;
+package com.devbrackets.android.exomedia.core.video;
 
 /**
  * Represents a protocol that the object can call clear.  This

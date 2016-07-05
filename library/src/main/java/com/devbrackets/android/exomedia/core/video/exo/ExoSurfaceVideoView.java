@@ -31,6 +31,7 @@ import com.devbrackets.android.exomedia.core.EMListenerMux;
 import com.devbrackets.android.exomedia.core.api.VideoViewApi;
 import com.devbrackets.android.exomedia.core.builder.RenderBuilder;
 import com.devbrackets.android.exomedia.core.video.ResizingSurfaceView;
+import com.devbrackets.android.exomedia.util.DrmProvider;
 import com.google.android.exoplayer.MediaFormat;
 
 import java.util.List;
@@ -72,6 +73,11 @@ public class ExoSurfaceVideoView extends ResizingSurfaceView implements VideoVie
     @Override
     public void setVideoUri(@Nullable Uri uri, @Nullable RenderBuilder renderBuilder) {
         delegate.setVideoUri(uri, renderBuilder);
+    }
+
+    @Override
+    public void setDrmProvider(@Nullable DrmProvider drmProvider) {
+        delegate.setDrmProvider(drmProvider);
     }
 
     @Override

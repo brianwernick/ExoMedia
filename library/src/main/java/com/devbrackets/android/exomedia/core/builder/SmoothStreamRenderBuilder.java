@@ -23,6 +23,7 @@ import android.content.Context;
 import android.media.MediaCodec;
 import android.os.Build;
 import android.os.Handler;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
 import com.devbrackets.android.exomedia.core.exoplayer.EMExoPlayer;
@@ -64,15 +65,15 @@ import java.io.IOException;
 public class SmoothStreamRenderBuilder extends RenderBuilder {
     protected static final int LIVE_EDGE_LATENCY_MS = 30000;
 
-    public SmoothStreamRenderBuilder(Context context, String userAgent, String url) {
-        super(context, userAgent, url);
+    public SmoothStreamRenderBuilder(@NonNull Context context, @NonNull String userAgent, @NonNull String uri) {
+        super(context, userAgent, uri);
     }
 
-    public SmoothStreamRenderBuilder(Context context, String userAgent, String url, int streamType) {
-        super(context, userAgent, getManifestUri(url), streamType);
+    public SmoothStreamRenderBuilder(@NonNull Context context, @NonNull String userAgent, @NonNull String uri, int streamType) {
+        super(context, userAgent, uri, streamType);
     }
 
-    public SmoothStreamRenderBuilder(Context context, String userAgent, String uri, @Nullable MediaDrmCallback drmCallback, int streamType) {
+    public SmoothStreamRenderBuilder(@NonNull Context context, @NonNull String userAgent, @NonNull String uri, @Nullable MediaDrmCallback drmCallback, int streamType) {
         super(context, userAgent, uri, drmCallback, streamType);
     }
 

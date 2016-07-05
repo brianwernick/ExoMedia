@@ -72,11 +72,11 @@ public class RenderBuilder {
     @Nullable
     protected AsyncBuilder asyncBuilder;
 
-    public RenderBuilder(Context context, String userAgent, String uri) {
+    public RenderBuilder(@NonNull Context context, @NonNull String userAgent, @NonNull String uri) {
         this(context, userAgent, uri, AudioManager.STREAM_MUSIC);
     }
 
-    public RenderBuilder(Context context, String userAgent, String uri, int streamType) {
+    public RenderBuilder(@NonNull Context context, @NonNull String userAgent, @NonNull String uri, int streamType) {
         this(context, userAgent, uri, null, streamType);
     }
 

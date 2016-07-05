@@ -22,6 +22,7 @@ import android.os.Build;
 import android.util.AttributeSet;
 
 import com.devbrackets.android.exomedia.core.api.VideoViewApi;
+import com.devbrackets.android.exomedia.core.video.mp.NativeTextureVideoView;
 
 /**
  * A {@link VideoViewApi} implementation that uses the

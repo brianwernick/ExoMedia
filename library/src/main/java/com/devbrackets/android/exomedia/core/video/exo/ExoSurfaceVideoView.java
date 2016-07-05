@@ -14,24 +14,23 @@
  * limitations under the License.
  */
 
-package com.devbrackets.android.exomedia.core.video;
+package com.devbrackets.android.exomedia.core.video.exo;
 
 import android.annotation.TargetApi;
 import android.content.Context;
-import android.graphics.SurfaceTexture;
 import android.net.Uri;
 import android.os.Build;
 import android.support.annotation.FloatRange;
 import android.support.annotation.IntRange;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
-import android.view.Surface;
+import android.view.SurfaceHolder;
 
 import com.devbrackets.android.exomedia.annotation.TrackRenderType;
 import com.devbrackets.android.exomedia.core.EMListenerMux;
 import com.devbrackets.android.exomedia.core.api.VideoViewApi;
 import com.devbrackets.android.exomedia.core.builder.RenderBuilder;
-import com.devbrackets.android.exomedia.core.video.delegate.ExoVideoDelegate;
+import com.devbrackets.android.exomedia.core.video.ResizingSurfaceView;
 import com.google.android.exoplayer.MediaFormat;
 
 import java.util.List;
@@ -42,25 +41,25 @@ import java.util.Map;
  * as the backing media player.
  */
 @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
-public class ExoTextureVideoView extends ResizingTextureView implements VideoViewApi {
+public class ExoSurfaceVideoView extends ResizingSurfaceView implements VideoViewApi {
     protected ExoVideoDelegate delegate;
 
-    public ExoTextureVideoView(Context context) {
+    public ExoSurfaceVideoView(Context context) {
         super(context);
         setup();
     }
 
-    public ExoTextureVideoView(Context context, AttributeSet attrs) {
+    public ExoSurfaceVideoView(Context context, AttributeSet attrs) {
         super(context, attrs);
         setup();
     }
 
-    public ExoTextureVideoView(Context context, AttributeSet attrs, int defStyleAttr) {
+    public ExoSurfaceVideoView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         setup();
     }
 
-    public ExoTextureVideoView(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
+    public ExoSurfaceVideoView(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
         super(context, attrs, defStyleAttr, defStyleRes);
         setup();
     }
@@ -176,32 +175,25 @@ public class ExoTextureVideoView extends ResizingTextureView implements VideoVie
     protected void setup() {
         delegate = new ExoVideoDelegate(getContext(), this);
 
-        setSurfaceTextureListener(new EMExoVideoSurfaceTextureListener());
+        getHolder().addCallback(new HolderCallback());
         updateVideoSize(0, 0);
     }
 
-    protected class EMExoVideoSurfaceTextureListener implements SurfaceTextureListener {
+    protected class HolderCallback implements SurfaceHolder.Callback {
         @Override
-        public void onSurfaceTextureAvailable(SurfaceTexture surfaceTexture, int width, int height) {
-            delegate.onSurfaceReady(new Surface(surfaceTexture));
+        public void surfaceCreated(SurfaceHolder holder) {
+            delegate.onSurfaceReady(holder.getSurface());
         }
 
         @Override
-        public boolean onSurfaceTextureDestroyed(SurfaceTexture surfaceTexture) {
+        public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
+            //Purposefully left blank
+        }
+
+        @Override
+        public void surfaceDestroyed(SurfaceHolder holder) {
             delegate.onSurfaceDestroyed();
-            surfaceTexture.release();
-
-            return true;
-        }
-
-        @Override
-        public void onSurfaceTextureSizeChanged(SurfaceTexture surfaceTexture, int width, int height) {
-            // Purposefully left blank
-        }
-
-        @Override
-        public void onSurfaceTextureUpdated(SurfaceTexture surfaceTexture) {
-            // Purposefully left blank
+            holder.getSurface().release();
         }
     }
 }

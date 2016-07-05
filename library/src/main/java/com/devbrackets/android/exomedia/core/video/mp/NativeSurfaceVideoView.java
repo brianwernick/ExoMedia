@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.devbrackets.android.exomedia.core.video;
+package com.devbrackets.android.exomedia.core.video.mp;
 
 import android.annotation.TargetApi;
 import android.content.Context;
@@ -33,7 +33,8 @@ import com.devbrackets.android.exomedia.annotation.TrackRenderType;
 import com.devbrackets.android.exomedia.core.EMListenerMux;
 import com.devbrackets.android.exomedia.core.api.VideoViewApi;
 import com.devbrackets.android.exomedia.core.builder.RenderBuilder;
-import com.devbrackets.android.exomedia.core.video.delegate.NativeVideoDelegate;
+import com.devbrackets.android.exomedia.core.video.ResizingSurfaceView;
+import com.devbrackets.android.exomedia.core.video.mp.NativeVideoDelegate;
 import com.google.android.exoplayer.MediaFormat;
 
 import java.util.List;

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.devbrackets.android.exomedia.core.video.delegate;
+package com.devbrackets.android.exomedia.core.video.exo;
 
 import android.content.Context;
 import android.net.Uri;
@@ -33,6 +33,7 @@ import com.devbrackets.android.exomedia.core.builder.HlsRenderBuilder;
 import com.devbrackets.android.exomedia.core.builder.RenderBuilder;
 import com.devbrackets.android.exomedia.core.builder.SmoothStreamRenderBuilder;
 import com.devbrackets.android.exomedia.core.exoplayer.EMExoPlayer;
+import com.devbrackets.android.exomedia.core.video.delegate.ClearableSurface;
 import com.devbrackets.android.exomedia.type.MediaSourceType;
 import com.devbrackets.android.exomedia.util.MediaSourceUtil;
 import com.google.android.exoplayer.MediaFormat;

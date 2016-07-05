@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.devbrackets.android.exomedia.core.video.delegate;
+package com.devbrackets.android.exomedia.core.video.mp;
 
 import android.content.Context;
 import android.media.AudioManager;
@@ -27,6 +27,7 @@ import android.view.Surface;
 import android.widget.MediaController;
 
 import com.devbrackets.android.exomedia.core.EMListenerMux;
+import com.devbrackets.android.exomedia.core.video.delegate.ClearableSurface;
 
 import java.io.IOException;
 import java.util.Map;

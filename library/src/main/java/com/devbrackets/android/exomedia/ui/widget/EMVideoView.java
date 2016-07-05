@@ -43,6 +43,8 @@ import com.devbrackets.android.exomedia.core.EMListenerMux;
 import com.devbrackets.android.exomedia.core.api.VideoViewApi;
 import com.devbrackets.android.exomedia.core.builder.RenderBuilder;
 import com.devbrackets.android.exomedia.core.exoplayer.EMExoPlayer;
+import com.devbrackets.android.exomedia.core.video.exo.ExoTextureVideoView;
+import com.devbrackets.android.exomedia.core.video.mp.NativeTextureVideoView;
 import com.devbrackets.android.exomedia.core.video.scale.ScaleType;
 import com.devbrackets.android.exomedia.listener.OnBufferUpdateListener;
 import com.devbrackets.android.exomedia.listener.OnCompletionListener;
@@ -670,9 +672,9 @@ public class EMVideoView extends RelativeLayout {
      * Retrieves the layout resource to use for the backing video view implementation.  By
      * default this uses the Android {@link android.widget.VideoView} on legacy devices with
      * APIs below Jellybean (16) or that don't pass the Compatibility Test Suite [CTS] via
-     * {@link com.devbrackets.android.exomedia.core.video.NativeTextureVideoView}
+     * {@link NativeTextureVideoView}
      * , and an ExoPlayer backed video view on the remaining devices via
-     * {@link com.devbrackets.android.exomedia.core.video.ExoTextureVideoView}.
+     * {@link ExoTextureVideoView}.
      * <p>
      * In the rare cases that the default implementations need to be extended, or replaced, the
      * user can override the value with the attributes <code>videoViewApiImplLegacy</code>
@@ -796,7 +798,7 @@ public class EMVideoView extends RelativeLayout {
          * Specifies if the {@link VideoViewApi} implementations should use the {@link android.view.SurfaceView}
          * implementations.  If this is false then the implementations will be based on
          * the {@link android.view.TextureView}.
-         * //TODO: add reasoning each is useful
+         * //TODO: add reasoning each is useful... (or automatic swapping?)
          */
         private boolean useSurfaceViewBacking = false;
         /**

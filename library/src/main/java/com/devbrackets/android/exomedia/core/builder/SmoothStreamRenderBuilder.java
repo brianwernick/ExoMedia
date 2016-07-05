@@ -64,8 +64,6 @@ import java.io.IOException;
 public class SmoothStreamRenderBuilder extends RenderBuilder {
     protected static final int LIVE_EDGE_LATENCY_MS = 30000;
 
-    protected AsyncRendererBuilder currentAsyncBuilder;
-
     public SmoothStreamRenderBuilder(Context context, String userAgent, String url) {
         super(context, userAgent, url);
     }
@@ -79,17 +77,8 @@ public class SmoothStreamRenderBuilder extends RenderBuilder {
     }
 
     @Override
-    public void buildRenderers(EMExoPlayer player) {
-        currentAsyncBuilder = new AsyncRendererBuilder(context, userAgent, uri, drmCallback, player, streamType);
-        currentAsyncBuilder.init();
-    }
-
-    @Override
-    public void cancel() {
-        if (currentAsyncBuilder != null) {
-            currentAsyncBuilder.cancel();
-            currentAsyncBuilder = null;
-        }
+    protected AsyncBuilder createAsyncBuilder(EMExoPlayer player) {
+        return new AsyncSmoothStreamBuilder(context, userAgent, uri, drmCallback, player, streamType);
     }
 
     @SuppressWarnings("UnusedParameters") // Context kept for consistency with the HLS and Dash builders
@@ -101,33 +90,18 @@ public class SmoothStreamRenderBuilder extends RenderBuilder {
         return Util.toLowerInvariant(url).endsWith("/manifest") ? url : url + "/Manifest";
     }
 
-    protected final class AsyncRendererBuilder implements ManifestFetcher.ManifestCallback<SmoothStreamingManifest> {
-        protected final Context context;
-        protected final String userAgent;
-        protected final int streamType;
-        @Nullable
-        protected final MediaDrmCallback drmCallback;
-        protected final EMExoPlayer player;
+    protected class AsyncSmoothStreamBuilder extends AsyncBuilder implements ManifestFetcher.ManifestCallback<SmoothStreamingManifest> {
         protected final ManifestFetcher<SmoothStreamingManifest> manifestFetcher;
 
-        protected boolean canceled;
-
-        public AsyncRendererBuilder(Context context, String userAgent, String url, @Nullable MediaDrmCallback drmCallback, EMExoPlayer player, int streamType) {
-            this.context = context;
-            this.userAgent = userAgent;
-            this.streamType = streamType;
-            this.drmCallback = drmCallback;
-            this.player = player;
+        public AsyncSmoothStreamBuilder(Context context, String userAgent, String url, @Nullable MediaDrmCallback drmCallback, EMExoPlayer player, int streamType) {
+            super(context, userAgent, url, drmCallback, player, streamType);
             SmoothStreamingManifestParser parser = new SmoothStreamingManifestParser();
             manifestFetcher = new ManifestFetcher<>(url, createManifestDataSource(null, userAgent), parser);
         }
 
+        @Override
         public void init() {
             manifestFetcher.singleLoad(player.getMainHandler().getLooper(), this);
-        }
-
-        public void cancel() {
-            canceled = true;
         }
 
         @Override

@@ -73,8 +73,6 @@ public class DashRenderBuilder extends RenderBuilder {
     protected static final int SECURITY_LEVEL_1 = 1;
     protected static final int SECURITY_LEVEL_3 = 3;
 
-    protected AsyncRendererBuilder currentAsyncBuilder;
-
     public DashRenderBuilder(Context context, String userAgent, String url) {
         super(context, userAgent, url);
     }
@@ -88,55 +86,32 @@ public class DashRenderBuilder extends RenderBuilder {
     }
 
     @Override
-    public void buildRenderers(EMExoPlayer player) {
-        currentAsyncBuilder = new AsyncRendererBuilder(context, userAgent, uri, drmCallback, player, streamType);
-        currentAsyncBuilder.init();
-    }
-
-    @Override
-    public void cancel() {
-        if (currentAsyncBuilder != null) {
-            currentAsyncBuilder.cancel();
-            currentAsyncBuilder = null;
-        }
+    protected AsyncBuilder createAsyncBuilder(EMExoPlayer player) {
+        return new AsyncDashBuilder(context, userAgent, uri, drmCallback, player, streamType);
     }
 
     protected UriDataSource createManifestDataSource(Context context, String userAgent) {
         return new DefaultUriDataSource(context, userAgent);
     }
 
-    protected final class AsyncRendererBuilder implements ManifestFetcher.ManifestCallback<MediaPresentationDescription>, UtcTimingCallback {
-        protected final Context context;
-        protected final String userAgent;
-        protected final int streamType;
-        @Nullable
-        protected final MediaDrmCallback drmCallback;
-        protected final EMExoPlayer player;
+    protected class AsyncDashBuilder extends AsyncBuilder implements ManifestFetcher.ManifestCallback<MediaPresentationDescription>, UtcTimingCallback {
         protected final ManifestFetcher<MediaPresentationDescription> manifestFetcher;
         protected MediaPresentationDescription currentManifest;
         protected final UriDataSource manifestDataSource;
 
-        protected boolean canceled;
         protected long elapsedRealtimeOffset;
 
-        public AsyncRendererBuilder(Context context, String userAgent, String url, @Nullable MediaDrmCallback drmCallback, EMExoPlayer player, int streamType) {
-            this.context = context;
-            this.userAgent = userAgent;
-            this.streamType = streamType;
-            this.drmCallback = drmCallback;
-            this.player = player;
+        public AsyncDashBuilder(Context context, String userAgent, String url, @Nullable MediaDrmCallback drmCallback, EMExoPlayer player, int streamType) {
+            super(context, userAgent, url, drmCallback, player, streamType);
 
             MediaPresentationDescriptionParser parser = new MediaPresentationDescriptionParser();
             manifestDataSource = createManifestDataSource(context, userAgent);
             manifestFetcher = new ManifestFetcher<>(url, manifestDataSource, parser);
         }
 
+        @Override
         public void init() {
             manifestFetcher.singleLoad(player.getMainHandler().getLooper(), this);
-        }
-
-        public void cancel() {
-            canceled = true;
         }
 
         @Override

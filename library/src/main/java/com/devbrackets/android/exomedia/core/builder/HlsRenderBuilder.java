@@ -64,8 +64,6 @@ import java.util.List;
 @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
 public class HlsRenderBuilder extends RenderBuilder {
 
-    protected AsyncRendererBuilder currentAsyncBuilder;
-
     public HlsRenderBuilder(Context context, String userAgent, String url) {
         super(context, userAgent, url);
     }
@@ -79,51 +77,27 @@ public class HlsRenderBuilder extends RenderBuilder {
     }
 
     @Override
-    public void buildRenderers(EMExoPlayer player) {
-        currentAsyncBuilder = new AsyncRendererBuilder(context, userAgent, uri, drmCallback, player, streamType);
-        currentAsyncBuilder.init();
-    }
-
-    @Override
-    public void cancel() {
-        if (currentAsyncBuilder != null) {
-            currentAsyncBuilder.cancel();
-            currentAsyncBuilder = null;
-        }
+    protected AsyncBuilder createAsyncBuilder(EMExoPlayer player) {
+        return new AsyncHlsBuilder(context, userAgent, uri, drmCallback, player, streamType);
     }
 
     protected UriDataSource createManifestDataSource(Context context, String userAgent) {
         return new DefaultUriDataSource(context, userAgent);
     }
 
-    protected final class AsyncRendererBuilder implements ManifestCallback<HlsPlaylist> {
-        protected final Context context;
-        protected final String userAgent;
-        protected final int streamType;
-        @Nullable
-        protected final MediaDrmCallback drmCallback;
-        protected final EMExoPlayer player;
+    protected class AsyncHlsBuilder extends AsyncBuilder implements ManifestCallback<HlsPlaylist> {
         protected final ManifestFetcher<HlsPlaylist> playlistFetcher;
 
-        protected boolean canceled;
-
-        public AsyncRendererBuilder(Context context, String userAgent, String url, @Nullable MediaDrmCallback drmCallback, EMExoPlayer player, int streamType) {
-            this.context = context;
-            this.userAgent = userAgent;
-            this.streamType = streamType;
-            this.drmCallback = drmCallback;
-            this.player = player;
+        public AsyncHlsBuilder(Context context, String userAgent, String url, @Nullable MediaDrmCallback drmCallback, EMExoPlayer player, int streamType) {
+            super(context, userAgent, url, drmCallback, player, streamType);
 
             HlsPlaylistParser parser = new HlsPlaylistParser();
             playlistFetcher = new ManifestFetcher<>(url, createManifestDataSource(context, userAgent), parser);
         }
 
+        @Override
         public void init() {
             playlistFetcher.singleLoad(player.getMainHandler().getLooper(), this);
-        }
-
-        public void cancel() {
-            canceled = true;
         }
 
         @Override

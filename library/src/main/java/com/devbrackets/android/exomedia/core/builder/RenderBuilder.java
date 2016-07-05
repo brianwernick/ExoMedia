@@ -24,6 +24,7 @@ import android.media.AudioManager;
 import android.media.MediaCodec;
 import android.net.Uri;
 import android.os.Build;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
 import com.devbrackets.android.exomedia.core.exoplayer.EMExoPlayer;
@@ -58,12 +59,18 @@ public class RenderBuilder {
     protected static final int BUFFER_SEGMENTS_TEXT = 2;
     protected static final int BUFFER_SEGMENTS_TOTAL = BUFFER_SEGMENTS_VIDEO + BUFFER_SEGMENTS_AUDIO + BUFFER_SEGMENTS_TEXT;
 
+    @NonNull
     protected final Context context;
+    @NonNull
     protected final String userAgent;
+    @NonNull
     protected final String uri;
-    protected final int streamType;
     @Nullable
     protected final MediaDrmCallback drmCallback;
+    protected final int streamType;
+
+    @Nullable
+    protected AsyncBuilder asyncBuilder;
 
     public RenderBuilder(Context context, String userAgent, String uri) {
         this(context, userAgent, uri, AudioManager.STREAM_MUSIC);
@@ -73,7 +80,7 @@ public class RenderBuilder {
         this(context, userAgent, uri, null, streamType);
     }
 
-    public RenderBuilder(Context context, String userAgent, String uri, @Nullable MediaDrmCallback drmCallback, int streamType) {
+    public RenderBuilder(@NonNull Context context, @NonNull String userAgent, @NonNull String uri, @Nullable MediaDrmCallback drmCallback, int streamType) {
         this.uri = uri;
         this.userAgent = userAgent;
         this.context = context;
@@ -81,40 +88,83 @@ public class RenderBuilder {
         this.streamType = streamType;
     }
 
+    @NonNull
     public Context getContext() {
         return context;
     }
 
     public void buildRenderers(EMExoPlayer player) {
-        //Create the Sample Source to be used by the renderers
-        Allocator allocator = new DefaultAllocator(BUFFER_SEGMENT_SIZE);
-        DefaultBandwidthMeter bandwidthMeter = new DefaultBandwidthMeter(player.getMainHandler(), player);
-        DataSource dataSource = createDataSource(context, bandwidthMeter, userAgent);
-
-        ExtractorSampleSource sampleSource = new ExtractorSampleSource(Uri.parse(MediaUtil.getUriWithProtocol(uri)), dataSource,
-               allocator, BUFFER_SEGMENT_SIZE * BUFFER_SEGMENTS_TOTAL, player.getMainHandler(), player, 0);
-
-        //Create the Renderers
-        MediaCodecVideoTrackRenderer videoRenderer = new MediaCodecVideoTrackRenderer(context, sampleSource, MediaCodecSelector.DEFAULT,
-                MediaCodec.VIDEO_SCALING_MODE_SCALE_TO_FIT, MAX_JOIN_TIME, player.getMainHandler(), player, DROPPED_FRAME_NOTIFICATION_AMOUNT);
-        EMMediaCodecAudioTrackRenderer audioRenderer = new EMMediaCodecAudioTrackRenderer(sampleSource, MediaCodecSelector.DEFAULT, null, true,
-                player.getMainHandler(), player, AudioCapabilities.getCapabilities(context), streamType);
-        TrackRenderer captionsRenderer = new TextTrackRenderer(sampleSource, player, player.getMainHandler().getLooper());
-
-
-        //Create the Render list to send to the callback
-        TrackRenderer[] renderers = new TrackRenderer[EMExoPlayer.RENDER_COUNT];
-        renderers[EMExoPlayer.RENDER_VIDEO] = videoRenderer;
-        renderers[EMExoPlayer.RENDER_AUDIO] = audioRenderer;
-        renderers[EMExoPlayer.RENDER_CLOSED_CAPTION] = captionsRenderer;
-        player.onRenderers(renderers, bandwidthMeter);
+        asyncBuilder = createAsyncBuilder(player);
+        asyncBuilder.init();
     }
 
     public void cancel() {
-        //Purposefully left blank
+        if (asyncBuilder != null) {
+            asyncBuilder.cancel();
+            asyncBuilder = null;
+        }
+    }
+
+    protected AsyncBuilder createAsyncBuilder(EMExoPlayer player) {
+        return new AsyncBuilder(context, userAgent, uri, drmCallback, player, streamType);
     }
 
     protected DataSource createDataSource(Context context, TransferListener transferListener, String userAgent) {
         return new DefaultUriDataSource(context, transferListener, userAgent, true);
+    }
+
+    protected class AsyncBuilder {
+        @NonNull
+        protected final Context context;
+        @NonNull
+        protected final String userAgent;
+        @NonNull
+        protected final String uri;
+        @Nullable
+        protected final MediaDrmCallback drmCallback;
+        @NonNull
+        protected final EMExoPlayer player;
+        protected final int streamType;
+
+        protected boolean canceled;
+
+        public AsyncBuilder(@NonNull Context context, @NonNull String userAgent, @NonNull String uri, @Nullable MediaDrmCallback drmCallback, @NonNull EMExoPlayer player, int streamType) {
+            this.context = context;
+            this.userAgent = userAgent;
+            this.uri = uri;
+            this.drmCallback = drmCallback;
+            this.player = player;
+
+            this.streamType = streamType;
+        }
+
+        public void init() {
+            //Create the Sample Source to be used by the renderers
+            Allocator allocator = new DefaultAllocator(BUFFER_SEGMENT_SIZE);
+            DefaultBandwidthMeter bandwidthMeter = new DefaultBandwidthMeter(player.getMainHandler(), player);
+            DataSource dataSource = createDataSource(context, bandwidthMeter, userAgent);
+
+            ExtractorSampleSource sampleSource = new ExtractorSampleSource(Uri.parse(MediaUtil.getUriWithProtocol(uri)), dataSource,
+                    allocator, BUFFER_SEGMENT_SIZE * BUFFER_SEGMENTS_TOTAL, player.getMainHandler(), player, 0);
+
+            //Create the Renderers
+            MediaCodecVideoTrackRenderer videoRenderer = new MediaCodecVideoTrackRenderer(context, sampleSource, MediaCodecSelector.DEFAULT,
+                    MediaCodec.VIDEO_SCALING_MODE_SCALE_TO_FIT, MAX_JOIN_TIME, player.getMainHandler(), player, DROPPED_FRAME_NOTIFICATION_AMOUNT);
+            EMMediaCodecAudioTrackRenderer audioRenderer = new EMMediaCodecAudioTrackRenderer(sampleSource, MediaCodecSelector.DEFAULT, null, true,
+                    player.getMainHandler(), player, AudioCapabilities.getCapabilities(context), streamType);
+            TrackRenderer captionsRenderer = new TextTrackRenderer(sampleSource, player, player.getMainHandler().getLooper());
+
+
+            //Create the Render list to send to the callback
+            TrackRenderer[] renderers = new TrackRenderer[EMExoPlayer.RENDER_COUNT];
+            renderers[EMExoPlayer.RENDER_VIDEO] = videoRenderer;
+            renderers[EMExoPlayer.RENDER_AUDIO] = audioRenderer;
+            renderers[EMExoPlayer.RENDER_CLOSED_CAPTION] = captionsRenderer;
+            player.onRenderers(renderers, bandwidthMeter);
+        }
+
+        public void cancel() {
+            canceled = true;
+        }
     }
 }

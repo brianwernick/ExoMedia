@@ -36,6 +36,7 @@ import com.devbrackets.android.exomedia.core.builder.RenderBuilder;
 import com.devbrackets.android.exomedia.core.builder.SmoothStreamRenderBuilder;
 import com.devbrackets.android.exomedia.core.exoplayer.EMExoPlayer;
 import com.devbrackets.android.exomedia.type.MediaSourceType;
+import com.devbrackets.android.exomedia.util.DrmProvider;
 import com.devbrackets.android.exomedia.util.MediaSourceUtil;
 import com.google.android.exoplayer.MediaFormat;
 
@@ -56,6 +57,8 @@ public class ExoMediaPlayer implements MediaPlayerApi {
     protected EMListenerMux listenerMux;
     protected boolean playRequested = false;
 
+    @Nullable
+    protected DrmProvider drmProvider;
     protected int audioStreamType = AudioManager.STREAM_MUSIC;
 
     public ExoMediaPlayer(@NonNull Context context) {
@@ -83,6 +86,11 @@ public class ExoMediaPlayer implements MediaPlayerApi {
         //Makes sure the listeners get the onPrepared callback
         listenerMux.setNotifiedPrepared(false);
         emExoPlayer.seekTo(0);
+    }
+
+    @Override
+    public void setDrmProvider(@Nullable DrmProvider drmProvider) {
+        this.drmProvider = drmProvider;
     }
 
     @Override
@@ -227,13 +235,13 @@ public class ExoMediaPlayer implements MediaPlayerApi {
     protected RenderBuilder getRendererBuilder(@NonNull MediaSourceType renderType, @NonNull Uri uri) {
         switch (renderType) {
             case HLS:
-                return new HlsRenderBuilder(context, getUserAgent(), uri.toString(), audioStreamType);
+                return new HlsRenderBuilder(context, getUserAgent(), uri.toString(), drmProvider == null ? null : drmProvider.getHlsCallback(), audioStreamType);
             case DASH:
-                return new DashRenderBuilder(context, getUserAgent(), uri.toString(), audioStreamType);
+                return new DashRenderBuilder(context, getUserAgent(), uri.toString(), drmProvider == null ? null : drmProvider.getDashCallback(), audioStreamType);
             case SMOOTH_STREAM:
-                return new SmoothStreamRenderBuilder(context, getUserAgent(), uri.toString(), audioStreamType);
+                return new SmoothStreamRenderBuilder(context, getUserAgent(), uri.toString(), drmProvider == null ? null : drmProvider.getSmoothStreamCallback(), audioStreamType);
             default:
-                return new RenderBuilder(context, getUserAgent(), uri.toString(), audioStreamType);
+                return new RenderBuilder(context, getUserAgent(), uri.toString(), drmProvider == null ? null : drmProvider.getDefaultCallback(), audioStreamType);
         }
     }
 

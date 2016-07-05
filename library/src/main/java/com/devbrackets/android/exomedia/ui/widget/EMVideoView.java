@@ -52,6 +52,7 @@ import com.devbrackets.android.exomedia.listener.OnErrorListener;
 import com.devbrackets.android.exomedia.listener.OnPreparedListener;
 import com.devbrackets.android.exomedia.listener.OnSeekCompletionListener;
 import com.devbrackets.android.exomedia.util.DeviceUtil;
+import com.devbrackets.android.exomedia.util.DrmProvider;
 import com.devbrackets.android.exomedia.util.Repeater;
 import com.devbrackets.android.exomedia.util.StopWatch;
 import com.google.android.exoplayer.MediaFormat;
@@ -300,6 +301,17 @@ public class EMVideoView extends RelativeLayout {
     @Nullable
     public Uri getVideoUri() {
         return videoUri;
+    }
+
+    /**
+     * Sets the {@link DrmProvider} to use when handling DRM for media.
+     * This should be called before specifying the videos uri or path<br />
+     * <b>NOTE:</b> DRM is only supported on API 18 +
+     *
+     * @param drmProvider The provider to use when handling DRM media
+     */
+    public void setDrmProvider(@Nullable DrmProvider drmProvider) {
+        videoViewImpl.setDrmProvider(drmProvider);
     }
 
     /**

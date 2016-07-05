@@ -26,6 +26,7 @@ import com.devbrackets.android.exomedia.annotation.TrackRenderType;
 import com.devbrackets.android.exomedia.core.EMListenerMux;
 import com.devbrackets.android.exomedia.core.api.MediaPlayerApi;
 import com.devbrackets.android.exomedia.core.builder.RenderBuilder;
+import com.devbrackets.android.exomedia.util.DrmProvider;
 import com.google.android.exoplayer.MediaFormat;
 
 import java.util.List;
@@ -67,6 +68,11 @@ public class NativeMediaPlayer extends MediaPlayer implements MediaPlayerApi, Me
         } catch (Exception e) {
             Log.d(TAG, "MediaPlayer: error setting data source", e);
         }
+    }
+
+    @Override
+    public void setDrmProvider(@Nullable DrmProvider drmProvider) {
+        //Purposefully left blank
     }
 
     @Override

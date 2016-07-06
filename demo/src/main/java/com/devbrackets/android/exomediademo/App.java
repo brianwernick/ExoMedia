@@ -47,7 +47,6 @@ public class App extends Application {
                 .detectLeakedSqlLiteObjects()
                 .detectLeakedClosableObjects()
                 .penaltyLog()
-                .penaltyDeath()
                 .build());
     }
 }

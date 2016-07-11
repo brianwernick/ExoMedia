@@ -34,7 +34,7 @@ import com.devbrackets.android.exomedia.core.EMListenerMux;
 import com.devbrackets.android.exomedia.core.api.VideoViewApi;
 import com.devbrackets.android.exomedia.core.builder.RenderBuilder;
 import com.devbrackets.android.exomedia.core.video.ResizingSurfaceView;
-import com.devbrackets.android.exomedia.core.video.mp.NativeVideoDelegate;
+import com.devbrackets.android.exomedia.util.DrmProvider;
 import com.google.android.exoplayer.MediaFormat;
 
 import java.util.List;
@@ -71,6 +71,11 @@ public class NativeSurfaceVideoView extends ResizingSurfaceView implements Media
     public NativeSurfaceVideoView(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
         super(context, attrs, defStyleAttr, defStyleRes);
         setup(context, attrs);
+    }
+
+    @Override
+    public void setDrmProvider(@Nullable DrmProvider drmProvider) {
+        //Purposefully left blank
     }
 
     @Override

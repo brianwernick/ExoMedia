@@ -20,10 +20,12 @@ package com.devbrackets.android.exomedia.core.builder;
 
 import android.annotation.TargetApi;
 import android.content.Context;
-import android.media.AudioManager;
 import android.media.MediaCodec;
 import android.os.Build;
 import android.os.Handler;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+
 import com.devbrackets.android.exomedia.core.exoplayer.EMExoPlayer;
 import com.devbrackets.android.exomedia.core.renderer.EMMediaCodecAudioTrackRenderer;
 import com.google.android.exoplayer.DefaultLoadControl;
@@ -36,6 +38,7 @@ import com.google.android.exoplayer.chunk.ChunkSampleSource;
 import com.google.android.exoplayer.chunk.ChunkSource;
 import com.google.android.exoplayer.chunk.FormatEvaluator;
 import com.google.android.exoplayer.drm.DrmSessionManager;
+import com.google.android.exoplayer.drm.MediaDrmCallback;
 import com.google.android.exoplayer.drm.StreamingDrmSessionManager;
 import com.google.android.exoplayer.drm.UnsupportedDrmException;
 import com.google.android.exoplayer.smoothstreaming.DefaultSmoothStreamingTrackSelector;
@@ -62,28 +65,21 @@ import java.io.IOException;
 public class SmoothStreamRenderBuilder extends RenderBuilder {
     protected static final int LIVE_EDGE_LATENCY_MS = 30000;
 
-    protected AsyncRendererBuilder currentAsyncBuilder;
-
-    public SmoothStreamRenderBuilder(Context context, String userAgent, String url) {
-        this(context, userAgent, url, AudioManager.STREAM_MUSIC);
+    public SmoothStreamRenderBuilder(@NonNull Context context, @NonNull String userAgent, @NonNull String uri) {
+        super(context, userAgent, uri);
     }
 
-    public SmoothStreamRenderBuilder(Context context, String userAgent, String url, int streamType) {
-        super(context, userAgent, getManifestUri(url), streamType);
+    public SmoothStreamRenderBuilder(@NonNull Context context, @NonNull String userAgent, @NonNull String uri, int streamType) {
+        super(context, userAgent, uri, streamType);
     }
 
-    @Override
-    public void buildRenderers(EMExoPlayer player) {
-        currentAsyncBuilder = new AsyncRendererBuilder(context, userAgent, uri, player, streamType);
-        currentAsyncBuilder.init();
+    public SmoothStreamRenderBuilder(@NonNull Context context, @NonNull String userAgent, @NonNull String uri, @Nullable MediaDrmCallback drmCallback, int streamType) {
+        super(context, userAgent, uri, drmCallback, streamType);
     }
 
     @Override
-    public void cancel() {
-        if (currentAsyncBuilder != null) {
-            currentAsyncBuilder.cancel();
-            currentAsyncBuilder = null;
-        }
+    protected AsyncBuilder createAsyncBuilder(EMExoPlayer player) {
+        return new AsyncSmoothStreamBuilder(context, userAgent, uri, drmCallback, player, streamType);
     }
 
     @SuppressWarnings("UnusedParameters") // Context kept for consistency with the HLS and Dash builders
@@ -95,30 +91,18 @@ public class SmoothStreamRenderBuilder extends RenderBuilder {
         return Util.toLowerInvariant(url).endsWith("/manifest") ? url : url + "/Manifest";
     }
 
-    protected final class AsyncRendererBuilder implements ManifestFetcher.ManifestCallback<SmoothStreamingManifest> {
-        protected final Context context;
-        protected final String userAgent;
-        protected final int streamType;
-        protected final EMExoPlayer player;
+    protected class AsyncSmoothStreamBuilder extends AsyncBuilder implements ManifestFetcher.ManifestCallback<SmoothStreamingManifest> {
         protected final ManifestFetcher<SmoothStreamingManifest> manifestFetcher;
 
-        protected boolean canceled;
-
-        public AsyncRendererBuilder(Context context, String userAgent, String url, EMExoPlayer player, int streamType) {
-            this.context = context;
-            this.userAgent = userAgent;
-            this.streamType = streamType;
-            this.player = player;
+        public AsyncSmoothStreamBuilder(Context context, String userAgent, String url, @Nullable MediaDrmCallback drmCallback, EMExoPlayer player, int streamType) {
+            super(context, userAgent, url, drmCallback, player, streamType);
             SmoothStreamingManifestParser parser = new SmoothStreamingManifestParser();
             manifestFetcher = new ManifestFetcher<>(url, createManifestDataSource(null, userAgent), parser);
         }
 
+        @Override
         public void init() {
             manifestFetcher.singleLoad(player.getMainHandler().getLooper(), this);
-        }
-
-        public void cancel() {
-            canceled = true;
         }
 
         @Override
@@ -149,7 +133,7 @@ public class SmoothStreamRenderBuilder extends RenderBuilder {
                 }
 
                 try {
-                    drmSessionManager = new StreamingDrmSessionManager(manifest.protectionElement.uuid, player.getPlaybackLooper(), null, null, player.getMainHandler(), player);
+                    drmSessionManager = new StreamingDrmSessionManager(manifest.protectionElement.uuid, player.getPlaybackLooper(), drmCallback, null, player.getMainHandler(), player);
                 } catch (UnsupportedDrmException e) {
                     player.onRenderersError(e);
                     return;

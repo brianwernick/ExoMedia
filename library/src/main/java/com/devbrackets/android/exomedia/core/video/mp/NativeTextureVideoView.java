@@ -35,6 +35,7 @@ import com.devbrackets.android.exomedia.core.EMListenerMux;
 import com.devbrackets.android.exomedia.core.api.VideoViewApi;
 import com.devbrackets.android.exomedia.core.builder.RenderBuilder;
 import com.devbrackets.android.exomedia.core.video.ResizingTextureView;
+import com.devbrackets.android.exomedia.util.DrmProvider;
 import com.google.android.exoplayer.MediaFormat;
 
 import java.util.List;
@@ -75,6 +76,11 @@ public class NativeTextureVideoView extends ResizingTextureView implements Media
     public NativeTextureVideoView(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
         super(context, attrs, defStyleAttr, defStyleRes);
         setup(context, attrs);
+    }
+
+    @Override
+    public void setDrmProvider(@Nullable DrmProvider drmProvider) {
+        //Purposefully left blank
     }
 
     @Override

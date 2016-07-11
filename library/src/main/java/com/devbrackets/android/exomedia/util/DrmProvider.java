@@ -16,16 +16,16 @@ public class DrmProvider {
 
     @Nullable
     public MediaDrmCallback getDashCallback() {
-        return null;
+        return getDefaultCallback();
     }
 
     @Nullable
     public MediaDrmCallback getSmoothStreamCallback() {
-        return null;
+        return getDefaultCallback();
     }
 
     @Nullable
     public MediaDrmCallback getHlsCallback() {
-        return null;
+        return getDefaultCallback();
     }
 }

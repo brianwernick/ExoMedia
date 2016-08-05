@@ -23,6 +23,7 @@ import android.support.annotation.Nullable;
 
 import com.devbrackets.android.exomedia.core.exoplayer.EMExoPlayer;
 import com.devbrackets.android.exomedia.core.listener.ExoPlayerListener;
+import com.devbrackets.android.exomedia.core.listener.OnStateChangeListener;
 import com.devbrackets.android.exomedia.core.video.ResizingTextureView;
 import com.devbrackets.android.exomedia.listener.OnBufferUpdateListener;
 import com.devbrackets.android.exomedia.listener.OnCompletionListener;
@@ -61,6 +62,12 @@ public class EMListenerMux implements ExoPlayerListener, MediaPlayer.OnPreparedL
 
     @NonNull
     private WeakReference<ResizingTextureView> clearTextureView = new WeakReference<>(null);
+
+    @PlaybackState
+    private int playbackState = ExoPlayer.STATE_IDLE;
+
+    @Nullable
+    private OnStateChangeListener onStateChangeListener;
 
     private boolean notifiedPrepared = false;
     private boolean notifiedCompleted = false;
@@ -111,7 +118,12 @@ public class EMListenerMux implements ExoPlayerListener, MediaPlayer.OnPreparedL
     }
 
     @Override
-    public void onStateChanged(boolean playWhenReady, int playbackState) {
+    public void onStateChanged(boolean playWhenReady, @PlaybackState int playbackState) {
+        this.playbackState = playbackState;
+        final OnStateChangeListener onStateChangeListener = this.onStateChangeListener;
+        if(onStateChangeListener != null) {
+            onStateChangeListener.onStateChanged(playbackState);
+        }
         if (playbackState == ExoPlayer.STATE_ENDED) {
             muxNotifier.onMediaPlaybackEnded();
 
@@ -150,6 +162,10 @@ public class EMListenerMux implements ExoPlayerListener, MediaPlayer.OnPreparedL
     @Override
     public void onVideoSizeChanged(int width, int height, int unAppliedRotationDegrees, float pixelWidthHeightRatio) {
         muxNotifier.onVideoSizeChanged(width, height, unAppliedRotationDegrees, pixelWidthHeightRatio);
+    }
+
+    public void setOnStateChangeListener(OnStateChangeListener onStateChangeListener) {
+        this.onStateChangeListener = onStateChangeListener;
     }
 
     /**
@@ -275,6 +291,11 @@ public class EMListenerMux implements ExoPlayerListener, MediaPlayer.OnPreparedL
                 }
             }
         });
+    }
+
+    @PlaybackState
+    public int getPlaybackState() {
+        return playbackState;
     }
 
     public static abstract class EMListenerMuxNotifier {

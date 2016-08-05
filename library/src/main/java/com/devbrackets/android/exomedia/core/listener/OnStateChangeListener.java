@@ -18,16 +18,7 @@
 package com.devbrackets.android.exomedia.core.listener;
 
 import com.devbrackets.android.exomedia.core.PlaybackState;
-import com.devbrackets.android.exomedia.core.exoplayer.EMExoPlayer;
-import com.devbrackets.android.exomedia.listener.OnSeekCompletionListener;
 
-/**
- * A listener for core EMExoPlayer events
- */
-public interface ExoPlayerListener extends OnSeekCompletionListener {
-    void onStateChanged(boolean playWhenReady, @PlaybackState int playbackState);
-
-    void onError(EMExoPlayer emExoPlayer, Exception e);
-
-    void onVideoSizeChanged(int width, int height, int unAppliedRotationDegrees, float pixelWidthHeightRatio);
+public interface OnStateChangeListener {
+    void onStateChanged(@PlaybackState int playbackState);
 }

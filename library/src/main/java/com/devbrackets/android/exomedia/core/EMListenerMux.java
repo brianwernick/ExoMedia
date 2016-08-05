@@ -119,10 +119,13 @@ public class EMListenerMux implements ExoPlayerListener, MediaPlayer.OnPreparedL
 
     @Override
     public void onStateChanged(boolean playWhenReady, @PlaybackState int playbackState) {
+        int oldPlaybackState = this.playbackState;
         this.playbackState = playbackState;
         final OnStateChangeListener onStateChangeListener = this.onStateChangeListener;
-        if(onStateChangeListener != null) {
-            onStateChangeListener.onStateChanged(playbackState);
+        if (onStateChangeListener != null) {
+            if (oldPlaybackState != playbackState) {
+                onStateChangeListener.onStateChanged(playbackState);
+            }
         }
         if (playbackState == ExoPlayer.STATE_ENDED) {
             muxNotifier.onMediaPlaybackEnded();

@@ -133,7 +133,7 @@ public class SmoothStreamRenderBuilder extends RenderBuilder {
                 }
 
                 try {
-                    drmSessionManager = new StreamingDrmSessionManager(manifest.protectionElement.uuid, player.getPlaybackLooper(), drmCallback, null, player.getMainHandler(), player);
+                    drmSessionManager = StreamingDrmSessionManager.newFrameworkInstance(manifest.protectionElement.uuid, player.getPlaybackLooper(), drmCallback, null, player.getMainHandler(), player);
                 } catch (UnsupportedDrmException e) {
                     player.onRenderersError(e);
                     return;

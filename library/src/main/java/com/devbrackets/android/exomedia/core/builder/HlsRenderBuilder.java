@@ -147,7 +147,7 @@ public class HlsRenderBuilder extends RenderBuilder {
             //Create the Sample Source to be used by the Video Renderer
             DataSource dataSourceVideo = createDataSource(context, bandwidthMeter, userAgent);
             HlsChunkSource chunkSourceVideo = new HlsChunkSource(true, dataSourceVideo, playlist, DefaultHlsTrackSelector.newDefaultInstance(context),
-                    bandwidthMeter, timestampAdjusterProvider, HlsChunkSource.ADAPTIVE_MODE_SPLICE);
+                    bandwidthMeter, timestampAdjusterProvider);
             HlsSampleSource sampleSourceVideo = new HlsSampleSource(chunkSourceVideo, loadControl,
                     BUFFER_SEGMENTS_TOTAL * BUFFER_SEGMENT_SIZE, player.getMainHandler(), player, EMExoPlayer.RENDER_VIDEO);
 
@@ -155,7 +155,7 @@ public class HlsRenderBuilder extends RenderBuilder {
             //Create the Sample Source to be used by the Audio Renderer
             DataSource dataSourceAudio = new DefaultUriDataSource(context, bandwidthMeter, userAgent);
             HlsChunkSource chunkSourceAudio = new HlsChunkSource(false, dataSourceAudio, playlist, DefaultHlsTrackSelector.newAudioInstance(),
-                    bandwidthMeter, timestampAdjusterProvider, HlsChunkSource.ADAPTIVE_MODE_SPLICE);
+                    bandwidthMeter, timestampAdjusterProvider);
             HlsSampleSource sampleSourceAudio = new HlsSampleSource(chunkSourceAudio, loadControl, BUFFER_SEGMENTS_AUDIO * BUFFER_SEGMENT_SIZE,
                     player.getMainHandler(), player, EMExoPlayer.RENDER_AUDIO);
             SampleSource[] sampleSourcesAudio = hasMultipleAudioTracks ? new SampleSource[] {sampleSourceVideo, sampleSourceAudio} : new SampleSource[] {sampleSourceVideo};
@@ -164,7 +164,7 @@ public class HlsRenderBuilder extends RenderBuilder {
             //Create the Sample Source to be used by the Closed Captions Renderer
             DataSource dataSourceCC = createDataSource(context, bandwidthMeter, userAgent);
             HlsChunkSource chunkSourceCC = new HlsChunkSource(false, dataSourceCC, playlist, DefaultHlsTrackSelector.newSubtitleInstance(),
-                    bandwidthMeter, timestampAdjusterProvider, HlsChunkSource.ADAPTIVE_MODE_SPLICE);
+                    bandwidthMeter, timestampAdjusterProvider);
             HlsSampleSource sampleSourceCC = new HlsSampleSource(chunkSourceCC, loadControl,
                     BUFFER_SEGMENTS_TEXT * BUFFER_SEGMENT_SIZE, player.getMainHandler(), player, EMExoPlayer.RENDER_CLOSED_CAPTION);
 

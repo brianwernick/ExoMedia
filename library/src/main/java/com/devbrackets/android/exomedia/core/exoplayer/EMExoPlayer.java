@@ -231,10 +231,11 @@ public class EMExoPlayer implements
 
         //Populates the map with all available tracks
         for (int type : trackTypes) {
-            List<MediaFormat> tracks = new ArrayList<>(getTrackCount(type));
+            int trackCount = getTrackCount(type);
+            List<MediaFormat> tracks = new ArrayList<>(trackCount);
             trackMap.put(type, tracks);
 
-            for (int i = 0; i < tracks.size(); i++) {
+            for (int i = 0; i < trackCount; i++) {
                 tracks.add(getTrackFormat(type, i));
             }
         }

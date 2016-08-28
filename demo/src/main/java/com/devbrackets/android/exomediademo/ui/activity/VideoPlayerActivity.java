@@ -4,6 +4,8 @@ import android.app.Activity;
 import android.os.Bundle;
 
 import com.devbrackets.android.exomedia.ui.widget.EMVideoView;
+import com.devbrackets.android.exomedia.ui.widget.VideoControllersSetupBox;
+import com.devbrackets.android.exomedia.ui.widget.VideoControls;
 import com.devbrackets.android.exomediademo.App;
 import com.devbrackets.android.exomediademo.R;
 import com.devbrackets.android.exomediademo.data.MediaItem;
@@ -72,7 +74,12 @@ public class VideoPlayerActivity extends Activity {
     protected void init() {
         setupPlaylistManager();
 
-        emVideoView = (EMVideoView)findViewById(R.id.video_play_activity_video_view);
+        emVideoView = (EMVideoView) findViewById(R.id.video_play_activity_video_view);
+        VideoControls controls = new VideoControllersSetupBox(this);
+        controls.setFastForwardButtonEnabled(true);
+        controls.setRewindButtonEnabled(true);
+        emVideoView.setControls(controls);
+
 
         playlistManager.setVideoPlayer(new VideoApi(emVideoView));
         playlistManager.play(0, false);

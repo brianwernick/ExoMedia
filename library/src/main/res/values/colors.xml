@@ -8,4 +8,14 @@
     <color name="exomedia_leanback_progress_horizontal_background">#19FFFFFF</color>
     <color name="exomedia_leanback_progress_horizontal_progress_secondary">#33FFFFFF</color>
     <color name="exomedia_leanback_progress_horizontal_progress_placeholder">#FF43B2E5</color>
+
+
+    <color name="exomedia_black_transparent_70">#b2000000</color>
+    <color name="exomedia_black_transparent_65">#a5000000</color>
+    <color name="exomedia_black_transparent_60">#9a000000</color>
+    <color name="exomedia_black_transparent_50">#7f000000</color>
+    <color name="exomedia_black_transparent_38">#70000000</color>
+    <color name="exomedia_black_transparent_30">#4c000000</color>
+    <color name="exomedia_black_transparent_17">#22000000</color>
+    <color name="exomedia_black_transparent_7">#12000000</color>
 </resources>

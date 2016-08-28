@@ -4,7 +4,7 @@ buildscript {
         jcenter();
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:2.1.0'
+        classpath 'com.android.tools.build:gradle:2.1.2'
         classpath 'com.novoda:bintray-release:0.2.7'
     }
 }
@@ -14,4 +14,15 @@ allprojects {
         mavenLocal()
         jcenter();
     }
+}
+
+ext {
+    //platform version
+    compileSdkVersion = 24
+    buildToolsVersion = "24.0.1"
+    targetSdkVersion = 24
+    minSdkVersion = 14
+
+    //lib version
+    supportLibVersion = '24.2.0'
 }

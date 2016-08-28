@@ -12,19 +12,19 @@ def libraryVersion = "${versionMajor}.${versionMinor}.${versionPatch}" // releas
 
 dependencies {
     // Android
-    compile 'com.android.support:appcompat-v7:23.3.0' // includes support-v4
+    compile "com.android.support:appcompat-v7:${rootProject.ext.supportLibVersion}" // includes support-v4
 
     // ExoPlayer
     compile 'com.google.android.exoplayer:exoplayer:r1.5.7'
 }
 
 android {
-    compileSdkVersion 23
-    buildToolsVersion '23.0.3'
+    compileSdkVersion rootProject.ext.compileSdkVersion as Integer
+    buildToolsVersion rootProject.ext.buildToolsVersion as String
 
     defaultConfig {
-        minSdkVersion 14
-        targetSdkVersion 23
+        minSdkVersion rootProject.ext.minSdkVersion as Integer
+        targetSdkVersion rootProject.ext.targetSdkVersion as Integer
 
         versionCode versionMajor * 10000 + versionMinor * 1000 + versionPatch * 100
         versionName "${versionMajor}.${versionMinor}.${versionPatch}"
@@ -53,12 +53,14 @@ uploadArchives {
     repositories {
         // deploy to local
         mavenDeployer {
-            repository (url: "file://${System.env.HOME}/.m2/repository/")
+            repository(url: "file://${System.env.HOME}/.m2/repository/")
             pom.groupId = libraryGroupId
             pom.artifactId = libraryBaseName
-            pom.version = libraryVersion //Normally I would append "-SNAPSHOT" but newer gradle/maven can't always find them
+            pom.version = libraryVersion
+            //Normally I would append "-SNAPSHOT" but newer gradle/maven can't always find them
             pom.packaging = 'aar'
-            uniqueVersion = false // don't put in a timestamp on the filename (other project will not be able to depend on it)
+            uniqueVersion = false
+            // don't put in a timestamp on the filename (other project will not be able to depend on it)
         }
     }
 }

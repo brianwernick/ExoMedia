@@ -7,6 +7,9 @@ dependencies {
 
     // Playlist support
     compile 'com.devbrackets.android:playlistcore:1.1.1'
+
+    // Memory Leak diagnostics
+    compile 'com.squareup.leakcanary:leakcanary-android:1.4-beta2'
 }
 
 android {

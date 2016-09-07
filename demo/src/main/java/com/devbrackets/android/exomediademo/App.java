@@ -4,6 +4,7 @@ import android.app.Application;
 import android.os.StrictMode;
 
 import com.devbrackets.android.exomediademo.manager.PlaylistManager;
+import com.squareup.leakcanary.LeakCanary;
 
 public class App extends Application {
 
@@ -17,6 +18,7 @@ public class App extends Application {
 
         application = this;
         playlistManager = new PlaylistManager();
+        LeakCanary.install(this);
     }
 
     @Override

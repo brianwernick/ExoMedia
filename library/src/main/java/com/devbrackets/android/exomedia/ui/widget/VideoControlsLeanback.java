@@ -42,7 +42,7 @@ import com.devbrackets.android.exomedia.util.TimeFormatUtil;
  */
 @SuppressWarnings("unused")
 @TargetApi(Build.VERSION_CODES.LOLLIPOP)
-public class VideoControlsLeanback extends VideoControls {
+public class VideoControlsLeanback extends BaseVideoControls {
     protected static final int FAST_FORWARD_REWIND_AMOUNT = 10000; //10 seconds
 
     protected ProgressBar progressBar;

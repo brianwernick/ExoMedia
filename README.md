@@ -24,7 +24,7 @@ repositories {
 }
 
 dependencies {
-    compile 'com.devbrackets.android:exomedia:3.0.2'
+    compile 'com.devbrackets.android:exomedia:3.0.3'
 }
 ```
 

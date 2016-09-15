@@ -182,6 +182,14 @@ public abstract class VideoControls extends RelativeLayout {
         setup(context);
     }
 
+    @Override
+    protected void onDetachedFromWindow() {
+        super.onDetachedFromWindow();
+
+        progressPollRepeater.stop();
+        progressPollRepeater.setRepeatListener(null);
+    }
+
     /**
      * Sets the parent view to use for determining playback length, position,
      * state, etc.  This should only be called once, during the setup process

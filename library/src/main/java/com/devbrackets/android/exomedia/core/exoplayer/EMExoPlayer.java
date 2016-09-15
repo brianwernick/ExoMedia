@@ -367,6 +367,8 @@ public class EMExoPlayer implements
         }
 
         rendererBuildingState = RenderBuildingState.IDLE;
+        listeners.clear();
+
         surface = null;
         player.release();
         stayAwake(false);

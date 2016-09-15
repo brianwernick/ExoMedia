@@ -39,7 +39,7 @@ import java.util.List;
  * (Phone, Tablet, etc.) devices.
  */
 @SuppressWarnings("unused")
-public class VideoControlsMobile extends VideoControls {
+public class VideoControlsMobile extends BaseVideoControls {
     protected SeekBar seekBar;
     protected LinearLayout extraViewsContainer;
 

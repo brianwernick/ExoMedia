@@ -18,7 +18,7 @@ package com.devbrackets.android.exomedia.listener;
 
 public interface VideoControlsButtonListener {
     /**
-     * Occurs when the PlayPause button on the {@link com.devbrackets.android.exomedia.ui.widget.VideoControls}
+     * Occurs when the PlayPause button on the {@link com.devbrackets.android.exomedia.ui.widget.BaseVideoControls}
      * is clicked
      *
      * @return True if the event has been handled
@@ -26,7 +26,7 @@ public interface VideoControlsButtonListener {
     boolean onPlayPauseClicked();
 
     /**
-     * Occurs when the Previous button on the {@link com.devbrackets.android.exomedia.ui.widget.VideoControls}
+     * Occurs when the Previous button on the {@link com.devbrackets.android.exomedia.ui.widget.BaseVideoControls}
      * is clicked
      *
      * @return True if the event has been handled
@@ -34,7 +34,7 @@ public interface VideoControlsButtonListener {
     boolean onPreviousClicked();
 
     /**
-     * Occurs when the Next button on the {@link com.devbrackets.android.exomedia.ui.widget.VideoControls}
+     * Occurs when the Next button on the {@link com.devbrackets.android.exomedia.ui.widget.BaseVideoControls}
      * is clicked
      *
      * @return True if the event has been handled
@@ -42,7 +42,7 @@ public interface VideoControlsButtonListener {
     boolean onNextClicked();
 
     /**
-     * Occurs when the Rewind button on the {@link com.devbrackets.android.exomedia.ui.widget.VideoControls}
+     * Occurs when the Rewind button on the {@link com.devbrackets.android.exomedia.ui.widget.BaseVideoControls}
      * is clicked.
      *
      * @return True if the event has been handled
@@ -50,7 +50,7 @@ public interface VideoControlsButtonListener {
     boolean onRewindClicked();
 
     /**
-     * Occurs when the Fast Forward button on the {@link com.devbrackets.android.exomedia.ui.widget.VideoControls}
+     * Occurs when the Fast Forward button on the {@link com.devbrackets.android.exomedia.ui.widget.BaseVideoControls}
      * is clicked.
      *
      * @return True if the event has been handled

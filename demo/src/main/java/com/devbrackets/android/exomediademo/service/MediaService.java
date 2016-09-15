@@ -10,7 +10,7 @@ import android.support.annotation.Nullable;
 
 import com.devbrackets.android.exomedia.EMAudioPlayer;
 import com.devbrackets.android.exomedia.ui.widget.EMVideoView;
-import com.devbrackets.android.exomedia.ui.widget.VideoControls;
+import com.devbrackets.android.exomedia.ui.widget.BaseVideoControls;
 import com.devbrackets.android.exomediademo.App;
 import com.devbrackets.android.exomediademo.R;
 import com.devbrackets.android.exomediademo.data.MediaItem;
@@ -159,14 +159,14 @@ public class MediaService extends BasePlaylistService<MediaItem, PlaylistManager
             return;
         }
 
-        VideoControls videoControls = videoView.getVideoControls();
+        BaseVideoControls videoControls = (BaseVideoControls) videoView.getVideoControls();
         if (videoControls != null) {
             updateVideoControlsText(videoControls);
             updateVideoControlsButtons(videoControls);
         }
     }
 
-    private void updateVideoControlsText(@NonNull VideoControls videoControls) {
+    private void updateVideoControlsText(@NonNull BaseVideoControls videoControls) {
         if (currentPlaylistItem != null) {
             videoControls.setTitle(currentPlaylistItem.getTitle());
             videoControls.setSubTitle(currentPlaylistItem.getAlbum());
@@ -174,7 +174,7 @@ public class MediaService extends BasePlaylistService<MediaItem, PlaylistManager
         }
     }
 
-    private void updateVideoControlsButtons(@NonNull VideoControls videoControls) {
+    private void updateVideoControlsButtons(@NonNull BaseVideoControls videoControls) {
         videoControls.setPreviousButtonEnabled(getPlaylistManager().isPreviousAvailable());
         videoControls.setNextButtonEnabled(getPlaylistManager().isNextAvailable());
     }

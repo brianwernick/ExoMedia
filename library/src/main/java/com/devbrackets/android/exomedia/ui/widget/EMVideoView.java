@@ -74,7 +74,7 @@ public class EMVideoView extends RelativeLayout {
     private static final String TAG = EMVideoView.class.getSimpleName();
 
     @Nullable
-    protected VideoControls videoControls;
+    protected VideoControls<? extends View> videoControls;
     protected ImageView previewImageView;
 
     protected Uri videoUri;
@@ -210,15 +210,16 @@ public class EMVideoView extends RelativeLayout {
         return previewImageView;
     }
 
-    public void setControls(@Nullable VideoControls controls) {
+    public void setControls(@Nullable VideoControls<? extends View> controls) {
         if (videoControls != null && videoControls != controls) {
-            removeView(videoControls);
+            removeView(videoControls.getView());
+
         }
 
         if (controls != null) {
             videoControls = controls;
             controls.setVideoView(this);
-            addView(controls);
+            addView(controls.getView());
         }
 
         //Sets the onTouch listener to show the controls
@@ -235,7 +236,7 @@ public class EMVideoView extends RelativeLayout {
             videoControls.show();
 
             if (isPlaying()) {
-                videoControls.hideDelayed(VideoControls.DEFAULT_CONTROL_HIDE_DELAY);
+                videoControls.hideDelayed();
             }
         }
     }
@@ -249,7 +250,7 @@ public class EMVideoView extends RelativeLayout {
      * @return The video controls being used by this view or null
      */
     @Nullable
-    public VideoControls getVideoControls() {
+    public VideoControls<? extends View> getVideoControls() {
         return videoControls;
     }
 
@@ -788,7 +789,7 @@ public class EMVideoView extends RelativeLayout {
                 videoControls.show();
 
                 if (isPlaying()) {
-                    videoControls.hideDelayed(VideoControls.DEFAULT_CONTROL_HIDE_DELAY);
+                    videoControls.hideDelayed();
                 }
             }
 

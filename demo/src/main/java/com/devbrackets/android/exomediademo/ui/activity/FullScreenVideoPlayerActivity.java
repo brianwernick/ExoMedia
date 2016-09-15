@@ -7,7 +7,7 @@ import android.view.View;
 
 import com.devbrackets.android.exomedia.listener.VideoControlsVisibilityListener;
 import com.devbrackets.android.exomedia.ui.widget.EMVideoView;
-import com.devbrackets.android.exomedia.ui.widget.VideoControls;
+import com.devbrackets.android.exomedia.ui.widget.BaseVideoControls;
 
 /**
  * A simple example of making a fullscreen video player activity.
@@ -27,7 +27,7 @@ public class FullScreenVideoPlayerActivity extends VideoPlayerActivity {
 
         goFullscreen();
         if (emVideoView.getVideoControls() != null) {
-            emVideoView.getVideoControls().setVisibilityListener(new ControlsVisibilityListener());
+            ((BaseVideoControls) emVideoView.getVideoControls()).setVisibilityListener(new ControlsVisibilityListener());
         }
     }
 
@@ -98,7 +98,7 @@ public class FullScreenVideoPlayerActivity extends VideoPlayerActivity {
     }
 
     /**
-     * A Listener for the {@link VideoControls}
+     * A Listener for the {@link BaseVideoControls}
      * so that we can re-enter fullscreen mode when the controls are hidden.
      */
     private class ControlsVisibilityListener implements VideoControlsVisibilityListener {

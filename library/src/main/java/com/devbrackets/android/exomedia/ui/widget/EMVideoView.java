@@ -40,9 +40,11 @@ import android.widget.RelativeLayout;
 import com.devbrackets.android.exomedia.R;
 import com.devbrackets.android.exomedia.annotation.TrackRenderType;
 import com.devbrackets.android.exomedia.core.EMListenerMux;
+import com.devbrackets.android.exomedia.core.PlaybackState;
 import com.devbrackets.android.exomedia.core.api.VideoViewApi;
 import com.devbrackets.android.exomedia.core.builder.RenderBuilder;
 import com.devbrackets.android.exomedia.core.exoplayer.EMExoPlayer;
+import com.devbrackets.android.exomedia.core.listener.OnStateChangeListener;
 import com.devbrackets.android.exomedia.core.video.scale.ScaleType;
 import com.devbrackets.android.exomedia.listener.OnBufferUpdateListener;
 import com.devbrackets.android.exomedia.listener.OnCompletionListener;
@@ -487,6 +489,10 @@ public class EMVideoView extends RelativeLayout {
         overridePosition = override;
     }
 
+    public void setOnStateChangeListener(OnStateChangeListener listener) {
+        listenerMux.setOnStateChangeListener(listener);
+    }
+
     /**
      * Retrieves the current buffer percent of the video.  If a video is not currently
      * prepared or buffering the value will be 0.  This should only be called after the video is
@@ -727,6 +733,11 @@ public class EMVideoView extends RelativeLayout {
     protected void onPlaybackEnded() {
         stopPlayback();
         pollRepeater.stop();
+    }
+
+    @PlaybackState
+    public int getPlaybackState() {
+        return listenerMux.getPlaybackState();
     }
 
     protected class MuxNotifier extends EMListenerMux.EMListenerMuxNotifier {

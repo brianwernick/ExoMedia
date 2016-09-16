@@ -15,19 +15,17 @@
  * limitations under the License.
  */
 
-package com.devbrackets.android.exomedia.core.listener;
 
-import com.devbrackets.android.exomedia.core.PlaybackState;
-import com.devbrackets.android.exomedia.core.exoplayer.EMExoPlayer;
-import com.devbrackets.android.exomedia.listener.OnSeekCompletionListener;
 
-/**
- * A listener for core EMExoPlayer events
- */
-public interface ExoPlayerListener extends OnSeekCompletionListener {
-    void onStateChanged(boolean playWhenReady, @PlaybackState int playbackState);
+package com.devbrackets.android.exomedia.core;
 
-    void onError(EMExoPlayer emExoPlayer, Exception e);
+import android.support.annotation.IntDef;
 
-    void onVideoSizeChanged(int width, int height, int unAppliedRotationDegrees, float pixelWidthHeightRatio);
-}
+import com.google.android.exoplayer.ExoPlayer;
+
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+
+@Retention(RetentionPolicy.SOURCE)
+@IntDef({ExoPlayer.STATE_IDLE, ExoPlayer.STATE_PREPARING, ExoPlayer.STATE_READY, ExoPlayer.STATE_BUFFERING, ExoPlayer.STATE_ENDED})
+public @interface PlaybackState {}

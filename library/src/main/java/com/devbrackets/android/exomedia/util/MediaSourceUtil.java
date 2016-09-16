@@ -25,6 +25,9 @@ public class MediaSourceUtil {
     @Nullable
     public static String getExtension(@NonNull Uri uri) {
         String path = uri.getLastPathSegment();
+        if (path == null) {
+            return null;
+        }
 
         int periodIndex = path.lastIndexOf('.');
         if (periodIndex == -1 && uri.getPathSegments().size() > 1) {

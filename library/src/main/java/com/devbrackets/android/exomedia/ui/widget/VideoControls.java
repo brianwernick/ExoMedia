@@ -70,6 +70,7 @@ public abstract class VideoControls extends RelativeLayout {
     protected ViewGroup controlsContainer;
     protected ViewGroup textContainer;
 
+    //TODO: remove these in the next major release (they don't provide that large of a purpose)
     protected Drawable defaultPlayDrawable;
     protected Drawable defaultPauseDrawable;
     protected Drawable defaultPreviousDrawable;
@@ -93,6 +94,7 @@ public abstract class VideoControls extends RelativeLayout {
     @NonNull
     protected InternalListener internalListener = new InternalListener();
 
+    //TODO: remove these in the next major release in favor of Drawables
     //Since the Play/Pause button uses 2 separate resource Id's we need to store them
     protected int playResourceId = INVALID_RESOURCE_ID;
     protected int pauseResourceId = INVALID_RESOURCE_ID;
@@ -292,6 +294,20 @@ public abstract class VideoControls extends RelativeLayout {
     }
 
     /**
+     * Sets the drawables to use for the PlayPause button. This will be overridden by
+     * any valid values specified in {@link #setPlayPauseImages(int, int)}
+     *
+     * @param playDrawable The drawable to represent play
+     * @param pauseDrawable The drawable to represent pause
+     */
+    public void setPlayPauseDrawables(Drawable playDrawable, Drawable pauseDrawable) {
+        this.defaultPlayDrawable = playDrawable;
+        this.defaultPauseDrawable = pauseDrawable;
+
+        updatePlayPauseImage(videoView != null && videoView.isPlaying());
+    }
+
+    /**
      * Sets the state list drawable resource id to use for the Previous button.
      *
      * @param resourceId The resourceId or 0
@@ -302,6 +318,15 @@ public abstract class VideoControls extends RelativeLayout {
         } else {
             previousButton.setImageDrawable(defaultPreviousDrawable);
         }
+    }
+
+    /**
+     * Sets the drawable for the previous button
+     *
+     * @param drawable The drawable to use
+     */
+    public void setPreviousDrawable(Drawable drawable) {
+        previousButton.setImageDrawable(drawable);
     }
 
     /**
@@ -318,6 +343,15 @@ public abstract class VideoControls extends RelativeLayout {
     }
 
     /**
+     * Sets the drawable for the next button
+     *
+     * @param drawable The drawable to use
+     */
+    public void setNextDrawable(Drawable drawable) {
+        nextButton.setImageDrawable(drawable);
+    }
+
+    /**
      * Sets the state list drawable resource id to use for the Rewind button.
      * <b><em>NOTE:</em></b> The Rewind button is only shown on TV layouts
      *
@@ -328,6 +362,15 @@ public abstract class VideoControls extends RelativeLayout {
     }
 
     /**
+     * Sets the drawable for the rewind button
+     *
+     * @param drawable The drawable to use
+     */
+    public void setRewindDrawable(Drawable drawable) {
+        //Purposefully let blank
+    }
+
+    /**
      * Sets the state list drawable resource id to use for the Fast Forward button.
      * <b><em>NOTE:</em></b> The Fast Forward button is only shown on TV layouts
      *
@@ -335,6 +378,15 @@ public abstract class VideoControls extends RelativeLayout {
      */
     public void setFastForwardImageResource(@DrawableRes int resourceId) {
         //Purposefully left blank
+    }
+
+    /**
+     * Sets the drawable for the Fast  button
+     *
+     * @param drawable The drawable to use
+     */
+    public void setFastForwardDrawable(Drawable drawable) {
+        //Purposefully let blank
     }
 
     /**

@@ -130,6 +130,13 @@ public class VideoControlsLeanback extends VideoControls {
     }
 
     @Override
+    public void setRewindDrawable(Drawable drawable) {
+        if (rewindButton != null) {
+            rewindButton.setImageDrawable(drawable);
+        }
+    }
+
+    @Override
     public void setFastForwardImageResource(@DrawableRes int resourceId) {
         if (fastForwardButton == null) {
             return;
@@ -139,6 +146,13 @@ public class VideoControlsLeanback extends VideoControls {
             fastForwardButton.setImageResource(resourceId);
         } else {
             fastForwardButton.setImageDrawable(defaultFastForwardDrawable);
+        }
+    }
+
+    @Override
+    public void setFastForwardDrawable(Drawable drawable) {
+        if (fastForwardButton != null) {
+            fastForwardButton.setImageDrawable(drawable);
         }
     }
 

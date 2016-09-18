@@ -11,6 +11,7 @@ import android.support.annotation.ColorInt;
 import android.support.annotation.ColorRes;
 import android.support.annotation.DrawableRes;
 import android.support.v4.graphics.drawable.DrawableCompat;
+import android.support.v7.widget.AppCompatDrawableManager;
 import android.util.TypedValue;
 
 /**
@@ -97,8 +98,7 @@ public class EMResourceUtil {
             return context.getResources().getDrawable(drawableResourceId, context.getTheme());
         }
 
-        //noinspection deprecation
-        return context.getResources().getDrawable(drawableResourceId);
+        return AppCompatDrawableManager.get().getDrawable(context, drawableResourceId);
     }
 
     /**

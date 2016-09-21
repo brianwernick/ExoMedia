@@ -66,6 +66,15 @@ public class EMAudioPlayer {
             mediaPlayerImpl = new NativeMediaPlayer(context);
         }
 
+        init(mediaPlayerImpl);
+    }
+
+    public EMAudioPlayer(MediaPlayerApi mediaPlayerImpl) {
+        this.mediaPlayerImpl = mediaPlayerImpl;
+        init(mediaPlayerImpl);
+    }
+
+    protected void init(MediaPlayerApi mediaPlayerImpl) {
         listenerMux = new EMListenerMux(new MuxNotifier());
         mediaPlayerImpl.setListenerMux(listenerMux);
     }

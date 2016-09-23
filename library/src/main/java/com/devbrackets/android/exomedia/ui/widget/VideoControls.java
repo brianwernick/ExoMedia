@@ -235,12 +235,11 @@ public abstract class VideoControls extends RelativeLayout {
      */
     public void updatePlaybackState(boolean isPlaying) {
         updatePlayPauseImage(isPlaying);
+        progressPollRepeater.start();
 
         if (isPlaying) {
-            progressPollRepeater.start();
             hideDelayed(DEFAULT_CONTROL_HIDE_DELAY);
         } else {
-            progressPollRepeater.stop();
             show();
         }
     }

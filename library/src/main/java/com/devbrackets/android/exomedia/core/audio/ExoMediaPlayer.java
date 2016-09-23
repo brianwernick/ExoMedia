@@ -35,9 +35,12 @@ import com.devbrackets.android.exomedia.core.builder.HlsRenderBuilder;
 import com.devbrackets.android.exomedia.core.builder.RenderBuilder;
 import com.devbrackets.android.exomedia.core.builder.SmoothStreamRenderBuilder;
 import com.devbrackets.android.exomedia.core.exoplayer.EMExoPlayer;
+import com.devbrackets.android.exomedia.core.listener.Id3MetadataListener;
+import com.devbrackets.android.exomedia.listener.OnBufferUpdateListener;
 import com.devbrackets.android.exomedia.type.MediaSourceType;
 import com.devbrackets.android.exomedia.util.MediaSourceUtil;
 import com.google.android.exoplayer.MediaFormat;
+import com.google.android.exoplayer.metadata.id3.Id3Frame;
 
 import java.util.List;
 import java.util.Map;
@@ -56,13 +59,17 @@ public class ExoMediaPlayer implements MediaPlayerApi {
     protected EMListenerMux listenerMux;
     protected boolean playRequested = false;
 
+    @NonNull
+    protected InternalListeners internalListeners = new InternalListeners();
+
     protected int audioStreamType = AudioManager.STREAM_MUSIC;
 
     public ExoMediaPlayer(@NonNull Context context) {
         this.context = context;
 
         emExoPlayer = new EMExoPlayer(null);
-        emExoPlayer.setMetadataListener(null);
+        emExoPlayer.setMetadataListener(internalListeners);
+        emExoPlayer.setBufferUpdateListener(internalListeners);
     }
 
     @Override
@@ -245,5 +252,17 @@ public class ExoMediaPlayer implements MediaPlayerApi {
      */
     protected String getUserAgent() {
         return String.format(USER_AGENT_FORMAT, BuildConfig.VERSION_NAME + " (" + BuildConfig.VERSION_CODE + ")", Build.VERSION.RELEASE, Build.MODEL);
+    }
+
+    protected class InternalListeners implements Id3MetadataListener, OnBufferUpdateListener {
+        @Override
+        public void onId3Metadata(List<Id3Frame> metadata) {
+            listenerMux.onId3Metadata(metadata);
+        }
+
+        @Override
+        public void onBufferingUpdate(@IntRange(from = 0, to = 100) int percent) {
+            listenerMux.onBufferingUpdate(percent);
+        }
     }
 }

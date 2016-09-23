@@ -38,11 +38,14 @@ import com.devbrackets.android.exomedia.core.builder.RenderBuilder;
 import com.devbrackets.android.exomedia.core.builder.SmoothStreamRenderBuilder;
 import com.devbrackets.android.exomedia.core.exoplayer.EMExoPlayer;
 import com.devbrackets.android.exomedia.core.api.VideoViewApi;
+import com.devbrackets.android.exomedia.core.listener.Id3MetadataListener;
+import com.devbrackets.android.exomedia.listener.OnBufferUpdateListener;
 import com.devbrackets.android.exomedia.type.MediaSourceType;
 import com.devbrackets.android.exomedia.util.MediaSourceUtil;
 import com.google.android.exoplayer.MediaFormat;
 import com.google.android.exoplayer.audio.AudioCapabilities;
 import com.google.android.exoplayer.audio.AudioCapabilitiesReceiver;
+import com.google.android.exoplayer.metadata.id3.Id3Frame;
 
 import java.util.List;
 import java.util.Map;
@@ -58,6 +61,9 @@ public class ExoVideoView extends ResizingTextureView implements VideoViewApi, A
     protected EMExoPlayer emExoPlayer;
     protected AudioCapabilities audioCapabilities;
     protected AudioCapabilitiesReceiver audioCapabilitiesReceiver;
+
+    @NonNull
+    protected InternalListeners internalListeners = new InternalListeners();
 
     protected EMListenerMux listenerMux;
     protected boolean playRequested = false;
@@ -229,15 +235,19 @@ public class ExoVideoView extends ResizingTextureView implements VideoViewApi, A
     }
 
     protected void setup() {
+        initExoPlayer();
         audioCapabilitiesReceiver = new AudioCapabilitiesReceiver(getContext().getApplicationContext(), this);
         audioCapabilitiesReceiver.register();
+
+        setSurfaceTextureListener(new EMExoVideoSurfaceTextureListener());
+        updateVideoSize(0, 0);
+    }
+
+    protected void initExoPlayer() {
         emExoPlayer = new EMExoPlayer(null);
 
-        //Sets the internal listener
-        emExoPlayer.setMetadataListener(null);
-        setSurfaceTextureListener(new EMExoVideoSurfaceTextureListener());
-
-        updateVideoSize(0, 0);
+        emExoPlayer.setMetadataListener(internalListeners);
+        emExoPlayer.setBufferUpdateListener(internalListeners);
     }
 
     /**
@@ -268,6 +278,18 @@ public class ExoVideoView extends ResizingTextureView implements VideoViewApi, A
      */
     public String getUserAgent() {
         return String.format(USER_AGENT_FORMAT, BuildConfig.VERSION_NAME + " (" + BuildConfig.VERSION_CODE + ")", Build.VERSION.RELEASE, Build.MODEL);
+    }
+
+    protected class InternalListeners implements Id3MetadataListener, OnBufferUpdateListener {
+        @Override
+        public void onId3Metadata(List<Id3Frame> metadata) {
+            listenerMux.onId3Metadata(metadata);
+        }
+
+        @Override
+        public void onBufferingUpdate(@IntRange(from = 0, to = 100) int percent) {
+            listenerMux.onBufferingUpdate(percent);
+        }
     }
 
     protected class EMExoVideoSurfaceTextureListener implements TextureView.SurfaceTextureListener {

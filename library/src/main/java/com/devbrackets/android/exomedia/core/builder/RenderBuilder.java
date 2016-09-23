@@ -33,6 +33,9 @@ import com.google.android.exoplayer.MediaCodecVideoTrackRenderer;
 import com.google.android.exoplayer.TrackRenderer;
 import com.google.android.exoplayer.audio.AudioCapabilities;
 import com.google.android.exoplayer.extractor.ExtractorSampleSource;
+import com.google.android.exoplayer.metadata.MetadataTrackRenderer;
+import com.google.android.exoplayer.metadata.id3.Id3Frame;
+import com.google.android.exoplayer.metadata.id3.Id3Parser;
 import com.google.android.exoplayer.text.TextTrackRenderer;
 import com.google.android.exoplayer.upstream.Allocator;
 import com.google.android.exoplayer.upstream.DataSource;
@@ -40,6 +43,8 @@ import com.google.android.exoplayer.upstream.DefaultAllocator;
 import com.google.android.exoplayer.upstream.DefaultBandwidthMeter;
 import com.google.android.exoplayer.upstream.DefaultUriDataSource;
 import com.google.android.exoplayer.upstream.TransferListener;
+
+import java.util.List;
 
 /**
  * A default RenderBuilder that can process general
@@ -91,6 +96,8 @@ public class RenderBuilder {
         EMMediaCodecAudioTrackRenderer audioRenderer = new EMMediaCodecAudioTrackRenderer(sampleSource, MediaCodecSelector.DEFAULT, null, true,
                 player.getMainHandler(), player, AudioCapabilities.getCapabilities(context), streamType);
         TrackRenderer captionsRenderer = new TextTrackRenderer(sampleSource, player, player.getMainHandler().getLooper());
+        MetadataTrackRenderer<List<Id3Frame>> id3Renderer = new MetadataTrackRenderer<>(sampleSource, new Id3Parser(),
+                player, player.getMainHandler().getLooper());
 
 
         //Create the Render list to send to the callback
@@ -98,6 +105,7 @@ public class RenderBuilder {
         renderers[EMExoPlayer.RENDER_VIDEO] = videoRenderer;
         renderers[EMExoPlayer.RENDER_AUDIO] = audioRenderer;
         renderers[EMExoPlayer.RENDER_CLOSED_CAPTION] = captionsRenderer;
+        renderers[EMExoPlayer.RENDER_TIMED_METADATA] = id3Renderer;
         player.onRenderers(renderers, bandwidthMeter);
     }
 

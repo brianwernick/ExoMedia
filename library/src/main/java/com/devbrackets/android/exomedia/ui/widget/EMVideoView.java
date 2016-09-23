@@ -43,6 +43,7 @@ import com.devbrackets.android.exomedia.core.EMListenerMux;
 import com.devbrackets.android.exomedia.core.api.VideoViewApi;
 import com.devbrackets.android.exomedia.core.builder.RenderBuilder;
 import com.devbrackets.android.exomedia.core.exoplayer.EMExoPlayer;
+import com.devbrackets.android.exomedia.core.listener.Id3MetadataListener;
 import com.devbrackets.android.exomedia.core.video.scale.ScaleType;
 import com.devbrackets.android.exomedia.listener.OnBufferUpdateListener;
 import com.devbrackets.android.exomedia.listener.OnCompletionListener;
@@ -600,6 +601,15 @@ public class EMVideoView extends RelativeLayout {
      */
     public void setOnErrorListener(OnErrorListener listener) {
         listenerMux.setOnErrorListener(listener);
+    }
+
+    /**
+     * Sets the listener to inform of ID3 metadata updates
+     *
+     * @param listener The listener to inform
+     */
+    public void setId3MetadataListener(@Nullable Id3MetadataListener listener) {
+        listenerMux.setId3MetadataListener(listener);
     }
 
     /**

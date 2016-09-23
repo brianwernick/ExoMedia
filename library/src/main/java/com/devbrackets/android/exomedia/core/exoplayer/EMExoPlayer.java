@@ -25,6 +25,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.PowerManager;
 import android.support.annotation.FloatRange;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.Size;
 import android.support.v4.util.ArrayMap;
@@ -39,6 +40,8 @@ import com.devbrackets.android.exomedia.core.listener.Id3MetadataListener;
 import com.devbrackets.android.exomedia.core.listener.InfoListener;
 import com.devbrackets.android.exomedia.core.listener.InternalErrorListener;
 import com.devbrackets.android.exomedia.core.renderer.EMMediaCodecAudioTrackRenderer;
+import com.devbrackets.android.exomedia.listener.OnBufferUpdateListener;
+import com.devbrackets.android.exomedia.util.Repeater;
 import com.google.android.exoplayer.DummyTrackRenderer;
 import com.google.android.exoplayer.ExoPlaybackException;
 import com.google.android.exoplayer.ExoPlayer;
@@ -97,6 +100,7 @@ public class EMExoPlayer implements
 
     public static final int BUFFER_LENGTH_MIN = 1000;
     public static final int REBUFFER_LENGTH_MIN = 5000;
+    private static final int BUFFER_REPEAT_DELAY = 1000;
 
     public enum RenderBuildingState {
         IDLE,
@@ -112,7 +116,10 @@ public class EMExoPlayer implements
     private final AtomicBoolean stopped = new AtomicBoolean();
 
     private RenderBuildingState rendererBuildingState;
+    @NonNull
     private StateStore stateStore = new StateStore();
+    @NonNull
+    private Repeater bufferRepeater = new Repeater();
 
     private boolean prepared = false;
 
@@ -133,6 +140,8 @@ public class EMExoPlayer implements
     private InternalErrorListener internalErrorListener;
     @Nullable
     private InfoListener infoListener;
+    @Nullable
+    private OnBufferUpdateListener bufferUpdateListener;
 
     @Nullable
     private PowerManager.WakeLock wakeLock = null;
@@ -142,6 +151,9 @@ public class EMExoPlayer implements
     }
 
     public EMExoPlayer(@Nullable RenderBuilder rendererBuilder) {
+        bufferRepeater.setRepeaterDelay(BUFFER_REPEAT_DELAY);
+        bufferRepeater.setRepeatListener(new BufferRepeatListener());
+
         player = ExoPlayer.Factory.newInstance(RENDER_COUNT, BUFFER_LENGTH_MIN, REBUFFER_LENGTH_MIN);
         player.addListener(this);
 
@@ -174,6 +186,16 @@ public class EMExoPlayer implements
         if (listener != null) {
             listeners.remove(listener);
         }
+    }
+
+    // STOP todo
+    //  * 100% buffered
+    //  * No media (or stopped, etc.)
+    // Start
+    //  * Media is added and prepared
+    public void setBufferUpdateListener(@Nullable OnBufferUpdateListener listener) {
+        this.bufferUpdateListener = listener;
+        setBufferRepeaterStarted(listener != null);
     }
 
     public void setInternalErrorListener(@Nullable InternalErrorListener listener) {
@@ -320,7 +342,7 @@ public class EMExoPlayer implements
     }
 
     public void stop() {
-        if(!stopped.getAndSet(true)) {
+        if (!stopped.getAndSet(true)) {
             player.setPlayWhenReady(false);
             player.stop();
         }
@@ -336,14 +358,14 @@ public class EMExoPlayer implements
         stateStore.setMostRecentState(stateStore.isLastReportedPlayWhenReady(), StateStore.STATE_SEEKING);
     }
 
-  /**
-   * Seeks to the beginning of the media, and plays it. This method will not succeed if playback state is not {@code ExoPlayer.STATE_IDLE} or {@code ExoPlayer.STATE_ENDED}.
-   *
-   * @return {@code true} if the media was successfully restarted, otherwise {@code false}
-   */
-  public boolean restart() {
+    /**
+     * Seeks to the beginning of the media, and plays it. This method will not succeed if playback state is not {@code ExoPlayer.STATE_IDLE} or {@code ExoPlayer.STATE_ENDED}.
+     *
+     * @return {@code true} if the media was successfully restarted, otherwise {@code false}
+     */
+    public boolean restart() {
         int playbackState = getPlaybackState();
-        if(playbackState != ExoPlayer.STATE_IDLE && playbackState != ExoPlayer.STATE_ENDED) {
+        if (playbackState != ExoPlayer.STATE_IDLE && playbackState != ExoPlayer.STATE_ENDED) {
             return false;
         }
 
@@ -366,6 +388,7 @@ public class EMExoPlayer implements
             audioCapabilitiesReceiver = null;
         }
 
+        setBufferRepeaterStarted(false);
         rendererBuildingState = RenderBuildingState.IDLE;
         listeners.clear();
 
@@ -384,7 +407,7 @@ public class EMExoPlayer implements
 
     public int getAudioSessionId() {
         if (audioRenderer != null) {
-            return ((EMMediaCodecAudioTrackRenderer)audioRenderer).getAudioSessionId();
+            return ((EMMediaCodecAudioTrackRenderer) audioRenderer).getAudioSessionId();
         }
 
         return 0;
@@ -660,6 +683,13 @@ public class EMExoPlayer implements
         if (newState != stateStore.getMostRecentState()) {
             stateStore.setMostRecentState(playWhenReady, playbackState);
 
+            //Makes sure the buffering notifications are sent
+            if (newState == ExoPlayer.STATE_READY) {
+                setBufferRepeaterStarted(true);
+            } else if (newState == ExoPlayer.STATE_IDLE || newState == ExoPlayer.STATE_ENDED || newState == ExoPlayer.STATE_PREPARING) {
+                setBufferRepeaterStarted(false);
+            }
+
             //Because the playWhenReady isn't a state in itself, rather a flag to a state we will ignore informing of
             // see events when that is the only change.  Additionally, on some devices we get states ordered as
             // [seeking, ready, buffering, ready] while on others we get [seeking, buffering, ready]
@@ -685,6 +715,23 @@ public class EMExoPlayer implements
             player.blockingSendMessage(videoRenderer, MediaCodecVideoTrackRenderer.MSG_SET_SURFACE, surface);
         } else {
             player.sendMessage(videoRenderer, MediaCodecVideoTrackRenderer.MSG_SET_SURFACE, surface);
+        }
+    }
+
+    private void setBufferRepeaterStarted(boolean start) {
+        if (start && bufferUpdateListener != null) {
+            bufferRepeater.start();
+        } else {
+            bufferRepeater.stop();
+        }
+    }
+
+    private class BufferRepeatListener implements Repeater.RepeatListener {
+        @Override
+        public void onRepeat() {
+            if (bufferUpdateListener != null) {
+                bufferUpdateListener.onBufferingUpdate(getBufferedPercentage());
+            }
         }
     }
 

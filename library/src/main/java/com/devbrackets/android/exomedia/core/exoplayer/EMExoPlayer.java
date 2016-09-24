@@ -188,11 +188,6 @@ public class EMExoPlayer implements
         }
     }
 
-    // STOP todo
-    //  * 100% buffered
-    //  * No media (or stopped, etc.)
-    // Start
-    //  * Media is added and prepared
     public void setBufferUpdateListener(@Nullable OnBufferUpdateListener listener) {
         this.bufferUpdateListener = listener;
         setBufferRepeaterStarted(listener != null);

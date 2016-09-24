@@ -21,6 +21,7 @@ import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
+import android.media.AudioManager;
 import android.net.Uri;
 import android.os.Build;
 import android.support.annotation.DrawableRes;
@@ -43,9 +44,9 @@ import com.devbrackets.android.exomedia.core.EMListenerMux;
 import com.devbrackets.android.exomedia.core.api.VideoViewApi;
 import com.devbrackets.android.exomedia.core.builder.RenderBuilder;
 import com.devbrackets.android.exomedia.core.exoplayer.EMExoPlayer;
+import com.devbrackets.android.exomedia.core.listener.Id3MetadataListener;
 import com.devbrackets.android.exomedia.core.video.exo.ExoTextureVideoView;
 import com.devbrackets.android.exomedia.core.video.mp.NativeTextureVideoView;
-import com.devbrackets.android.exomedia.core.listener.Id3MetadataListener;
 import com.devbrackets.android.exomedia.core.video.scale.ScaleType;
 import com.devbrackets.android.exomedia.listener.OnBufferUpdateListener;
 import com.devbrackets.android.exomedia.listener.OnCompletionListener;
@@ -54,7 +55,6 @@ import com.devbrackets.android.exomedia.listener.OnPreparedListener;
 import com.devbrackets.android.exomedia.listener.OnSeekCompletionListener;
 import com.devbrackets.android.exomedia.util.DeviceUtil;
 import com.devbrackets.android.exomedia.util.DrmProvider;
-import com.devbrackets.android.exomedia.util.Repeater;
 import com.devbrackets.android.exomedia.util.StopWatch;
 import com.google.android.exoplayer.MediaFormat;
 
@@ -80,8 +80,11 @@ public class EMVideoView extends RelativeLayout {
 
     protected Uri videoUri;
     protected VideoViewApi videoViewImpl;
-    protected Repeater pollRepeater = new Repeater();
     protected DeviceUtil deviceUtil = new DeviceUtil();
+
+    protected AudioManager audioManager;
+    @NonNull
+    protected AudioFocusHelper audioFocusHelper = new AudioFocusHelper();
 
     protected int positionOffset = 0;
     protected int overriddenDuration = -1;
@@ -93,6 +96,7 @@ public class EMVideoView extends RelativeLayout {
     protected EMListenerMux listenerMux;
 
     protected boolean releaseOnDetachFromWindow = true;
+    protected boolean handleAudioFocus = true;
 
     public EMVideoView(Context context) {
         super(context);
@@ -327,6 +331,18 @@ public class EMVideoView extends RelativeLayout {
     }
 
     /**
+     * Enables or Disables automatic handling of audio focus. By default this is enabled
+     * however in instances where a service handles playback of both audio and video it
+     * is recommended to disable this and manually handle it in the service for consistency
+     *
+     * @param handleAudioFocus {@code true} to handle audio focus
+     */
+    public void setHandleAudioFocus(boolean handleAudioFocus) {
+        audioFocusHelper.abandonFocus();
+        this.handleAudioFocus = handleAudioFocus;
+    }
+
+    /**
      * Stops the current video playback and resets the listener states
      * so that we receive the callbacks for events like onPrepared
      */
@@ -363,6 +379,10 @@ public class EMVideoView extends RelativeLayout {
      * prepared (see {@link #setOnPreparedListener(OnPreparedListener)})
      */
     public void start() {
+        if (!audioFocusHelper.requestFocus()) {
+            return;
+        }
+
         videoViewImpl.start();
         setKeepScreenOn(true);
 
@@ -375,6 +395,7 @@ public class EMVideoView extends RelativeLayout {
      * If a video is currently in playback, it will be paused
      */
     public void pause() {
+        audioFocusHelper.abandonFocus();
         videoViewImpl.pause();
         setKeepScreenOn(false);
 
@@ -387,6 +408,7 @@ public class EMVideoView extends RelativeLayout {
      * If a video is currently in playback then the playback will be stopped
      */
     public void stopPlayback() {
+        audioFocusHelper.abandonFocus();
         videoViewImpl.stopPlayback();
         setKeepScreenOn(false);
 
@@ -419,6 +441,7 @@ public class EMVideoView extends RelativeLayout {
      * If a video is currently in playback then the playback will be suspended
      */
     public void suspend() {
+        audioFocusHelper.abandonFocus();
         videoViewImpl.suspend();
         setKeepScreenOn(false);
 
@@ -638,6 +661,8 @@ public class EMVideoView extends RelativeLayout {
             return;
         }
 
+        audioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
+
         AttributeContainer attributeContainer = new AttributeContainer(context, attrs);
         initView(context, attributeContainer);
         postInit(attributeContainer);
@@ -721,7 +746,87 @@ public class EMVideoView extends RelativeLayout {
      */
     protected void onPlaybackEnded() {
         stopPlayback();
-        pollRepeater.stop();
+    }
+
+    protected class AudioFocusHelper implements AudioManager.OnAudioFocusChangeListener {
+        protected boolean startRequested = false;
+        protected boolean pausedForLoss = false;
+        protected int currentFocus = 0;
+
+        @Override
+        public void onAudioFocusChange(int focusChange) {
+            if (!handleAudioFocus || currentFocus == focusChange) {
+                return;
+            }
+
+            currentFocus = focusChange;
+            switch (focusChange) {
+                case AudioManager.AUDIOFOCUS_GAIN:
+                case AudioManager.AUDIOFOCUS_GAIN_TRANSIENT:
+                    if (startRequested || pausedForLoss) {
+                        start();
+                        startRequested = false;
+                        pausedForLoss = false;
+                    }
+                    break;
+                case AudioManager.AUDIOFOCUS_LOSS:
+                    if (isPlaying()) {
+                        pausedForLoss = true;
+                        pause();
+                    }
+                    break;
+                case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT:
+                case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK:
+                    if (isPlaying()) {
+                        pausedForLoss = true;
+                        pause();
+                    }
+                    break;
+            }
+        }
+
+        /**
+         * Requests to obtain the audio focus
+         *
+         * @return True if the focus was granted
+         */
+        public boolean requestFocus() {
+            if (!handleAudioFocus || currentFocus == AudioManager.AUDIOFOCUS_GAIN) {
+                return true;
+            }
+
+            if (audioManager == null) {
+                return false;
+            }
+
+            int status = audioManager.requestAudioFocus(this, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN);
+            if (AudioManager.AUDIOFOCUS_REQUEST_GRANTED == status) {
+                currentFocus = AudioManager.AUDIOFOCUS_GAIN;
+                return true;
+            }
+
+            startRequested = true;
+            return false;
+        }
+
+        /**
+         * Requests the system to drop the audio focus
+         *
+         * @return True if the focus was lost
+         */
+        public boolean abandonFocus() {
+            if (!handleAudioFocus) {
+                return true;
+            }
+
+            if (audioManager == null) {
+                return false;
+            }
+
+            startRequested = false;
+            int status = audioManager.abandonAudioFocus(this);
+            return AudioManager.AUDIOFOCUS_REQUEST_GRANTED == status;
+        }
     }
 
     protected class MuxNotifier extends EMListenerMux.EMListenerMuxNotifier {
@@ -819,8 +924,7 @@ public class EMVideoView extends RelativeLayout {
         /**
          * Specifies if the {@link VideoViewApi} implementations should use the {@link android.view.SurfaceView}
          * implementations.  If this is false then the implementations will be based on
-         * the {@link android.view.TextureView}.
-         * //TODO: add reasoning each is useful... (or automatic swapping?)
+         * the {@link android.view.TextureView}
          */
         private boolean useSurfaceViewBacking = false;
         /**

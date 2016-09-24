@@ -34,13 +34,16 @@ import com.devbrackets.android.exomedia.core.builder.HlsRenderBuilder;
 import com.devbrackets.android.exomedia.core.builder.RenderBuilder;
 import com.devbrackets.android.exomedia.core.builder.SmoothStreamRenderBuilder;
 import com.devbrackets.android.exomedia.core.exoplayer.EMExoPlayer;
+import com.devbrackets.android.exomedia.core.listener.Id3MetadataListener;
 import com.devbrackets.android.exomedia.core.video.ClearableSurface;
+import com.devbrackets.android.exomedia.listener.OnBufferUpdateListener;
 import com.devbrackets.android.exomedia.type.MediaSourceType;
 import com.devbrackets.android.exomedia.util.DrmProvider;
 import com.devbrackets.android.exomedia.util.MediaSourceUtil;
 import com.google.android.exoplayer.MediaFormat;
 import com.google.android.exoplayer.audio.AudioCapabilities;
 import com.google.android.exoplayer.audio.AudioCapabilitiesReceiver;
+import com.google.android.exoplayer.metadata.id3.Id3Frame;
 
 import java.util.List;
 import java.util.Map;
@@ -61,6 +64,8 @@ public class ExoVideoDelegate implements AudioCapabilitiesReceiver.Listener {
 
     @Nullable
     protected DrmProvider drmProvider;
+    @NonNull
+    protected InternalListeners internalListeners = new InternalListeners();
 
     public ExoVideoDelegate(@NonNull Context context, @NonNull ClearableSurface clearableSurface) {
         this.context = context.getApplicationContext();
@@ -224,12 +229,16 @@ public class ExoVideoDelegate implements AudioCapabilitiesReceiver.Listener {
     }
 
     protected void setup() {
+        initExoPlayer();
         audioCapabilitiesReceiver = new AudioCapabilitiesReceiver(context, this);
         audioCapabilitiesReceiver.register();
+    }
+
+    protected void initExoPlayer() {
         emExoPlayer = new EMExoPlayer(null);
 
-        //Sets the internal listener
-        emExoPlayer.setMetadataListener(null);
+        emExoPlayer.setMetadataListener(internalListeners);
+        emExoPlayer.setBufferUpdateListener(internalListeners);
     }
 
     /**
@@ -249,6 +258,18 @@ public class ExoVideoDelegate implements AudioCapabilitiesReceiver.Listener {
                 return new SmoothStreamRenderBuilder(context, getUserAgent(), uri.toString(), drmProvider == null ? null : drmProvider.getSmoothStreamCallback(), AudioManager.STREAM_MUSIC);
             default:
                 return new RenderBuilder(context, getUserAgent(), uri.toString(), drmProvider == null ? null : drmProvider.getDefaultCallback(), AudioManager.STREAM_MUSIC);
+        }
+    }
+
+    protected class InternalListeners implements Id3MetadataListener, OnBufferUpdateListener {
+        @Override
+        public void onId3Metadata(List<Id3Frame> metadata) {
+            listenerMux.onId3Metadata(metadata);
+        }
+
+        @Override
+        public void onBufferingUpdate(@IntRange(from = 0, to = 100) int percent) {
+            listenerMux.onBufferingUpdate(percent);
         }
     }
 }

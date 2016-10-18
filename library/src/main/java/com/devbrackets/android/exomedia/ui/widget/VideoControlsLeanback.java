@@ -533,9 +533,9 @@ public class VideoControlsLeanback extends VideoControls {
                 return false;
             }
 
-            int newPosition = videoView.getCurrentPosition() - FAST_FORWARD_REWIND_AMOUNT;
-            if (newPosition < 0) {
-                newPosition = 0;
+            int newPosition = videoView.getCurrentPosition() + FAST_FORWARD_REWIND_AMOUNT;
+            if (newPosition > progressBar.getMax()) {
+                newPosition = progressBar.getMax();
             }
 
             performSeek(newPosition);
@@ -548,9 +548,9 @@ public class VideoControlsLeanback extends VideoControls {
                 return false;
             }
 
-            int newPosition = videoView.getCurrentPosition() + FAST_FORWARD_REWIND_AMOUNT;
-            if (newPosition > progressBar.getMax()) {
-                newPosition = progressBar.getMax();
+            int newPosition = videoView.getCurrentPosition() - FAST_FORWARD_REWIND_AMOUNT;
+            if (newPosition < 0) {
+                newPosition = 0;
             }
 
             performSeek(newPosition);

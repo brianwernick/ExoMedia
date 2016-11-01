@@ -2,24 +2,24 @@ apply plugin: 'com.android.application'
 
 dependencies {
     compile project(':library')
-    compile 'com.android.support:appcompat-v7:24.2.1'
+    compile 'com.android.support:appcompat-v7:25.0.0'
     compile 'com.squareup.picasso:picasso:2.5.2'
 
     // Playlist support
     compile 'com.devbrackets.android:playlistcore:1.1.1'
 
     // Memory Leak diagnostics
-    compile 'com.squareup.leakcanary:leakcanary-android:1.4-beta2'
+    compile 'com.squareup.leakcanary:leakcanary-android:1.5'
 }
 
 android {
-    compileSdkVersion 24
-    buildToolsVersion "24.0.2"
+    compileSdkVersion 25
+    buildToolsVersion "25.0.0"
 
     defaultConfig {
         applicationId "com.devbrackets.android.exomediademo"
         minSdkVersion 14
-        targetSdkVersion 24
+        targetSdkVersion 25
         versionCode 1
         versionName "1.0"
     }

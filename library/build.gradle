@@ -3,8 +3,8 @@ apply plugin: 'maven'
 apply plugin: 'com.novoda.bintray-release'
 
 def versionMajor = 3
-def versionMinor = 0
-def versionPatch = 5
+def versionMinor = 1
+def versionPatch = 0
 
 def libraryGroupId = 'com.devbrackets.android'
 def libraryBaseName = 'exomedia'
@@ -12,10 +12,10 @@ def libraryVersion = "${versionMajor}.${versionMinor}.${versionPatch}" // releas
 
 dependencies {
     // Android
-    compile 'com.android.support:appcompat-v7:24.2.1' // includes support-v4
+    compile 'com.android.support:appcompat-v7:25.0.0' // includes support-v4
 
     // ExoPlayer
-    compile 'com.google.android.exoplayer:exoplayer:r1.5.11'
+    compile 'com.google.android.exoplayer:exoplayer:r1.5.12'
 
     //Android unit tests
     androidTestCompile 'com.android.support.test:runner:0.5'
@@ -23,12 +23,12 @@ dependencies {
 }
 
 android {
-    compileSdkVersion 24
-    buildToolsVersion '24.0.2'
+    compileSdkVersion 25
+    buildToolsVersion '25.0.0'
 
     defaultConfig {
         minSdkVersion 14
-        targetSdkVersion 24
+        targetSdkVersion 25
 
         versionCode versionMajor * 10000 + versionMinor * 1000 + versionPatch * 100
         versionName "${versionMajor}.${versionMinor}.${versionPatch}"

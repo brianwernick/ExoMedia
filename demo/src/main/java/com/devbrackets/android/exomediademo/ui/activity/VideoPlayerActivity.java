@@ -1,8 +1,10 @@
 package com.devbrackets.android.exomediademo.ui.activity;
 
 import android.app.Activity;
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.v7.app.AlertDialog;
 
 import com.devbrackets.android.exomedia.ui.widget.EMVideoView;
 import com.devbrackets.android.exomediademo.App;
@@ -86,6 +88,8 @@ public class VideoPlayerActivity extends Activity implements PlaylistListener<Me
         if (playbackState == PlaylistServiceCore.PlaybackState.STOPPED) {
             finish();
             return true;
+        } else if (playbackState == PlaylistServiceCore.PlaybackState.ERROR) {
+            showErrorMessage();
         }
 
         return false;
@@ -107,6 +111,19 @@ public class VideoPlayerActivity extends Activity implements PlaylistListener<Me
 
         playlistManager.setVideoPlayer(new VideoApi(emVideoView));
         playlistManager.play(0, false);
+    }
+
+    protected void showErrorMessage() {
+        new AlertDialog.Builder(this)
+                .setTitle("Playback Error")
+                .setMessage(String.format("There was an error playing \"%s\"", playlistManager.getCurrentItem().getTitle()))
+                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        finish();
+                    }
+                })
+                .show();
     }
 
     /**

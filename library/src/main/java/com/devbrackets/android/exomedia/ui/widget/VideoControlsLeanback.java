@@ -438,8 +438,11 @@ public class VideoControlsLeanback extends VideoControls {
 
             switch (keyCode) {
                 case KeyEvent.KEYCODE_BACK:
-                    if (isVisible) {
+                    if (isVisible && canViewHide && !isLoading) {
                         hideDelayed(0);
+                        return true;
+                    } else if (controlsParent.getAnimation() != null) {
+                        //This occurs if we are animating the hide or show of the controls
                         return true;
                     }
                     break;

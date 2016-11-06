@@ -21,6 +21,7 @@ import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
+import android.media.AudioManager;
 import android.net.Uri;
 import android.os.Build;
 import android.support.annotation.DrawableRes;
@@ -44,6 +45,8 @@ import com.devbrackets.android.exomedia.core.api.VideoViewApi;
 import com.devbrackets.android.exomedia.core.builder.RenderBuilder;
 import com.devbrackets.android.exomedia.core.exoplayer.EMExoPlayer;
 import com.devbrackets.android.exomedia.core.listener.Id3MetadataListener;
+import com.devbrackets.android.exomedia.core.video.exo.ExoTextureVideoView;
+import com.devbrackets.android.exomedia.core.video.mp.NativeTextureVideoView;
 import com.devbrackets.android.exomedia.core.video.scale.ScaleType;
 import com.devbrackets.android.exomedia.listener.OnBufferUpdateListener;
 import com.devbrackets.android.exomedia.listener.OnCompletionListener;
@@ -51,7 +54,7 @@ import com.devbrackets.android.exomedia.listener.OnErrorListener;
 import com.devbrackets.android.exomedia.listener.OnPreparedListener;
 import com.devbrackets.android.exomedia.listener.OnSeekCompletionListener;
 import com.devbrackets.android.exomedia.util.DeviceUtil;
-import com.devbrackets.android.exomedia.util.Repeater;
+import com.devbrackets.android.exomedia.util.DrmProvider;
 import com.devbrackets.android.exomedia.util.StopWatch;
 import com.google.android.exoplayer.MediaFormat;
 
@@ -77,8 +80,11 @@ public class EMVideoView extends RelativeLayout {
 
     protected Uri videoUri;
     protected VideoViewApi videoViewImpl;
-    protected Repeater pollRepeater = new Repeater();
     protected DeviceUtil deviceUtil = new DeviceUtil();
+
+    protected AudioManager audioManager;
+    @NonNull
+    protected AudioFocusHelper audioFocusHelper = new AudioFocusHelper();
 
     protected int positionOffset = 0;
     protected int overriddenDuration = -1;
@@ -90,6 +96,7 @@ public class EMVideoView extends RelativeLayout {
     protected EMListenerMux listenerMux;
 
     protected boolean releaseOnDetachFromWindow = true;
+    protected boolean handleAudioFocus = true;
 
     public EMVideoView(Context context) {
         super(context);
@@ -302,6 +309,17 @@ public class EMVideoView extends RelativeLayout {
     }
 
     /**
+     * Sets the {@link DrmProvider} to use when handling DRM for media.
+     * This should be called before specifying the videos uri or path<br />
+     * <b>NOTE:</b> DRM is only supported on API 18 +
+     *
+     * @param drmProvider The provider to use when handling DRM media
+     */
+    public void setDrmProvider(@Nullable DrmProvider drmProvider) {
+        videoViewImpl.setDrmProvider(drmProvider);
+    }
+
+    /**
      * Sets the volume level for devices that support
      * the ExoPlayer (JellyBean or greater).
      *
@@ -310,6 +328,18 @@ public class EMVideoView extends RelativeLayout {
      */
     public boolean setVolume(@FloatRange(from = 0.0, to = 1.0) float volume) {
         return videoViewImpl.setVolume(volume);
+    }
+
+    /**
+     * Enables or Disables automatic handling of audio focus. By default this is enabled
+     * however in instances where a service handles playback of both audio and video it
+     * is recommended to disable this and manually handle it in the service for consistency
+     *
+     * @param handleAudioFocus {@code true} to handle audio focus
+     */
+    public void setHandleAudioFocus(boolean handleAudioFocus) {
+        audioFocusHelper.abandonFocus();
+        this.handleAudioFocus = handleAudioFocus;
     }
 
     /**
@@ -349,6 +379,10 @@ public class EMVideoView extends RelativeLayout {
      * prepared (see {@link #setOnPreparedListener(OnPreparedListener)})
      */
     public void start() {
+        if (!audioFocusHelper.requestFocus()) {
+            return;
+        }
+
         videoViewImpl.start();
         setKeepScreenOn(true);
 
@@ -361,6 +395,7 @@ public class EMVideoView extends RelativeLayout {
      * If a video is currently in playback, it will be paused
      */
     public void pause() {
+        audioFocusHelper.abandonFocus();
         videoViewImpl.pause();
         setKeepScreenOn(false);
 
@@ -373,6 +408,7 @@ public class EMVideoView extends RelativeLayout {
      * If a video is currently in playback then the playback will be stopped
      */
     public void stopPlayback() {
+        audioFocusHelper.abandonFocus();
         videoViewImpl.stopPlayback();
         setKeepScreenOn(false);
 
@@ -405,6 +441,7 @@ public class EMVideoView extends RelativeLayout {
      * If a video is currently in playback then the playback will be suspended
      */
     public void suspend() {
+        audioFocusHelper.abandonFocus();
         videoViewImpl.suspend();
         setKeepScreenOn(false);
 
@@ -624,33 +661,11 @@ public class EMVideoView extends RelativeLayout {
             return;
         }
 
-        initView(context, attrs);
-        readAttributes(context, attrs);
-    }
+        audioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
 
-    /**
-     * Reads the attributes associated with this view, setting any values found
-     *
-     * @param context The context to retrieve the styled attributes with
-     * @param attrs The {@link AttributeSet} to retrieve the values from
-     */
-    protected void readAttributes(Context context, @Nullable AttributeSet attrs) {
-        if (attrs == null) {
-            return;
-        }
-
-        TypedArray typedArray = context.obtainStyledAttributes(attrs, R.styleable.EMVideoView);
-        if (typedArray == null) {
-            return;
-        }
-
-        //Updates the VideoControls if specified
-        boolean useDefaultControls = typedArray.getBoolean(R.styleable.EMVideoView_useDefaultControls, false);
-        if (useDefaultControls) {
-            setControls(deviceUtil.isDeviceTV(getContext()) ? new VideoControlsLeanback(getContext()) : new VideoControlsMobile(getContext()));
-        }
-
-        typedArray.recycle();
+        AttributeContainer attributeContainer = new AttributeContainer(context, attrs);
+        initView(context, attributeContainer);
+        postInit(attributeContainer);
     }
 
     /**
@@ -659,10 +674,10 @@ public class EMVideoView extends RelativeLayout {
      * references.
      *
      * @param context The context for the initialization
-     * @param attrs The xml attributes associated with this instance
+     * @param attributeContainer The attributes associated with this instance
      */
-    protected void initView(Context context, @Nullable AttributeSet attrs) {
-        inflateVideoView(context, attrs);
+    protected void initView(Context context, @NonNull AttributeContainer attributeContainer) {
+        inflateVideoView(context, attributeContainer);
 
         previewImageView = (ImageView) findViewById(R.id.exomedia_video_preview_image);
         videoViewImpl = (VideoViewApi) findViewById(R.id.exomedia_video_view);
@@ -674,17 +689,29 @@ public class EMVideoView extends RelativeLayout {
     }
 
     /**
+     * Handles any setup that needs to be performed after {@link #initView(Context, AttributeContainer)}
+     * is performed.
+     *
+     * @param attributeContainer The attributes associated with this instance
+     */
+    protected void postInit(@NonNull AttributeContainer attributeContainer) {
+        if (attributeContainer.useDefaultControls) {
+            setControls(deviceUtil.isDeviceTV(getContext()) ? new VideoControlsLeanback(getContext()) : new VideoControlsMobile(getContext()));
+        }
+    }
+
+    /**
      * Inflates the video view layout, replacing the {@link ViewStub} with the
      * correct backing implementation.
      *
      * @param context The context to use for inflating the correct video view
-     * @param attrs The attributes for retrieving custom backing implementations.
+     * @param attributeContainer The attributes for retrieving custom backing implementations.
      */
-    protected void inflateVideoView(@NonNull Context context, @Nullable AttributeSet attrs) {
+    protected void inflateVideoView(@NonNull Context context, @NonNull AttributeContainer attributeContainer) {
         View.inflate(context, R.layout.exomedia_video_view_layout, this);
         ViewStub videoViewStub = (ViewStub) findViewById(R.id.video_view_api_impl_stub);
 
-        videoViewStub.setLayoutResource(getVideoViewApiImplementation(context, attrs));
+        videoViewStub.setLayoutResource(getVideoViewApiImplementation(context, attributeContainer));
         videoViewStub.inflate();
     }
 
@@ -692,9 +719,9 @@ public class EMVideoView extends RelativeLayout {
      * Retrieves the layout resource to use for the backing video view implementation.  By
      * default this uses the Android {@link android.widget.VideoView} on legacy devices with
      * APIs below Jellybean (16) or that don't pass the Compatibility Test Suite [CTS] via
-     * {@link com.devbrackets.android.exomedia.core.video.NativeVideoView}
+     * {@link NativeTextureVideoView}
      * , and an ExoPlayer backed video view on the remaining devices via
-     * {@link com.devbrackets.android.exomedia.core.video.ExoVideoView}.
+     * {@link ExoTextureVideoView}.
      * <p>
      * In the rare cases that the default implementations need to be extended, or replaced, the
      * user can override the value with the attributes <code>videoViewApiImplLegacy</code>
@@ -704,30 +731,13 @@ public class EMVideoView extends RelativeLayout {
      * recommended.
      *
      * @param context The Context to use when retrieving the backing video view implementation
-     * @param attrs The attributes to use for finding overridden video view implementations
+     * @param attributeContainer The attributes to use for finding overridden video view implementations
      * @return The layout resource for the backing implementation on the current device
      */
     @LayoutRes
-    protected int getVideoViewApiImplementation(@NonNull Context context, @Nullable AttributeSet attrs) {
+    protected int getVideoViewApiImplementation(@NonNull Context context, @NonNull AttributeContainer attributeContainer) {
         boolean useLegacy = !deviceUtil.supportsExoPlayer(context);
-        int defaultVideoViewApiImplRes = useLegacy ? R.layout.exomedia_default_native_video_view : R.layout.exomedia_default_exo_video_view;
-
-        if (attrs == null) {
-            return defaultVideoViewApiImplRes;
-        }
-
-        //If there aren't any EMVideoView styles specified, return the default implementation
-        TypedArray typedArray = context.obtainStyledAttributes(attrs, R.styleable.EMVideoView);
-        if (typedArray == null) {
-            return defaultVideoViewApiImplRes;
-        }
-
-        //Retrieves the specified implementation
-        int styleableRes = useLegacy ? R.styleable.EMVideoView_videoViewApiImplLegacy : R.styleable.EMVideoView_videoViewApiImpl;
-        int videoViewApiImplRes = typedArray.getResourceId(styleableRes, defaultVideoViewApiImplRes);
-        typedArray.recycle();
-
-        return videoViewApiImplRes;
+        return useLegacy ? attributeContainer.apiImplLegacyResourceId : attributeContainer.apiImplResourceId;
     }
 
     /**
@@ -736,7 +746,87 @@ public class EMVideoView extends RelativeLayout {
      */
     protected void onPlaybackEnded() {
         stopPlayback();
-        pollRepeater.stop();
+    }
+
+    protected class AudioFocusHelper implements AudioManager.OnAudioFocusChangeListener {
+        protected boolean startRequested = false;
+        protected boolean pausedForLoss = false;
+        protected int currentFocus = 0;
+
+        @Override
+        public void onAudioFocusChange(int focusChange) {
+            if (!handleAudioFocus || currentFocus == focusChange) {
+                return;
+            }
+
+            currentFocus = focusChange;
+            switch (focusChange) {
+                case AudioManager.AUDIOFOCUS_GAIN:
+                case AudioManager.AUDIOFOCUS_GAIN_TRANSIENT:
+                    if (startRequested || pausedForLoss) {
+                        start();
+                        startRequested = false;
+                        pausedForLoss = false;
+                    }
+                    break;
+                case AudioManager.AUDIOFOCUS_LOSS:
+                    if (isPlaying()) {
+                        pausedForLoss = true;
+                        pause();
+                    }
+                    break;
+                case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT:
+                case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK:
+                    if (isPlaying()) {
+                        pausedForLoss = true;
+                        pause();
+                    }
+                    break;
+            }
+        }
+
+        /**
+         * Requests to obtain the audio focus
+         *
+         * @return True if the focus was granted
+         */
+        public boolean requestFocus() {
+            if (!handleAudioFocus || currentFocus == AudioManager.AUDIOFOCUS_GAIN) {
+                return true;
+            }
+
+            if (audioManager == null) {
+                return false;
+            }
+
+            int status = audioManager.requestAudioFocus(this, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN);
+            if (AudioManager.AUDIOFOCUS_REQUEST_GRANTED == status) {
+                currentFocus = AudioManager.AUDIOFOCUS_GAIN;
+                return true;
+            }
+
+            startRequested = true;
+            return false;
+        }
+
+        /**
+         * Requests the system to drop the audio focus
+         *
+         * @return True if the focus was lost
+         */
+        public boolean abandonFocus() {
+            if (!handleAudioFocus) {
+                return true;
+            }
+
+            if (audioManager == null) {
+                return false;
+            }
+
+            startRequested = false;
+            int status = audioManager.abandonAudioFocus(this);
+            return AudioManager.AUDIOFOCUS_REQUEST_GRANTED == status;
+        }
     }
 
     protected class MuxNotifier extends EMListenerMux.EMListenerMuxNotifier {
@@ -818,6 +908,64 @@ public class EMVideoView extends RelativeLayout {
             }
 
             return true;
+        }
+    }
+
+    /**
+     * A simple class that will retrieve the attributes and provide a simplified
+     * interaction than passing around the {@link AttributeSet}
+     */
+    protected class AttributeContainer {
+        /**
+         * Specifies if the {@link VideoControls} should be added to the view.  These
+         * can be added through source code with {@link #setControls(VideoControls)}
+         */
+        private boolean useDefaultControls = false;
+        /**
+         * Specifies if the {@link VideoViewApi} implementations should use the {@link android.view.SurfaceView}
+         * implementations.  If this is false then the implementations will be based on
+         * the {@link android.view.TextureView}
+         */
+        private boolean useSurfaceViewBacking = false;
+        /**
+         * The resource id that points to a custom implementation for the <code>ExoPlayer</code>
+         * backed {@link VideoViewApi}
+         */
+        private int apiImplResourceId = R.layout.exomedia_default_exo_texture_video_view;
+        /**
+         * The resource id that points to a custom implementation for the Android {@link android.media.MediaPlayer}
+         * backed {@link VideoViewApi}.  This will only be used on devices that do not support the
+         * <code>ExoPlayer</code> (see {@link DeviceUtil#supportsExoPlayer(Context)} for details)
+         */
+        private int apiImplLegacyResourceId = R.layout.exomedia_default_native_texture_video_view;
+
+        /**
+         * Reads the attributes associated with this view, setting any values found
+         *
+         * @param context The context to retrieve the styled attributes with
+         * @param attrs The {@link AttributeSet} to retrieve the values from
+         */
+        public AttributeContainer(@NonNull Context context, @Nullable AttributeSet attrs) {
+            if (attrs == null) {
+                return;
+            }
+
+            TypedArray typedArray = context.obtainStyledAttributes(attrs, R.styleable.EMVideoView);
+            if (typedArray == null) {
+                return;
+            }
+
+            useDefaultControls = typedArray.getBoolean(R.styleable.EMVideoView_useDefaultControls, useDefaultControls);
+            useSurfaceViewBacking = typedArray.getBoolean(R.styleable.EMVideoView_useSurfaceViewBacking, useSurfaceViewBacking);
+
+            //Resets the default implementations based on useSurfaceViewBacking
+            apiImplResourceId = useSurfaceViewBacking ? R.layout.exomedia_default_exo_surface_video_view : R.layout.exomedia_default_exo_texture_video_view;
+            apiImplLegacyResourceId = useSurfaceViewBacking ? R.layout.exomedia_default_native_surface_video_view : R.layout.exomedia_default_native_texture_video_view;
+
+            apiImplResourceId = typedArray.getResourceId(R.styleable.EMVideoView_videoViewApiImplLegacy, apiImplResourceId);
+            apiImplLegacyResourceId = typedArray.getResourceId(R.styleable.EMVideoView_videoViewApiImplLegacy, apiImplLegacyResourceId);
+
+            typedArray.recycle();
         }
     }
 }

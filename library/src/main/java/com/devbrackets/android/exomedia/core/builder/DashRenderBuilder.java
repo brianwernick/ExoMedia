@@ -19,10 +19,11 @@ package com.devbrackets.android.exomedia.core.builder;
 
 import android.annotation.TargetApi;
 import android.content.Context;
-import android.media.AudioManager;
 import android.media.MediaCodec;
 import android.os.Build;
 import android.os.Handler;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.util.Log;
 
 import com.devbrackets.android.exomedia.core.exoplayer.EMExoPlayer;
@@ -46,6 +47,7 @@ import com.google.android.exoplayer.dash.mpd.UtcTimingElement;
 import com.google.android.exoplayer.dash.mpd.UtcTimingElementResolver;
 import com.google.android.exoplayer.dash.mpd.UtcTimingElementResolver.UtcTimingCallback;
 import com.google.android.exoplayer.drm.DrmSessionManager;
+import com.google.android.exoplayer.drm.MediaDrmCallback;
 import com.google.android.exoplayer.drm.StreamingDrmSessionManager;
 import com.google.android.exoplayer.drm.UnsupportedDrmException;
 import com.google.android.exoplayer.text.TextTrackRenderer;
@@ -72,63 +74,45 @@ public class DashRenderBuilder extends RenderBuilder {
     protected static final int SECURITY_LEVEL_1 = 1;
     protected static final int SECURITY_LEVEL_3 = 3;
 
-    protected AsyncRendererBuilder currentAsyncBuilder;
-
-    public DashRenderBuilder(Context context, String userAgent, String url) {
-        this(context, userAgent, url, AudioManager.STREAM_MUSIC);
+    public DashRenderBuilder(@NonNull Context context, @NonNull String userAgent, @NonNull String uri) {
+        super(context, userAgent, uri);
     }
 
-    public DashRenderBuilder(Context context, String userAgent, String url, int streamType) {
-        super(context, userAgent, url, streamType);
+    public DashRenderBuilder(@NonNull Context context, @NonNull String userAgent, @NonNull String uri, int streamType) {
+        super(context, userAgent, uri, streamType);
     }
 
-    @Override
-    public void buildRenderers(EMExoPlayer player) {
-        currentAsyncBuilder = new AsyncRendererBuilder(context, userAgent, uri, player, streamType);
-        currentAsyncBuilder.init();
+    public DashRenderBuilder(@NonNull Context context, @NonNull String userAgent, @NonNull String uri, @Nullable MediaDrmCallback drmCallback, int streamType) {
+        super(context, userAgent, uri, drmCallback, streamType);
     }
 
     @Override
-    public void cancel() {
-        if (currentAsyncBuilder != null) {
-            currentAsyncBuilder.cancel();
-            currentAsyncBuilder = null;
-        }
+    protected AsyncBuilder createAsyncBuilder(EMExoPlayer player) {
+        return new AsyncDashBuilder(context, userAgent, uri, drmCallback, player, streamType);
     }
 
     protected UriDataSource createManifestDataSource(Context context, String userAgent) {
         return new DefaultUriDataSource(context, userAgent);
     }
 
-    protected final class AsyncRendererBuilder implements ManifestFetcher.ManifestCallback<MediaPresentationDescription>, UtcTimingCallback {
-       protected final Context context;
-       protected final String userAgent;
-       protected final int streamType;
-       protected final EMExoPlayer player;
-       protected final ManifestFetcher<MediaPresentationDescription> manifestFetcher;
-       protected MediaPresentationDescription currentManifest;
-       protected final UriDataSource manifestDataSource;
+    protected class AsyncDashBuilder extends AsyncBuilder implements ManifestFetcher.ManifestCallback<MediaPresentationDescription>, UtcTimingCallback {
+        protected final ManifestFetcher<MediaPresentationDescription> manifestFetcher;
+        protected MediaPresentationDescription currentManifest;
+        protected final UriDataSource manifestDataSource;
 
-        protected boolean canceled;
         protected long elapsedRealtimeOffset;
 
-        public AsyncRendererBuilder(Context context, String userAgent, String url, EMExoPlayer player, int streamType) {
-            this.context = context;
-            this.userAgent = userAgent;
-            this.streamType = streamType;
-            this.player = player;
+        public AsyncDashBuilder(Context context, String userAgent, String url, @Nullable MediaDrmCallback drmCallback, EMExoPlayer player, int streamType) {
+            super(context, userAgent, url, drmCallback, player, streamType);
 
             MediaPresentationDescriptionParser parser = new MediaPresentationDescriptionParser();
             manifestDataSource = createManifestDataSource(context, userAgent);
             manifestFetcher = new ManifestFetcher<>(url, manifestDataSource, parser);
         }
 
+        @Override
         public void init() {
             manifestFetcher.singleLoad(player.getMainHandler().getLooper(), this);
-        }
-
-        public void cancel() {
-            canceled = true;
         }
 
         @Override
@@ -196,7 +180,7 @@ public class DashRenderBuilder extends RenderBuilder {
                     return;
                 }
                 try {
-                    drmSessionManager = StreamingDrmSessionManager.newWidevineInstance(player.getPlaybackLooper(), null, null, player.getMainHandler(), player);
+                    drmSessionManager = StreamingDrmSessionManager.newWidevineInstance(player.getPlaybackLooper(), drmCallback, null, player.getMainHandler(), player);
                     filterHdContent = getWidevineSecurityLevel(drmSessionManager) != SECURITY_LEVEL_1;
                 } catch (UnsupportedDrmException e) {
                     player.onRenderersError(e);

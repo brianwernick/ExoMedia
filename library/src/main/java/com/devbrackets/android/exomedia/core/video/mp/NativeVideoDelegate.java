@@ -14,41 +14,38 @@
  * limitations under the License.
  */
 
-package com.devbrackets.android.exomedia.core.video;
+package com.devbrackets.android.exomedia.core.video.mp;
 
-import android.annotation.TargetApi;
 import android.content.Context;
-import android.graphics.SurfaceTexture;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.net.Uri;
-import android.os.Build;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.util.AttributeSet;
 import android.util.Log;
 import android.view.Surface;
 import android.widget.MediaController;
 
+import com.devbrackets.android.exomedia.core.EMListenerMux;
+import com.devbrackets.android.exomedia.core.video.ClearableSurface;
+
 import java.io.IOException;
 import java.util.Map;
 
-/**
- * A "Native" VideoView implementation using the {@link android.view.TextureView}
- * as a backing instead of the older {@link android.view.SurfaceView}.  This
- * resolves issues with the SurfaceView because the TextureView is an actual
- * View that follows the normal drawing paths; allowing the view to be animated,
- * scaled, etc.
- * <br><br>
- * NOTE: This does remove some of the functionality from the VideoView including:
- * <ul>
- * <li>The {@link MediaController}</li>
- * </ul>
- */
-public class TextureVideoView extends ResizingTextureView implements MediaController.MediaPlayerControl {
-    private static final String TAG = "TextureVideoView";
+import static android.content.ContentValues.TAG;
 
-    protected enum State {
+/**
+ * A delegated object used to handle the majority of the
+ * functionality for the "Native" video view implementation
+ * to simplify support for both the {@link android.view.TextureView}
+ * and {@link android.view.SurfaceView} implementations
+ */
+public class NativeVideoDelegate implements MediaController.MediaPlayerControl {
+    public interface Callback {
+        void videoSizeChanged(int width, int height);
+    }
+
+    public enum State {
         ERROR,
         IDLE,
         PREPARING,
@@ -62,11 +59,17 @@ public class TextureVideoView extends ResizingTextureView implements MediaContro
 
     protected State currentState = State.IDLE;
 
+    protected Context context;
+    protected Callback callback;
+    protected ClearableSurface clearableSurface;
+
     protected MediaPlayer mediaPlayer;
 
     protected boolean playRequested = false;
     protected int requestedSeek;
     protected int currentBufferPercent;
+
+    protected EMListenerMux listenerMux;
 
     @NonNull
     protected InternalListeners internalListeners = new InternalListeners();
@@ -84,36 +87,24 @@ public class TextureVideoView extends ResizingTextureView implements MediaContro
     @Nullable
     protected MediaPlayer.OnInfoListener onInfoListener;
 
-    public TextureVideoView(Context context) {
-        super(context);
-        setup(context, null);
-    }
+    public NativeVideoDelegate(@NonNull Context context, @NonNull Callback callback, @NonNull ClearableSurface clearableSurface) {
+        this.context = context;
+        this.callback = callback;
+        this.clearableSurface = clearableSurface;
 
-    public TextureVideoView(Context context, AttributeSet attrs) {
-        super(context, attrs);
-        setup(context, attrs);
-    }
-
-    public TextureVideoView(Context context, AttributeSet attrs, int defStyleAttr) {
-        super(context, attrs, defStyleAttr);
-        setup(context, attrs);
-    }
-
-    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
-    public TextureVideoView(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
-        super(context, attrs, defStyleAttr, defStyleRes);
-        setup(context, attrs);
+        initMediaPlayer();
+        currentState = State.IDLE;
     }
 
     @Override
     public void start() {
         if (isReady()) {
             mediaPlayer.start();
-            requestFocus();
             currentState = State.PLAYING;
         }
 
         playRequested = true;
+        listenerMux.setNotifiedCompleted(false);
     }
 
     @Override
@@ -128,20 +119,20 @@ public class TextureVideoView extends ResizingTextureView implements MediaContro
 
     @Override
     public int getDuration() {
-        if (isReady()) {
-            return mediaPlayer.getDuration();
+        if (!listenerMux.isPrepared() || !isReady()) {
+            return 0;
         }
 
-        return 0;
+        return mediaPlayer.getDuration();
     }
 
     @Override
     public int getCurrentPosition() {
-        if (isReady()) {
-            return mediaPlayer.getCurrentPosition();
+        if (!listenerMux.isPrepared() || !isReady()) {
+            return 0;
         }
 
-        return 0;
+        return mediaPlayer.getCurrentPosition();
     }
 
     @Override
@@ -183,6 +174,11 @@ public class TextureVideoView extends ResizingTextureView implements MediaContro
         return currentState == State.PREPARED || currentState == State.PLAYING || currentState == State.PAUSED;
     }
 
+    @Override
+    public int getAudioSessionId() {
+        return mediaPlayer.getAudioSessionId();
+    }
+
     /**
      * Performs the functionality to stop the video in playback
      */
@@ -198,6 +194,7 @@ public class TextureVideoView extends ResizingTextureView implements MediaContro
         }
 
         playRequested = false;
+        listenerMux.clearSurfaceWhenReady(clearableSurface);
     }
 
     /**
@@ -217,24 +214,30 @@ public class TextureVideoView extends ResizingTextureView implements MediaContro
         playRequested = false;
     }
 
-    /**
-     * Sets video URI.
-     *
-     * @param uri the URI of the video.
-     */
-    public void setVideoURI(Uri uri) {
-        setVideoURI(uri, null);
+    public boolean restart() {
+        if(currentState != State.COMPLETED) {
+            return false;
+        }
+
+        seekTo(0);
+        start();
+
+        //Makes sure the listeners get the onPrepared callback
+        listenerMux.setNotifiedPrepared(false);
+        listenerMux.setNotifiedCompleted(false);
+
+        return true;
     }
 
     /**
      * Sets video URI using specific headers.
      *
-     * @param uri     The Uri for the video to play
-     * @param headers the headers for the URI request.
-     *                Note that the cross domain redirection is allowed by default, but that can be
-     *                changed with key/value pairs through the headers parameter with
-     *                "android-allow-cross-domain-redirect" as the key and "0" or "1" as the value
-     *                to disallow or allow cross domain redirection.
+     * @param uri The Uri for the video to play
+     * @param headers The headers for the URI request.
+     * Note that the cross domain redirection is allowed by default, but that can be
+     * changed with key/value pairs through the headers parameter with
+     * "android-allow-cross-domain-redirect" as the key and "0" or "1" as the value
+     * to disallow or allow cross domain redirection.
      */
     public void setVideoURI(Uri uri, @Nullable Map<String, String> headers) {
         this.headers = headers;
@@ -242,8 +245,16 @@ public class TextureVideoView extends ResizingTextureView implements MediaContro
         playRequested = false;
 
         openVideo(uri);
-        requestLayout();
-        invalidate();
+    }
+
+    public void setListenerMux(EMListenerMux listenerMux) {
+        this.listenerMux = listenerMux;
+
+        setOnCompletionListener(listenerMux);
+        setOnPreparedListener(listenerMux);
+        setOnBufferingUpdateListener(listenerMux);
+        setOnSeekCompleteListener(listenerMux);
+        setOnErrorListener(listenerMux);
     }
 
     /**
@@ -308,44 +319,25 @@ public class TextureVideoView extends ResizingTextureView implements MediaContro
         onInfoListener = listener;
     }
 
-    public int getAudioSessionId() {
-        return mediaPlayer.getAudioSessionId();
-    }
-
-    protected boolean isReady() {
-        return currentState != State.ERROR && currentState != State.IDLE && currentState != State.PREPARING;
-    }
-
-    protected void openVideo(@Nullable Uri uri) {
-        if (uri == null) {
+    public void onSurfaceSizeChanged(int width, int height) {
+        if (mediaPlayer == null || width <= 0 || height <= 0) {
             return;
         }
 
-        currentBufferPercent = 0;
+        if (requestedSeek != 0) {
+            seekTo(requestedSeek);
+        }
 
-        try {
-            mediaPlayer.setDataSource(getContext().getApplicationContext(), uri, headers);
-            mediaPlayer.prepareAsync();
-
-            currentState = State.PREPARING;
-        } catch (IOException | IllegalArgumentException ex) {
-            Log.w(TAG, "Unable to open content: " + uri, ex);
-            currentState = State.ERROR;
-
-            internalListeners.onError(mediaPlayer, MediaPlayer.MEDIA_ERROR_UNKNOWN, 0);
+        if (playRequested) {
+            start();
         }
     }
 
-    protected void setup(Context context, @Nullable AttributeSet attrs) {
-        initMediaPlayer();
-        setSurfaceTextureListener(new TextureVideoViewSurfaceListener());
-
-        setFocusable(true);
-        setFocusableInTouchMode(true);
-        requestFocus();
-
-        updateVideoSize(0, 0);
-        currentState = State.IDLE;
+    public void onSurfaceReady(Surface surface) {
+        mediaPlayer.setSurface(surface);
+        if (playRequested) {
+            start();
+        }
     }
 
     protected void initMediaPlayer() {
@@ -363,7 +355,31 @@ public class TextureVideoView extends ResizingTextureView implements MediaContro
         mediaPlayer.setScreenOnWhilePlaying(true);
     }
 
-    protected class InternalListeners implements MediaPlayer.OnBufferingUpdateListener, MediaPlayer.OnErrorListener, MediaPlayer.OnPreparedListener,
+    protected boolean isReady() {
+        return currentState != State.ERROR && currentState != State.IDLE && currentState != State.PREPARING;
+    }
+
+    protected void openVideo(@Nullable Uri uri) {
+        if (uri == null) {
+            return;
+        }
+
+        currentBufferPercent = 0;
+
+        try {
+            mediaPlayer.setDataSource(context.getApplicationContext(), uri, headers);
+            mediaPlayer.prepareAsync();
+
+            currentState = State.PREPARING;
+        } catch (IOException | IllegalArgumentException ex) {
+            Log.w(TAG, "Unable to open content: " + uri, ex);
+            currentState = State.ERROR;
+
+            internalListeners.onError(mediaPlayer, MediaPlayer.MEDIA_ERROR_UNKNOWN, 0);
+        }
+    }
+
+    public class InternalListeners implements MediaPlayer.OnBufferingUpdateListener, MediaPlayer.OnErrorListener, MediaPlayer.OnPreparedListener,
             MediaPlayer.OnCompletionListener, MediaPlayer.OnSeekCompleteListener, MediaPlayer.OnInfoListener, MediaPlayer.OnVideoSizeChangedListener {
         @Override
         public void onBufferingUpdate(MediaPlayer mp, int percent) {
@@ -404,7 +420,7 @@ public class TextureVideoView extends ResizingTextureView implements MediaContro
                 onPreparedListener.onPrepared(mediaPlayer);
             }
 
-            updateVideoSize(mp.getVideoWidth(), mp.getVideoHeight());
+            callback.videoSizeChanged(mp.getVideoWidth(), mp.getVideoHeight());
 
             if (requestedSeek != 0) {
                 seekTo(requestedSeek);
@@ -422,46 +438,7 @@ public class TextureVideoView extends ResizingTextureView implements MediaContro
 
         @Override
         public void onVideoSizeChanged(MediaPlayer mp, int width, int height) {
-            if (updateVideoSize(mp.getVideoWidth(), mp.getVideoHeight())) {
-                requestLayout();
-            }
-        }
-    }
-
-    protected class TextureVideoViewSurfaceListener implements SurfaceTextureListener {
-        @Override
-        public void onSurfaceTextureAvailable(SurfaceTexture surfaceTexture, int width, int height) {
-            mediaPlayer.setSurface(new Surface(surfaceTexture));
-            if (playRequested) {
-                start();
-            }
-        }
-
-        @Override
-        public void onSurfaceTextureSizeChanged(SurfaceTexture surface, int width, int height) {
-            if (mediaPlayer == null || width <= 0 || height <= 0) {
-                return;
-            }
-
-            if (requestedSeek != 0) {
-                seekTo(requestedSeek);
-            }
-
-            if (playRequested) {
-                start();
-            }
-        }
-
-        @Override
-        public boolean onSurfaceTextureDestroyed(SurfaceTexture surface) {
-            surface.release();
-            suspend();
-            return true;
-        }
-
-        @Override
-        public void onSurfaceTextureUpdated(SurfaceTexture surface) {
-            //Purposefully left blank
+            callback.videoSizeChanged(mp.getVideoWidth(), mp.getVideoHeight());
         }
     }
 }

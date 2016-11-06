@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -30,9 +31,9 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
+        android:elevation="4dp"
         android:orientation="vertical"
         android:paddingTop="10dp"
-        android:elevation="4dp"
         android:translationZ="2dp"
         tools:background="@color/background_material_light">
 
@@ -45,20 +46,20 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_alignParentLeft="true"
-                android:textColor="@android:color/black"
                 android:layout_marginLeft="10dp"
-                tools:text="00:00"
-                tools:ignore="RtlHardcoded"/>
+                android:textColor="@android:color/black"
+                tools:ignore="RtlHardcoded"
+                tools:text="00:00"/>
 
             <TextView
                 android:id="@+id/audio_player_duration"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_alignParentRight="true"
-                android:textColor="@android:color/black"
                 android:layout_marginRight="10dp"
-                tools:text="00:00"
-                tools:ignore="RelativeOverlap,RtlHardcoded"/>
+                android:textColor="@android:color/black"
+                tools:ignore="RelativeOverlap,RtlHardcoded"
+                tools:text="00:00"/>
         </RelativeLayout>
 
         <SeekBar
@@ -66,63 +67,63 @@
             style="?android:seekBarStyle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"/>
-        
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_horizontal"
             android:layout_marginBottom="30dp"
-            android:layout_marginTop="10dp">
+            android:layout_marginTop="10dp"
+            android:gravity="center_horizontal"
+            android:orientation="horizontal">
 
             <android.support.v4.widget.Space
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
-                android:layout_weight="1" />
+                android:layout_weight="1"/>
 
             <ImageButton
                 android:id="@+id/audio_player_previous"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:background="@android:color/transparent"
-                android:src="@drawable/playlistcore_ic_skip_previous_black"
                 android:scaleType="centerInside"
                 android:visibility="invisible"
-                tools:visibility="visible"
-                tools:ignore="ContentDescription"/>
+                app:srcCompat="@drawable/playlistcore_ic_skip_previous_black"
+                tools:ignore="ContentDescription"
+                tools:visibility="visible"/>
 
             <android.support.v4.widget.Space
                 android:layout_width="44dp"
-                android:layout_height="match_parent" />
+                android:layout_height="match_parent"/>
 
             <ImageButton
                 android:id="@+id/audio_player_play_pause"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:background="@android:color/transparent"
-                android:src="@drawable/playlistcore_ic_play_arrow_black"
                 android:scaleType="centerInside"
+                app:srcCompat="@drawable/playlistcore_ic_play_arrow_black"
                 tools:ignore="ContentDescription"/>
 
             <android.support.v4.widget.Space
                 android:layout_width="44dp"
-                android:layout_height="match_parent" />
+                android:layout_height="match_parent"/>
 
             <ImageButton
                 android:id="@+id/audio_player_next"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:background="@android:color/transparent"
-                android:src="@drawable/playlistcore_ic_skip_next_black"
                 android:scaleType="centerInside"
                 android:visibility="invisible"
-                tools:visibility="visible"
-                tools:ignore="ContentDescription"/>
+                app:srcCompat="@drawable/playlistcore_ic_skip_next_black"
+                tools:ignore="ContentDescription"
+                tools:visibility="visible"/>
 
             <android.support.v4.widget.Space
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
-                android:layout_weight="1" />
+                android:layout_weight="1"/>
 
         </LinearLayout>
     </LinearLayout>

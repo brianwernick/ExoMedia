@@ -26,6 +26,7 @@ import android.support.annotation.Nullable;
 import com.devbrackets.android.exomedia.annotation.TrackRenderType;
 import com.devbrackets.android.exomedia.core.EMListenerMux;
 import com.devbrackets.android.exomedia.core.builder.RenderBuilder;
+import com.devbrackets.android.exomedia.util.DrmProvider;
 import com.google.android.exoplayer.MediaFormat;
 
 import java.util.List;
@@ -41,6 +42,15 @@ public interface MediaPlayerApi {
     void setDataSource(Context context, Uri uri);
 
     void setDataSource(Context context, Uri uri, RenderBuilder renderBuilder);
+
+    /**
+     * Sets the {@link DrmProvider} to use when handling DRM for media.
+     * This should be called before specifying the data source<br />
+     * <b>NOTE:</b> DRM is only supported on API 18 +
+     *
+     * @param drmProvider The provider to use when handling DRM media
+     */
+    void setDrmProvider(@Nullable DrmProvider drmProvider);
 
     /**
      * Prepares the media specified with {@link #setDataSource(Context, Uri)} or

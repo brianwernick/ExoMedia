@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-package com.devbrackets.android.exomedia.core.audio;
+package com.devbrackets.android.exomedia.core.video.exo;
 
-import android.annotation.TargetApi;
 import android.content.Context;
 import android.media.AudioManager;
 import android.net.Uri;
@@ -25,64 +24,71 @@ import android.support.annotation.FloatRange;
 import android.support.annotation.IntRange;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.view.Surface;
 
 import com.devbrackets.android.exomedia.BuildConfig;
 import com.devbrackets.android.exomedia.annotation.TrackRenderType;
 import com.devbrackets.android.exomedia.core.EMListenerMux;
-import com.devbrackets.android.exomedia.core.api.MediaPlayerApi;
 import com.devbrackets.android.exomedia.core.builder.DashRenderBuilder;
 import com.devbrackets.android.exomedia.core.builder.HlsRenderBuilder;
 import com.devbrackets.android.exomedia.core.builder.RenderBuilder;
 import com.devbrackets.android.exomedia.core.builder.SmoothStreamRenderBuilder;
 import com.devbrackets.android.exomedia.core.exoplayer.EMExoPlayer;
 import com.devbrackets.android.exomedia.core.listener.Id3MetadataListener;
+import com.devbrackets.android.exomedia.core.video.ClearableSurface;
 import com.devbrackets.android.exomedia.listener.OnBufferUpdateListener;
 import com.devbrackets.android.exomedia.type.MediaSourceType;
 import com.devbrackets.android.exomedia.util.DrmProvider;
 import com.devbrackets.android.exomedia.util.MediaSourceUtil;
 import com.google.android.exoplayer.MediaFormat;
+import com.google.android.exoplayer.audio.AudioCapabilities;
+import com.google.android.exoplayer.audio.AudioCapabilitiesReceiver;
 import com.google.android.exoplayer.metadata.id3.Id3Frame;
 
 import java.util.List;
 import java.util.Map;
 
-/**
- * A {@link MediaPlayerApi} implementation that uses the ExoPlayer
- * as the backing media player.
- */
-@TargetApi(Build.VERSION_CODES.JELLY_BEAN)
-public class ExoMediaPlayer implements MediaPlayerApi {
-    protected static final String USER_AGENT_FORMAT = "EMAudioPlayer %s / Android %s / %s";
+
+public class ExoVideoDelegate implements AudioCapabilitiesReceiver.Listener {
+    protected static final String USER_AGENT_FORMAT = "EMVideoView %s / Android %s / %s";
 
     protected EMExoPlayer emExoPlayer;
+    protected AudioCapabilities audioCapabilities;
+    protected AudioCapabilitiesReceiver audioCapabilitiesReceiver;
 
-    protected Context context;
     protected EMListenerMux listenerMux;
     protected boolean playRequested = false;
+
+    protected Context context;
+    protected ClearableSurface clearableSurface;
 
     @Nullable
     protected DrmProvider drmProvider;
     @NonNull
     protected InternalListeners internalListeners = new InternalListeners();
 
-    protected int audioStreamType = AudioManager.STREAM_MUSIC;
+    public ExoVideoDelegate(@NonNull Context context, @NonNull ClearableSurface clearableSurface) {
+        this.context = context.getApplicationContext();
+        this.clearableSurface = clearableSurface;
 
-    public ExoMediaPlayer(@NonNull Context context) {
-        this.context = context;
-
-        emExoPlayer = new EMExoPlayer(null);
-        emExoPlayer.setMetadataListener(internalListeners);
-        emExoPlayer.setBufferUpdateListener(internalListeners);
+        setup();
     }
 
     @Override
-    public void setDataSource(@NonNull Context context, @Nullable Uri uri) {
+    public void onAudioCapabilitiesChanged(AudioCapabilities audioCapabilities) {
+        if (!audioCapabilities.equals(this.audioCapabilities)) {
+            this.audioCapabilities = audioCapabilities;
+        }
+    }
+
+    public void setVideoUri(@Nullable Uri uri) {
         RenderBuilder builder = uri == null ? null : getRendererBuilder(MediaSourceUtil.getType(uri), uri);
-        setDataSource(context, uri, builder);
+        setVideoUri(uri, builder);
     }
 
-    @Override
-    public void setDataSource(Context context, @Nullable Uri uri, @Nullable RenderBuilder renderBuilder) {
+    public void setVideoUri(@Nullable Uri uri, @Nullable RenderBuilder renderBuilder) {
+        playRequested = false;
+
         if (uri == null) {
             emExoPlayer.replaceRenderBuilder(null);
         } else {
@@ -95,74 +101,64 @@ public class ExoMediaPlayer implements MediaPlayerApi {
         emExoPlayer.seekTo(0);
     }
 
-    @Override
+    /**
+     * Sets the {@link DrmProvider} to use when handling DRM for media.
+     * This should be called before specifying the videos uri or path<br />
+     * <b>NOTE:</b> DRM is only supported on API 18 +
+     *
+     * @param drmProvider The provider to use when handling DRM media
+     */
     public void setDrmProvider(@Nullable DrmProvider drmProvider) {
         this.drmProvider = drmProvider;
     }
 
-    @Override
-    public void prepareAsync() {
-        emExoPlayer.prepare();
+    public boolean restart() {
+        if(!emExoPlayer.restart()) {
+            return false;
+        }
+
+        //Makes sure the listeners get the onPrepared callback
+        listenerMux.setNotifiedPrepared(false);
+        listenerMux.setNotifiedCompleted(false);
+
+        return true;
     }
 
-    @Override
-    public void reset() {
-        //Purposefully left blank
+    public boolean setVolume(@FloatRange(from = 0.0, to = 1.0) float volume) {
+        emExoPlayer.setVolume(volume);
+        return true;
     }
 
-    @Override
-    public void setVolume(@FloatRange(from = 0.0, to = 1.0) float left, @FloatRange(from = 0.0, to = 1.0) float right) {
-        //Averages the volume since the ExoPlayer only takes a single channel
-        emExoPlayer.setVolume((left + right) / 2);
-    }
-
-    @Override
     public void seekTo(@IntRange(from = 0) int milliseconds) {
         emExoPlayer.seekTo(milliseconds);
     }
 
-    @Override
     public boolean isPlaying() {
         return emExoPlayer.getPlayWhenReady();
     }
 
-    @Override
     public void start() {
         emExoPlayer.setPlayWhenReady(true);
         listenerMux.setNotifiedCompleted(false);
         playRequested = true;
     }
 
-    @Override
     public void pause() {
         emExoPlayer.setPlayWhenReady(false);
         playRequested = false;
     }
 
-    @Override
     public void stopPlayback() {
         emExoPlayer.stop();
         playRequested = false;
+        listenerMux.clearSurfaceWhenReady(clearableSurface);
     }
 
-    /**
-     * If the media has completed playback, calling {@code restart} will seek to the beginning of the media, and play it.
-     *
-     * @return {@code true} if the media was successfully restarted, otherwise {@code false}
-     */
-    @Override
-    public boolean restart() {
-        if(!emExoPlayer.restart()) {
-            return false;
-        }
-
-        listenerMux.setNotifiedCompleted(false);
-        listenerMux.setNotifiedPrepared(false);
-
-        return true;
+    public void suspend() {
+        emExoPlayer.release();
+        playRequested = false;
     }
 
-    @Override
     public int getDuration() {
         if (!listenerMux.isPrepared()) {
             return 0;
@@ -171,7 +167,6 @@ public class ExoMediaPlayer implements MediaPlayerApi {
         return (int)emExoPlayer.getDuration();
     }
 
-    @Override
     public int getCurrentPosition() {
         if (!listenerMux.isPrepared()) {
             return 0;
@@ -180,87 +175,90 @@ public class ExoMediaPlayer implements MediaPlayerApi {
         return (int)emExoPlayer.getCurrentPosition();
     }
 
-    @Override
     public int getBufferedPercent() {
         return emExoPlayer.getBufferedPercentage();
     }
 
-    @Override
-    public void release() {
-        emExoPlayer.release();
-    }
-
-    @Override
-    public int getAudioSessionId() {
-        return emExoPlayer.getAudioSessionId();
-    }
-
-    @Override
-    public void setAudioStreamType(int streamType) {
-        this.audioStreamType = streamType;
-    }
-
-    @Override
-    public void setWakeMode(Context context, int mode) {
-        emExoPlayer.setWakeMode(context, mode);
-    }
-
-    @Override
     public boolean trackSelectionAvailable() {
         return true;
     }
 
-    @Override
     public void setTrack(@TrackRenderType int trackType, int trackIndex) {
         emExoPlayer.setSelectedTrack(trackType, trackIndex);
     }
 
     @Nullable
-    @Override
     public Map<Integer, List<MediaFormat>> getAvailableTracks() {
         return emExoPlayer.getAvailableTracks();
     }
 
-    @Override
+    public void release() {
+        emExoPlayer.release();
+
+        if (audioCapabilitiesReceiver != null) {
+            audioCapabilitiesReceiver.unregister();
+            audioCapabilitiesReceiver = null;
+        }
+    }
+
     public void setListenerMux(EMListenerMux listenerMux) {
         this.listenerMux = listenerMux;
         emExoPlayer.addListener(listenerMux);
     }
 
-    @Override
-    public void onMediaPrepared() {
-        //Purposefully left blank
+    public void onSurfaceReady(Surface surface) {
+        emExoPlayer.setSurface(surface);
+        if (playRequested) {
+            emExoPlayer.setPlayWhenReady(true);
+        }
+    }
+
+    public void onSurfaceDestroyed() {
+        emExoPlayer.blockingClearSurface();
     }
 
     /**
-     * Creates and returns the correct render builder for the specified AudioType and uri.
+     * Retrieves the user agent that the EMVideoView will use when communicating
+     * with media servers
+     *
+     * @return The String user agent for the EMVideoView
+     */
+    @NonNull
+    public String getUserAgent() {
+        return String.format(USER_AGENT_FORMAT, BuildConfig.VERSION_NAME + " (" + BuildConfig.VERSION_CODE + ")", Build.VERSION.RELEASE, Build.MODEL);
+    }
+
+    protected void setup() {
+        initExoPlayer();
+        audioCapabilitiesReceiver = new AudioCapabilitiesReceiver(context, this);
+        audioCapabilitiesReceiver.register();
+    }
+
+    protected void initExoPlayer() {
+        emExoPlayer = new EMExoPlayer(null);
+
+        emExoPlayer.setMetadataListener(internalListeners);
+        emExoPlayer.setBufferUpdateListener(internalListeners);
+    }
+
+    /**
+     * Creates and returns the correct render builder for the specified VideoType and uri.
      *
      * @param renderType The RenderType to use for creating the correct RenderBuilder
-     * @param uri The audio item's Uri
+     * @param uri The video's Uri
      * @return The appropriate RenderBuilder
      */
     protected RenderBuilder getRendererBuilder(@NonNull MediaSourceType renderType, @NonNull Uri uri) {
         switch (renderType) {
             case HLS:
-                return new HlsRenderBuilder(context, getUserAgent(), uri.toString(), drmProvider == null ? null : drmProvider.getHlsCallback(), audioStreamType);
+                return new HlsRenderBuilder(context, getUserAgent(), uri.toString(), drmProvider == null ? null : drmProvider.getHlsCallback(), AudioManager.STREAM_MUSIC);
             case DASH:
-                return new DashRenderBuilder(context, getUserAgent(), uri.toString(), drmProvider == null ? null : drmProvider.getDashCallback(), audioStreamType);
+                return new DashRenderBuilder(context, getUserAgent(), uri.toString(), drmProvider == null ? null : drmProvider.getDashCallback(), AudioManager.STREAM_MUSIC);
             case SMOOTH_STREAM:
-                return new SmoothStreamRenderBuilder(context, getUserAgent(), uri.toString(), drmProvider == null ? null : drmProvider.getSmoothStreamCallback(), audioStreamType);
+                return new SmoothStreamRenderBuilder(context, getUserAgent(), uri.toString(), drmProvider == null ? null : drmProvider.getSmoothStreamCallback(), AudioManager.STREAM_MUSIC);
             default:
-                return new RenderBuilder(context, getUserAgent(), uri.toString(), drmProvider == null ? null : drmProvider.getDefaultCallback(), audioStreamType);
+                return new RenderBuilder(context, getUserAgent(), uri.toString(), drmProvider == null ? null : drmProvider.getDefaultCallback(), AudioManager.STREAM_MUSIC);
         }
-    }
-
-    /**
-     * Retrieves the user agent that the EMAudioPlayer will use when communicating
-     * with media servers
-     *
-     * @return The String user agent for the EMAudioPlayer
-     */
-    @NonNull
-    protected String getUserAgent() {
-        return String.format(USER_AGENT_FORMAT, BuildConfig.VERSION_NAME + " (" + BuildConfig.VERSION_CODE + ")", Build.VERSION.RELEASE, Build.MODEL);
     }
 
     protected class InternalListeners implements Id3MetadataListener, OnBufferUpdateListener {

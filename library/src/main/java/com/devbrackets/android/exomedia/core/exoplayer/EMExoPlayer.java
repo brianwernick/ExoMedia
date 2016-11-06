@@ -188,11 +188,6 @@ public class EMExoPlayer implements
         }
     }
 
-    // STOP todo
-    //  * 100% buffered
-    //  * No media (or stopped, etc.)
-    // Start
-    //  * Media is added and prepared
     public void setBufferUpdateListener(@Nullable OnBufferUpdateListener listener) {
         this.bufferUpdateListener = listener;
         setBufferRepeaterStarted(listener != null);
@@ -249,7 +244,7 @@ public class EMExoPlayer implements
         }
 
         Map<Integer, List<MediaFormat>> trackMap = new ArrayMap<>();
-        int[] trackTypes = new int[] {RENDER_AUDIO, RENDER_VIDEO, RENDER_CLOSED_CAPTION, RENDER_TIMED_METADATA};
+        int[] trackTypes = new int[]{RENDER_AUDIO, RENDER_VIDEO, RENDER_CLOSED_CAPTION, RENDER_TIMED_METADATA};
 
         //Populates the map with all available tracks
         for (int type : trackTypes) {

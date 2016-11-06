@@ -24,7 +24,7 @@ repositories {
 }
 
 dependencies {
-    compile 'com.devbrackets.android:exomedia:3.0.5'
+    compile 'com.devbrackets.android:exomedia:3.1.0'
 }
 ```
 
@@ -96,6 +96,6 @@ Attribution
  [CTS]: https://source.android.com/compatibility/cts/index.html
  [Design Icons]: https://github.com/google/material-design-icons
  [ExoPlayer]: https://github.com/google/ExoPlayer
- [Java Docs]: https://devbrackets.com/dev/libs/docs/exomedia/3.0.0/index.html
+ [Java Docs]: https://devbrackets.com/dev/libs/docs/exomedia/3.1.0/index.html
  [JCenter]: https://bintray.com/brianwernick/maven/ExoMedia/view#files
  [Website]: https://devbrackets.com/dev/libs/exomedia.html

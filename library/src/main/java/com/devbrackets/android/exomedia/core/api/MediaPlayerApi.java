@@ -45,7 +45,8 @@ public interface MediaPlayerApi {
 
     /**
      * Sets the {@link DrmProvider} to use when handling DRM for media.
-     * This should be called before specifying the data source<br />
+     * This should be called before specifying the data source
+     * <br>
      * <b>NOTE:</b> DRM is only supported on API 18 +
      *
      * @param drmProvider The provider to use when handling DRM media

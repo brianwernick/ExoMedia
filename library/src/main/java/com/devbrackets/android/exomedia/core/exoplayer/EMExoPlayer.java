@@ -167,6 +167,12 @@ public class EMExoPlayer implements
 
     public void replaceRenderBuilder(@Nullable RenderBuilder renderBuilder) {
         this.rendererBuilder = renderBuilder;
+
+        if (audioCapabilitiesReceiver != null) {
+            audioCapabilitiesReceiver.unregister();
+            audioCapabilitiesReceiver = null;
+        }
+
         if (rendererBuilder != null && audioCapabilities == null) {
             audioCapabilitiesReceiver = new AudioCapabilitiesReceiver(rendererBuilder.getContext(), this);
             audioCapabilitiesReceiver.register();

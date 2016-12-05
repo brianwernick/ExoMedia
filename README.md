@@ -92,7 +92,6 @@ Attribution
 * Uses [Material Design icons][Design Icons] licensed under [Apache 2.0][Apache 2.0]
 
  [Apache 2.0]: http://www.apache.org/licenses/LICENSE-2.0
- [CC 4.0]: http://creativecommons.org/licenses/by/4.0/
  [CTS]: https://source.android.com/compatibility/cts/index.html
  [Design Icons]: https://github.com/google/material-design-icons
  [ExoPlayer]: https://github.com/google/ExoPlayer

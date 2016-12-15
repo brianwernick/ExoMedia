@@ -12,10 +12,10 @@ def libraryVersion = "${versionMajor}.${versionMinor}.${versionPatch}" // releas
 
 dependencies {
     // Android
-    compile 'com.android.support:appcompat-v7:25.0.1' // includes support-v4
+    compile 'com.android.support:appcompat-v7:25.1.0' // includes support-v4
 
     // ExoPlayer
-    compile 'com.google.android.exoplayer:exoplayer:r1.5.12'
+    compile 'com.google.android.exoplayer:exoplayer:r1.5.13'
 
     //Android unit tests
     androidTestCompile 'com.android.support.test:runner:0.5'
@@ -24,7 +24,7 @@ dependencies {
 
 android {
     compileSdkVersion 25
-    buildToolsVersion '25.0.1'
+    buildToolsVersion '25.0.2'
 
     defaultConfig {
         minSdkVersion 14

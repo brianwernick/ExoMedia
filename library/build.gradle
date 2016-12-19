@@ -5,7 +5,6 @@ apply plugin: 'com.novoda.bintray-release'
 def versionMajor = 3
 def versionMinor = 1
 def versionPatch = 0
-def versionBuild = 1
 
 def libraryGroupId = 'com.devbrackets.android'
 def libraryBaseName = 'exomedia'
@@ -31,7 +30,7 @@ android {
         minSdkVersion 14
         targetSdkVersion 25
 
-        versionCode versionMajor * 10000 + versionMinor * 1000 + versionPatch * 100 + versionBuild
+        versionCode versionMajor * 10000 + versionMinor * 1000 + versionPatch * 100
         versionName "${versionMajor}.${versionMinor}.${versionPatch}"
 
         vectorDrawables.useSupportLibrary = true

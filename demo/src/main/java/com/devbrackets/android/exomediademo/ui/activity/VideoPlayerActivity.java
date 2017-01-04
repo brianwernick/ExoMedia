@@ -4,7 +4,9 @@ import android.app.Activity;
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.v4.view.ViewPager;
 import android.support.v7.app.AlertDialog;
+import android.view.View;
 
 import com.devbrackets.android.exomedia.ui.widget.EMVideoView;
 import com.devbrackets.android.exomediademo.App;
@@ -111,6 +113,14 @@ public class VideoPlayerActivity extends Activity implements PlaylistListener<Me
 
         playlistManager.setVideoPlayer(new VideoApi(emVideoView));
         playlistManager.play(0, false);
+
+        findViewById(R.id.testButton).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                int width = emVideoView.getLayoutParams().width;
+                emVideoView.getLayoutParams().width = width == 750 ? ViewPager.LayoutParams.MATCH_PARENT : 750;
+            }
+        });
     }
 
     protected void showErrorMessage() {

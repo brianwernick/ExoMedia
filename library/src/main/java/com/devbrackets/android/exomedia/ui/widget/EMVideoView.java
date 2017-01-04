@@ -963,7 +963,7 @@ public class EMVideoView extends RelativeLayout {
             apiImplResourceId = useSurfaceViewBacking ? R.layout.exomedia_default_exo_surface_video_view : R.layout.exomedia_default_exo_texture_video_view;
             apiImplLegacyResourceId = useSurfaceViewBacking ? R.layout.exomedia_default_native_surface_video_view : R.layout.exomedia_default_native_texture_video_view;
 
-            apiImplResourceId = typedArray.getResourceId(R.styleable.EMVideoView_videoViewApiImplLegacy, apiImplResourceId);
+            apiImplResourceId = typedArray.getResourceId(R.styleable.EMVideoView_videoViewApiImpl, apiImplResourceId);
             apiImplLegacyResourceId = typedArray.getResourceId(R.styleable.EMVideoView_videoViewApiImplLegacy, apiImplLegacyResourceId);
 
             typedArray.recycle();

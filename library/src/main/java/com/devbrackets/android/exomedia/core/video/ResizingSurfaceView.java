@@ -113,7 +113,7 @@ public class ResizingSurfaceView extends SurfaceView implements ClearableSurface
     @IntRange(from = 0, to = 359)
     protected int requestedConfigurationRotation = 0;
 
-    protected boolean measureBasedOnAspectRatio = true;
+    protected boolean measureBasedOnAspectRatio;
 
     public ResizingSurfaceView(Context context) {
         super(context);

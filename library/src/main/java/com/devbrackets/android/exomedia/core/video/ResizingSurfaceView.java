@@ -358,6 +358,8 @@ public class ResizingSurfaceView extends SurfaceView implements ClearableSurface
         lastNotifiedSize.x = width;
         lastNotifiedSize.y = height;
 
+        updateMatrixOnLayout();
+
         if (onSizeChangeListener != null) {
             onSizeChangeListener.onVideoSurfaceSizeChange(width, height);
         }

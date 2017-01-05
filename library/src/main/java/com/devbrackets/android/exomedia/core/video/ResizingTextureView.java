@@ -366,6 +366,8 @@ public class ResizingTextureView extends TextureView implements ClearableSurface
         lastNotifiedSize.x = width;
         lastNotifiedSize.y = height;
 
+        updateMatrixOnLayout();
+
         if (onSizeChangeListener != null) {
             onSizeChangeListener.onVideoSurfaceSizeChange(width, height);
         }

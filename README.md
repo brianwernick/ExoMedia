@@ -24,7 +24,7 @@ repositories {
 }
 
 dependencies {
-    compile 'com.devbrackets.android:exomedia:3.1.0'
+    compile 'com.devbrackets.android:exomedia:3.1.1'
 }
 ```
 
@@ -70,7 +70,7 @@ public void onPrepared() {
 License
 -------
 
-    Copyright 2016 Brian Wernick
+    Copyright 2017 Brian Wernick
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.

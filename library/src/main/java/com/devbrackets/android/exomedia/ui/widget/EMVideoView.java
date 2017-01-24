@@ -538,6 +538,16 @@ public class EMVideoView extends RelativeLayout {
     }
 
     /**
+     * Sets the playback speed for this MediaPlayer.
+     *
+     * @param speed The speed to play the media back at
+     * @return True if the speed was set
+     */
+    public boolean setPlaybackSpeed(float speed) {
+        return videoViewImpl.setPlaybackSpeed(speed);
+    }
+
+    /**
      * Determines if the current video player implementation supports
      * track selection for audio or video tracks.
      *

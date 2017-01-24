@@ -196,6 +196,11 @@ public class ExoMediaPlayer implements MediaPlayerApi {
     }
 
     @Override
+    public boolean setPlaybackSpeed(float speed) {
+        return emExoPlayer.setPlaybackSpeed(speed);
+    }
+
+    @Override
     public void setAudioStreamType(int streamType) {
         this.audioStreamType = streamType;
     }

@@ -99,6 +99,14 @@ public interface VideoViewApi {
     @IntRange(from = 0, to = 100)
     int getBufferedPercent();
 
+    /**
+     * Sets the playback speed for this MediaPlayer.
+     *
+     * @param speed The speed to play the media back at
+     * @return True if the speed was set
+     */
+    boolean setPlaybackSpeed(float speed);
+
     boolean trackSelectionAvailable();
 
     void setTrack(@TrackRenderType int trackType, int trackIndex);

@@ -193,6 +193,10 @@ public class ExoVideoDelegate implements AudioCapabilitiesReceiver.Listener {
         return emExoPlayer.getAvailableTracks();
     }
 
+    public boolean setPlaybackSpeed(float speed) {
+        return emExoPlayer.setPlaybackSpeed(speed);
+    }
+
     public void release() {
         emExoPlayer.release();
 

@@ -94,6 +94,14 @@ public interface MediaPlayerApi {
     int getAudioSessionId();
 
     /**
+     * Sets the playback speed for this MediaPlayer.
+     *
+     * @param speed The speed to play the media back at
+     * @return True if the speed was set
+     */
+    boolean setPlaybackSpeed(float speed);
+
+    /**
      * Sets the audio stream type for this MediaPlayer. See {@link AudioManager}
      * for a list of stream types. Must call this method before prepare() or
      * prepareAsync() in order for the target stream type to become effective

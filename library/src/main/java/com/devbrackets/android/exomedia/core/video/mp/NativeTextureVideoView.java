@@ -203,6 +203,11 @@ public class NativeTextureVideoView extends ResizingTextureView implements Media
     }
 
     @Override
+    public boolean setPlaybackSpeed(float speed) {
+        return delegate.setPlaybackSpeed(speed);
+    }
+
+    @Override
     public boolean trackSelectionAvailable() {
         return false;
     }

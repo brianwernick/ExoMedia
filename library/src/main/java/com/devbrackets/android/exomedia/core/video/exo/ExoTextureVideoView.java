@@ -137,6 +137,11 @@ public class ExoTextureVideoView extends ResizingTextureView implements VideoVie
     }
 
     @Override
+    public boolean setPlaybackSpeed(float speed) {
+        return delegate.setPlaybackSpeed(speed);
+    }
+
+    @Override
     public boolean trackSelectionAvailable() {
         return delegate.trackSelectionAvailable();
     }

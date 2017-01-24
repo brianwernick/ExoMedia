@@ -21,6 +21,8 @@ import android.Manifest;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.media.MediaCodec;
+import android.media.PlaybackParams;
+import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.PowerManager;
@@ -412,6 +414,24 @@ public class EMExoPlayer implements
         }
 
         return 0;
+    }
+
+    public boolean setPlaybackSpeed(float speed) {
+        if (audioRenderer == null) {
+            return false;
+        }
+
+        // Marshmallow+ support setting the playback speed natively
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            PlaybackParams params = new PlaybackParams();
+            params.setSpeed(speed);
+
+            player.sendMessage(audioRenderer, MediaCodecAudioTrackRenderer.MSG_SET_PLAYBACK_PARAMS, params);
+            return true;
+        }
+
+        //TODO: backwards compatibility for playback speed (EMExoPlayer)
+        return false;
     }
 
     public long getCurrentPosition() {

@@ -19,7 +19,9 @@ package com.devbrackets.android.exomedia.core.video.mp;
 import android.content.Context;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
+import android.media.PlaybackParams;
 import android.net.Uri;
+import android.os.Build;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Log;
@@ -177,6 +179,19 @@ public class NativeVideoDelegate implements MediaController.MediaPlayerControl {
     @Override
     public int getAudioSessionId() {
         return mediaPlayer.getAudioSessionId();
+    }
+
+    public boolean setPlaybackSpeed(float speed) {
+        // Marshmallow+ support setting the playback speed natively
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            PlaybackParams params = new PlaybackParams();
+            params.setSpeed(speed);
+
+            mediaPlayer.setPlaybackParams(params);
+            return true;
+        }
+
+        return false;
     }
 
     /**

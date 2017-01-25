@@ -2,7 +2,7 @@ package com.devbrackets.android.exomedia.util;
 
 import android.support.annotation.Nullable;
 
-import com.google.android.exoplayer.drm.MediaDrmCallback;
+import com.google.android.exoplayer2.drm.MediaDrmCallback;
 
 /**
  * Provides the appropriate DRM callbacks based on incoming information

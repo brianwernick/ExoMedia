@@ -26,22 +26,16 @@ import android.support.annotation.IntRange;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
-import com.devbrackets.android.exomedia.BuildConfig;
-import com.devbrackets.android.exomedia.annotation.TrackRenderType;
+import com.devbrackets.android.exomedia.ExoMedia;
 import com.devbrackets.android.exomedia.core.EMListenerMux;
 import com.devbrackets.android.exomedia.core.api.MediaPlayerApi;
-import com.devbrackets.android.exomedia.core.builder.DashRenderBuilder;
-import com.devbrackets.android.exomedia.core.builder.HlsRenderBuilder;
-import com.devbrackets.android.exomedia.core.builder.RenderBuilder;
-import com.devbrackets.android.exomedia.core.builder.SmoothStreamRenderBuilder;
 import com.devbrackets.android.exomedia.core.exoplayer.EMExoPlayer;
-import com.devbrackets.android.exomedia.core.listener.Id3MetadataListener;
+import com.devbrackets.android.exomedia.core.listener.MetadataListener;
 import com.devbrackets.android.exomedia.listener.OnBufferUpdateListener;
-import com.devbrackets.android.exomedia.type.MediaSourceType;
 import com.devbrackets.android.exomedia.util.DrmProvider;
-import com.devbrackets.android.exomedia.util.MediaSourceUtil;
-import com.google.android.exoplayer.MediaFormat;
-import com.google.android.exoplayer.metadata.id3.Id3Frame;
+import com.google.android.exoplayer2.metadata.Metadata;
+import com.google.android.exoplayer2.source.MediaSource;
+import com.google.android.exoplayer2.source.TrackGroupArray;
 
 import java.util.List;
 import java.util.Map;
@@ -52,8 +46,6 @@ import java.util.Map;
  */
 @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
 public class ExoMediaPlayer implements MediaPlayerApi {
-    protected static final String USER_AGENT_FORMAT = "EMAudioPlayer %s / Android %s / %s";
-
     protected EMExoPlayer emExoPlayer;
 
     protected Context context;
@@ -70,24 +62,26 @@ public class ExoMediaPlayer implements MediaPlayerApi {
     public ExoMediaPlayer(@NonNull Context context) {
         this.context = context;
 
-        emExoPlayer = new EMExoPlayer(null);
+        emExoPlayer = new EMExoPlayer(context);
         emExoPlayer.setMetadataListener(internalListeners);
         emExoPlayer.setBufferUpdateListener(internalListeners);
     }
 
     @Override
     public void setDataSource(@NonNull Context context, @Nullable Uri uri) {
-        RenderBuilder builder = uri == null ? null : getRendererBuilder(MediaSourceUtil.getType(uri), uri);
-        setDataSource(context, uri, builder);
+        setDataSource(context, uri, null);
     }
 
     @Override
-    public void setDataSource(Context context, @Nullable Uri uri, @Nullable RenderBuilder renderBuilder) {
-        if (uri == null) {
-            emExoPlayer.replaceRenderBuilder(null);
-        } else {
-            emExoPlayer.replaceRenderBuilder(renderBuilder);
+    public void setDataSource(@NonNull Context context, @Nullable Uri uri, @Nullable MediaSource mediaSource) {
+        if (mediaSource != null) {
+            emExoPlayer.setMediaSource(mediaSource);
             listenerMux.setNotifiedCompleted(false);
+        } else if (uri != null) {
+            emExoPlayer.setUri(uri);
+            listenerMux.setNotifiedCompleted(false);
+        } else {
+            emExoPlayer.setMediaSource(null);
         }
 
         //Makes sure the listeners get the onPrepared callback
@@ -216,13 +210,13 @@ public class ExoMediaPlayer implements MediaPlayerApi {
     }
 
     @Override
-    public void setTrack(@TrackRenderType int trackType, int trackIndex) {
-        emExoPlayer.setSelectedTrack(trackType, trackIndex);
+    public void setTrack(ExoMedia.RendererType type, int trackIndex) {
+        emExoPlayer.setSelectedTrack(type, trackIndex);
     }
 
     @Nullable
     @Override
-    public Map<Integer, List<MediaFormat>> getAvailableTracks() {
+    public Map<ExoMedia.RendererType, TrackGroupArray> getAvailableTracks() {
         return emExoPlayer.getAvailableTracks();
     }
 
@@ -237,41 +231,10 @@ public class ExoMediaPlayer implements MediaPlayerApi {
         //Purposefully left blank
     }
 
-    /**
-     * Creates and returns the correct render builder for the specified AudioType and uri.
-     *
-     * @param renderType The RenderType to use for creating the correct RenderBuilder
-     * @param uri The audio item's Uri
-     * @return The appropriate RenderBuilder
-     */
-    protected RenderBuilder getRendererBuilder(@NonNull MediaSourceType renderType, @NonNull Uri uri) {
-        switch (renderType) {
-            case HLS:
-                return new HlsRenderBuilder(context, getUserAgent(), uri.toString(), drmProvider == null ? null : drmProvider.getHlsCallback(), audioStreamType);
-            case DASH:
-                return new DashRenderBuilder(context, getUserAgent(), uri.toString(), drmProvider == null ? null : drmProvider.getDashCallback(), audioStreamType);
-            case SMOOTH_STREAM:
-                return new SmoothStreamRenderBuilder(context, getUserAgent(), uri.toString(), drmProvider == null ? null : drmProvider.getSmoothStreamCallback(), audioStreamType);
-            default:
-                return new RenderBuilder(context, getUserAgent(), uri.toString(), drmProvider == null ? null : drmProvider.getDefaultCallback(), audioStreamType);
-        }
-    }
-
-    /**
-     * Retrieves the user agent that the EMAudioPlayer will use when communicating
-     * with media servers
-     *
-     * @return The String user agent for the EMAudioPlayer
-     */
-    @NonNull
-    protected String getUserAgent() {
-        return String.format(USER_AGENT_FORMAT, BuildConfig.VERSION_NAME + " (" + BuildConfig.VERSION_CODE + ")", Build.VERSION.RELEASE, Build.MODEL);
-    }
-
-    protected class InternalListeners implements Id3MetadataListener, OnBufferUpdateListener {
+    protected class InternalListeners implements MetadataListener, OnBufferUpdateListener {
         @Override
-        public void onId3Metadata(List<Id3Frame> metadata) {
-            listenerMux.onId3Metadata(metadata);
+        public void onMetadata(Metadata metadata) {
+            listenerMux.onMetadata(metadata);
         }
 
         @Override

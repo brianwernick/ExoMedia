@@ -30,13 +30,13 @@ import android.view.MotionEvent;
 import android.view.Surface;
 import android.widget.MediaController;
 
-import com.devbrackets.android.exomedia.annotation.TrackRenderType;
+import com.devbrackets.android.exomedia.ExoMedia;
 import com.devbrackets.android.exomedia.core.EMListenerMux;
 import com.devbrackets.android.exomedia.core.api.VideoViewApi;
-import com.devbrackets.android.exomedia.core.builder.RenderBuilder;
 import com.devbrackets.android.exomedia.core.video.ResizingTextureView;
 import com.devbrackets.android.exomedia.util.DrmProvider;
-import com.google.android.exoplayer.MediaFormat;
+import com.google.android.exoplayer2.source.MediaSource;
+import com.google.android.exoplayer2.source.TrackGroupArray;
 
 import java.util.List;
 import java.util.Map;
@@ -168,7 +168,7 @@ public class NativeTextureVideoView extends ResizingTextureView implements Media
     }
 
     @Override
-    public void setVideoUri(@Nullable Uri uri, @Nullable RenderBuilder renderBuilder) {
+    public void setVideoUri(@Nullable Uri uri, @Nullable MediaSource mediaSource) {
         setVideoURI(uri);
     }
 
@@ -213,13 +213,13 @@ public class NativeTextureVideoView extends ResizingTextureView implements Media
     }
 
     @Override
-    public void setTrack(@TrackRenderType int trackType, int trackIndex) {
+    public void setTrack(ExoMedia.RendererType trackType, int trackIndex) {
         //Purposefully left blank
     }
 
     @Nullable
     @Override
-    public Map<Integer, List<MediaFormat>> getAvailableTracks() {
+    public Map<ExoMedia.RendererType, TrackGroupArray> getAvailableTracks() {
         return null;
     }
 

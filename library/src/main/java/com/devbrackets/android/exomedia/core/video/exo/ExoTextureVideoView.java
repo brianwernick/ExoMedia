@@ -19,6 +19,7 @@ package com.devbrackets.android.exomedia.core.video.exo;
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.graphics.SurfaceTexture;
+import android.media.MediaFormat;
 import android.net.Uri;
 import android.os.Build;
 import android.support.annotation.FloatRange;
@@ -27,13 +28,13 @@ import android.support.annotation.Nullable;
 import android.util.AttributeSet;
 import android.view.Surface;
 
-import com.devbrackets.android.exomedia.annotation.TrackRenderType;
+import com.devbrackets.android.exomedia.ExoMedia;
 import com.devbrackets.android.exomedia.core.EMListenerMux;
 import com.devbrackets.android.exomedia.core.api.VideoViewApi;
-import com.devbrackets.android.exomedia.core.builder.RenderBuilder;
 import com.devbrackets.android.exomedia.core.video.ResizingTextureView;
 import com.devbrackets.android.exomedia.util.DrmProvider;
-import com.google.android.exoplayer.MediaFormat;
+import com.google.android.exoplayer2.source.MediaSource;
+import com.google.android.exoplayer2.source.TrackGroupArray;
 
 import java.util.List;
 import java.util.Map;
@@ -72,8 +73,8 @@ public class ExoTextureVideoView extends ResizingTextureView implements VideoVie
     }
 
     @Override
-    public void setVideoUri(@Nullable Uri uri, @Nullable RenderBuilder renderBuilder) {
-        delegate.setVideoUri(uri, renderBuilder);
+    public void setVideoUri(@Nullable Uri uri, @Nullable MediaSource mediaSource) {
+        delegate.setVideoUri(uri, mediaSource);
     }
 
     @Override
@@ -147,13 +148,13 @@ public class ExoTextureVideoView extends ResizingTextureView implements VideoVie
     }
 
     @Override
-    public void setTrack(@TrackRenderType int trackType, int trackIndex) {
+    public void setTrack(ExoMedia.RendererType trackType, int trackIndex) {
         delegate.setTrack(trackType, trackIndex);
     }
 
     @Nullable
     @Override
-    public Map<Integer, List<MediaFormat>> getAvailableTracks() {
+    public Map<ExoMedia.RendererType, TrackGroupArray> getAvailableTracks() {
         return delegate.getAvailableTracks();
     }
 
@@ -172,16 +173,6 @@ public class ExoTextureVideoView extends ResizingTextureView implements VideoVie
         if (updateVideoSize(width, height)) {
             requestLayout();
         }
-    }
-
-    /**
-     * Retrieves the user agent that the EMVideoView will use when communicating
-     * with media servers
-     *
-     * @return The String user agent for the EMVideoView
-     */
-    public String getUserAgent() {
-        return delegate.getUserAgent();
     }
 
     protected void setup() {

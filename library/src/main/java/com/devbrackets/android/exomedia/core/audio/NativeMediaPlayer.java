@@ -21,15 +21,16 @@ import android.media.MediaPlayer;
 import android.media.PlaybackParams;
 import android.net.Uri;
 import android.os.Build;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
-import com.devbrackets.android.exomedia.annotation.TrackRenderType;
+import com.devbrackets.android.exomedia.ExoMedia;
 import com.devbrackets.android.exomedia.core.EMListenerMux;
 import com.devbrackets.android.exomedia.core.api.MediaPlayerApi;
-import com.devbrackets.android.exomedia.core.builder.RenderBuilder;
 import com.devbrackets.android.exomedia.util.DrmProvider;
-import com.google.android.exoplayer.MediaFormat;
+import com.google.android.exoplayer2.source.MediaSource;
+import com.google.android.exoplayer2.source.TrackGroupArray;
 
 import java.util.List;
 import java.util.Map;
@@ -58,12 +59,12 @@ public class NativeMediaPlayer extends MediaPlayer implements MediaPlayerApi, Me
     }
 
     @Override
-    public void setDataSource(Context context, Uri uri) {
-        setDataSource(context, uri, (RenderBuilder) null);
+    public void setDataSource(@NonNull Context context, @Nullable Uri uri) {
+        setDataSource(context, uri, (MediaSource) null);
     }
 
     @Override
-    public void setDataSource(Context context, Uri uri, RenderBuilder renderBuilder) {
+    public void setDataSource(@NonNull Context context, @Nullable Uri uri, @Nullable MediaSource mediaSource) {
         try {
             requestedSeek = 0;
             super.setDataSource(context, uri);
@@ -167,13 +168,13 @@ public class NativeMediaPlayer extends MediaPlayer implements MediaPlayerApi, Me
     }
 
     @Override
-    public void setTrack(@TrackRenderType int trackType, int trackIndex) {
+    public void setTrack(ExoMedia.RendererType trackType, int trackIndex) {
         //Purposefully left blank
     }
 
     @Nullable
     @Override
-    public Map<Integer, List<MediaFormat>> getAvailableTracks() {
+    public Map<ExoMedia.RendererType, TrackGroupArray> getAvailableTracks() {
         return null;
     }
 

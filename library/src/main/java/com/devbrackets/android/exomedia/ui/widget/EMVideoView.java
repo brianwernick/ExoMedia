@@ -38,13 +38,12 @@ import android.view.ViewStub;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 
+import com.devbrackets.android.exomedia.ExoMedia;
 import com.devbrackets.android.exomedia.R;
-import com.devbrackets.android.exomedia.annotation.TrackRenderType;
 import com.devbrackets.android.exomedia.core.EMListenerMux;
 import com.devbrackets.android.exomedia.core.api.VideoViewApi;
-import com.devbrackets.android.exomedia.core.builder.RenderBuilder;
 import com.devbrackets.android.exomedia.core.exoplayer.EMExoPlayer;
-import com.devbrackets.android.exomedia.core.listener.Id3MetadataListener;
+import com.devbrackets.android.exomedia.core.listener.MetadataListener;
 import com.devbrackets.android.exomedia.core.video.exo.ExoTextureVideoView;
 import com.devbrackets.android.exomedia.core.video.mp.NativeTextureVideoView;
 import com.devbrackets.android.exomedia.core.video.scale.ScaleType;
@@ -56,9 +55,9 @@ import com.devbrackets.android.exomedia.listener.OnSeekCompletionListener;
 import com.devbrackets.android.exomedia.util.DeviceUtil;
 import com.devbrackets.android.exomedia.util.DrmProvider;
 import com.devbrackets.android.exomedia.util.StopWatch;
-import com.google.android.exoplayer.MediaFormat;
+import com.google.android.exoplayer2.source.MediaSource;
+import com.google.android.exoplayer2.source.TrackGroupArray;
 
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -276,11 +275,11 @@ public class EMVideoView extends RelativeLayout {
      * Sets the Uri location for the video to play
      *
      * @param uri The video's Uri
-     * @param renderBuilder RenderBuilder that should be used
+     * @param mediaSource MediaSource that should be used
      */
-    public void setVideoURI(@Nullable Uri uri, @Nullable RenderBuilder renderBuilder) {
+    public void setVideoURI(@Nullable Uri uri, @Nullable MediaSource mediaSource) {
         videoUri = uri;
-        videoViewImpl.setVideoUri(uri, renderBuilder);
+        videoViewImpl.setVideoUri(uri, mediaSource);
 
         if (videoControls != null) {
             videoControls.showLoading(true);
@@ -562,9 +561,9 @@ public class EMVideoView extends RelativeLayout {
      * <code>trackType</code>
      *
      * @param trackType The type for the track to switch to the selected index
-     * @param trackIndex The index for the track to swith to
+     * @param trackIndex The index for the track to switch to
      */
-    public void setTrack(@TrackRenderType int trackType, int trackIndex) {
+    public void setTrack(ExoMedia.RendererType trackType, int trackIndex) {
         videoViewImpl.setTrack(trackType, trackIndex);
     }
 
@@ -572,10 +571,10 @@ public class EMVideoView extends RelativeLayout {
      * Retrieves a list of available tracks to select from.  Typically {@link #trackSelectionAvailable()}
      * should be called before this.
      *
-     * @return A list of available tracks associated with each track type (see {@link com.devbrackets.android.exomedia.annotation.TrackRenderType})
+     * @return A list of available tracks associated with each track type
      */
     @Nullable
-    public Map<Integer, List<MediaFormat>> getAvailableTracks() {
+    public Map<ExoMedia.RendererType, TrackGroupArray> getAvailableTracks() {
         return videoViewImpl.getAvailableTracks();
     }
 
@@ -656,8 +655,8 @@ public class EMVideoView extends RelativeLayout {
      *
      * @param listener The listener to inform
      */
-    public void setId3MetadataListener(@Nullable Id3MetadataListener listener) {
-        listenerMux.setId3MetadataListener(listener);
+    public void setId3MetadataListener(@Nullable MetadataListener listener) {
+        listenerMux.setMetadataListener(listener);
     }
 
     /**

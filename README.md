@@ -30,19 +30,19 @@ dependencies {
 
 Example
 -------
-The EMVideoView (EM for ExoMedia) can be added in your layout files like any other Android view.
+The ExoMedia VideoView can be added in your layout files like any other Android view.
 
 ```xml
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-                xmlns:EMVideoView="http://schemas.android.com/apk/res-auto"
+                xmlns:app="http://schemas.android.com/apk/res-auto"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent">
 
-	<com.devbrackets.android.exomedia.ui.widget.EMVideoView
+	<com.devbrackets.android.exomedia.ui.widget.VideoView
 		android:id="@+id/video_view"
 		android:layout_width="match_parent"
 		android:layout_height="match_parent"
-		EMVideoView:useDefaultControls="true"/>
+		app:useDefaultControls="true"/>
 		
 </RelativeLayout>
 ```
@@ -51,8 +51,8 @@ While in your Activity or Fragment you treat it like a standard Android VideoVie
 
 ```java
 private void setupVideoView() {
-	EMVideoView emVideoView = (EMVideoView)findViewById(R.id.video_view);
-	emVideoView.setOnPreparedListener(this);
+	VideoView videoView = (VideoView)findViewById(R.id.video_view);
+	videoView.setOnPreparedListener(this);
 
     //For now we just picked an arbitrary item to play.  More can be found at
     //https://archive.org/details/more_animation
@@ -62,7 +62,7 @@ private void setupVideoView() {
 @Override
 public void onPrepared() {
 	//Starts the video playback as soon as it is ready
-	emVideoView.start();
+	videoView.start();
 }
 ```
 

@@ -6,13 +6,13 @@ import android.support.annotation.FloatRange;
 import android.support.annotation.IntRange;
 import android.support.annotation.NonNull;
 
-import com.devbrackets.android.exomedia.EMAudioPlayer;
+import com.devbrackets.android.exomedia.AudioPlayer;
 import com.devbrackets.android.playlistcore.api.AudioPlayerApi;
 
 public class AudioApi extends BaseMediaApi implements AudioPlayerApi {
-    private EMAudioPlayer audioPlayer;
+    private AudioPlayer audioPlayer;
 
-    public AudioApi(EMAudioPlayer audioPlayer) {
+    public AudioApi(AudioPlayer audioPlayer) {
         this.audioPlayer = audioPlayer;
 
         audioPlayer.setOnErrorListener(this);

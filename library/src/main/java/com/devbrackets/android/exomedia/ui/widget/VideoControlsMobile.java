@@ -35,7 +35,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 /**
- * Provides playback controls for the EMVideoView on Mobile
+ * Provides playback controls for the {@link VideoView} on Mobile
  * (Phone, Tablet, etc.) devices.
  */
 @SuppressWarnings("unused")

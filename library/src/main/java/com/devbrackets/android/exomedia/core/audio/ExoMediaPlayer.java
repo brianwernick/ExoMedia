@@ -27,7 +27,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
 import com.devbrackets.android.exomedia.ExoMedia;
-import com.devbrackets.android.exomedia.core.EMListenerMux;
+import com.devbrackets.android.exomedia.core.ListenerMux;
 import com.devbrackets.android.exomedia.core.api.MediaPlayerApi;
 import com.devbrackets.android.exomedia.core.exoplayer.EMExoPlayer;
 import com.devbrackets.android.exomedia.core.listener.MetadataListener;
@@ -37,7 +37,6 @@ import com.google.android.exoplayer2.metadata.Metadata;
 import com.google.android.exoplayer2.source.MediaSource;
 import com.google.android.exoplayer2.source.TrackGroupArray;
 
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -49,7 +48,7 @@ public class ExoMediaPlayer implements MediaPlayerApi {
     protected EMExoPlayer emExoPlayer;
 
     protected Context context;
-    protected EMListenerMux listenerMux;
+    protected ListenerMux listenerMux;
     protected boolean playRequested = false;
 
     @Nullable
@@ -221,7 +220,7 @@ public class ExoMediaPlayer implements MediaPlayerApi {
     }
 
     @Override
-    public void setListenerMux(EMListenerMux listenerMux) {
+    public void setListenerMux(ListenerMux listenerMux) {
         this.listenerMux = listenerMux;
         emExoPlayer.addListener(listenerMux);
     }

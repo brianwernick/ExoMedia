@@ -20,16 +20,15 @@ import android.content.Context;
 import android.media.AudioManager;
 import android.net.Uri;
 import android.support.annotation.FloatRange;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
-import com.devbrackets.android.exomedia.annotation.TrackRenderType;
 import com.devbrackets.android.exomedia.core.EMListenerMux;
 import com.devbrackets.android.exomedia.core.api.MediaPlayerApi;
 import com.devbrackets.android.exomedia.core.audio.ExoMediaPlayer;
 import com.devbrackets.android.exomedia.core.audio.NativeMediaPlayer;
-import com.devbrackets.android.exomedia.core.builder.RenderBuilder;
 import com.devbrackets.android.exomedia.core.exoplayer.EMExoPlayer;
-import com.devbrackets.android.exomedia.core.listener.Id3MetadataListener;
+import com.devbrackets.android.exomedia.core.listener.MetadataListener;
 import com.devbrackets.android.exomedia.listener.OnBufferUpdateListener;
 import com.devbrackets.android.exomedia.listener.OnCompletionListener;
 import com.devbrackets.android.exomedia.listener.OnErrorListener;
@@ -37,9 +36,9 @@ import com.devbrackets.android.exomedia.listener.OnPreparedListener;
 import com.devbrackets.android.exomedia.listener.OnSeekCompletionListener;
 import com.devbrackets.android.exomedia.util.DeviceUtil;
 import com.devbrackets.android.exomedia.util.DrmProvider;
-import com.google.android.exoplayer.MediaFormat;
+import com.google.android.exoplayer2.source.MediaSource;
+import com.google.android.exoplayer2.source.TrackGroupArray;
 
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -122,7 +121,7 @@ public class EMAudioPlayer {
      * @param context The applications context that owns the media
      * @param uri The Uri representing the path to the audio item
      */
-    public void setDataSource(Context context, Uri uri) {
+    public void setDataSource(@NonNull Context context, @Nullable Uri uri) {
         mediaPlayerImpl.setDataSource(context, uri);
         overrideDuration(-1);
     }
@@ -133,10 +132,10 @@ public class EMAudioPlayer {
      *
      * @param context The applications context that owns the media
      * @param uri The Uri representing the path to the audio item
-     * @param renderBuilder The RenderBuilder to use for audio playback
+     * @param mediaSource The MediaSource to use for audio playback
      */
-    public void setDataSource(Context context, Uri uri, RenderBuilder renderBuilder) {
-        mediaPlayerImpl.setDataSource(context, uri, renderBuilder);
+    public void setDataSource(@NonNull Context context, @Nullable Uri uri, @Nullable MediaSource mediaSource) {
+        mediaPlayerImpl.setDataSource(context, uri, mediaSource);
         overrideDuration(-1);
     }
 
@@ -154,7 +153,7 @@ public class EMAudioPlayer {
 
     /**
      * Prepares the media specified with {@link #setDataSource(Context, Uri)} or
-     * {@link #setDataSource(Context, Uri, RenderBuilder)} in an asynchronous manner
+     * {@link #setDataSource(Context, Uri, MediaSource)} in an asynchronous manner
      */
     public void prepareAsync() {
         mediaPlayerImpl.prepareAsync();
@@ -311,9 +310,9 @@ public class EMAudioPlayer {
      * <code>trackType</code>
      *
      * @param trackType The type for the track to switch to the selected index
-     * @param trackIndex The index for the track to swith to
+     * @param trackIndex The index for the track to switch to
      */
-    public void setTrack(@TrackRenderType int trackType, int trackIndex) {
+    public void setTrack(ExoMedia.RendererType trackType, int trackIndex) {
         mediaPlayerImpl.setTrack(trackType, trackIndex);
     }
 
@@ -321,10 +320,10 @@ public class EMAudioPlayer {
      * Retrieves a list of available tracks to select from.  Typically {@link #trackSelectionAvailable()}
      * should be called before this.
      *
-     * @return A list of available tracks associated with each track type (see {@link com.devbrackets.android.exomedia.annotation.TrackRenderType})
+     * @return A list of available tracks associated with each track type
      */
     @Nullable
-    public Map<Integer, List<MediaFormat>> getAvailableTracks() {
+    public Map<ExoMedia.RendererType, TrackGroupArray> getAvailableTracks() {
         return mediaPlayerImpl.getAvailableTracks();
     }
 
@@ -378,8 +377,8 @@ public class EMAudioPlayer {
      *
      * @param listener The listener to inform
      */
-    public void setId3MetadataListener(@Nullable Id3MetadataListener listener) {
-        listenerMux.setId3MetadataListener(listener);
+    public void setId3MetadataListener(@Nullable MetadataListener listener) {
+        listenerMux.setMetadataListener(listener);
     }
 
     /**

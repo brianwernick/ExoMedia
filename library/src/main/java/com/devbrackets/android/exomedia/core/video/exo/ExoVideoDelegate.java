@@ -17,41 +17,31 @@
 package com.devbrackets.android.exomedia.core.video.exo;
 
 import android.content.Context;
-import android.media.AudioManager;
 import android.net.Uri;
-import android.os.Build;
 import android.support.annotation.FloatRange;
 import android.support.annotation.IntRange;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.view.Surface;
 
-import com.devbrackets.android.exomedia.BuildConfig;
-import com.devbrackets.android.exomedia.annotation.TrackRenderType;
+import com.devbrackets.android.exomedia.ExoMedia;
 import com.devbrackets.android.exomedia.core.EMListenerMux;
-import com.devbrackets.android.exomedia.core.builder.DashRenderBuilder;
-import com.devbrackets.android.exomedia.core.builder.HlsRenderBuilder;
-import com.devbrackets.android.exomedia.core.builder.RenderBuilder;
-import com.devbrackets.android.exomedia.core.builder.SmoothStreamRenderBuilder;
 import com.devbrackets.android.exomedia.core.exoplayer.EMExoPlayer;
-import com.devbrackets.android.exomedia.core.listener.Id3MetadataListener;
+import com.devbrackets.android.exomedia.core.listener.MetadataListener;
 import com.devbrackets.android.exomedia.core.video.ClearableSurface;
 import com.devbrackets.android.exomedia.listener.OnBufferUpdateListener;
-import com.devbrackets.android.exomedia.type.MediaSourceType;
 import com.devbrackets.android.exomedia.util.DrmProvider;
-import com.devbrackets.android.exomedia.util.MediaSourceUtil;
-import com.google.android.exoplayer.MediaFormat;
-import com.google.android.exoplayer.audio.AudioCapabilities;
-import com.google.android.exoplayer.audio.AudioCapabilitiesReceiver;
-import com.google.android.exoplayer.metadata.id3.Id3Frame;
+import com.google.android.exoplayer2.audio.AudioCapabilities;
+import com.google.android.exoplayer2.audio.AudioCapabilitiesReceiver;
+import com.google.android.exoplayer2.metadata.Metadata;
+import com.google.android.exoplayer2.source.MediaSource;
+import com.google.android.exoplayer2.source.TrackGroupArray;
 
 import java.util.List;
 import java.util.Map;
 
 
 public class ExoVideoDelegate implements AudioCapabilitiesReceiver.Listener {
-    protected static final String USER_AGENT_FORMAT = "EMVideoView %s / Android %s / %s";
-
     protected EMExoPlayer emExoPlayer;
     protected AudioCapabilities audioCapabilities;
     protected AudioCapabilitiesReceiver audioCapabilitiesReceiver;
@@ -82,18 +72,18 @@ public class ExoVideoDelegate implements AudioCapabilitiesReceiver.Listener {
     }
 
     public void setVideoUri(@Nullable Uri uri) {
-        RenderBuilder builder = uri == null ? null : getRendererBuilder(MediaSourceUtil.getType(uri), uri);
-        setVideoUri(uri, builder);
+        setVideoUri(uri, null);
     }
 
-    public void setVideoUri(@Nullable Uri uri, @Nullable RenderBuilder renderBuilder) {
-        playRequested = false;
-
-        if (uri == null) {
-            emExoPlayer.replaceRenderBuilder(null);
-        } else {
-            emExoPlayer.replaceRenderBuilder(renderBuilder);
+    public void setVideoUri(@Nullable Uri uri, @Nullable MediaSource mediaSource) {
+        if (mediaSource != null) {
+            emExoPlayer.setMediaSource(mediaSource);
             listenerMux.setNotifiedCompleted(false);
+        } else if (uri != null) {
+            emExoPlayer.setUri(uri);
+            listenerMux.setNotifiedCompleted(false);
+        } else {
+            emExoPlayer.setMediaSource(null);
         }
 
         //Makes sure the listeners get the onPrepared callback
@@ -184,12 +174,12 @@ public class ExoVideoDelegate implements AudioCapabilitiesReceiver.Listener {
         return true;
     }
 
-    public void setTrack(@TrackRenderType int trackType, int trackIndex) {
+    public void setTrack(ExoMedia.RendererType trackType, int trackIndex) {
         emExoPlayer.setSelectedTrack(trackType, trackIndex);
     }
 
     @Nullable
-    public Map<Integer, List<MediaFormat>> getAvailableTracks() {
+    public Map<ExoMedia.RendererType, TrackGroupArray> getAvailableTracks() {
         return emExoPlayer.getAvailableTracks();
     }
 
@@ -222,17 +212,6 @@ public class ExoVideoDelegate implements AudioCapabilitiesReceiver.Listener {
         emExoPlayer.blockingClearSurface();
     }
 
-    /**
-     * Retrieves the user agent that the EMVideoView will use when communicating
-     * with media servers
-     *
-     * @return The String user agent for the EMVideoView
-     */
-    @NonNull
-    public String getUserAgent() {
-        return String.format(USER_AGENT_FORMAT, BuildConfig.VERSION_NAME + " (" + BuildConfig.VERSION_CODE + ")", Build.VERSION.RELEASE, Build.MODEL);
-    }
-
     protected void setup() {
         initExoPlayer();
         audioCapabilitiesReceiver = new AudioCapabilitiesReceiver(context, this);
@@ -240,36 +219,16 @@ public class ExoVideoDelegate implements AudioCapabilitiesReceiver.Listener {
     }
 
     protected void initExoPlayer() {
-        emExoPlayer = new EMExoPlayer(null);
+        emExoPlayer = new EMExoPlayer(context);
 
         emExoPlayer.setMetadataListener(internalListeners);
         emExoPlayer.setBufferUpdateListener(internalListeners);
     }
 
-    /**
-     * Creates and returns the correct render builder for the specified VideoType and uri.
-     *
-     * @param renderType The RenderType to use for creating the correct RenderBuilder
-     * @param uri The video's Uri
-     * @return The appropriate RenderBuilder
-     */
-    protected RenderBuilder getRendererBuilder(@NonNull MediaSourceType renderType, @NonNull Uri uri) {
-        switch (renderType) {
-            case HLS:
-                return new HlsRenderBuilder(context, getUserAgent(), uri.toString(), drmProvider == null ? null : drmProvider.getHlsCallback(), AudioManager.STREAM_MUSIC);
-            case DASH:
-                return new DashRenderBuilder(context, getUserAgent(), uri.toString(), drmProvider == null ? null : drmProvider.getDashCallback(), AudioManager.STREAM_MUSIC);
-            case SMOOTH_STREAM:
-                return new SmoothStreamRenderBuilder(context, getUserAgent(), uri.toString(), drmProvider == null ? null : drmProvider.getSmoothStreamCallback(), AudioManager.STREAM_MUSIC);
-            default:
-                return new RenderBuilder(context, getUserAgent(), uri.toString(), drmProvider == null ? null : drmProvider.getDefaultCallback(), AudioManager.STREAM_MUSIC);
-        }
-    }
-
-    protected class InternalListeners implements Id3MetadataListener, OnBufferUpdateListener {
+    protected class InternalListeners implements MetadataListener, OnBufferUpdateListener {
         @Override
-        public void onId3Metadata(List<Id3Frame> metadata) {
-            listenerMux.onId3Metadata(metadata);
+        public void onMetadata(Metadata metadata) {
+            listenerMux.onMetadata(metadata);
         }
 
         @Override

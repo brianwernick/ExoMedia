@@ -213,7 +213,7 @@ public class VideoControlsMobile extends VideoControls {
      * Listens to the seek bar change events and correctly handles the changes
      */
     protected class SeekBarChanged implements SeekBar.OnSeekBarChangeListener {
-        private int seekToTime;
+        private long seekToTime;
 
         @Override
         public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {

@@ -64,7 +64,7 @@ public interface VideoViewApi {
 
     boolean setVolume(@FloatRange(from = 0.0, to = 1.0) float volume);
 
-    void seekTo(@IntRange(from = 0) int milliseconds);
+    void seekTo(@IntRange(from = 0) long milliseconds);
 
     boolean isPlaying();
 
@@ -90,10 +90,10 @@ public interface VideoViewApi {
     void release();
 
     @IntRange(from = 0)
-    int getDuration();
+    long getDuration();
 
     @IntRange(from = 0)
-    int getCurrentPosition();
+    long getCurrentPosition();
 
     @IntRange(from = 0, to = 100)
     int getBufferedPercent();

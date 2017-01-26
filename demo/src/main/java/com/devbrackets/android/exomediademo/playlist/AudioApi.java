@@ -74,7 +74,7 @@ public class AudioApi extends BaseMediaApi implements AudioPlayerApi {
 
     @Override
     public void setDataSource(@NonNull Context context, @NonNull Uri uri) {
-        audioPlayer.setDataSource(context, uri);
+        audioPlayer.setDataSource(uri);
     }
 
     @Override

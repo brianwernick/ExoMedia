@@ -794,7 +794,7 @@ public abstract class VideoControls extends RelativeLayout {
         }
 
         @Override
-        public boolean onSeekEnded(int seekTime) {
+        public boolean onSeekEnded(long seekTime) {
             if (videoView == null) {
                 return false;
             }

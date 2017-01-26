@@ -23,7 +23,7 @@ import android.support.annotation.FloatRange;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
-import com.devbrackets.android.exomedia.core.EMListenerMux;
+import com.devbrackets.android.exomedia.core.ListenerMux;
 import com.devbrackets.android.exomedia.core.api.MediaPlayerApi;
 import com.devbrackets.android.exomedia.core.audio.ExoMediaPlayer;
 import com.devbrackets.android.exomedia.core.audio.NativeMediaPlayer;
@@ -50,17 +50,17 @@ import java.util.Map;
  * the Android MediaPlayer provides.
  */
 @SuppressWarnings("UnusedDeclaration")
-public class EMAudioPlayer {
-    protected EMListenerMux listenerMux;
+public class AudioPlayer {
+    protected ListenerMux listenerMux;
 
     protected MediaPlayerApi mediaPlayerImpl;
     protected int overriddenDuration = -1;
 
-    public EMAudioPlayer(Context context) {
+    public AudioPlayer(Context context) {
         this(context, new DeviceUtil());
     }
 
-    public EMAudioPlayer(Context context, DeviceUtil deviceUtil) {
+    public AudioPlayer(Context context, DeviceUtil deviceUtil) {
         if (deviceUtil.supportsExoPlayer(context)) {
             mediaPlayerImpl = new ExoMediaPlayer(context);
         } else {
@@ -70,13 +70,13 @@ public class EMAudioPlayer {
         init(mediaPlayerImpl);
     }
 
-    public EMAudioPlayer(MediaPlayerApi mediaPlayerImpl) {
+    public AudioPlayer(MediaPlayerApi mediaPlayerImpl) {
         this.mediaPlayerImpl = mediaPlayerImpl;
         init(mediaPlayerImpl);
     }
 
     protected void init(MediaPlayerApi mediaPlayerImpl) {
-        listenerMux = new EMListenerMux(new MuxNotifier());
+        listenerMux = new ListenerMux(new MuxNotifier());
         mediaPlayerImpl.setListenerMux(listenerMux);
     }
 
@@ -170,9 +170,9 @@ public class EMAudioPlayer {
     }
 
     /**
-     * Set the low-level power management behavior for this EMAudioPlayer.
+     * Set the low-level power management behavior for this AudioPlayer.
      *
-     * <p>This function has the EMAudioPlayer access the low-level power manager
+     * <p>This function has the AudioPlayer access the low-level power manager
      * service to control the device's power usage while playing is occurring.
      * The parameter is a combination of {@link android.os.PowerManager} wake flags.
      * Use of this method requires {@link android.Manifest.permission#WAKE_LOCK}
@@ -200,7 +200,7 @@ public class EMAudioPlayer {
 
     /**
      * Moves the current audio progress to the specified location.
-     * This method should only be called after the EMAudioPlayer is
+     * This method should only be called after the AudioPlayer is
      * prepared. (see {@link #setOnPreparedListener(OnPreparedListener)}
      *
      * @param milliSeconds The time to move the playback to
@@ -389,7 +389,7 @@ public class EMAudioPlayer {
         pause();
     }
 
-    private class MuxNotifier extends EMListenerMux.EMListenerMuxNotifier {
+    private class MuxNotifier extends ListenerMux.Notifier {
         @Override
         public boolean shouldNotifyCompletion(long endLeeway) {
             return getCurrentPosition() + endLeeway >= getDuration();

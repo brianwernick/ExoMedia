@@ -31,14 +31,13 @@ import android.view.Surface;
 import android.widget.MediaController;
 
 import com.devbrackets.android.exomedia.ExoMedia;
-import com.devbrackets.android.exomedia.core.EMListenerMux;
+import com.devbrackets.android.exomedia.core.ListenerMux;
 import com.devbrackets.android.exomedia.core.api.VideoViewApi;
 import com.devbrackets.android.exomedia.core.video.ResizingTextureView;
 import com.devbrackets.android.exomedia.util.DrmProvider;
 import com.google.android.exoplayer2.source.MediaSource;
 import com.google.android.exoplayer2.source.TrackGroupArray;
 
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -224,7 +223,7 @@ public class NativeTextureVideoView extends ResizingTextureView implements Media
     }
 
     @Override
-    public void setListenerMux(EMListenerMux listenerMux) {
+    public void setListenerMux(ListenerMux listenerMux) {
         delegate.setListenerMux(listenerMux);
     }
 

@@ -41,7 +41,7 @@ import java.lang.ref.WeakReference;
  * Android VideoView, and the Android MediaPlayer to output to the correct
  * error listeners.
  */
-public class EMListenerMux implements ExoPlayerListener, MediaPlayer.OnPreparedListener, MediaPlayer.OnCompletionListener, MediaPlayer.OnErrorListener,
+public class ListenerMux implements ExoPlayerListener, MediaPlayer.OnPreparedListener, MediaPlayer.OnCompletionListener, MediaPlayer.OnErrorListener,
         MediaPlayer.OnBufferingUpdateListener, MediaPlayer.OnSeekCompleteListener, OnBufferUpdateListener, MetadataListener {
     //The amount of time the current position can be off the duration to call the onCompletion listener
     private static final long COMPLETED_DURATION_LEEWAY = 1000;
@@ -49,7 +49,7 @@ public class EMListenerMux implements ExoPlayerListener, MediaPlayer.OnPreparedL
     @NonNull
     private Handler delayedHandler = new Handler();
     @NonNull
-    private EMListenerMuxNotifier muxNotifier;
+    private Notifier muxNotifier;
 
     @Nullable
     private OnPreparedListener preparedListener;
@@ -71,7 +71,7 @@ public class EMListenerMux implements ExoPlayerListener, MediaPlayer.OnPreparedL
     private boolean notifiedCompleted = false;
     private boolean clearRequested = false;
 
-    public EMListenerMux(@NonNull EMListenerMuxNotifier notifier) {
+    public ListenerMux(@NonNull Notifier notifier) {
         muxNotifier = notifier;
     }
 
@@ -303,7 +303,7 @@ public class EMListenerMux implements ExoPlayerListener, MediaPlayer.OnPreparedL
         });
     }
 
-    public static abstract class EMListenerMuxNotifier {
+    public static abstract class Notifier {
         public void onSeekComplete() {
             //Purposefully left blank
         }

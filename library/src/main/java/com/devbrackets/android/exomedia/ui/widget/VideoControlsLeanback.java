@@ -34,11 +34,11 @@ import android.widget.ProgressBar;
 
 import com.devbrackets.android.exomedia.R;
 import com.devbrackets.android.exomedia.ui.animation.BottomViewHideShowAnimation;
-import com.devbrackets.android.exomedia.util.EMResourceUtil;
+import com.devbrackets.android.exomedia.util.ResourceUtil;
 import com.devbrackets.android.exomedia.util.TimeFormatUtil;
 
 /**
- * Provides playback controls for the EMVideoView on TV devices.
+ * Provides playback controls for the {@link VideoView} on TV devices.
  */
 @SuppressWarnings("unused")
 @TargetApi(Build.VERSION_CODES.LOLLIPOP)
@@ -223,10 +223,10 @@ public class VideoControlsLeanback extends VideoControls {
     protected void updateButtonDrawables() {
         super.updateButtonDrawables();
 
-        defaultRewindDrawable = EMResourceUtil.tintList(getContext(), R.drawable.exomedia_ic_rewind_white, R.color.exomedia_default_controls_button_selector);
+        defaultRewindDrawable = ResourceUtil.tintList(getContext(), R.drawable.exomedia_ic_rewind_white, R.color.exomedia_default_controls_button_selector);
         rewindButton.setImageDrawable(defaultRewindDrawable);
 
-        defaultFastForwardDrawable = EMResourceUtil.tintList(getContext(), R.drawable.exomedia_ic_fast_forward_white, R.color.exomedia_default_controls_button_selector);
+        defaultFastForwardDrawable = ResourceUtil.tintList(getContext(), R.drawable.exomedia_ic_fast_forward_white, R.color.exomedia_default_controls_button_selector);
         fastForwardButton.setImageDrawable(defaultFastForwardDrawable);
     }
 

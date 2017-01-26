@@ -24,7 +24,7 @@ import android.support.annotation.Nullable;
 import android.view.View;
 
 import com.devbrackets.android.exomedia.ExoMedia;
-import com.devbrackets.android.exomedia.core.EMListenerMux;
+import com.devbrackets.android.exomedia.core.ListenerMux;
 import com.devbrackets.android.exomedia.core.video.scale.ScaleType;
 import com.devbrackets.android.exomedia.util.DrmProvider;
 import com.google.android.exoplayer2.source.MediaSource;
@@ -135,7 +135,7 @@ public interface VideoViewApi {
 
     void setOnTouchListener(View.OnTouchListener listener);
 
-    void setListenerMux(EMListenerMux listenerMux);
+    void setListenerMux(ListenerMux listenerMux);
 
     void onVideoSizeChanged(int width, int height);
 }

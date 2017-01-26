@@ -21,15 +21,15 @@ import android.media.AudioManager;
 import android.net.Uri;
 import android.support.annotation.FloatRange;
 import android.support.annotation.IntRange;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
-import com.devbrackets.android.exomedia.annotation.TrackRenderType;
+import com.devbrackets.android.exomedia.ExoMedia;
 import com.devbrackets.android.exomedia.core.EMListenerMux;
-import com.devbrackets.android.exomedia.core.builder.RenderBuilder;
 import com.devbrackets.android.exomedia.util.DrmProvider;
-import com.google.android.exoplayer.MediaFormat;
+import com.google.android.exoplayer2.source.MediaSource;
+import com.google.android.exoplayer2.source.TrackGroupArray;
 
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -39,9 +39,9 @@ import java.util.Map;
  * using the ExoPlayer.
  */
 public interface MediaPlayerApi {
-    void setDataSource(Context context, Uri uri);
+    void setDataSource(@NonNull Context context, @Nullable Uri uri);
 
-    void setDataSource(Context context, Uri uri, RenderBuilder renderBuilder);
+    void setDataSource(@NonNull Context context, @Nullable Uri uri, @Nullable MediaSource mediaSource);
 
     /**
      * Sets the {@link DrmProvider} to use when handling DRM for media.
@@ -55,7 +55,7 @@ public interface MediaPlayerApi {
 
     /**
      * Prepares the media specified with {@link #setDataSource(Context, Uri)} or
-     * {@link #setDataSource(Context, Uri, RenderBuilder)} in an asynchronous manner
+     * {@link #setDataSource(Context, Uri, MediaSource)} in an asynchronous manner
      */
     void prepareAsync();
 
@@ -114,16 +114,16 @@ public interface MediaPlayerApi {
 
     boolean trackSelectionAvailable();
 
-    void setTrack(@TrackRenderType int trackType, int trackIndex);
+    void setTrack(ExoMedia.RendererType type, int trackIndex);
 
     /**
      * Retrieves a list of available tracks to select from.  Typically {@link #trackSelectionAvailable()}
      * should be called before this.
      *
-     * @return A list of available tracks associated with each track type (see {@link com.devbrackets.android.exomedia.annotation.TrackRenderType})
+     * @return A list of available tracks associated with each track type
      */
     @Nullable
-    Map<Integer, List<MediaFormat>> getAvailableTracks();
+    Map<ExoMedia.RendererType, TrackGroupArray> getAvailableTracks();
 
     void setVolume(@FloatRange(from = 0.0, to = 1.0) float left, @FloatRange(from = 0.0, to = 1.0) float right);
 

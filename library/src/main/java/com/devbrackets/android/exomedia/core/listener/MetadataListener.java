@@ -17,13 +17,16 @@
 
 package com.devbrackets.android.exomedia.core.listener;
 
-import com.google.android.exoplayer.metadata.id3.Id3Frame;
-
-import java.util.List;
+import com.google.android.exoplayer2.metadata.Metadata;
 
 /**
  * A listener for receiving ID3 metadata parsed from the media stream.
  */
-public interface Id3MetadataListener {
-    void onId3Metadata(List<Id3Frame> metadata);
+public interface MetadataListener {
+    /**
+     * Called each time there is a metadata associated with current playback time.
+     *
+     * @param metadata The metadata.
+     */
+    void onMetadata(Metadata metadata);
 }

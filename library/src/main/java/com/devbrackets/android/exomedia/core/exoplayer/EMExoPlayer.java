@@ -20,11 +20,10 @@ package com.devbrackets.android.exomedia.core.exoplayer;
 import android.Manifest;
 import android.content.Context;
 import android.content.pm.PackageManager;
-import android.media.MediaCodec;
 import android.media.PlaybackParams;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Handler;
-import android.os.Looper;
 import android.os.PowerManager;
 import android.support.annotation.FloatRange;
 import android.support.annotation.NonNull;
@@ -34,100 +33,84 @@ import android.support.v4.util.ArrayMap;
 import android.util.Log;
 import android.view.Surface;
 
-import com.devbrackets.android.exomedia.annotation.TrackRenderType;
-import com.devbrackets.android.exomedia.core.builder.RenderBuilder;
+import com.devbrackets.android.exomedia.ExoMedia.RendererType;
 import com.devbrackets.android.exomedia.core.listener.CaptionListener;
 import com.devbrackets.android.exomedia.core.listener.ExoPlayerListener;
-import com.devbrackets.android.exomedia.core.listener.Id3MetadataListener;
-import com.devbrackets.android.exomedia.core.listener.InfoListener;
 import com.devbrackets.android.exomedia.core.listener.InternalErrorListener;
-import com.devbrackets.android.exomedia.core.renderer.EMMediaCodecAudioTrackRenderer;
+import com.devbrackets.android.exomedia.core.listener.MetadataListener;
+import com.devbrackets.android.exomedia.core.renderer.RendererProvider;
+import com.devbrackets.android.exomedia.core.source.MediaSourceProvider;
 import com.devbrackets.android.exomedia.listener.OnBufferUpdateListener;
 import com.devbrackets.android.exomedia.util.Repeater;
-import com.google.android.exoplayer.DummyTrackRenderer;
-import com.google.android.exoplayer.ExoPlaybackException;
-import com.google.android.exoplayer.ExoPlayer;
-import com.google.android.exoplayer.MediaCodecAudioTrackRenderer;
-import com.google.android.exoplayer.MediaCodecTrackRenderer;
-import com.google.android.exoplayer.MediaCodecVideoTrackRenderer;
-import com.google.android.exoplayer.MediaFormat;
-import com.google.android.exoplayer.TimeRange;
-import com.google.android.exoplayer.TrackRenderer;
-import com.google.android.exoplayer.audio.AudioCapabilities;
-import com.google.android.exoplayer.audio.AudioCapabilitiesReceiver;
-import com.google.android.exoplayer.audio.AudioTrack;
-import com.google.android.exoplayer.chunk.ChunkSampleSource;
-import com.google.android.exoplayer.chunk.Format;
-import com.google.android.exoplayer.dash.DashChunkSource;
-import com.google.android.exoplayer.drm.StreamingDrmSessionManager;
-import com.google.android.exoplayer.extractor.ExtractorSampleSource;
-import com.google.android.exoplayer.hls.HlsSampleSource;
-import com.google.android.exoplayer.metadata.MetadataTrackRenderer;
-import com.google.android.exoplayer.metadata.id3.Id3Frame;
-import com.google.android.exoplayer.text.Cue;
-import com.google.android.exoplayer.text.TextRenderer;
-import com.google.android.exoplayer.upstream.BandwidthMeter;
-import com.google.android.exoplayer.upstream.DefaultBandwidthMeter;
+import com.google.android.exoplayer2.C;
+import com.google.android.exoplayer2.DefaultLoadControl;
+import com.google.android.exoplayer2.ExoPlaybackException;
+import com.google.android.exoplayer2.ExoPlayer;
+import com.google.android.exoplayer2.ExoPlayerFactory;
+import com.google.android.exoplayer2.Format;
+import com.google.android.exoplayer2.Renderer;
+import com.google.android.exoplayer2.Timeline;
+import com.google.android.exoplayer2.audio.AudioCapabilities;
+import com.google.android.exoplayer2.audio.AudioCapabilitiesReceiver;
+import com.google.android.exoplayer2.audio.AudioRendererEventListener;
+import com.google.android.exoplayer2.audio.AudioTrack;
+import com.google.android.exoplayer2.decoder.DecoderCounters;
+import com.google.android.exoplayer2.drm.StreamingDrmSessionManager;
+import com.google.android.exoplayer2.metadata.Metadata;
+import com.google.android.exoplayer2.metadata.MetadataRenderer;
+import com.google.android.exoplayer2.source.MediaSource;
+import com.google.android.exoplayer2.source.TrackGroupArray;
+import com.google.android.exoplayer2.text.Cue;
+import com.google.android.exoplayer2.text.TextRenderer;
+import com.google.android.exoplayer2.trackselection.AdaptiveVideoTrackSelection;
+import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
+import com.google.android.exoplayer2.trackselection.FixedTrackSelection;
+import com.google.android.exoplayer2.trackselection.MappingTrackSelector;
+import com.google.android.exoplayer2.trackselection.TrackSelection;
+import com.google.android.exoplayer2.trackselection.TrackSelectionArray;
+import com.google.android.exoplayer2.upstream.DefaultBandwidthMeter;
+import com.google.android.exoplayer2.video.VideoRendererEventListener;
 
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 @SuppressWarnings("unused")
-public class EMExoPlayer implements
-        ExoPlayer.Listener,
-        AudioCapabilitiesReceiver.Listener,
-        ExtractorSampleSource.EventListener,
-        ChunkSampleSource.EventListener,
-        HlsSampleSource.EventListener,
-        DefaultBandwidthMeter.EventListener,
-        MediaCodecVideoTrackRenderer.EventListener,
-        MediaCodecAudioTrackRenderer.EventListener,
-        StreamingDrmSessionManager.EventListener,
-        DashChunkSource.EventListener,
-        MetadataTrackRenderer.MetadataRenderer<List<Id3Frame>>,
-        TextRenderer {
+public class EMExoPlayer implements ExoPlayer.EventListener {
     private static final String TAG = "EMExoPlayer";
-    public static final int DISABLED_TRACK = -1;
+    private static final int BUFFER_REPEAT_DELAY = 1_000;
 
-    public static final int RENDER_COUNT = 4;
-    public static final int RENDER_VIDEO = 0;
-    public static final int RENDER_AUDIO = 1;
-    public static final int RENDER_CLOSED_CAPTION = 2;
-    public static final int RENDER_TIMED_METADATA = 3;
-
-    public static final int BUFFER_LENGTH_MIN = 1000;
-    public static final int REBUFFER_LENGTH_MIN = 5000;
-    private static final int BUFFER_REPEAT_DELAY = 1000;
-
-    public enum RenderBuildingState {
-        IDLE,
-        BUILDING,
-        BUILT
-    }
-
-    private RenderBuilder rendererBuilder;
+    @NonNull
+    private final Context context;
+    @NonNull
     private final ExoPlayer player;
+    @NonNull
+    private final DefaultTrackSelector trackSelector;
+    @NonNull
+    private final AdaptiveVideoTrackSelection.Factory adaptiveTrackSelectionFactory;
+    @NonNull
     private final Handler mainHandler;
-    private final CopyOnWriteArrayList<ExoPlayerListener> listeners;
+    @NonNull
+    private final CopyOnWriteArrayList<ExoPlayerListener> listeners = new CopyOnWriteArrayList<>();
 
+    @NonNull
     private final AtomicBoolean stopped = new AtomicBoolean();
+    private boolean prepared = false;
 
-    private RenderBuildingState rendererBuildingState;
     @NonNull
     private StateStore stateStore = new StateStore();
     @NonNull
     private Repeater bufferRepeater = new Repeater();
 
-    private boolean prepared = false;
-
+    @Nullable
     private Surface surface;
-    private TrackRenderer videoRenderer;
-    private TrackRenderer audioRenderer;
+    @Nullable
+    private MediaSource mediaSource;
+    @NonNull
+    private List<Renderer> renderers = new LinkedList<>();
 
     @Nullable
     private AudioCapabilities audioCapabilities;
@@ -137,46 +120,70 @@ public class EMExoPlayer implements
     @Nullable
     private CaptionListener captionListener;
     @Nullable
-    private Id3MetadataListener id3MetadataListener;
+    private MetadataListener metadataListener;
     @Nullable
     private InternalErrorListener internalErrorListener;
-    @Nullable
-    private InfoListener infoListener;
     @Nullable
     private OnBufferUpdateListener bufferUpdateListener;
 
     @Nullable
     private PowerManager.WakeLock wakeLock = null;
 
-    public EMExoPlayer() {
-        this(null);
-    }
 
-    public EMExoPlayer(@Nullable RenderBuilder rendererBuilder) {
+    @NonNull
+    private CapabilitiesListener capabilitiesListener = new CapabilitiesListener();
+    private int audioSessionId = AudioTrack.SESSION_ID_NOT_SET;
+
+    public EMExoPlayer(@NonNull Context context) {
+        this.context = context;
+
         bufferRepeater.setRepeaterDelay(BUFFER_REPEAT_DELAY);
         bufferRepeater.setRepeatListener(new BufferRepeatListener());
 
-        player = ExoPlayer.Factory.newInstance(RENDER_COUNT, BUFFER_LENGTH_MIN, REBUFFER_LENGTH_MIN);
-        player.addListener(this);
-
         mainHandler = new Handler();
-        listeners = new CopyOnWriteArrayList<>();
-        rendererBuildingState = RenderBuildingState.IDLE;
-        player.setSelectedTrack(RENDER_CLOSED_CAPTION, DISABLED_TRACK);
 
-        replaceRenderBuilder(rendererBuilder);
+        ComponentListener componentListener = new ComponentListener();
+        RendererProvider rendererProvider = new RendererProvider(context, mainHandler, componentListener, componentListener, componentListener, componentListener);
+
+        renderers = rendererProvider.generate();
+
+        adaptiveTrackSelectionFactory = new AdaptiveVideoTrackSelection.Factory(new DefaultBandwidthMeter());
+        trackSelector = new DefaultTrackSelector(adaptiveTrackSelectionFactory);
+
+        player = ExoPlayerFactory.newInstance(renderers.toArray(new Renderer[renderers.size()]), trackSelector, new DefaultLoadControl());
+        player.addListener(this);
     }
 
-    public void replaceRenderBuilder(@Nullable RenderBuilder renderBuilder) {
-        this.rendererBuilder = renderBuilder;
+    @Override
+    public void onTimelineChanged(Timeline timeline, Object manifest) {
+        // Purposefully left blank
+    }
 
-        if (audioCapabilitiesReceiver != null) {
-            audioCapabilitiesReceiver.unregister();
-            audioCapabilitiesReceiver = null;
-        }
+    @Override
+    public void onTracksChanged(TrackGroupArray trackGroups, TrackSelectionArray trackSelections) {
+        // Purposefully left blank
+    }
 
-        if (rendererBuilder != null && audioCapabilities == null) {
-            audioCapabilitiesReceiver = new AudioCapabilitiesReceiver(rendererBuilder.getContext(), this);
+    @Override
+    public void onLoadingChanged(boolean isLoading) {
+        // Purposefully left blank
+    }
+
+    @Override
+    public void onPositionDiscontinuity() {
+        // Purposefully left blank
+    }
+
+    public void setUri(@Nullable Uri uri) {
+        setMediaSource(uri != null ? new MediaSourceProvider().generate(context, mainHandler, uri) : null);
+    }
+
+    public void setMediaSource(@Nullable MediaSource source) {
+        this.mediaSource = source;
+
+        // If we have something to play then create a new receiver
+        if (mediaSource != null && audioCapabilitiesReceiver == null) {
+            audioCapabilitiesReceiver = new AudioCapabilitiesReceiver(context, capabilitiesListener);
             audioCapabilitiesReceiver.register();
         }
 
@@ -205,23 +212,20 @@ public class EMExoPlayer implements
         internalErrorListener = listener;
     }
 
-    public void setInfoListener(@Nullable InfoListener listener) {
-        infoListener = listener;
-    }
-
     public void setCaptionListener(@Nullable CaptionListener listener) {
         captionListener = listener;
     }
 
-    public void setMetadataListener(@Nullable Id3MetadataListener listener) {
-        id3MetadataListener = listener;
+    public void setMetadataListener(@Nullable MetadataListener listener) {
+        metadataListener = listener;
     }
 
-    public void setSurface(Surface surface) {
+    public void setSurface(@Nullable Surface surface) {
         this.surface = surface;
-        pushSurface(false);
+        sendMessage(C.TRACK_TYPE_VIDEO, C.MSG_SET_SURFACE, surface, false);
     }
 
+    @Nullable
     public Surface getSurface() {
         return surface;
     }
@@ -232,7 +236,7 @@ public class EMExoPlayer implements
         }
 
         surface = null;
-        pushSurface(true);
+        sendMessage(C.TRACK_TYPE_VIDEO, C.MSG_SET_SURFACE, null, true);
     }
 
     @Nullable
@@ -243,52 +247,74 @@ public class EMExoPlayer implements
     /**
      * Retrieves a list of available tracks
      *
-     * @return A list of available tracks associated with each type (see {@link com.devbrackets.android.exomedia.annotation.TrackRenderType})
+     * @return A list of available tracks associated with each type
      */
     @Nullable
-    public Map<Integer, List<MediaFormat>> getAvailableTracks() {
+    public Map<RendererType, TrackGroupArray> getAvailableTracks() {
         if (getPlaybackState() == ExoPlayer.STATE_IDLE) {
             return null;
         }
 
-        Map<Integer, List<MediaFormat>> trackMap = new ArrayMap<>();
-        int[] trackTypes = new int[]{RENDER_AUDIO, RENDER_VIDEO, RENDER_CLOSED_CAPTION, RENDER_TIMED_METADATA};
+        // Retrieves the available tracks
+        Map<RendererType, TrackGroupArray> trackMap = new ArrayMap<>();
+        MappingTrackSelector.MappedTrackInfo mappedTrackInfo = trackSelector.getCurrentMappedTrackInfo();
+        if (mappedTrackInfo == null) {
+            return trackMap;
+        }
 
-        //Populates the map with all available tracks
-        for (int type : trackTypes) {
-            int trackCount = getTrackCount(type);
-            List<MediaFormat> tracks = new ArrayList<>(trackCount);
-            trackMap.put(type, tracks);
-
-            for (int i = 0; i < trackCount; i++) {
-                tracks.add(getTrackFormat(type, i));
+        // Maps the available tracks
+        RendererType[] types = new RendererType[] {RendererType.AUDIO, RendererType.VIDEO, RendererType.CLOSED_CAPTION, RendererType.METADATA};
+        for (RendererType type : types) {
+            int exoPlayerTrackIndex = getExoPlayerTrackType(type);
+            if (mappedTrackInfo.length > exoPlayerTrackIndex) {
+                trackMap.put(type, mappedTrackInfo.getTrackGroups(exoPlayerTrackIndex));
             }
         }
 
         return trackMap;
     }
 
-    public int getTrackCount(@TrackRenderType int type) {
-        return player.getTrackCount(type);
-    }
-
-    public MediaFormat getTrackFormat(@TrackRenderType int type, int index) {
-        return player.getTrackFormat(type, index);
-    }
-
-    public int getSelectedTrack(@TrackRenderType int type) {
-        return player.getSelectedTrack(type);
-    }
-
-    public void setSelectedTrack(@TrackRenderType int type, int index) {
-        player.setSelectedTrack(type, index);
-        if (type == RENDER_CLOSED_CAPTION && index == DISABLED_TRACK && captionListener != null) {
-            captionListener.onCues(Collections.<Cue>emptyList());
+    //todo we should have a special case for auto / disabled / and unknown (e.g. -10, -5, -1)
+    public int getSelectedTrackIndex(@NonNull RendererType type) {
+        // Retrieves the available tracks
+        int exoPlayerTrackIndex = getExoPlayerTrackType(type);
+        MappingTrackSelector.MappedTrackInfo mappedTrackInfo = trackSelector.getCurrentMappedTrackInfo();
+        TrackGroupArray trackGroupArray = mappedTrackInfo == null ? null : mappedTrackInfo.getTrackGroups(exoPlayerTrackIndex);
+        if (trackGroupArray == null || trackGroupArray.length == 0) {
+            return -1;
         }
+
+        // Verifies the track selection has been overridden
+        MappingTrackSelector.SelectionOverride selectionOverride = trackSelector.getSelectionOverride(exoPlayerTrackIndex, trackGroupArray);
+        if (selectionOverride == null || selectionOverride.groupIndex != exoPlayerTrackIndex || selectionOverride.length <= 0) {
+            return -1;
+        }
+
+        //TODO: Do we only allow 1 selected track? (ExoPlayer supports multiple with the adaptive streams)
+        return selectionOverride.tracks[0];
+    }
+
+    // TODO: pay attention to auto / disabled / unknown indexes
+    public void setSelectedTrack(@NonNull RendererType type, int index) {
+        // Retrieves the available tracks
+        int exoPlayerTrackIndex = getExoPlayerTrackType(type);
+        MappingTrackSelector.MappedTrackInfo mappedTrackInfo = trackSelector.getCurrentMappedTrackInfo();
+        TrackGroupArray trackGroupArray = mappedTrackInfo == null ? null : mappedTrackInfo.getTrackGroups(exoPlayerTrackIndex);
+        if (trackGroupArray == null || trackGroupArray.length == 0) {
+            return;
+        }
+
+        // Creates the track selection override
+        int[] tracks = new int[] {index};
+        TrackSelection.Factory factory = tracks.length == 1 ? new FixedTrackSelection.Factory() : adaptiveTrackSelectionFactory;
+        MappingTrackSelector.SelectionOverride selectionOverride = new MappingTrackSelector.SelectionOverride(factory, exoPlayerTrackIndex, tracks);
+
+        // Specifies the correct track to use
+        trackSelector.setSelectionOverride(exoPlayerTrackIndex, trackGroupArray, selectionOverride);
     }
 
     public void setVolume(@FloatRange(from = 0.0, to = 1.0) float volume) {
-        player.sendMessage(audioRenderer, MediaCodecAudioTrackRenderer.MSG_SET_VOLUME, volume);
+        sendMessage(C.TRACK_TYPE_AUDIO, C.MSG_SET_VOLUME, volume);
     }
 
     public void forcePrepare() {
@@ -296,53 +322,22 @@ public class EMExoPlayer implements
     }
 
     public void prepare() {
-        if (prepared || rendererBuilder == null) {
+        if (prepared || mediaSource == null) {
             return;
         }
 
-        if (rendererBuildingState == RenderBuildingState.BUILT) {
+        if (!renderers.isEmpty()) {
             player.stop();
         }
 
-        videoRenderer = null;
-        rendererBuildingState = RenderBuildingState.BUILDING;
         reportPlayerState();
 
-        rendererBuilder.buildRenderers(this);
+        player.prepare(mediaSource);
         prepared = true;
 
         stopped.set(false);
     }
 
-    public void onRenderers(TrackRenderer[] renderers, @Nullable BandwidthMeter bandwidthMeter) {
-        for (int i = 0; i < RENDER_COUNT; i++) {
-            if (renderers[i] == null) {
-                // Convert a null renderer to a dummy renderer.
-                renderers[i] = new DummyTrackRenderer();
-            }
-        }
-
-        // Complete preparation.
-        this.videoRenderer = renderers[RENDER_VIDEO];
-        this.audioRenderer = renderers[RENDER_AUDIO];
-
-        pushSurface(false);
-        player.prepare(renderers);
-        rendererBuildingState = RenderBuildingState.BUILT;
-    }
-
-    public void onRenderersError(Exception e) {
-        if (internalErrorListener != null) {
-            internalErrorListener.onRendererInitializationError(e);
-        }
-
-        for (ExoPlayerListener listener : listeners) {
-            listener.onError(this, e);
-        }
-
-        rendererBuildingState = RenderBuildingState.IDLE;
-        reportPlayerState();
-    }
 
     public void stop() {
         if (!stopped.getAndSet(true)) {
@@ -382,17 +377,12 @@ public class EMExoPlayer implements
     }
 
     public void release() {
-        if (rendererBuilder != null) {
-            rendererBuilder.cancel();
-        }
-
         if (audioCapabilitiesReceiver != null) {
             audioCapabilitiesReceiver.unregister();
             audioCapabilitiesReceiver = null;
         }
 
         setBufferRepeaterStarted(false);
-        rendererBuildingState = RenderBuildingState.IDLE;
         listeners.clear();
 
         surface = null;
@@ -401,32 +391,20 @@ public class EMExoPlayer implements
     }
 
     public int getPlaybackState() {
-        if (rendererBuildingState == RenderBuildingState.BUILDING) {
-            return ExoPlayer.STATE_PREPARING;
-        }
-
         return player.getPlaybackState();
     }
 
     public int getAudioSessionId() {
-        if (audioRenderer != null) {
-            return ((EMMediaCodecAudioTrackRenderer) audioRenderer).getAudioSessionId();
-        }
-
-        return 0;
+        return audioSessionId;
     }
 
     public boolean setPlaybackSpeed(float speed) {
-        if (audioRenderer == null) {
-            return false;
-        }
-
         // Marshmallow+ support setting the playback speed natively
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             PlaybackParams params = new PlaybackParams();
             params.setSpeed(speed);
 
-            player.sendMessage(audioRenderer, MediaCodecAudioTrackRenderer.MSG_SET_PLAYBACK_PARAMS, params);
+            sendMessage(C.TRACK_TYPE_AUDIO, C.MSG_SET_PLAYBACK_PARAMS, params);
             return true;
         }
 
@@ -448,14 +426,6 @@ public class EMExoPlayer implements
 
     public boolean getPlayWhenReady() {
         return player.getPlayWhenReady();
-    }
-
-    public Looper getPlaybackLooper() {
-        return player.getPlaybackLooper();
-    }
-
-    public Handler getMainHandler() {
-        return mainHandler;
     }
 
     /**
@@ -493,6 +463,44 @@ public class EMExoPlayer implements
         stayAwake(wasHeld);
     }
 
+    protected int getExoPlayerTrackType(@NonNull RendererType type) {
+        switch (type) {
+            case AUDIO:
+                return C.TRACK_TYPE_AUDIO;
+            case VIDEO:
+                return C.TRACK_TYPE_VIDEO;
+            case CLOSED_CAPTION:
+                return C.TRACK_TYPE_TEXT;
+            case METADATA:
+                return C.TRACK_TYPE_METADATA;
+        }
+
+        return C.TRACK_TYPE_UNKNOWN;
+    }
+
+    protected void sendMessage(int renderType, int messageType, Object message) {
+        sendMessage(renderType, messageType, message, false);
+    }
+
+    protected void sendMessage(int renderType, int messageType, Object message, boolean blocking) {
+        if (renderers.isEmpty()) {
+            return;
+        }
+
+        List<ExoPlayer.ExoPlayerMessage> messages = new ArrayList<>();
+        for (Renderer renderer : renderers) {
+            if (renderer.getTrackType() == renderType) {
+                messages.add(new ExoPlayer.ExoPlayerMessage(renderer, messageType, message));
+            }
+        }
+
+        if (blocking) {
+            player.blockingSendMessages(messages.toArray(new ExoPlayer.ExoPlayerMessage[messages.size()]));
+        } else {
+            player.sendMessages(messages.toArray(new ExoPlayer.ExoPlayerMessage[messages.size()]));
+        }
+    }
+
     /**
      * Used with playback state changes to correctly acquire and
      * release the wakelock if the user has enabled it with {@link #setWakeMode(Context, int)}.
@@ -519,181 +527,9 @@ public class EMExoPlayer implements
 
     @Override
     public void onPlayerError(ExoPlaybackException exception) {
-        rendererBuildingState = RenderBuildingState.IDLE;
         for (ExoPlayerListener listener : listeners) {
             listener.onError(this, exception);
         }
-    }
-
-    @Override
-    public void onVideoSizeChanged(int width, int height, int unappliedRotationDegrees, float pixelWidthHeightRatio) {
-        for (ExoPlayerListener listener : listeners) {
-            listener.onVideoSizeChanged(width, height, unappliedRotationDegrees, pixelWidthHeightRatio);
-        }
-    }
-
-    @Override
-    public void onDroppedFrames(int count, long elapsed) {
-        if (infoListener != null) {
-            infoListener.onDroppedFrames(count, elapsed);
-        }
-    }
-
-    @Override
-    public void onBandwidthSample(int elapsedMs, long bytes, long bitrateEstimate) {
-        if (infoListener != null) {
-            infoListener.onBandwidthSample(elapsedMs, bytes, bitrateEstimate);
-        }
-    }
-
-    @Override
-    public void onDownstreamFormatChanged(int sourceId, Format format, int trigger, long mediaTimeMs) {
-        if (infoListener == null) {
-            return;
-        }
-
-        if (sourceId == RENDER_VIDEO) {
-            infoListener.onVideoFormatEnabled(format, trigger, mediaTimeMs);
-        } else if (sourceId == RENDER_AUDIO) {
-            infoListener.onAudioFormatEnabled(format, trigger, mediaTimeMs);
-        }
-    }
-
-    @Override
-    public void onDrmKeysLoaded() {
-        //Purposefully left blank
-    }
-
-    @Override
-    public void onDrmSessionManagerError(Exception e) {
-        if (internalErrorListener != null) {
-            internalErrorListener.onDrmSessionManagerError(e);
-        }
-    }
-
-    @Override
-    public void onDecoderInitializationError(MediaCodecTrackRenderer.DecoderInitializationException e) {
-        if (internalErrorListener != null) {
-            internalErrorListener.onDecoderInitializationError(e);
-        }
-    }
-
-    @Override
-    public void onDecoderInitialized(String decoderName, long elapsedRealtimeMs, long initializationDurationMs) {
-        if (infoListener != null) {
-            infoListener.onDecoderInitialized(decoderName, elapsedRealtimeMs, initializationDurationMs);
-        }
-    }
-
-    @Override
-    public void onAudioTrackInitializationError(AudioTrack.InitializationException e) {
-        if (internalErrorListener != null) {
-            internalErrorListener.onAudioTrackInitializationError(e);
-        }
-    }
-
-    @Override
-    public void onAudioTrackWriteError(AudioTrack.WriteException e) {
-        if (internalErrorListener != null) {
-            internalErrorListener.onAudioTrackWriteError(e);
-        }
-    }
-
-    @Override
-    public void onAudioTrackUnderrun(int bufferSize, long bufferSizeMs, long elapsedSinceLastFeedMs) {
-        if (internalErrorListener != null) {
-            internalErrorListener.onAudioTrackUnderrun(bufferSize, bufferSizeMs, elapsedSinceLastFeedMs);
-        }
-    }
-
-    @Override
-    public void onCryptoError(MediaCodec.CryptoException e) {
-        if (internalErrorListener != null) {
-            internalErrorListener.onCryptoError(e);
-        }
-    }
-
-    @Override
-    public void onLoadError(int sourceId, IOException e) {
-        if (internalErrorListener != null) {
-            internalErrorListener.onLoadError(sourceId, e);
-        }
-    }
-
-    @Override
-    public void onCues(List<Cue> cues) {
-        if (captionListener != null && getSelectedTrack(RENDER_CLOSED_CAPTION) != DISABLED_TRACK) {
-            captionListener.onCues(cues);
-        }
-    }
-
-    @Override
-    public void onMetadata(List<Id3Frame> metadata) {
-        if (id3MetadataListener != null && getSelectedTrack(RENDER_TIMED_METADATA) != DISABLED_TRACK) {
-            id3MetadataListener.onId3Metadata(metadata);
-        }
-    }
-
-    @Override
-    public void onAvailableRangeChanged(int sourceId, TimeRange availableRange) {
-        if (infoListener != null) {
-            infoListener.onAvailableRangeChanged(sourceId, availableRange);
-        }
-    }
-
-    @Override
-    public void onPlayWhenReadyCommitted() {
-        //Purposefully left blank
-    }
-
-    @Override
-    public void onDrawnToSurface(Surface surface) {
-        //Purposefully left blank
-    }
-
-    @Override
-    public void onLoadStarted(int sourceId, long length, int type, int trigger, Format format, long mediaStartTimeMs, long mediaEndTimeMs) {
-        if (infoListener != null) {
-            infoListener.onLoadStarted(sourceId, length, type, trigger, format, mediaStartTimeMs, mediaEndTimeMs);
-        }
-    }
-
-    @Override
-    public void onLoadCompleted(int sourceId, long bytesLoaded, int type, int trigger, Format format, long mediaStartTimeMs, long mediaEndTimeMs, long elapsedRealtimeMs, long loadDurationMs) {
-        if (infoListener != null) {
-            infoListener.onLoadCompleted(sourceId, bytesLoaded, type, trigger, format, mediaStartTimeMs, mediaEndTimeMs, elapsedRealtimeMs, loadDurationMs);
-        }
-    }
-
-    @Override
-    public void onLoadCanceled(int sourceId, long bytesLoaded) {
-        //Purposefully left blank
-    }
-
-    @Override
-    public void onUpstreamDiscarded(int sourceId, long mediaStartTimeMs, long mediaEndTimeMs) {
-        //Purposefully left blank
-    }
-
-    @Override
-    public void onAudioCapabilitiesChanged(AudioCapabilities audioCapabilities) {
-        if (audioCapabilities.equals(this.audioCapabilities)) {
-            return;
-        }
-
-        this.audioCapabilities = audioCapabilities;
-        if (rendererBuilder == null) {
-            return;
-        }
-
-        //Restarts the media playback to allow the RenderBuilder to handle the audio channel determination
-        boolean playWhenReady = getPlayWhenReady();
-        long currentPosition = getCurrentPosition();
-
-        replaceRenderBuilder(rendererBuilder);
-
-        player.seekTo(currentPosition);
-        player.setPlayWhenReady(playWhenReady);
     }
 
     private void reportPlayerState() {
@@ -707,7 +543,7 @@ public class EMExoPlayer implements
             //Makes sure the buffering notifications are sent
             if (newState == ExoPlayer.STATE_READY) {
                 setBufferRepeaterStarted(true);
-            } else if (newState == ExoPlayer.STATE_IDLE || newState == ExoPlayer.STATE_ENDED || newState == ExoPlayer.STATE_PREPARING) {
+            } else if (newState == ExoPlayer.STATE_IDLE || newState == ExoPlayer.STATE_ENDED) {
                 setBufferRepeaterStarted(false);
             }
 
@@ -725,18 +561,6 @@ public class EMExoPlayer implements
                     listener.onSeekComplete();
                 }
             }
-        }
-    }
-
-    private void pushSurface(boolean blockForSurfacePush) {
-        if (videoRenderer == null) {
-            return;
-        }
-
-        if (blockForSurfacePush) {
-            player.blockingSendMessage(videoRenderer, MediaCodecVideoTrackRenderer.MSG_SET_SURFACE, surface);
-        } else {
-            player.sendMessage(videoRenderer, MediaCodecVideoTrackRenderer.MSG_SET_SURFACE, surface);
         }
     }
 
@@ -798,6 +622,136 @@ public class EMExoPlayer implements
             }
 
             return flag;
+        }
+    }
+
+    private class CapabilitiesListener implements
+            AudioCapabilitiesReceiver.Listener,
+            StreamingDrmSessionManager.EventListener {
+
+        @Override
+        public void onAudioCapabilitiesChanged(AudioCapabilities capabilities) {
+            if (capabilities.equals(audioCapabilities)) {
+                return;
+            }
+
+            audioCapabilities = capabilities;
+            if (mediaSource == null) {
+                return;
+            }
+
+            //Restarts the media playback to allow the RenderBuilder to handle the audio channel determination
+            boolean playWhenReady = getPlayWhenReady();
+            long currentPosition = getCurrentPosition();
+
+            //TODO: is this still necessary? or does the ExoPlayer now already handle this?
+            // I think we need to re-build the renderers (as they take the current audio capabilities) and push those in to the ExoPlayer
+            setMediaSource(mediaSource);
+
+            player.seekTo(currentPosition);
+            player.setPlayWhenReady(playWhenReady);
+        }
+
+        @Override
+        public void onDrmKeysLoaded() {
+            // Purposefully left blank
+        }
+
+        @Override
+        public void onDrmSessionManagerError(Exception e) {
+            if (internalErrorListener != null) {
+                internalErrorListener.onDrmSessionManagerError(e);
+            }
+        }
+    }
+
+    private class ComponentListener implements
+            VideoRendererEventListener,
+            AudioRendererEventListener,
+            TextRenderer.Output,
+            MetadataRenderer.Output {
+
+        @Override
+        public void onAudioEnabled(DecoderCounters counters) {
+
+        }
+
+        @Override
+        public void onAudioDisabled(DecoderCounters counters) {
+            audioSessionId = AudioTrack.SESSION_ID_NOT_SET;
+        }
+
+        @Override
+        public void onAudioSessionId(int sessionId) {
+            audioSessionId = sessionId;
+        }
+
+        @Override
+        public void onAudioDecoderInitialized(String decoderName, long initializedTimestampMs, long initializationDurationMs) {
+            // Purposefully left blank
+        }
+
+        @Override
+        public void onAudioInputFormatChanged(Format format) {
+            // Purposefully left blank
+        }
+
+        @Override
+        public void onAudioTrackUnderrun(int bufferSize, long bufferSizeMs, long elapsedSinceLastFeedMs) {
+            if (internalErrorListener != null) {
+                internalErrorListener.onAudioTrackUnderrun(bufferSize, bufferSizeMs, elapsedSinceLastFeedMs);
+            }
+        }
+
+        @Override
+        public void onVideoEnabled(DecoderCounters counters) {
+
+        }
+
+        @Override
+        public void onVideoDisabled(DecoderCounters counters) {
+
+        }
+
+        @Override
+        public void onVideoDecoderInitialized(String decoderName, long initializedTimestampMs, long initializationDurationMs) {
+            // Purposefully left blank
+        }
+
+        @Override
+        public void onVideoInputFormatChanged(Format format) {
+            // Purposefully left blank
+        }
+
+        @Override
+        public void onDroppedFrames(int count, long elapsedMs) {
+
+        }
+
+        @Override
+        public void onVideoSizeChanged(int width, int height, int unappliedRotationDegrees, float pixelWidthHeightRatio) {
+            for (ExoPlayerListener listener : listeners) {
+                listener.onVideoSizeChanged(width, height, unappliedRotationDegrees, pixelWidthHeightRatio);
+            }
+        }
+
+        @Override
+        public void onRenderedFirstFrame(Surface surface) {
+
+        }
+
+        @Override
+        public void onMetadata(Metadata metadata) {
+            if (metadataListener != null) {
+                metadataListener.onMetadata(metadata);
+            }
+        }
+
+        @Override
+        public void onCues(List<Cue> cues) {
+            if (captionListener != null) {
+                captionListener.onCues(cues);
+            }
         }
     }
 }

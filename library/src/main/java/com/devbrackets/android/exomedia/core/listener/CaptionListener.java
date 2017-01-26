@@ -16,7 +16,8 @@
 
 package com.devbrackets.android.exomedia.core.listener;
 
-import com.google.android.exoplayer.text.Cue;
+
+import com.google.android.exoplayer2.text.Cue;
 
 import java.util.List;
 

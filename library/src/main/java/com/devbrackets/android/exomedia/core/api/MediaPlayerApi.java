@@ -21,7 +21,6 @@ import android.media.AudioManager;
 import android.net.Uri;
 import android.support.annotation.FloatRange;
 import android.support.annotation.IntRange;
-import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
 import com.devbrackets.android.exomedia.ExoMedia;
@@ -39,9 +38,9 @@ import java.util.Map;
  * using the ExoPlayer.
  */
 public interface MediaPlayerApi {
-    void setDataSource(@NonNull Context context, @Nullable Uri uri);
+    void setDataSource(@Nullable Uri uri);
 
-    void setDataSource(@NonNull Context context, @Nullable Uri uri, @Nullable MediaSource mediaSource);
+    void setDataSource(@Nullable Uri uri, @Nullable MediaSource mediaSource);
 
     /**
      * Sets the {@link DrmProvider} to use when handling DRM for media.
@@ -54,8 +53,8 @@ public interface MediaPlayerApi {
     void setDrmProvider(@Nullable DrmProvider drmProvider);
 
     /**
-     * Prepares the media specified with {@link #setDataSource(Context, Uri)} or
-     * {@link #setDataSource(Context, Uri, MediaSource)} in an asynchronous manner
+     * Prepares the media specified with {@link #setDataSource(Uri)} or
+     * {@link #setDataSource(Uri, MediaSource)} in an asynchronous manner
      */
     void prepareAsync();
 
@@ -83,10 +82,10 @@ public interface MediaPlayerApi {
     void reset();
 
     @IntRange(from = 0)
-    int getDuration();
+    long getDuration();
 
     @IntRange(from = 0)
-    int getCurrentPosition();
+    long getCurrentPosition();
 
     @IntRange(from = 0, to = 100)
     int getBufferedPercent();
@@ -127,7 +126,7 @@ public interface MediaPlayerApi {
 
     void setVolume(@FloatRange(from = 0.0, to = 1.0) float left, @FloatRange(from = 0.0, to = 1.0) float right);
 
-    void seekTo(@IntRange(from = 0) int milliseconds);
+    void seekTo(@IntRange(from = 0) long milliseconds);
 
     void setWakeMode(Context context, int mode);
 

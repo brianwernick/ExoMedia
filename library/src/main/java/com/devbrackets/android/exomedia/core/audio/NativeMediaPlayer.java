@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 Brian Wernick
+ * Copyright (C) 2016-2017 Brian Wernick
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,8 @@ import android.media.MediaPlayer;
 import android.media.PlaybackParams;
 import android.net.Uri;
 import android.os.Build;
+import android.support.annotation.FloatRange;
+import android.support.annotation.IntRange;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Log;
@@ -44,29 +46,38 @@ import java.util.Map;
  * Amazon devices where they incorrectly call these methods when
  * setting up the MediaPlayer (when in IDLE state)
  */
-public class NativeMediaPlayer extends MediaPlayer implements MediaPlayerApi, MediaPlayer.OnBufferingUpdateListener {
+public class NativeMediaPlayer implements MediaPlayerApi {
     private static final String TAG = "NativeMediaPlayer";
 
-    protected int currentBufferPercent = 0;
+    @NonNull
+    protected final Context context;
+    @NonNull
+    protected final MediaPlayer mediaPlayer;
+    @NonNull
+    protected InternalListeners internalListeners = new InternalListeners();
+
     protected ListenerMux listenerMux;
 
-    protected int requestedSeek;
+    protected long requestedSeek;
+    protected int currentBufferPercent = 0;
 
-    public NativeMediaPlayer(Context context) {
-        super();
-        setOnBufferingUpdateListener(this);
+    public NativeMediaPlayer(@NonNull Context context) {
+        this.context = context;
+
+        mediaPlayer = new MediaPlayer();
+        mediaPlayer.setOnBufferingUpdateListener(internalListeners);
     }
 
     @Override
-    public void setDataSource(@NonNull Context context, @Nullable Uri uri) {
-        setDataSource(context, uri, (MediaSource) null);
+    public void setDataSource(@Nullable Uri uri) {
+        setDataSource(uri, null);
     }
 
     @Override
-    public void setDataSource(@NonNull Context context, @Nullable Uri uri, @Nullable MediaSource mediaSource) {
+    public void setDataSource(@Nullable Uri uri, @Nullable MediaSource mediaSource) {
         try {
             requestedSeek = 0;
-            super.setDataSource(context, uri);
+            mediaPlayer.setDataSource(context, uri);
         } catch (Exception e) {
             Log.d(TAG, "MediaPlayer: error setting data source", e);
         }
@@ -78,17 +89,42 @@ public class NativeMediaPlayer extends MediaPlayer implements MediaPlayerApi, Me
     }
 
     @Override
-    public void prepare() {
+    public void prepareAsync() {
         try {
-            super.prepare();
+            mediaPlayer.prepareAsync();
         } catch (Exception e) {
             //Purposefully left blank
         }
     }
 
     @Override
+    public void reset() {
+        mediaPlayer.reset();
+    }
+
+    @Override
+    public void setVolume(@FloatRange(from = 0.0, to = 1.0) float left, @FloatRange(from = 0.0, to = 1.0) float right) {
+        mediaPlayer.setVolume(left, right);
+    }
+
+    @Override
+    public void seekTo(@IntRange(from = 0) long milliseconds) {
+        if (listenerMux != null && listenerMux.isPrepared()) {
+            mediaPlayer.seekTo((int)milliseconds);
+            requestedSeek = 0;
+        } else {
+            requestedSeek = milliseconds;
+        }
+    }
+
+    @Override
+    public boolean isPlaying() {
+        return mediaPlayer.isPlaying();
+    }
+
+    @Override
     public void start() {
-        super.start();
+        mediaPlayer.start();
 
         if (listenerMux != null) {
             listenerMux.setNotifiedCompleted(false);
@@ -96,8 +132,13 @@ public class NativeMediaPlayer extends MediaPlayer implements MediaPlayerApi, Me
     }
 
     @Override
+    public void pause() {
+        mediaPlayer.pause();
+    }
+
+    @Override
     public void stopPlayback() {
-        stop();
+        mediaPlayer.stop();
     }
 
     @Override
@@ -106,8 +147,8 @@ public class NativeMediaPlayer extends MediaPlayer implements MediaPlayerApi, Me
             return false;
         }
 
-        super.seekTo(0);
-        super.start();
+        mediaPlayer.seekTo(0);
+        mediaPlayer.start();
 
         listenerMux.setNotifiedCompleted(false);
 
@@ -115,21 +156,21 @@ public class NativeMediaPlayer extends MediaPlayer implements MediaPlayerApi, Me
     }
 
     @Override
-    public int getDuration() {
+    public long getDuration() {
         if (listenerMux == null || !listenerMux.isPrepared()) {
             return 0;
         }
 
-        return super.getDuration();
+        return mediaPlayer.getDuration();
     }
 
     @Override
-    public int getCurrentPosition() {
+    public long getCurrentPosition() {
         if (listenerMux == null || !listenerMux.isPrepared()) {
             return 0;
         }
 
-        return super.getCurrentPosition();
+        return mediaPlayer.getCurrentPosition();
     }
 
     @Override
@@ -138,13 +179,13 @@ public class NativeMediaPlayer extends MediaPlayer implements MediaPlayerApi, Me
     }
 
     @Override
-    public void seekTo(int msec) {
-        if (listenerMux != null && listenerMux.isPrepared()) {
-            super.seekTo(msec);
-            requestedSeek = 0;
-        } else {
-            requestedSeek = msec;
-        }
+    public void release() {
+        mediaPlayer.release();
+    }
+
+    @Override
+    public int getAudioSessionId() {
+        return mediaPlayer.getAudioSessionId();
     }
 
     @Override
@@ -154,11 +195,21 @@ public class NativeMediaPlayer extends MediaPlayer implements MediaPlayerApi, Me
             PlaybackParams params = new PlaybackParams();
             params.setSpeed(speed);
 
-            setPlaybackParams(params);
+            mediaPlayer.setPlaybackParams(params);
             return true;
         }
 
         return false;
+    }
+
+    @Override
+    public void setAudioStreamType(int streamType) {
+        mediaPlayer.setAudioStreamType(streamType);
+    }
+
+    @Override
+    public void setWakeMode(Context context, int mode) {
+        mediaPlayer.setWakeMode(context, mode);
     }
 
     @Override
@@ -181,22 +232,25 @@ public class NativeMediaPlayer extends MediaPlayer implements MediaPlayerApi, Me
     public void setListenerMux(ListenerMux listenerMux) {
         this.listenerMux = listenerMux;
 
-        setOnCompletionListener(listenerMux);
-        setOnPreparedListener(listenerMux);
-        setOnBufferingUpdateListener(listenerMux);
-        setOnSeekCompleteListener(listenerMux);
-        setOnErrorListener(listenerMux);
-    }
-
-    @Override
-    public void onBufferingUpdate(MediaPlayer mp, int percent) {
-        currentBufferPercent = percent;
+        mediaPlayer.setOnCompletionListener(listenerMux);
+        mediaPlayer.setOnPreparedListener(listenerMux);
+        mediaPlayer.setOnBufferingUpdateListener(listenerMux);
+        mediaPlayer.setOnSeekCompleteListener(listenerMux);
+        mediaPlayer.setOnErrorListener(listenerMux);
     }
 
     @Override
     public void onMediaPrepared() {
         if (requestedSeek != 0) {
             seekTo(requestedSeek);
+        }
+    }
+
+    protected class InternalListeners implements MediaPlayer.OnBufferingUpdateListener {
+        @Override
+        public void onBufferingUpdate(MediaPlayer mediaPlayer, int percent) {
+            listenerMux.onBufferingUpdate(percent);
+            currentBufferPercent = percent;
         }
     }
 }

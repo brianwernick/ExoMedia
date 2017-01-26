@@ -45,17 +45,19 @@ import java.util.Map;
  */
 @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
 public class ExoMediaPlayer implements MediaPlayerApi {
-    protected EMExoPlayer emExoPlayer;
+    @NonNull
+    protected final EMExoPlayer emExoPlayer;
+    @NonNull
+    protected final Context context;
 
-    protected Context context;
     protected ListenerMux listenerMux;
-    protected boolean playRequested = false;
 
     @Nullable
     protected DrmProvider drmProvider;
     @NonNull
     protected InternalListeners internalListeners = new InternalListeners();
 
+    protected boolean playRequested = false;
     protected int audioStreamType = AudioManager.STREAM_MUSIC;
 
     public ExoMediaPlayer(@NonNull Context context) {
@@ -67,12 +69,12 @@ public class ExoMediaPlayer implements MediaPlayerApi {
     }
 
     @Override
-    public void setDataSource(@NonNull Context context, @Nullable Uri uri) {
-        setDataSource(context, uri, null);
+    public void setDataSource(@Nullable Uri uri) {
+        setDataSource(uri, null);
     }
 
     @Override
-    public void setDataSource(@NonNull Context context, @Nullable Uri uri, @Nullable MediaSource mediaSource) {
+    public void setDataSource(@Nullable Uri uri, @Nullable MediaSource mediaSource) {
         if (mediaSource != null) {
             emExoPlayer.setMediaSource(mediaSource);
             listenerMux.setNotifiedCompleted(false);
@@ -110,7 +112,7 @@ public class ExoMediaPlayer implements MediaPlayerApi {
     }
 
     @Override
-    public void seekTo(@IntRange(from = 0) int milliseconds) {
+    public void seekTo(@IntRange(from = 0) long milliseconds) {
         emExoPlayer.seekTo(milliseconds);
     }
 
@@ -156,21 +158,21 @@ public class ExoMediaPlayer implements MediaPlayerApi {
     }
 
     @Override
-    public int getDuration() {
+    public long getDuration() {
         if (!listenerMux.isPrepared()) {
             return 0;
         }
 
-        return (int)emExoPlayer.getDuration();
+        return emExoPlayer.getDuration();
     }
 
     @Override
-    public int getCurrentPosition() {
+    public long getCurrentPosition() {
         if (!listenerMux.isPrepared()) {
             return 0;
         }
 
-        return (int)emExoPlayer.getCurrentPosition();
+        return emExoPlayer.getCurrentPosition();
     }
 
     @Override

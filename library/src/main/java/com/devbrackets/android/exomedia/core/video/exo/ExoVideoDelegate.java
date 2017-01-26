@@ -119,7 +119,7 @@ public class ExoVideoDelegate implements AudioCapabilitiesReceiver.Listener {
         return true;
     }
 
-    public void seekTo(@IntRange(from = 0) int milliseconds) {
+    public void seekTo(@IntRange(from = 0) long milliseconds) {
         emExoPlayer.seekTo(milliseconds);
     }
 
@@ -149,20 +149,20 @@ public class ExoVideoDelegate implements AudioCapabilitiesReceiver.Listener {
         playRequested = false;
     }
 
-    public int getDuration() {
+    public long getDuration() {
         if (!listenerMux.isPrepared()) {
             return 0;
         }
 
-        return (int)emExoPlayer.getDuration();
+        return emExoPlayer.getDuration();
     }
 
-    public int getCurrentPosition() {
+    public long getCurrentPosition() {
         if (!listenerMux.isPrepared()) {
             return 0;
         }
 
-        return (int)emExoPlayer.getCurrentPosition();
+        return emExoPlayer.getCurrentPosition();
     }
 
     public int getBufferedPercent() {

@@ -26,19 +26,18 @@ import android.support.annotation.Nullable;
 import android.util.Log;
 
 import com.devbrackets.android.exomedia.ExoMedia;
-import com.devbrackets.android.exomedia.core.EMListenerMux;
+import com.devbrackets.android.exomedia.core.ListenerMux;
 import com.devbrackets.android.exomedia.core.api.MediaPlayerApi;
 import com.devbrackets.android.exomedia.util.DrmProvider;
 import com.google.android.exoplayer2.source.MediaSource;
 import com.google.android.exoplayer2.source.TrackGroupArray;
 
-import java.util.List;
 import java.util.Map;
 
 /**
  * A simple MediaPlayer implementation that extends the
  * one provided by the system to add integration with
- * the {@link EMListenerMux} and to mitigate state errors.
+ * the {@link ListenerMux} and to mitigate state errors.
  * <p>
  * NOTE: The <code>listenerMux</code> shouldn't be null when any
  * method utilizing it is called, however there are some cases on
@@ -49,7 +48,7 @@ public class NativeMediaPlayer extends MediaPlayer implements MediaPlayerApi, Me
     private static final String TAG = "NativeMediaPlayer";
 
     protected int currentBufferPercent = 0;
-    protected EMListenerMux listenerMux;
+    protected ListenerMux listenerMux;
 
     protected int requestedSeek;
 
@@ -179,7 +178,7 @@ public class NativeMediaPlayer extends MediaPlayer implements MediaPlayerApi, Me
     }
 
     @Override
-    public void setListenerMux(EMListenerMux listenerMux) {
+    public void setListenerMux(ListenerMux listenerMux) {
         this.listenerMux = listenerMux;
 
         setOnCompletionListener(listenerMux);

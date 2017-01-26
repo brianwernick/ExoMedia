@@ -8,8 +8,8 @@ import android.graphics.drawable.Drawable;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
-import com.devbrackets.android.exomedia.EMAudioPlayer;
-import com.devbrackets.android.exomedia.ui.widget.EMVideoView;
+import com.devbrackets.android.exomedia.AudioPlayer;
+import com.devbrackets.android.exomedia.ui.widget.VideoView;
 import com.devbrackets.android.exomedia.ui.widget.VideoControls;
 import com.devbrackets.android.exomediademo.App;
 import com.devbrackets.android.exomediademo.R;
@@ -57,7 +57,7 @@ public class MediaService extends BasePlaylistService<MediaItem, PlaylistManager
     @NonNull
     @Override
     protected AudioPlayerApi getNewAudioPlayer() {
-        return new AudioApi(new EMAudioPlayer(getApplicationContext()));
+        return new AudioApi(new AudioPlayer(getApplicationContext()));
     }
 
     @Override
@@ -132,7 +132,7 @@ public class MediaService extends BasePlaylistService<MediaItem, PlaylistManager
 
     /**
      * Overridden to allow updating the Title, SubTitle, and description in
-     * the EMVideoView (VideoControls)
+     * the VideoView (VideoControls)
      */
     @Override
     protected boolean playVideoItem() {
@@ -145,7 +145,7 @@ public class MediaService extends BasePlaylistService<MediaItem, PlaylistManager
     }
 
     /**
-     * Helper method used to verify we can access the EMVideoView#getVideoControls()
+     * Helper method used to verify we can access the {@link VideoView#getVideoControls()}
      * to update both the text and available next/previous buttons
      */
     private void updateVideoControls() {
@@ -154,7 +154,7 @@ public class MediaService extends BasePlaylistService<MediaItem, PlaylistManager
             return;
         }
 
-        EMVideoView videoView = videoApi.getVideoView();
+        VideoView videoView = videoApi.getVideoView();
         if (videoView == null) {
             return;
         }

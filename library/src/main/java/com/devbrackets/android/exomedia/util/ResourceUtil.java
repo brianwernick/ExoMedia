@@ -18,7 +18,7 @@ import android.util.TypedValue;
  * A Utility for handling the changes in the Android Resources API
  * and the support Drawables to correctly retrieve tinted Drawables
  */
-public class EMResourceUtil {
+public class ResourceUtil {
     /**
      * Retrieves the drawable specified with the <code>drawableRes</code> using the
      * <code>colorRes</code> to correctly tint it before returning the Drawable

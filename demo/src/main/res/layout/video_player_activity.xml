@@ -1,12 +1,12 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-                xmlns:EMVideoView="http://schemas.android.com/apk/res-auto"
+                xmlns:app="http://schemas.android.com/apk/res-auto"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:background="@android:color/black">
 
-    <com.devbrackets.android.exomedia.ui.widget.EMVideoView
+    <com.devbrackets.android.exomedia.ui.widget.VideoView
         android:id="@+id/video_play_activity_video_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        EMVideoView:useDefaultControls="true"/>
+        app:useDefaultControls="true"/>
 </RelativeLayout>

@@ -40,7 +40,7 @@ import android.widget.RelativeLayout;
 
 import com.devbrackets.android.exomedia.ExoMedia;
 import com.devbrackets.android.exomedia.R;
-import com.devbrackets.android.exomedia.core.EMListenerMux;
+import com.devbrackets.android.exomedia.core.ListenerMux;
 import com.devbrackets.android.exomedia.core.api.VideoViewApi;
 import com.devbrackets.android.exomedia.core.exoplayer.EMExoPlayer;
 import com.devbrackets.android.exomedia.core.listener.MetadataListener;
@@ -70,8 +70,8 @@ import java.util.Map;
  * to help with quick implementations.
  */
 @SuppressWarnings("UnusedDeclaration")
-public class EMVideoView extends RelativeLayout {
-    private static final String TAG = EMVideoView.class.getSimpleName();
+public class VideoView extends RelativeLayout {
+    private static final String TAG = VideoView.class.getSimpleName();
 
     @Nullable
     protected VideoControls videoControls;
@@ -92,29 +92,29 @@ public class EMVideoView extends RelativeLayout {
     protected StopWatch overriddenPositionStopWatch = new StopWatch();
 
     protected MuxNotifier muxNotifier = new MuxNotifier();
-    protected EMListenerMux listenerMux;
+    protected ListenerMux listenerMux;
 
     protected boolean releaseOnDetachFromWindow = true;
     protected boolean handleAudioFocus = true;
 
-    public EMVideoView(Context context) {
+    public VideoView(Context context) {
         super(context);
         setup(context, null);
     }
 
-    public EMVideoView(Context context, AttributeSet attrs) {
+    public VideoView(Context context, AttributeSet attrs) {
         super(context, attrs);
         setup(context, attrs);
     }
 
     @TargetApi(Build.VERSION_CODES.HONEYCOMB)
-    public EMVideoView(Context context, AttributeSet attrs, int defStyleAttr) {
+    public VideoView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         setup(context, attrs);
     }
 
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
-    public EMVideoView(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
+    public VideoView(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
         super(context, attrs, defStyleAttr, defStyleRes);
         setup(context, attrs);
     }
@@ -137,7 +137,7 @@ public class EMVideoView extends RelativeLayout {
     /**
      * <b><em>WARNING:</em></b> Use of this method may cause memory leaks.
      * <p>
-     * Enables or disables the automatic release when the EMVideoView is detached
+     * Enables or disables the automatic release when the VideoView is detached
      * from the window.  Normally this is expected to release all resources used
      * by calling {@link #release()}.  If <code>releaseOnDetach</code> is disabled
      * then {@link #release()} will need to be manually called.
@@ -150,7 +150,7 @@ public class EMVideoView extends RelativeLayout {
 
     /**
      * Stops the playback and releases all resources attached to this
-     * EMVideoView.  This should not be called manually unless
+     * VideoView.  This should not be called manually unless
      * {@link #setReleaseOnDetachFromWindow(boolean)} has been set.
      */
     public void release() {
@@ -693,7 +693,7 @@ public class EMVideoView extends RelativeLayout {
         videoViewImpl = (VideoViewApi) findViewById(R.id.exomedia_video_view);
 
         muxNotifier = new MuxNotifier();
-        listenerMux = new EMListenerMux(muxNotifier);
+        listenerMux = new ListenerMux(muxNotifier);
 
         videoViewImpl.setListenerMux(listenerMux);
     }
@@ -839,7 +839,7 @@ public class EMVideoView extends RelativeLayout {
         }
     }
 
-    protected class MuxNotifier extends EMListenerMux.EMListenerMuxNotifier {
+    protected class MuxNotifier extends ListenerMux.Notifier {
         @Override
         public boolean shouldNotifyCompletion(long endLeeway) {
             return getCurrentPosition() + endLeeway >= getDuration();
@@ -960,20 +960,20 @@ public class EMVideoView extends RelativeLayout {
                 return;
             }
 
-            TypedArray typedArray = context.obtainStyledAttributes(attrs, R.styleable.EMVideoView);
+            TypedArray typedArray = context.obtainStyledAttributes(attrs, R.styleable.VideoView);
             if (typedArray == null) {
                 return;
             }
 
-            useDefaultControls = typedArray.getBoolean(R.styleable.EMVideoView_useDefaultControls, useDefaultControls);
-            useSurfaceViewBacking = typedArray.getBoolean(R.styleable.EMVideoView_useSurfaceViewBacking, useSurfaceViewBacking);
+            useDefaultControls = typedArray.getBoolean(R.styleable.VideoView_useDefaultControls, useDefaultControls);
+            useSurfaceViewBacking = typedArray.getBoolean(R.styleable.VideoView_useSurfaceViewBacking, useSurfaceViewBacking);
 
             //Resets the default implementations based on useSurfaceViewBacking
             apiImplResourceId = useSurfaceViewBacking ? R.layout.exomedia_default_exo_surface_video_view : R.layout.exomedia_default_exo_texture_video_view;
             apiImplLegacyResourceId = useSurfaceViewBacking ? R.layout.exomedia_default_native_surface_video_view : R.layout.exomedia_default_native_texture_video_view;
 
-            apiImplResourceId = typedArray.getResourceId(R.styleable.EMVideoView_videoViewApiImpl, apiImplResourceId);
-            apiImplLegacyResourceId = typedArray.getResourceId(R.styleable.EMVideoView_videoViewApiImplLegacy, apiImplLegacyResourceId);
+            apiImplResourceId = typedArray.getResourceId(R.styleable.VideoView_videoViewApiImpl, apiImplResourceId);
+            apiImplLegacyResourceId = typedArray.getResourceId(R.styleable.VideoView_videoViewApiImplLegacy, apiImplLegacyResourceId);
 
             typedArray.recycle();
         }

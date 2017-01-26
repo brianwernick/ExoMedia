@@ -38,14 +38,14 @@ import com.devbrackets.android.exomedia.R;
 import com.devbrackets.android.exomedia.listener.VideoControlsButtonListener;
 import com.devbrackets.android.exomedia.listener.VideoControlsSeekListener;
 import com.devbrackets.android.exomedia.listener.VideoControlsVisibilityListener;
-import com.devbrackets.android.exomedia.util.EMResourceUtil;
+import com.devbrackets.android.exomedia.util.ResourceUtil;
 import com.devbrackets.android.exomedia.util.Repeater;
 
 import java.util.LinkedList;
 import java.util.List;
 
 /**
- * This is a simple abstraction for the EMVideoView to have a single "View" to add
+ * This is a simple abstraction for the {@link VideoView} to have a single "View" to add
  * or remove for the Default Video Controls.
  */
 @SuppressWarnings("unused")
@@ -82,7 +82,7 @@ public abstract class VideoControls extends RelativeLayout {
     protected Repeater progressPollRepeater = new Repeater();
 
     @Nullable
-    protected EMVideoView videoView;
+    protected VideoView videoView;
 
     @Nullable
     protected VideoControlsSeekListener seekListener;
@@ -196,10 +196,10 @@ public abstract class VideoControls extends RelativeLayout {
      * Sets the parent view to use for determining playback length, position,
      * state, etc.  This should only be called once, during the setup process
      *
-     * @param EMVideoView The Parent view to these controls
+     * @param VideoView The Parent view to these controls
      */
-    public void setVideoView(@Nullable EMVideoView EMVideoView) {
-        this.videoView = EMVideoView;
+    public void setVideoView(@Nullable VideoView VideoView) {
+        this.videoView = VideoView;
     }
 
     /**
@@ -620,15 +620,15 @@ public abstract class VideoControls extends RelativeLayout {
      * Updates the drawables used for the buttons to AppCompatTintDrawables
      */
     protected void updateButtonDrawables() {
-        defaultPlayDrawable = EMResourceUtil.tintList(getContext(), R.drawable.exomedia_ic_play_arrow_white, R.color.exomedia_default_controls_button_selector);
+        defaultPlayDrawable = ResourceUtil.tintList(getContext(), R.drawable.exomedia_ic_play_arrow_white, R.color.exomedia_default_controls_button_selector);
 
-        defaultPauseDrawable = EMResourceUtil.tintList(getContext(), R.drawable.exomedia_ic_pause_white, R.color.exomedia_default_controls_button_selector);
+        defaultPauseDrawable = ResourceUtil.tintList(getContext(), R.drawable.exomedia_ic_pause_white, R.color.exomedia_default_controls_button_selector);
         playPauseButton.setImageDrawable(defaultPlayDrawable);
 
-        defaultPreviousDrawable = EMResourceUtil.tintList(getContext(), R.drawable.exomedia_ic_skip_previous_white, R.color.exomedia_default_controls_button_selector);
+        defaultPreviousDrawable = ResourceUtil.tintList(getContext(), R.drawable.exomedia_ic_skip_previous_white, R.color.exomedia_default_controls_button_selector);
         previousButton.setImageDrawable(defaultPreviousDrawable);
 
-        defaultNextDrawable = EMResourceUtil.tintList(getContext(), R.drawable.exomedia_ic_skip_next_white, R.color.exomedia_default_controls_button_selector);
+        defaultNextDrawable = ResourceUtil.tintList(getContext(), R.drawable.exomedia_ic_skip_next_white, R.color.exomedia_default_controls_button_selector);
         nextButton.setImageDrawable(defaultNextDrawable);
     }
 

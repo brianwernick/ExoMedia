@@ -28,7 +28,7 @@ import android.util.Log;
 import android.view.Surface;
 import android.widget.MediaController;
 
-import com.devbrackets.android.exomedia.core.EMListenerMux;
+import com.devbrackets.android.exomedia.core.ListenerMux;
 import com.devbrackets.android.exomedia.core.video.ClearableSurface;
 
 import java.io.IOException;
@@ -71,7 +71,7 @@ public class NativeVideoDelegate implements MediaController.MediaPlayerControl {
     protected int requestedSeek;
     protected int currentBufferPercent;
 
-    protected EMListenerMux listenerMux;
+    protected ListenerMux listenerMux;
 
     @NonNull
     protected InternalListeners internalListeners = new InternalListeners();
@@ -262,7 +262,7 @@ public class NativeVideoDelegate implements MediaController.MediaPlayerControl {
         openVideo(uri);
     }
 
-    public void setListenerMux(EMListenerMux listenerMux) {
+    public void setListenerMux(ListenerMux listenerMux) {
         this.listenerMux = listenerMux;
 
         setOnCompletionListener(listenerMux);

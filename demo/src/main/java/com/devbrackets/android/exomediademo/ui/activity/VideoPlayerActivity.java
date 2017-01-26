@@ -6,7 +6,7 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AlertDialog;
 
-import com.devbrackets.android.exomedia.ui.widget.EMVideoView;
+import com.devbrackets.android.exomedia.ui.widget.VideoView;
 import com.devbrackets.android.exomediademo.App;
 import com.devbrackets.android.exomediademo.R;
 import com.devbrackets.android.exomediademo.data.MediaItem;
@@ -25,7 +25,7 @@ public class VideoPlayerActivity extends Activity implements PlaylistListener<Me
     public static final String EXTRA_INDEX = "EXTRA_INDEX";
     public static final int PLAYLIST_ID = 6; //Arbitrary, for the example (different from audio)
 
-    protected EMVideoView emVideoView;
+    protected VideoView videoView;
     protected PlaylistManager playlistManager;
 
     protected int selectedIndex;
@@ -43,9 +43,9 @@ public class VideoPlayerActivity extends Activity implements PlaylistListener<Me
     @Override
     protected void onStop() {
         super.onStop();
-        if (emVideoView.isPlaying()) {
+        if (videoView.isPlaying()) {
             pausedInOnStop = true;
-            emVideoView.pause();
+            videoView.pause();
         }
     }
 
@@ -54,7 +54,7 @@ public class VideoPlayerActivity extends Activity implements PlaylistListener<Me
         super.onStart();
 
         if (pausedInOnStop) {
-            emVideoView.start();
+            videoView.start();
             pausedInOnStop = false;
         }
     }
@@ -107,9 +107,9 @@ public class VideoPlayerActivity extends Activity implements PlaylistListener<Me
     protected void init() {
         setupPlaylistManager();
 
-        emVideoView = (EMVideoView)findViewById(R.id.video_play_activity_video_view);
+        videoView = (VideoView)findViewById(R.id.video_play_activity_video_view);
 
-        playlistManager.setVideoPlayer(new VideoApi(emVideoView));
+        playlistManager.setVideoPlayer(new VideoApi(videoView));
         playlistManager.play(0, false);
     }
 

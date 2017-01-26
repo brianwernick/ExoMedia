@@ -25,7 +25,7 @@ import android.support.annotation.Nullable;
 import android.view.Surface;
 
 import com.devbrackets.android.exomedia.ExoMedia;
-import com.devbrackets.android.exomedia.core.EMListenerMux;
+import com.devbrackets.android.exomedia.core.ListenerMux;
 import com.devbrackets.android.exomedia.core.exoplayer.EMExoPlayer;
 import com.devbrackets.android.exomedia.core.listener.MetadataListener;
 import com.devbrackets.android.exomedia.core.video.ClearableSurface;
@@ -37,7 +37,6 @@ import com.google.android.exoplayer2.metadata.Metadata;
 import com.google.android.exoplayer2.source.MediaSource;
 import com.google.android.exoplayer2.source.TrackGroupArray;
 
-import java.util.List;
 import java.util.Map;
 
 
@@ -46,7 +45,7 @@ public class ExoVideoDelegate implements AudioCapabilitiesReceiver.Listener {
     protected AudioCapabilities audioCapabilities;
     protected AudioCapabilitiesReceiver audioCapabilitiesReceiver;
 
-    protected EMListenerMux listenerMux;
+    protected ListenerMux listenerMux;
     protected boolean playRequested = false;
 
     protected Context context;
@@ -196,7 +195,7 @@ public class ExoVideoDelegate implements AudioCapabilitiesReceiver.Listener {
         }
     }
 
-    public void setListenerMux(EMListenerMux listenerMux) {
+    public void setListenerMux(ListenerMux listenerMux) {
         this.listenerMux = listenerMux;
         emExoPlayer.addListener(listenerMux);
     }

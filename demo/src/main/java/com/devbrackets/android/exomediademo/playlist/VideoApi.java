@@ -5,13 +5,13 @@ import android.support.annotation.FloatRange;
 import android.support.annotation.IntRange;
 import android.support.annotation.NonNull;
 
-import com.devbrackets.android.exomedia.ui.widget.EMVideoView;
+import com.devbrackets.android.exomedia.ui.widget.VideoView;
 import com.devbrackets.android.playlistcore.api.VideoPlayerApi;
 
 public class VideoApi extends BaseMediaApi implements VideoPlayerApi {
-    private EMVideoView videoView;
+    private VideoView videoView;
 
-    public VideoApi(EMVideoView videoView) {
+    public VideoApi(VideoView videoView) {
         this.videoView = videoView;
 
         videoView.setOnErrorListener(this);
@@ -81,7 +81,7 @@ public class VideoApi extends BaseMediaApi implements VideoPlayerApi {
         return videoView.getBufferPercentage();
     }
 
-    public EMVideoView getVideoView() {
+    public VideoView getVideoView() {
         return videoView;
     }
 }

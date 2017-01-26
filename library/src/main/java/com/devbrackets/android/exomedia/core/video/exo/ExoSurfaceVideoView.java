@@ -90,7 +90,7 @@ public class ExoSurfaceVideoView extends ResizingSurfaceView implements VideoVie
     }
 
     @Override
-    public void seekTo(@IntRange(from = 0) int milliseconds) {
+    public void seekTo(@IntRange(from = 0) long milliseconds) {
         delegate.seekTo(milliseconds);
     }
 
@@ -120,12 +120,12 @@ public class ExoSurfaceVideoView extends ResizingSurfaceView implements VideoVie
     }
 
     @Override
-    public int getDuration() {
+    public long getDuration() {
         return delegate.getDuration();
     }
 
     @Override
-    public int getCurrentPosition() {
+    public long getCurrentPosition() {
         return delegate.getCurrentPosition();
     }
 

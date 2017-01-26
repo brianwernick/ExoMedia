@@ -85,8 +85,8 @@ public class VideoView extends RelativeLayout {
     @NonNull
     protected AudioFocusHelper audioFocusHelper = new AudioFocusHelper();
 
-    protected int positionOffset = 0;
-    protected int overriddenDuration = -1;
+    protected long positionOffset = 0;
+    protected long overriddenDuration = -1;
 
     protected boolean overridePosition = false;
     protected StopWatch overriddenPositionStopWatch = new StopWatch();
@@ -356,7 +356,7 @@ public class VideoView extends RelativeLayout {
      *
      * @param milliSeconds The time to move the playback to
      */
-    public void seekTo(int milliSeconds) {
+    public void seekTo(long milliSeconds) {
         if (videoControls != null) {
             videoControls.showLoading(false);
         }
@@ -453,11 +453,11 @@ public class VideoView extends RelativeLayout {
     /**
      * Retrieves the duration of the current audio item.  This should only be called after
      * the item is prepared (see {@link #setOnPreparedListener(OnPreparedListener)}).
-     * If {@link #overrideDuration(int)} is set then that value will be returned.
+     * If {@link #overrideDuration(long)} is set then that value will be returned.
      *
      * @return The millisecond duration of the video
      */
-    public int getDuration() {
+    public long getDuration() {
         if (overriddenDuration >= 0) {
             return overriddenDuration;
         }
@@ -472,7 +472,7 @@ public class VideoView extends RelativeLayout {
      *
      * @param duration The duration for the current media item or &lt; 0 to disable
      */
-    public void overrideDuration(int duration) {
+    public void overrideDuration(long duration) {
         overriddenDuration = duration;
     }
 
@@ -483,7 +483,7 @@ public class VideoView extends RelativeLayout {
      *
      * @return The millisecond value for the current position
      */
-    public int getCurrentPosition() {
+    public long getCurrentPosition() {
         if (overridePosition) {
             return positionOffset + overriddenPositionStopWatch.getTimeInt();
         }
@@ -497,13 +497,13 @@ public class VideoView extends RelativeLayout {
      *
      * @param offset The millisecond value to offset the position
      */
-    public void setPositionOffset(int offset) {
+    public void setPositionOffset(long offset) {
         positionOffset = offset;
     }
 
     /**
      * Restarts the audio position to the start if the position is being overridden (see {@link #overridePosition(boolean)}).
-     * This will be the value specified with {@link #setPositionOffset(int)} or 0 if it hasn't been set.
+     * This will be the value specified with {@link #setPositionOffset(long)} or 0 if it hasn't been set.
      */
     public void restartOverridePosition() {
         overriddenPositionStopWatch.reset();
@@ -729,8 +729,7 @@ public class VideoView extends RelativeLayout {
      * Retrieves the layout resource to use for the backing video view implementation.  By
      * default this uses the Android {@link android.widget.VideoView} on legacy devices with
      * APIs below Jellybean (16) or that don't pass the Compatibility Test Suite [CTS] via
-     * {@link NativeTextureVideoView}
-     * , and an ExoPlayer backed video view on the remaining devices via
+     * {@link NativeTextureVideoView}, and an ExoPlayer backed video view on the remaining devices via
      * {@link ExoTextureVideoView}.
      * <p>
      * In the rare cases that the default implementations need to be extended, or replaced, the

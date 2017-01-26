@@ -54,28 +54,23 @@ public class AudioPlayer {
     protected ListenerMux listenerMux;
 
     protected MediaPlayerApi mediaPlayerImpl;
-    protected int overriddenDuration = -1;
+    protected long overriddenDuration = -1;
 
-    public AudioPlayer(Context context) {
+    public AudioPlayer(@NonNull Context context) {
         this(context, new DeviceUtil());
     }
 
-    public AudioPlayer(Context context, DeviceUtil deviceUtil) {
-        if (deviceUtil.supportsExoPlayer(context)) {
-            mediaPlayerImpl = new ExoMediaPlayer(context);
-        } else {
-            mediaPlayerImpl = new NativeMediaPlayer(context);
-        }
-
-        init(mediaPlayerImpl);
+    public AudioPlayer(@NonNull Context context, @NonNull DeviceUtil deviceUtil) {
+        init(deviceUtil.supportsExoPlayer(context) ? new ExoMediaPlayer(context) : new NativeMediaPlayer(context));
     }
 
     public AudioPlayer(MediaPlayerApi mediaPlayerImpl) {
-        this.mediaPlayerImpl = mediaPlayerImpl;
         init(mediaPlayerImpl);
     }
 
     protected void init(MediaPlayerApi mediaPlayerImpl) {
+        this.mediaPlayerImpl = mediaPlayerImpl;
+
         listenerMux = new ListenerMux(new MuxNotifier());
         mediaPlayerImpl.setListenerMux(listenerMux);
     }
@@ -118,11 +113,10 @@ public class AudioPlayer {
      * Sets the source path for the audio item.  This path can be a web address (e.g. http://) or
      * an absolute local path (e.g. file://)
      *
-     * @param context The applications context that owns the media
      * @param uri The Uri representing the path to the audio item
      */
-    public void setDataSource(@NonNull Context context, @Nullable Uri uri) {
-        mediaPlayerImpl.setDataSource(context, uri);
+    public void setDataSource(@Nullable Uri uri) {
+        mediaPlayerImpl.setDataSource(uri);
         overrideDuration(-1);
     }
 
@@ -130,12 +124,11 @@ public class AudioPlayer {
      * Sets the source path for the audio item.  This path can be a web address (e.g. http://) or
      * an absolute local path (e.g. file://)
      *
-     * @param context The applications context that owns the media
      * @param uri The Uri representing the path to the audio item
      * @param mediaSource The MediaSource to use for audio playback
      */
-    public void setDataSource(@NonNull Context context, @Nullable Uri uri, @Nullable MediaSource mediaSource) {
-        mediaPlayerImpl.setDataSource(context, uri, mediaSource);
+    public void setDataSource(@Nullable Uri uri, @Nullable MediaSource mediaSource) {
+        mediaPlayerImpl.setDataSource(uri, mediaSource);
         overrideDuration(-1);
     }
 
@@ -152,8 +145,8 @@ public class AudioPlayer {
     }
 
     /**
-     * Prepares the media specified with {@link #setDataSource(Context, Uri)} or
-     * {@link #setDataSource(Context, Uri, MediaSource)} in an asynchronous manner
+     * Prepares the media specified with {@link #setDataSource(Uri)} or
+     * {@link #setDataSource(Uri, MediaSource)} in an asynchronous manner
      */
     public void prepareAsync() {
         mediaPlayerImpl.prepareAsync();
@@ -205,7 +198,7 @@ public class AudioPlayer {
      *
      * @param milliSeconds The time to move the playback to
      */
-    public void seekTo(int milliSeconds) {
+    public void seekTo(long milliSeconds) {
         mediaPlayerImpl.seekTo(milliSeconds);
     }
 
@@ -219,7 +212,7 @@ public class AudioPlayer {
     }
 
     /**
-     * Starts the playback for the audio item specified in {@link #setDataSource(android.content.Context, android.net.Uri)}.
+     * Starts the playback for the audio item specified in {@link #setDataSource(Uri)}.
      * This should be called after the AudioPlayer is correctly prepared (see {@link #setOnPreparedListener(OnPreparedListener)})
      */
     public void start() {
@@ -250,11 +243,11 @@ public class AudioPlayer {
     /**
      * Retrieves the duration of the current audio item.  This should only be called after
      * the item is prepared (see {@link #setOnPreparedListener(OnPreparedListener)}).
-     * If {@link #overrideDuration(int)} is set then that value will be returned.
+     * If {@link #overrideDuration(long)} is set then that value will be returned.
      *
      * @return The millisecond duration of the video
      */
-    public int getDuration() {
+    public long getDuration() {
         if (overriddenDuration >= 0) {
             return overriddenDuration;
         }
@@ -269,7 +262,7 @@ public class AudioPlayer {
      *
      * @param duration The duration for the current media item or &lt; 0 to disable
      */
-    public void overrideDuration(int duration) {
+    public void overrideDuration(long duration) {
         overriddenDuration = duration;
     }
 
@@ -280,7 +273,7 @@ public class AudioPlayer {
      *
      * @return The millisecond value for the current position
      */
-    public int getCurrentPosition() {
+    public long getCurrentPosition() {
         return mediaPlayerImpl.getCurrentPosition();
     }
 
@@ -377,7 +370,7 @@ public class AudioPlayer {
      *
      * @param listener The listener to inform
      */
-    public void setId3MetadataListener(@Nullable MetadataListener listener) {
+    public void setMetadataListener(@Nullable MetadataListener listener) {
         listenerMux.setMetadataListener(listener);
     }
 

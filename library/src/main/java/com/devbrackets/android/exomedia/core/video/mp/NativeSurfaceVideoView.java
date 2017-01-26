@@ -47,7 +47,8 @@ import java.util.Map;
  * <li>The {@link MediaController}</li>
  * </ul>
  */
-public class NativeSurfaceVideoView extends ResizingSurfaceView implements MediaController.MediaPlayerControl, NativeVideoDelegate.Callback, VideoViewApi {
+@SuppressWarnings("unused")
+public class NativeSurfaceVideoView extends ResizingSurfaceView implements NativeVideoDelegate.Callback, VideoViewApi {
     protected OnTouchListener touchListener;
     protected NativeVideoDelegate delegate;
 
@@ -89,48 +90,23 @@ public class NativeSurfaceVideoView extends ResizingSurfaceView implements Media
     }
 
     @Override
-    public int getDuration() {
+    public long getDuration() {
         return delegate.getDuration();
     }
 
     @Override
-    public int getCurrentPosition() {
+    public long getCurrentPosition() {
         return delegate.getCurrentPosition();
     }
 
     @Override
-    public void seekTo(int msec) {
-        delegate.seekTo(msec);
+    public void seekTo(long milliseconds) {
+        delegate.seekTo(milliseconds);
     }
 
     @Override
     public boolean isPlaying() {
         return delegate.isPlaying();
-    }
-
-    @Override
-    public int getBufferPercentage() {
-        return delegate.getBufferPercentage();
-    }
-
-    @Override
-    public boolean canPause() {
-        return delegate.canPause();
-    }
-
-    @Override
-    public boolean canSeekBackward() {
-        return delegate.canSeekBackward();
-    }
-
-    @Override
-    public boolean canSeekForward() {
-        return delegate.canSeekForward();
-    }
-
-    @Override
-    public int getAudioSessionId() {
-        return delegate.getAudioSessionId();
     }
 
     @Override
@@ -173,7 +149,7 @@ public class NativeSurfaceVideoView extends ResizingSurfaceView implements Media
 
     @Override
     public int getBufferedPercent() {
-        return getBufferPercentage();
+        return delegate.getBufferPercentage();
     }
 
     /**

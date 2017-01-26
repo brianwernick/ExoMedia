@@ -314,7 +314,7 @@ public class VideoControlsLeanback extends VideoControls {
      *
      * @param seekToTime The time to seek to in milliseconds
      */
-    protected void performSeek(int seekToTime) {
+    protected void performSeek(long seekToTime) {
         if (seekListener == null || !seekListener.onSeekEnded(seekToTime)) {
             internalListener.onSeekEnded(seekToTime);
         }
@@ -550,7 +550,7 @@ public class VideoControlsLeanback extends VideoControls {
                 return false;
             }
 
-            int newPosition = videoView.getCurrentPosition() + FAST_FORWARD_REWIND_AMOUNT;
+            long newPosition = videoView.getCurrentPosition() + FAST_FORWARD_REWIND_AMOUNT;
             if (newPosition > progressBar.getMax()) {
                 newPosition = progressBar.getMax();
             }
@@ -565,7 +565,7 @@ public class VideoControlsLeanback extends VideoControls {
                 return false;
             }
 
-            int newPosition = videoView.getCurrentPosition() - FAST_FORWARD_REWIND_AMOUNT;
+            long newPosition = videoView.getCurrentPosition() - FAST_FORWARD_REWIND_AMOUNT;
             if (newPosition < 0) {
                 newPosition = 0;
             }

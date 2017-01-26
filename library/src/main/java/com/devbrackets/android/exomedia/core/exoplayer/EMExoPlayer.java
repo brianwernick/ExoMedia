@@ -338,7 +338,6 @@ public class EMExoPlayer implements ExoPlayer.EventListener {
         stopped.set(false);
     }
 
-
     public void stop() {
         if (!stopped.getAndSet(true)) {
             player.setPlayWhenReady(false);

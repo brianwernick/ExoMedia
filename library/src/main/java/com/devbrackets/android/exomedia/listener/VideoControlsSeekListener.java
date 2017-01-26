@@ -24,7 +24,7 @@ public interface VideoControlsSeekListener {
 
     /**
      * Occurs when the media has entered a state of waiting until the
-     * {@link #onSeekEnded(int)} is called.
+     * {@link #onSeekEnded(long)} is called.
      *
      * @return {@code true} if the state has been handled
      */
@@ -37,5 +37,5 @@ public interface VideoControlsSeekListener {
      * @param seekTime The time in milliseconds to seek to
      * @return {@code true} if the seek has been handled
      */
-    boolean onSeekEnded(int seekTime);
+    boolean onSeekEnded(long seekTime);
 }

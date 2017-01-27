@@ -37,7 +37,7 @@ import java.util.Map;
  * between the Native (Android) MediaPlayer and the AudioPlayer
  * using the ExoPlayer.
  */
-public interface MediaPlayerApi {
+public interface AudioPlayerApi {
     void setDataSource(@Nullable Uri uri);
 
     void setDataSource(@Nullable Uri uri, @Nullable MediaSource mediaSource);

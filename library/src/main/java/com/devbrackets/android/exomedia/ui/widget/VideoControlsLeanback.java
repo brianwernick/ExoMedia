@@ -52,9 +52,6 @@ public class VideoControlsLeanback extends VideoControls {
     protected ImageButton fastForwardButton;
     protected ImageButton rewindButton;
 
-    protected Drawable defaultRewindDrawable;
-    protected Drawable defaultFastForwardDrawable;
-
     protected View currentFocus;
     protected ButtonFocusChangeListener buttonFocusChangeListener = new ButtonFocusChangeListener();
 
@@ -96,14 +93,14 @@ public class VideoControlsLeanback extends VideoControls {
 
     @Override
     public void setPosition(long position) {
-        currentTime.setText(TimeFormatUtil.formatMs(position));
+        currentTimeTextView.setText(TimeFormatUtil.formatMs(position));
         progressBar.setProgress((int) position);
     }
 
     @Override
     public void setDuration(long duration) {
         if (duration != progressBar.getMax()) {
-            endTime.setText(TimeFormatUtil.formatMs(duration));
+            endTimeTextView.setText(TimeFormatUtil.formatMs(duration));
             progressBar.setMax((int) duration);
         }
     }
@@ -112,7 +109,7 @@ public class VideoControlsLeanback extends VideoControls {
     public void updateProgress(@IntRange(from = 0) long position, @IntRange(from = 0) long duration, @IntRange(from = 0, to = 100) int bufferPercent) {
         progressBar.setSecondaryProgress((int) (progressBar.getMax() * ((float)bufferPercent / 100)));
         progressBar.setProgress((int) position);
-        currentTime.setText(TimeFormatUtil.formatMs(position));
+        currentTimeTextView.setText(TimeFormatUtil.formatMs(position));
     }
 
     @Override
@@ -196,11 +193,11 @@ public class VideoControlsLeanback extends VideoControls {
     protected void updateButtonDrawables() {
         super.updateButtonDrawables();
 
-        defaultRewindDrawable = ResourceUtil.tintList(getContext(), R.drawable.exomedia_ic_rewind_white, R.color.exomedia_default_controls_button_selector);
-        rewindButton.setImageDrawable(defaultRewindDrawable);
+        Drawable rewindDrawable = ResourceUtil.tintList(getContext(), R.drawable.exomedia_ic_rewind_white, R.color.exomedia_default_controls_button_selector);
+        rewindButton.setImageDrawable(rewindDrawable);
 
-        defaultFastForwardDrawable = ResourceUtil.tintList(getContext(), R.drawable.exomedia_ic_fast_forward_white, R.color.exomedia_default_controls_button_selector);
-        fastForwardButton.setImageDrawable(defaultFastForwardDrawable);
+        Drawable fastForwardDrawable = ResourceUtil.tintList(getContext(), R.drawable.exomedia_ic_fast_forward_white, R.color.exomedia_default_controls_button_selector);
+        fastForwardButton.setImageDrawable(fastForwardDrawable);
     }
 
     @Override
@@ -242,7 +239,7 @@ public class VideoControlsLeanback extends VideoControls {
         isLoading = true;
         controlsContainer.setVisibility(View.GONE);
         rippleIndicator.setVisibility(View.GONE);
-        loadingProgress.setVisibility(View.VISIBLE);
+        loadingProgressBar.setVisibility(View.VISIBLE);
 
         show();
     }
@@ -256,7 +253,7 @@ public class VideoControlsLeanback extends VideoControls {
         isLoading = false;
         controlsContainer.setVisibility(View.VISIBLE);
         rippleIndicator.setVisibility(View.VISIBLE);
-        loadingProgress.setVisibility(View.GONE);
+        loadingProgressBar.setVisibility(View.GONE);
 
         updatePlaybackState(videoView != null && videoView.isPlaying());
     }

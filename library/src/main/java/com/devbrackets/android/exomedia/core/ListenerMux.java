@@ -22,7 +22,7 @@ import android.support.annotation.IntRange;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
-import com.devbrackets.android.exomedia.core.exoplayer.EMExoPlayer;
+import com.devbrackets.android.exomedia.core.exoplayer.ExoMediaPlayer;
 import com.devbrackets.android.exomedia.core.listener.ExoPlayerListener;
 import com.devbrackets.android.exomedia.core.listener.MetadataListener;
 import com.devbrackets.android.exomedia.core.video.ClearableSurface;
@@ -37,7 +37,7 @@ import com.google.android.exoplayer2.metadata.Metadata;
 import java.lang.ref.WeakReference;
 
 /**
- * An internal Listener that implements the listeners for the {@link EMExoPlayer},
+ * An internal Listener that implements the listeners for the {@link ExoMediaPlayer},
  * Android VideoView, and the Android MediaPlayer to output to the correct
  * error listeners.
  */
@@ -105,9 +105,9 @@ public class ListenerMux implements ExoPlayerListener, MediaPlayer.OnPreparedLis
     }
 
     @Override
-    public void onError(EMExoPlayer emExoPlayer, Exception e) {
+    public void onError(ExoMediaPlayer exoMediaPlayer, Exception e) {
         muxNotifier.onMediaPlaybackEnded();
-        muxNotifier.onExoPlayerError(emExoPlayer, e);
+        muxNotifier.onExoPlayerError(exoMediaPlayer, e);
         notifyErrorListener();
     }
 
@@ -326,7 +326,7 @@ public class ListenerMux implements ExoPlayerListener, MediaPlayer.OnPreparedLis
 
         public abstract boolean shouldNotifyCompletion(long endLeeway);
 
-        public abstract void onExoPlayerError(EMExoPlayer emExoPlayer, Exception e);
+        public abstract void onExoPlayerError(ExoMediaPlayer exoMediaPlayer, Exception e);
 
         public abstract void onMediaPlaybackEnded();
     }

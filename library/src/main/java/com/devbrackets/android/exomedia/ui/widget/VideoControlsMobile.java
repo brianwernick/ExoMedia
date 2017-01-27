@@ -69,14 +69,14 @@ public class VideoControlsMobile extends VideoControls {
 
     @Override
     public void setPosition(@IntRange(from = 0) long position) {
-        currentTime.setText(TimeFormatUtil.formatMs(position));
+        currentTimeTextView.setText(TimeFormatUtil.formatMs(position));
         seekBar.setProgress((int) position);
     }
 
     @Override
     public void setDuration(@IntRange(from = 0) long duration) {
         if (duration != seekBar.getMax()) {
-            endTime.setText(TimeFormatUtil.formatMs(duration));
+            endTimeTextView.setText(TimeFormatUtil.formatMs(duration));
             seekBar.setMax((int) duration);
         }
     }
@@ -86,7 +86,7 @@ public class VideoControlsMobile extends VideoControls {
         if (!userInteracting) {
             seekBar.setSecondaryProgress((int) (seekBar.getMax() * ((float)bufferPercent / 100)));
             seekBar.setProgress((int) position);
-            currentTime.setText(TimeFormatUtil.formatMs(position));
+            currentTimeTextView.setText(TimeFormatUtil.formatMs(position));
         }
     }
 
@@ -191,7 +191,7 @@ public class VideoControlsMobile extends VideoControls {
 
         isLoading = true;
         controlsContainer.setVisibility(View.GONE);
-        loadingProgress.setVisibility(View.VISIBLE);
+        loadingProgressBar.setVisibility(View.VISIBLE);
 
         show();
     }
@@ -204,7 +204,7 @@ public class VideoControlsMobile extends VideoControls {
 
         isLoading = false;
         controlsContainer.setVisibility(View.VISIBLE);
-        loadingProgress.setVisibility(View.GONE);
+        loadingProgressBar.setVisibility(View.GONE);
 
         updatePlaybackState(videoView != null && videoView.isPlaying());
     }
@@ -222,8 +222,8 @@ public class VideoControlsMobile extends VideoControls {
             }
 
             seekToTime = progress;
-            if (currentTime != null) {
-                currentTime.setText(TimeFormatUtil.formatMs(seekToTime));
+            if (currentTimeTextView != null) {
+                currentTimeTextView.setText(TimeFormatUtil.formatMs(seekToTime));
             }
         }
 

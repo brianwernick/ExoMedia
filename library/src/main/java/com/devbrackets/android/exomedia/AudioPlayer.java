@@ -24,10 +24,10 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
 import com.devbrackets.android.exomedia.core.ListenerMux;
-import com.devbrackets.android.exomedia.core.api.MediaPlayerApi;
-import com.devbrackets.android.exomedia.core.audio.ExoMediaPlayer;
-import com.devbrackets.android.exomedia.core.audio.NativeMediaPlayer;
-import com.devbrackets.android.exomedia.core.exoplayer.EMExoPlayer;
+import com.devbrackets.android.exomedia.core.api.AudioPlayerApi;
+import com.devbrackets.android.exomedia.core.audio.ExoAudioPlayer;
+import com.devbrackets.android.exomedia.core.audio.NativeAudioPlayer;
+import com.devbrackets.android.exomedia.core.exoplayer.ExoMediaPlayer;
 import com.devbrackets.android.exomedia.core.listener.MetadataListener;
 import com.devbrackets.android.exomedia.listener.OnBufferUpdateListener;
 import com.devbrackets.android.exomedia.listener.OnCompletionListener;
@@ -53,7 +53,7 @@ import java.util.Map;
 public class AudioPlayer {
     protected ListenerMux listenerMux;
 
-    protected MediaPlayerApi mediaPlayerImpl;
+    protected AudioPlayerApi audioPlayerImpl;
     protected long overriddenDuration = -1;
 
     public AudioPlayer(@NonNull Context context) {
@@ -61,18 +61,18 @@ public class AudioPlayer {
     }
 
     public AudioPlayer(@NonNull Context context, @NonNull DeviceUtil deviceUtil) {
-        init(deviceUtil.supportsExoPlayer(context) ? new ExoMediaPlayer(context) : new NativeMediaPlayer(context));
+        init(deviceUtil.supportsExoPlayer(context) ? new ExoAudioPlayer(context) : new NativeAudioPlayer(context));
     }
 
-    public AudioPlayer(MediaPlayerApi mediaPlayerImpl) {
-        init(mediaPlayerImpl);
+    public AudioPlayer(AudioPlayerApi audioPlayerImpl) {
+        init(audioPlayerImpl);
     }
 
-    protected void init(MediaPlayerApi mediaPlayerImpl) {
-        this.mediaPlayerImpl = mediaPlayerImpl;
+    protected void init(AudioPlayerApi audioPlayerImpl) {
+        this.audioPlayerImpl = audioPlayerImpl;
 
         listenerMux = new ListenerMux(new MuxNotifier());
-        mediaPlayerImpl.setListenerMux(listenerMux);
+        audioPlayerImpl.setListenerMux(listenerMux);
     }
 
     /**
@@ -83,7 +83,7 @@ public class AudioPlayer {
      * instantiated.
      */
     public int getAudioSessionId() {
-        return mediaPlayerImpl.getAudioSessionId();
+        return audioPlayerImpl.getAudioSessionId();
     }
 
     /**
@@ -93,7 +93,7 @@ public class AudioPlayer {
      * @return True if the speed was set
      */
     public boolean setPlaybackSpeed(float speed) {
-        return mediaPlayerImpl.setPlaybackSpeed(speed);
+        return audioPlayerImpl.setPlaybackSpeed(speed);
     }
 
     /**
@@ -106,7 +106,7 @@ public class AudioPlayer {
      * @see android.media.AudioManager
      */
     public void setAudioStreamType(int streamType) {
-        mediaPlayerImpl.setAudioStreamType(streamType);
+        audioPlayerImpl.setAudioStreamType(streamType);
     }
 
     /**
@@ -116,7 +116,7 @@ public class AudioPlayer {
      * @param uri The Uri representing the path to the audio item
      */
     public void setDataSource(@Nullable Uri uri) {
-        mediaPlayerImpl.setDataSource(uri);
+        audioPlayerImpl.setDataSource(uri);
         overrideDuration(-1);
     }
 
@@ -128,7 +128,7 @@ public class AudioPlayer {
      * @param mediaSource The MediaSource to use for audio playback
      */
     public void setDataSource(@Nullable Uri uri, @Nullable MediaSource mediaSource) {
-        mediaPlayerImpl.setDataSource(uri, mediaSource);
+        audioPlayerImpl.setDataSource(uri, mediaSource);
         overrideDuration(-1);
     }
 
@@ -141,7 +141,7 @@ public class AudioPlayer {
      * @param drmProvider The provider to use when handling DRM media
      */
     public void setDrmProvider(@Nullable DrmProvider drmProvider) {
-        mediaPlayerImpl.setDrmProvider(drmProvider);
+        audioPlayerImpl.setDrmProvider(drmProvider);
     }
 
     /**
@@ -149,7 +149,7 @@ public class AudioPlayer {
      * {@link #setDataSource(Uri, MediaSource)} in an asynchronous manner
      */
     public void prepareAsync() {
-        mediaPlayerImpl.prepareAsync();
+        audioPlayerImpl.prepareAsync();
     }
 
     /**
@@ -159,7 +159,7 @@ public class AudioPlayer {
      * @param rightVolume The volume range [0.0 - 1.0]
      */
     public void setVolume(@FloatRange(from = 0.0, to = 1.0) float leftVolume, @FloatRange(from = 0.0, to = 1.0) float rightVolume) {
-        mediaPlayerImpl.setVolume(leftVolume, rightVolume);
+        audioPlayerImpl.setVolume(leftVolume, rightVolume);
     }
 
     /**
@@ -177,7 +177,7 @@ public class AudioPlayer {
      * @see android.os.PowerManager
      */
     public void setWakeMode(Context context, int mode) {
-        mediaPlayerImpl.setWakeMode(context, mode);
+        audioPlayerImpl.setWakeMode(context, mode);
     }
 
     /**
@@ -188,7 +188,7 @@ public class AudioPlayer {
         stopPlayback();
         setDataSource(null, null);
 
-        mediaPlayerImpl.reset();
+        audioPlayerImpl.reset();
     }
 
     /**
@@ -199,7 +199,7 @@ public class AudioPlayer {
      * @param milliSeconds The time to move the playback to
      */
     public void seekTo(long milliSeconds) {
-        mediaPlayerImpl.seekTo(milliSeconds);
+        audioPlayerImpl.seekTo(milliSeconds);
     }
 
     /**
@@ -208,7 +208,7 @@ public class AudioPlayer {
      * @return True if an audio item is playing
      */
     public boolean isPlaying() {
-        return mediaPlayerImpl.isPlaying();
+        return audioPlayerImpl.isPlaying();
     }
 
     /**
@@ -216,28 +216,28 @@ public class AudioPlayer {
      * This should be called after the AudioPlayer is correctly prepared (see {@link #setOnPreparedListener(OnPreparedListener)})
      */
     public void start() {
-        mediaPlayerImpl.start();
+        audioPlayerImpl.start();
     }
 
     /**
      * If an audio item is currently in playback, it will be paused
      */
     public void pause() {
-        mediaPlayerImpl.pause();
+        audioPlayerImpl.pause();
     }
 
     /**
      * If an audio item is currently in playback then the playback will be stopped
      */
     public void stopPlayback() {
-        mediaPlayerImpl.stopPlayback();
+        audioPlayerImpl.stopPlayback();
     }
 
     /**
      * Releases the resources associated with this media player
      */
     public void release() {
-        mediaPlayerImpl.release();
+        audioPlayerImpl.release();
     }
 
     /**
@@ -252,7 +252,7 @@ public class AudioPlayer {
             return overriddenDuration;
         }
 
-        return mediaPlayerImpl.getDuration();
+        return audioPlayerImpl.getDuration();
     }
 
     /**
@@ -274,7 +274,7 @@ public class AudioPlayer {
      * @return The millisecond value for the current position
      */
     public long getCurrentPosition() {
-        return mediaPlayerImpl.getCurrentPosition();
+        return audioPlayerImpl.getCurrentPosition();
     }
 
     /**
@@ -285,7 +285,7 @@ public class AudioPlayer {
      * @return The integer percent that is buffered [0, 100] inclusive
      */
     public int getBufferPercentage() {
-        return mediaPlayerImpl.getBufferedPercent();
+        return audioPlayerImpl.getBufferedPercent();
     }
 
     /**
@@ -295,7 +295,7 @@ public class AudioPlayer {
      * @return True if tracks can be manually specified
      */
     public boolean trackSelectionAvailable() {
-        return mediaPlayerImpl.trackSelectionAvailable();
+        return audioPlayerImpl.trackSelectionAvailable();
     }
 
     /**
@@ -306,7 +306,7 @@ public class AudioPlayer {
      * @param trackIndex The index for the track to switch to
      */
     public void setTrack(ExoMedia.RendererType trackType, int trackIndex) {
-        mediaPlayerImpl.setTrack(trackType, trackIndex);
+        audioPlayerImpl.setTrack(trackType, trackIndex);
     }
 
     /**
@@ -317,7 +317,7 @@ public class AudioPlayer {
      */
     @Nullable
     public Map<ExoMedia.RendererType, TrackGroupArray> getAvailableTracks() {
-        return mediaPlayerImpl.getAvailableTracks();
+        return audioPlayerImpl.getAvailableTracks();
     }
 
     /**
@@ -389,11 +389,11 @@ public class AudioPlayer {
         }
 
         @Override
-        public void onExoPlayerError(EMExoPlayer emExoPlayer, Exception e) {
+        public void onExoPlayerError(ExoMediaPlayer exoMediaPlayer, Exception e) {
             stopPlayback();
 
-            if (emExoPlayer != null) {
-                emExoPlayer.forcePrepare();
+            if (exoMediaPlayer != null) {
+                exoMediaPlayer.forcePrepare();
             }
         }
 
@@ -404,7 +404,7 @@ public class AudioPlayer {
 
         @Override
         public void onPrepared() {
-            mediaPlayerImpl.onMediaPrepared();
+            audioPlayerImpl.onMediaPrepared();
         }
     }
 }

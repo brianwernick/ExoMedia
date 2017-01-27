@@ -63,7 +63,7 @@
             android:layoutDirection="ltr"
             android:maxHeight="4dp"
             android:minHeight="4dp"
-            android:progressDrawable="@drawable/leanback_progress_horizontal"
+            android:progressDrawable="@drawable/exomedia_leanback_progress_horizontal"
             tools:max="100"
             tools:progress="70"
             tools:secondaryProgress="93"/>

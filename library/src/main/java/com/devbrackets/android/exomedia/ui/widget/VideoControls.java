@@ -21,7 +21,6 @@ import android.content.Context;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Handler;
-import android.support.annotation.DrawableRes;
 import android.support.annotation.IntRange;
 import android.support.annotation.LayoutRes;
 import android.support.annotation.NonNull;
@@ -38,8 +37,8 @@ import com.devbrackets.android.exomedia.R;
 import com.devbrackets.android.exomedia.listener.VideoControlsButtonListener;
 import com.devbrackets.android.exomedia.listener.VideoControlsSeekListener;
 import com.devbrackets.android.exomedia.listener.VideoControlsVisibilityListener;
-import com.devbrackets.android.exomedia.util.ResourceUtil;
 import com.devbrackets.android.exomedia.util.Repeater;
+import com.devbrackets.android.exomedia.util.ResourceUtil;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -70,11 +69,8 @@ public abstract class VideoControls extends RelativeLayout {
     protected ViewGroup controlsContainer;
     protected ViewGroup textContainer;
 
-    //TODO: remove these in the next major release (they don't provide that large of a purpose)
-    protected Drawable defaultPlayDrawable;
-    protected Drawable defaultPauseDrawable;
-    protected Drawable defaultPreviousDrawable;
-    protected Drawable defaultNextDrawable;
+    protected Drawable playDrawable;
+    protected Drawable pauseDrawable;
 
     @NonNull
     protected Handler visibilityHandler = new Handler();
@@ -93,11 +89,6 @@ public abstract class VideoControls extends RelativeLayout {
 
     @NonNull
     protected InternalListener internalListener = new InternalListener();
-
-    //TODO: remove these in the next major release in favor of Drawables
-    //Since the Play/Pause button uses 2 separate resource Id's we need to store them
-    protected int playResourceId = INVALID_RESOURCE_ID;
-    protected int pauseResourceId = INVALID_RESOURCE_ID;
 
     protected long hideDelay = -1;
 
@@ -280,43 +271,16 @@ public abstract class VideoControls extends RelativeLayout {
     }
 
     /**
-     * Sets the resource id's to use for the PlayPause button.
-     *
-     * @param playResourceId  The resourceId or 0
-     * @param pauseResourceId The resourceId or 0
-     */
-    public void setPlayPauseImages(@DrawableRes int playResourceId, @DrawableRes int pauseResourceId) {
-        this.playResourceId = playResourceId;
-        this.pauseResourceId = pauseResourceId;
-
-        updatePlayPauseImage(videoView != null && videoView.isPlaying());
-    }
-
-    /**
-     * Sets the drawables to use for the PlayPause button. This will be overridden by
-     * any valid values specified in {@link #setPlayPauseImages(int, int)}
+     * Sets the drawables to use for the PlayPause button
      *
      * @param playDrawable The drawable to represent play
      * @param pauseDrawable The drawable to represent pause
      */
     public void setPlayPauseDrawables(Drawable playDrawable, Drawable pauseDrawable) {
-        this.defaultPlayDrawable = playDrawable;
-        this.defaultPauseDrawable = pauseDrawable;
+        this.playDrawable = playDrawable;
+        this.pauseDrawable = pauseDrawable;
 
         updatePlayPauseImage(videoView != null && videoView.isPlaying());
-    }
-
-    /**
-     * Sets the state list drawable resource id to use for the Previous button.
-     *
-     * @param resourceId The resourceId or 0
-     */
-    public void setPreviousImageResource(@DrawableRes int resourceId) {
-        if (resourceId != 0) {
-            previousButton.setImageResource(resourceId);
-        } else {
-            previousButton.setImageDrawable(defaultPreviousDrawable);
-        }
     }
 
     /**
@@ -329,19 +293,6 @@ public abstract class VideoControls extends RelativeLayout {
     }
 
     /**
-     * Sets the state list drawable resource id to use for the Next button.
-     *
-     * @param resourceId The resourceId or 0
-     */
-    public void setNextImageResource(@DrawableRes int resourceId) {
-        if (resourceId != 0) {
-            nextButton.setImageResource(resourceId);
-        } else {
-            nextButton.setImageDrawable(defaultNextDrawable);
-        }
-    }
-
-    /**
      * Sets the drawable for the next button
      *
      * @param drawable The drawable to use
@@ -351,32 +302,12 @@ public abstract class VideoControls extends RelativeLayout {
     }
 
     /**
-     * Sets the state list drawable resource id to use for the Rewind button.
-     * <b><em>NOTE:</em></b> The Rewind button is only shown on TV layouts
-     *
-     * @param resourceId The resourceId or 0
-     */
-    public void setRewindImageResource(@DrawableRes int resourceId) {
-        //Purposefully left blank
-    }
-
-    /**
      * Sets the drawable for the rewind button
      *
      * @param drawable The drawable to use
      */
     public void setRewindDrawable(Drawable drawable) {
         //Purposefully let blank
-    }
-
-    /**
-     * Sets the state list drawable resource id to use for the Fast Forward button.
-     * <b><em>NOTE:</em></b> The Fast Forward button is only shown on TV layouts
-     *
-     * @param resourceId The resourceId or 0
-     */
-    public void setFastForwardImageResource(@DrawableRes int resourceId) {
-        //Purposefully left blank
     }
 
     /**
@@ -394,24 +325,12 @@ public abstract class VideoControls extends RelativeLayout {
      * @param isPlaying If the video is currently playing
      */
     public void updatePlayPauseImage(boolean isPlaying) {
-        if (isPlaying) {
-            if (pauseResourceId != INVALID_RESOURCE_ID) {
-                playPauseButton.setImageResource(pauseResourceId);
-            } else {
-                playPauseButton.setImageDrawable(defaultPauseDrawable);
-            }
-        } else {
-            if (playResourceId != INVALID_RESOURCE_ID) {
-                playPauseButton.setImageResource(playResourceId);
-            } else {
-                playPauseButton.setImageDrawable(defaultPlayDrawable);
-            }
-        }
+        playPauseButton.setImageDrawable(isPlaying ? pauseDrawable : playDrawable);
     }
 
     /**
      * Sets the button state for the Previous button.  This will just
-     * change the images specified with {@link #setPreviousImageResource(int)},
+     * change the images specified with {@link #setPreviousDrawable(Drawable)},
      * or use the defaults if they haven't been set, and block any click events.
      * <p>
      * This method will NOT re-add buttons that have previously been removed with
@@ -425,7 +344,7 @@ public abstract class VideoControls extends RelativeLayout {
 
     /**
      * Sets the button state for the Next button.  This will just
-     * change the images specified with {@link #setNextImageResource(int)},
+     * change the images specified with {@link #setNextDrawable(Drawable)},
      * or use the defaults if they haven't been set, and block any click events.
      * <p>
      * This method will NOT re-add buttons that have previously been removed with
@@ -439,7 +358,7 @@ public abstract class VideoControls extends RelativeLayout {
 
     /**
      * Sets the button state for the Rewind button.  This will just
-     * change the images specified with {@link #setRewindImageResource(int)},
+     * change the images specified with {@link #setRewindDrawable(Drawable)},
      * or use the defaults if they haven't been set
      * <p>
      * This method will NOT re-add buttons that have previously been removed with
@@ -453,7 +372,7 @@ public abstract class VideoControls extends RelativeLayout {
 
     /**
      * Sets the button state for the Fast Forward button.  This will just
-     * change the images specified with {@link #setFastForwardImageResource(int)},
+     * change the images specified with {@link #setFastForwardDrawable(Drawable)},
      * or use the defaults if they haven't been set
      * <p>
      * This method will NOT re-add buttons that have previously been removed with
@@ -620,16 +539,15 @@ public abstract class VideoControls extends RelativeLayout {
      * Updates the drawables used for the buttons to AppCompatTintDrawables
      */
     protected void updateButtonDrawables() {
-        defaultPlayDrawable = ResourceUtil.tintList(getContext(), R.drawable.exomedia_ic_play_arrow_white, R.color.exomedia_default_controls_button_selector);
+        playDrawable = ResourceUtil.tintList(getContext(), R.drawable.exomedia_ic_play_arrow_white, R.color.exomedia_default_controls_button_selector);
+        pauseDrawable = ResourceUtil.tintList(getContext(), R.drawable.exomedia_ic_pause_white, R.color.exomedia_default_controls_button_selector);
+        playPauseButton.setImageDrawable(playDrawable);
 
-        defaultPauseDrawable = ResourceUtil.tintList(getContext(), R.drawable.exomedia_ic_pause_white, R.color.exomedia_default_controls_button_selector);
-        playPauseButton.setImageDrawable(defaultPlayDrawable);
+        Drawable previousDrawable = ResourceUtil.tintList(getContext(), R.drawable.exomedia_ic_skip_previous_white, R.color.exomedia_default_controls_button_selector);
+        previousButton.setImageDrawable(previousDrawable);
 
-        defaultPreviousDrawable = ResourceUtil.tintList(getContext(), R.drawable.exomedia_ic_skip_previous_white, R.color.exomedia_default_controls_button_selector);
-        previousButton.setImageDrawable(defaultPreviousDrawable);
-
-        defaultNextDrawable = ResourceUtil.tintList(getContext(), R.drawable.exomedia_ic_skip_next_white, R.color.exomedia_default_controls_button_selector);
-        nextButton.setImageDrawable(defaultNextDrawable);
+        Drawable nextDrawable = ResourceUtil.tintList(getContext(), R.drawable.exomedia_ic_skip_next_white, R.color.exomedia_default_controls_button_selector);
+        nextButton.setImageDrawable(nextDrawable);
     }
 
     /**

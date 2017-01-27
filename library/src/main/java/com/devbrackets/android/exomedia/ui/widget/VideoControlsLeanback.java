@@ -20,7 +20,6 @@ import android.annotation.TargetApi;
 import android.content.Context;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
-import android.support.annotation.DrawableRes;
 import android.support.annotation.IntRange;
 import android.util.AttributeSet;
 import android.view.KeyEvent;
@@ -117,35 +116,9 @@ public class VideoControlsLeanback extends VideoControls {
     }
 
     @Override
-    public void setRewindImageResource(@DrawableRes int resourceId) {
-        if (rewindButton == null) {
-            return;
-        }
-
-        if (resourceId != 0) {
-            rewindButton.setImageResource(resourceId);
-        } else {
-            rewindButton.setImageDrawable(defaultRewindDrawable);
-        }
-    }
-
-    @Override
     public void setRewindDrawable(Drawable drawable) {
         if (rewindButton != null) {
             rewindButton.setImageDrawable(drawable);
-        }
-    }
-
-    @Override
-    public void setFastForwardImageResource(@DrawableRes int resourceId) {
-        if (fastForwardButton == null) {
-            return;
-        }
-
-        if (resourceId != 0) {
-            fastForwardButton.setImageResource(resourceId);
-        } else {
-            fastForwardButton.setImageDrawable(defaultFastForwardDrawable);
         }
     }
 

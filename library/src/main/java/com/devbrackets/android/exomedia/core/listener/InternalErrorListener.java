@@ -16,14 +16,14 @@
 
 package com.devbrackets.android.exomedia.core.listener;
 
-import com.devbrackets.android.exomedia.core.exoplayer.EMExoPlayer;
+import com.devbrackets.android.exomedia.core.exoplayer.ExoMediaPlayer;
 
 /**
  * A listener for internal errors.
  * <p>
  * These errors are not visible to the user, and hence this listener is provided for
  * informational purposes only. Note however that an internal error may cause a fatal
- * error if the player fails to recover. If this happens, {@link ExoPlayerListener#onError(EMExoPlayer, Exception)}
+ * error if the player fails to recover. If this happens, {@link ExoPlayerListener#onError(ExoMediaPlayer, Exception)}
  * will be invoked.
  */
 public interface InternalErrorListener {

@@ -79,7 +79,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 @SuppressWarnings("unused")
-public class EMExoPlayer implements ExoPlayer.EventListener {
+public class ExoMediaPlayer implements ExoPlayer.EventListener {
     private static final String TAG = "EMExoPlayer";
     private static final int BUFFER_REPEAT_DELAY = 1_000;
 
@@ -134,7 +134,7 @@ public class EMExoPlayer implements ExoPlayer.EventListener {
     private CapabilitiesListener capabilitiesListener = new CapabilitiesListener();
     private int audioSessionId = AudioTrack.SESSION_ID_NOT_SET;
 
-    public EMExoPlayer(@NonNull Context context) {
+    public ExoMediaPlayer(@NonNull Context context) {
         this.context = context;
 
         bufferRepeater.setRepeaterDelay(BUFFER_REPEAT_DELAY);
@@ -453,7 +453,7 @@ public class EMExoPlayer implements ExoPlayer.EventListener {
         //Acquires the wakelock if we have permissions to
         if (context.getPackageManager().checkPermission(Manifest.permission.WAKE_LOCK, context.getPackageName()) == PackageManager.PERMISSION_GRANTED) {
             PowerManager pm = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
-            wakeLock = pm.newWakeLock(mode | PowerManager.ON_AFTER_RELEASE, EMExoPlayer.class.getName());
+            wakeLock = pm.newWakeLock(mode | PowerManager.ON_AFTER_RELEASE, ExoMediaPlayer.class.getName());
             wakeLock.setReferenceCounted(false);
         } else {
             Log.w(TAG, "Unable to acquire WAKE_LOCK due to missing manifest permission");

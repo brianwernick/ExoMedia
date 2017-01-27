@@ -26,7 +26,7 @@ import android.view.Surface;
 
 import com.devbrackets.android.exomedia.ExoMedia;
 import com.devbrackets.android.exomedia.core.ListenerMux;
-import com.devbrackets.android.exomedia.core.exoplayer.EMExoPlayer;
+import com.devbrackets.android.exomedia.core.exoplayer.ExoMediaPlayer;
 import com.devbrackets.android.exomedia.core.listener.MetadataListener;
 import com.devbrackets.android.exomedia.core.video.ClearableSurface;
 import com.devbrackets.android.exomedia.listener.OnBufferUpdateListener;
@@ -41,7 +41,7 @@ import java.util.Map;
 
 
 public class ExoVideoDelegate implements AudioCapabilitiesReceiver.Listener {
-    protected EMExoPlayer emExoPlayer;
+    protected ExoMediaPlayer exoMediaPlayer;
     protected AudioCapabilities audioCapabilities;
     protected AudioCapabilitiesReceiver audioCapabilitiesReceiver;
 
@@ -76,18 +76,18 @@ public class ExoVideoDelegate implements AudioCapabilitiesReceiver.Listener {
 
     public void setVideoUri(@Nullable Uri uri, @Nullable MediaSource mediaSource) {
         if (mediaSource != null) {
-            emExoPlayer.setMediaSource(mediaSource);
+            exoMediaPlayer.setMediaSource(mediaSource);
             listenerMux.setNotifiedCompleted(false);
         } else if (uri != null) {
-            emExoPlayer.setUri(uri);
+            exoMediaPlayer.setUri(uri);
             listenerMux.setNotifiedCompleted(false);
         } else {
-            emExoPlayer.setMediaSource(null);
+            exoMediaPlayer.setMediaSource(null);
         }
 
         //Makes sure the listeners get the onPrepared callback
         listenerMux.setNotifiedPrepared(false);
-        emExoPlayer.seekTo(0);
+        exoMediaPlayer.seekTo(0);
     }
 
     /**
@@ -103,7 +103,7 @@ public class ExoVideoDelegate implements AudioCapabilitiesReceiver.Listener {
     }
 
     public boolean restart() {
-        if(!emExoPlayer.restart()) {
+        if(!exoMediaPlayer.restart()) {
             return false;
         }
 
@@ -115,37 +115,37 @@ public class ExoVideoDelegate implements AudioCapabilitiesReceiver.Listener {
     }
 
     public boolean setVolume(@FloatRange(from = 0.0, to = 1.0) float volume) {
-        emExoPlayer.setVolume(volume);
+        exoMediaPlayer.setVolume(volume);
         return true;
     }
 
     public void seekTo(@IntRange(from = 0) long milliseconds) {
-        emExoPlayer.seekTo(milliseconds);
+        exoMediaPlayer.seekTo(milliseconds);
     }
 
     public boolean isPlaying() {
-        return emExoPlayer.getPlayWhenReady();
+        return exoMediaPlayer.getPlayWhenReady();
     }
 
     public void start() {
-        emExoPlayer.setPlayWhenReady(true);
+        exoMediaPlayer.setPlayWhenReady(true);
         listenerMux.setNotifiedCompleted(false);
         playRequested = true;
     }
 
     public void pause() {
-        emExoPlayer.setPlayWhenReady(false);
+        exoMediaPlayer.setPlayWhenReady(false);
         playRequested = false;
     }
 
     public void stopPlayback() {
-        emExoPlayer.stop();
+        exoMediaPlayer.stop();
         playRequested = false;
         listenerMux.clearSurfaceWhenReady(clearableSurface);
     }
 
     public void suspend() {
-        emExoPlayer.release();
+        exoMediaPlayer.release();
         playRequested = false;
     }
 
@@ -154,7 +154,7 @@ public class ExoVideoDelegate implements AudioCapabilitiesReceiver.Listener {
             return 0;
         }
 
-        return emExoPlayer.getDuration();
+        return exoMediaPlayer.getDuration();
     }
 
     public long getCurrentPosition() {
@@ -162,11 +162,11 @@ public class ExoVideoDelegate implements AudioCapabilitiesReceiver.Listener {
             return 0;
         }
 
-        return emExoPlayer.getCurrentPosition();
+        return exoMediaPlayer.getCurrentPosition();
     }
 
     public int getBufferedPercent() {
-        return emExoPlayer.getBufferedPercentage();
+        return exoMediaPlayer.getBufferedPercentage();
     }
 
     public boolean trackSelectionAvailable() {
@@ -174,20 +174,20 @@ public class ExoVideoDelegate implements AudioCapabilitiesReceiver.Listener {
     }
 
     public void setTrack(ExoMedia.RendererType trackType, int trackIndex) {
-        emExoPlayer.setSelectedTrack(trackType, trackIndex);
+        exoMediaPlayer.setSelectedTrack(trackType, trackIndex);
     }
 
     @Nullable
     public Map<ExoMedia.RendererType, TrackGroupArray> getAvailableTracks() {
-        return emExoPlayer.getAvailableTracks();
+        return exoMediaPlayer.getAvailableTracks();
     }
 
     public boolean setPlaybackSpeed(float speed) {
-        return emExoPlayer.setPlaybackSpeed(speed);
+        return exoMediaPlayer.setPlaybackSpeed(speed);
     }
 
     public void release() {
-        emExoPlayer.release();
+        exoMediaPlayer.release();
 
         if (audioCapabilitiesReceiver != null) {
             audioCapabilitiesReceiver.unregister();
@@ -197,18 +197,18 @@ public class ExoVideoDelegate implements AudioCapabilitiesReceiver.Listener {
 
     public void setListenerMux(ListenerMux listenerMux) {
         this.listenerMux = listenerMux;
-        emExoPlayer.addListener(listenerMux);
+        exoMediaPlayer.addListener(listenerMux);
     }
 
     public void onSurfaceReady(Surface surface) {
-        emExoPlayer.setSurface(surface);
+        exoMediaPlayer.setSurface(surface);
         if (playRequested) {
-            emExoPlayer.setPlayWhenReady(true);
+            exoMediaPlayer.setPlayWhenReady(true);
         }
     }
 
     public void onSurfaceDestroyed() {
-        emExoPlayer.blockingClearSurface();
+        exoMediaPlayer.blockingClearSurface();
     }
 
     protected void setup() {
@@ -218,10 +218,10 @@ public class ExoVideoDelegate implements AudioCapabilitiesReceiver.Listener {
     }
 
     protected void initExoPlayer() {
-        emExoPlayer = new EMExoPlayer(context);
+        exoMediaPlayer = new ExoMediaPlayer(context);
 
-        emExoPlayer.setMetadataListener(internalListeners);
-        emExoPlayer.setBufferUpdateListener(internalListeners);
+        exoMediaPlayer.setMetadataListener(internalListeners);
+        exoMediaPlayer.setBufferUpdateListener(internalListeners);
     }
 
     protected class InternalListeners implements MetadataListener, OnBufferUpdateListener {

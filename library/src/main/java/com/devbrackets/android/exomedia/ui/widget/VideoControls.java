@@ -49,22 +49,21 @@ import java.util.List;
  */
 @SuppressWarnings("unused")
 public abstract class VideoControls extends RelativeLayout {
-    public static final int DEFAULT_CONTROL_HIDE_DELAY = 2000;
+    public static final int DEFAULT_CONTROL_HIDE_DELAY = 2_000;
     protected static final long CONTROL_VISIBILITY_ANIMATION_LENGTH = 300;
-    protected static final int INVALID_RESOURCE_ID = 0;
 
-    protected TextView currentTime;
-    protected TextView endTime;
+    protected TextView currentTimeTextView;
+    protected TextView endTimeTextView;
 
-    protected TextView titleView;
-    protected TextView subTitleView;
-    protected TextView descriptionView;
+    protected TextView titleTextView;
+    protected TextView subTitleTextView;
+    protected TextView descriptionTextView;
 
     protected ImageButton playPauseButton;
     protected ImageButton previousButton;
     protected ImageButton nextButton;
 
-    protected ProgressBar loadingProgress;
+    protected ProgressBar loadingProgressBar;
 
     protected ViewGroup controlsContainer;
     protected ViewGroup textContainer;
@@ -243,7 +242,7 @@ public abstract class VideoControls extends RelativeLayout {
      * @param title The title to display
      */
     public void setTitle(@Nullable CharSequence title) {
-        titleView.setText(title);
+        titleTextView.setText(title);
         updateTextContainerVisibility();
     }
 
@@ -254,7 +253,7 @@ public abstract class VideoControls extends RelativeLayout {
      * @param subTitle The sub title to display
      */
     public void setSubTitle(@Nullable CharSequence subTitle) {
-        subTitleView.setText(subTitle);
+        subTitleTextView.setText(subTitle);
         updateTextContainerVisibility();
     }
 
@@ -266,7 +265,7 @@ public abstract class VideoControls extends RelativeLayout {
      * @param description The artist to display
      */
     public void setDescription(@Nullable CharSequence description) {
-        descriptionView.setText(description);
+        descriptionTextView.setText(description);
         updateTextContainerVisibility();
     }
 
@@ -493,18 +492,18 @@ public abstract class VideoControls extends RelativeLayout {
      * Retrieves the view references from the xml layout
      */
     protected void retrieveViews() {
-        currentTime = (TextView) findViewById(R.id.exomedia_controls_current_time);
-        endTime = (TextView) findViewById(R.id.exomedia_controls_end_time);
+        currentTimeTextView = (TextView) findViewById(R.id.exomedia_controls_current_time);
+        endTimeTextView = (TextView) findViewById(R.id.exomedia_controls_end_time);
 
-        titleView = (TextView) findViewById(R.id.exomedia_controls_title);
-        subTitleView = (TextView) findViewById(R.id.exomedia_controls_sub_title);
-        descriptionView = (TextView) findViewById(R.id.exomedia_controls_description);
+        titleTextView = (TextView) findViewById(R.id.exomedia_controls_title);
+        subTitleTextView = (TextView) findViewById(R.id.exomedia_controls_sub_title);
+        descriptionTextView = (TextView) findViewById(R.id.exomedia_controls_description);
 
         playPauseButton = (ImageButton) findViewById(R.id.exomedia_controls_play_pause_btn);
         previousButton = (ImageButton) findViewById(R.id.exomedia_controls_previous_btn);
         nextButton = (ImageButton) findViewById(R.id.exomedia_controls_next_btn);
 
-        loadingProgress = (ProgressBar) findViewById(R.id.exomedia_controls_video_loading);
+        loadingProgressBar = (ProgressBar) findViewById(R.id.exomedia_controls_video_loading);
 
         controlsContainer = (ViewGroup) findViewById(R.id.exomedia_controls_interactive_container);
         textContainer = (ViewGroup) findViewById(R.id.exomedia_controls_text_container);
@@ -609,15 +608,15 @@ public abstract class VideoControls extends RelativeLayout {
      */
     @SuppressWarnings("RedundantIfStatement")
     protected boolean isTextContainerEmpty() {
-        if (titleView.getText() != null && titleView.getText().length() > 0) {
+        if (titleTextView.getText() != null && titleTextView.getText().length() > 0) {
             return false;
         }
 
-        if (subTitleView.getText() != null && subTitleView.getText().length() > 0) {
+        if (subTitleTextView.getText() != null && subTitleTextView.getText().length() > 0) {
             return false;
         }
 
-        if (descriptionView.getText() != null && descriptionView.getText().length() > 0) {
+        if (descriptionTextView.getText() != null && descriptionTextView.getText().length() > 0) {
             return false;
         }
 

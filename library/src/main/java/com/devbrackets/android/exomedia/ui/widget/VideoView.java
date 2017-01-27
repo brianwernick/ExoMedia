@@ -42,7 +42,7 @@ import com.devbrackets.android.exomedia.ExoMedia;
 import com.devbrackets.android.exomedia.R;
 import com.devbrackets.android.exomedia.core.ListenerMux;
 import com.devbrackets.android.exomedia.core.api.VideoViewApi;
-import com.devbrackets.android.exomedia.core.exoplayer.EMExoPlayer;
+import com.devbrackets.android.exomedia.core.exoplayer.ExoMediaPlayer;
 import com.devbrackets.android.exomedia.core.listener.MetadataListener;
 import com.devbrackets.android.exomedia.core.video.exo.ExoTextureVideoView;
 import com.devbrackets.android.exomedia.core.video.mp.NativeTextureVideoView;
@@ -845,11 +845,11 @@ public class VideoView extends RelativeLayout {
         }
 
         @Override
-        public void onExoPlayerError(EMExoPlayer emExoPlayer, Exception e) {
+        public void onExoPlayerError(ExoMediaPlayer exoMediaPlayer, Exception e) {
             stopPlayback();
 
-            if (emExoPlayer != null) {
-                emExoPlayer.forcePrepare();
+            if (exoMediaPlayer != null) {
+                exoMediaPlayer.forcePrepare();
             }
         }
 

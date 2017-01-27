@@ -29,7 +29,7 @@ import android.util.Log;
 
 import com.devbrackets.android.exomedia.ExoMedia;
 import com.devbrackets.android.exomedia.core.ListenerMux;
-import com.devbrackets.android.exomedia.core.api.MediaPlayerApi;
+import com.devbrackets.android.exomedia.core.api.AudioPlayerApi;
 import com.devbrackets.android.exomedia.util.DrmProvider;
 import com.google.android.exoplayer2.source.MediaSource;
 import com.google.android.exoplayer2.source.TrackGroupArray;
@@ -46,7 +46,7 @@ import java.util.Map;
  * Amazon devices where they incorrectly call these methods when
  * setting up the MediaPlayer (when in IDLE state)
  */
-public class NativeMediaPlayer implements MediaPlayerApi {
+public class NativeAudioPlayer implements AudioPlayerApi {
     private static final String TAG = "NativeMediaPlayer";
 
     @NonNull
@@ -61,7 +61,7 @@ public class NativeMediaPlayer implements MediaPlayerApi {
     protected long requestedSeek;
     protected int currentBufferPercent = 0;
 
-    public NativeMediaPlayer(@NonNull Context context) {
+    public NativeAudioPlayer(@NonNull Context context) {
         this.context = context;
 
         mediaPlayer = new MediaPlayer();

@@ -53,9 +53,8 @@ import com.google.android.exoplayer2.Timeline;
 import com.google.android.exoplayer2.audio.AudioCapabilities;
 import com.google.android.exoplayer2.audio.AudioCapabilitiesReceiver;
 import com.google.android.exoplayer2.audio.AudioRendererEventListener;
-import com.google.android.exoplayer2.audio.AudioTrack;
 import com.google.android.exoplayer2.decoder.DecoderCounters;
-import com.google.android.exoplayer2.drm.StreamingDrmSessionManager;
+import com.google.android.exoplayer2.drm.DefaultDrmSessionManager;
 import com.google.android.exoplayer2.metadata.Metadata;
 import com.google.android.exoplayer2.metadata.MetadataRenderer;
 import com.google.android.exoplayer2.source.MediaSource;
@@ -132,7 +131,7 @@ public class ExoMediaPlayer implements ExoPlayer.EventListener {
 
     @NonNull
     private CapabilitiesListener capabilitiesListener = new CapabilitiesListener();
-    private int audioSessionId = AudioTrack.SESSION_ID_NOT_SET;
+    private int audioSessionId = C.AUDIO_SESSION_ID_UNSET;
 
     public ExoMediaPlayer(@NonNull Context context) {
         this.context = context;
@@ -626,7 +625,7 @@ public class ExoMediaPlayer implements ExoPlayer.EventListener {
 
     private class CapabilitiesListener implements
             AudioCapabilitiesReceiver.Listener,
-            StreamingDrmSessionManager.EventListener {
+            DefaultDrmSessionManager.EventListener {
 
         @Override
         public void onAudioCapabilitiesChanged(AudioCapabilities capabilities) {
@@ -662,6 +661,16 @@ public class ExoMediaPlayer implements ExoPlayer.EventListener {
                 internalErrorListener.onDrmSessionManagerError(e);
             }
         }
+
+        @Override
+        public void onDrmKeysRestored() {
+            // Purposefully left blank
+        }
+
+        @Override
+        public void onDrmKeysRemoved() {
+            // Purposefully left blank
+        }
     }
 
     private class ComponentListener implements
@@ -677,7 +686,7 @@ public class ExoMediaPlayer implements ExoPlayer.EventListener {
 
         @Override
         public void onAudioDisabled(DecoderCounters counters) {
-            audioSessionId = AudioTrack.SESSION_ID_NOT_SET;
+            audioSessionId = C.AUDIO_SESSION_ID_UNSET;
         }
 
         @Override

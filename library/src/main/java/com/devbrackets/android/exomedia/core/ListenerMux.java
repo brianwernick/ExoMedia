@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 Brian Wernick
+ * Copyright (C) 2015-2017 Brian Wernick
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import android.support.annotation.IntRange;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
+import com.devbrackets.android.exomedia.core.exception.NativeMediaPlaybackException;
 import com.devbrackets.android.exomedia.core.exoplayer.ExoMediaPlayer;
 import com.devbrackets.android.exomedia.core.listener.ExoPlayerListener;
 import com.devbrackets.android.exomedia.core.listener.MetadataListener;
@@ -89,7 +90,7 @@ public class ListenerMux implements ExoPlayerListener, MediaPlayer.OnPreparedLis
 
     @Override
     public boolean onError(MediaPlayer mp, int what, int extra) {
-        return notifyErrorListener();
+        return notifyErrorListener(new NativeMediaPlaybackException(what, extra));
     }
 
     @Override
@@ -108,7 +109,7 @@ public class ListenerMux implements ExoPlayerListener, MediaPlayer.OnPreparedLis
     public void onError(ExoMediaPlayer exoMediaPlayer, Exception e) {
         muxNotifier.onMediaPlaybackEnded();
         muxNotifier.onExoPlayerError(exoMediaPlayer, e);
-        notifyErrorListener();
+        notifyErrorListener(e);
     }
 
     @Override
@@ -263,8 +264,8 @@ public class ListenerMux implements ExoPlayerListener, MediaPlayer.OnPreparedLis
         notifiedCompleted = wasNotified;
     }
 
-    private boolean notifyErrorListener() {
-        return errorListener != null && errorListener.onError();
+    private boolean notifyErrorListener(Exception e) {
+        return errorListener != null && errorListener.onError(e);
     }
 
     private void notifyPreparedListener() {

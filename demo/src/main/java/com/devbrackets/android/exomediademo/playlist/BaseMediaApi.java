@@ -69,7 +69,7 @@ public abstract class BaseMediaApi implements MediaPlayerApi, OnPreparedListener
     }
 
     @Override
-    public boolean onError() {
+    public boolean onError(Exception e) {
         return errorListener != null && errorListener.onError(this);
     }
 

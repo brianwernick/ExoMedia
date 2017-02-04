@@ -21,7 +21,7 @@ import com.devbrackets.android.exomedia.core.exoplayer.ExoMediaPlayer;
 import com.devbrackets.android.exomedia.listener.OnSeekCompletionListener;
 
 /**
- * A listener for core EMExoPlayer events
+ * A listener for core {@link ExoMediaPlayer} events
  */
 public interface ExoPlayerListener extends OnSeekCompletionListener {
     void onStateChanged(boolean playWhenReady, int playbackState);

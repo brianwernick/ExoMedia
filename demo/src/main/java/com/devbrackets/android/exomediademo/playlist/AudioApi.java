@@ -68,7 +68,7 @@ public class AudioApi extends BaseMediaApi implements AudioPlayerApi {
     }
 
     @Override
-    public void setWakeMode(Context context, int mode) {
+    public void setWakeMode(@NonNull Context context, int mode) {
         audioPlayer.setWakeMode(context, mode);
     }
 

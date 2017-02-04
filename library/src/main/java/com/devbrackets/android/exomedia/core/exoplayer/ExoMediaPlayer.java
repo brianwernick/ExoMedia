@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 Brian Wernick,
+ * Copyright (C) 2015-2017 Brian Wernick,
  * Copyright (C) 2015 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -79,7 +79,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 @SuppressWarnings("unused")
 public class ExoMediaPlayer implements ExoPlayer.EventListener {
-    private static final String TAG = "EMExoPlayer";
+    private static final String TAG = "ExoMediaPlayer";
     private static final int BUFFER_REPEAT_DELAY = 1_000;
 
     @NonNull
@@ -128,7 +128,6 @@ public class ExoMediaPlayer implements ExoPlayer.EventListener {
     @Nullable
     private PowerManager.WakeLock wakeLock = null;
 
-
     @NonNull
     private CapabilitiesListener capabilitiesListener = new CapabilitiesListener();
     private int audioSessionId = C.AUDIO_SESSION_ID_UNSET;
@@ -171,6 +170,18 @@ public class ExoMediaPlayer implements ExoPlayer.EventListener {
     @Override
     public void onPositionDiscontinuity() {
         // Purposefully left blank
+    }
+
+    @Override
+    public void onPlayerStateChanged(boolean playWhenReady, int state) {
+        reportPlayerState();
+    }
+
+    @Override
+    public void onPlayerError(ExoPlaybackException exception) {
+        for (ExoPlayerListener listener : listeners) {
+            listener.onError(this, exception);
+        }
     }
 
     public void setUri(@Nullable Uri uri) {
@@ -406,7 +417,9 @@ public class ExoMediaPlayer implements ExoPlayer.EventListener {
             return true;
         }
 
-        //TODO: backwards compatibility for playback speed (EMExoPlayer)
+        //TODO: backwards compatibility for playback speed (ExoMediaPlayer)
+        // Google is adding this /soon/ to the ExoPlayer
+        // https://github.com/google/ExoPlayer/issues/26
         return false;
     }
 
@@ -518,18 +531,6 @@ public class ExoMediaPlayer implements ExoPlayer.EventListener {
         }
     }
 
-    @Override
-    public void onPlayerStateChanged(boolean playWhenReady, int state) {
-        reportPlayerState();
-    }
-
-    @Override
-    public void onPlayerError(ExoPlaybackException exception) {
-        for (ExoPlayerListener listener : listeners) {
-            listener.onError(this, exception);
-        }
-    }
-
     private void reportPlayerState() {
         boolean playWhenReady = player.getPlayWhenReady();
         int playbackState = getPlaybackState();
@@ -567,15 +568,6 @@ public class ExoMediaPlayer implements ExoPlayer.EventListener {
             bufferRepeater.start();
         } else {
             bufferRepeater.stop();
-        }
-    }
-
-    private class BufferRepeatListener implements Repeater.RepeatListener {
-        @Override
-        public void onRepeat() {
-            if (bufferUpdateListener != null) {
-                bufferUpdateListener.onBufferingUpdate(getBufferedPercentage());
-            }
         }
     }
 
@@ -623,6 +615,15 @@ public class ExoMediaPlayer implements ExoPlayer.EventListener {
         }
     }
 
+    private class BufferRepeatListener implements Repeater.RepeatListener {
+        @Override
+        public void onRepeat() {
+            if (bufferUpdateListener != null) {
+                bufferUpdateListener.onBufferingUpdate(getBufferedPercentage());
+            }
+        }
+    }
+
     private class CapabilitiesListener implements
             AudioCapabilitiesReceiver.Listener,
             DefaultDrmSessionManager.EventListener {
@@ -656,13 +657,6 @@ public class ExoMediaPlayer implements ExoPlayer.EventListener {
         }
 
         @Override
-        public void onDrmSessionManagerError(Exception e) {
-            if (internalErrorListener != null) {
-                internalErrorListener.onDrmSessionManagerError(e);
-            }
-        }
-
-        @Override
         public void onDrmKeysRestored() {
             // Purposefully left blank
         }
@@ -670,6 +664,13 @@ public class ExoMediaPlayer implements ExoPlayer.EventListener {
         @Override
         public void onDrmKeysRemoved() {
             // Purposefully left blank
+        }
+
+        @Override
+        public void onDrmSessionManagerError(Exception e) {
+            if (internalErrorListener != null) {
+                internalErrorListener.onDrmSessionManagerError(e);
+            }
         }
     }
 
@@ -681,7 +682,7 @@ public class ExoMediaPlayer implements ExoPlayer.EventListener {
 
         @Override
         public void onAudioEnabled(DecoderCounters counters) {
-
+            // Purposefully left blank
         }
 
         @Override
@@ -713,12 +714,12 @@ public class ExoMediaPlayer implements ExoPlayer.EventListener {
 
         @Override
         public void onVideoEnabled(DecoderCounters counters) {
-
+            // Purposefully left blank
         }
 
         @Override
         public void onVideoDisabled(DecoderCounters counters) {
-
+            // Purposefully left blank
         }
 
         @Override
@@ -733,7 +734,7 @@ public class ExoMediaPlayer implements ExoPlayer.EventListener {
 
         @Override
         public void onDroppedFrames(int count, long elapsedMs) {
-
+            // Purposefully left blank
         }
 
         @Override
@@ -745,7 +746,7 @@ public class ExoMediaPlayer implements ExoPlayer.EventListener {
 
         @Override
         public void onRenderedFirstFrame(Surface surface) {
-
+            // Purposefully left blank
         }
 
         @Override

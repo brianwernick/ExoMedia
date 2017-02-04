@@ -176,11 +176,11 @@ public class ExoTextureVideoView extends ResizingTextureView implements VideoVie
     protected void setup() {
         delegate = new ExoVideoDelegate(getContext(), this);
 
-        setSurfaceTextureListener(new EMExoVideoSurfaceTextureListener());
+        setSurfaceTextureListener(new ExoMediaVideoSurfaceTextureListener());
         updateVideoSize(0, 0);
     }
 
-    protected class EMExoVideoSurfaceTextureListener implements SurfaceTextureListener {
+    protected class ExoMediaVideoSurfaceTextureListener implements SurfaceTextureListener {
         @Override
         public void onSurfaceTextureAvailable(SurfaceTexture surfaceTexture, int width, int height) {
             delegate.onSurfaceReady(new Surface(surfaceTexture));

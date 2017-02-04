@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 Brian Wernick
+ * Copyright (C) 2016-2017 Brian Wernick
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,9 +22,14 @@ package com.devbrackets.android.exomedia.listener;
  */
 public interface OnErrorListener {
     /**
-     * Called to indicate an error.
+     * Called to indicate an error has occurred. In the case that the error was
+     * caused by the Native {@link android.media.MediaPlayer} <code>e</code> should
+     * be of the type {@link com.devbrackets.android.exomedia.core.exception.NativeMediaPlaybackException}
+     * while all other exceptions will be provided by the {@link com.google.android.exoplayer2.ExoPlayer}
+     * implementation directly.
      *
+     * @param e The {@link Exception} that caused or describes the error
      * @return True if the method handled the error, false if it didn't.
      */
-    boolean onError();
+    boolean onError(Exception e);
 }

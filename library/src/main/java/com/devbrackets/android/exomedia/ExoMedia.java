@@ -1,12 +1,17 @@
 package com.devbrackets.android.exomedia;
 
+import android.content.Context;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 
 import com.devbrackets.android.exomedia.core.source.MediaSourceProvider;
 import com.devbrackets.android.exomedia.core.source.builder.DashMediaSourceBuilder;
 import com.devbrackets.android.exomedia.core.source.builder.HlsMediaSourceBuilder;
 import com.devbrackets.android.exomedia.core.source.builder.SsMediaSourceBuilder;
 import com.google.android.exoplayer2.Renderer;
+import com.google.android.exoplayer2.upstream.DataSource;
+import com.google.android.exoplayer2.upstream.HttpDataSource;
+import com.google.android.exoplayer2.upstream.TransferListener;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -19,6 +24,10 @@ import java.util.Map;
  * {@link com.google.android.exoplayer2.source.MediaSource}s
  */
 public class ExoMedia {
+    public interface HttpDataSourceFactoryProvider {
+        HttpDataSource.BaseFactory provide(@NonNull String userAgent, @Nullable TransferListener<? super DataSource> listener);
+    }
+
     public enum RendererType {
         AUDIO,
         VIDEO,
@@ -49,11 +58,25 @@ public class ExoMedia {
         Data.sourceTypeBuilders.add(0, builder);
     }
 
+    /**
+     * Specifies the provider to use when building {@link com.google.android.exoplayer2.upstream.HttpDataSource.BaseFactory}
+     * instances for use with the {@link com.devbrackets.android.exomedia.core.source.builder.MediaSourceBuilder}s. This will
+     * only be used for builders that haven't customized the {@link com.devbrackets.android.exomedia.core.source.builder.MediaSourceBuilder#buildDataSourceFactory(Context, String, TransferListener)}
+     * method.
+     *
+     * @param provider The provider to use for the {@link com.devbrackets.android.exomedia.core.source.builder.MediaSourceBuilder}s
+     */
+    public static void setHttpDataSourceFactoryProvider(@Nullable HttpDataSourceFactoryProvider provider) {
+        Data.httpDataSourceFactoryProvider = provider;
+    }
+
     public static class Data {
         @NonNull
         public static final Map<RendererType, List<String>> registeredRendererClasses = new HashMap<>();
         @NonNull
         public static final List<MediaSourceProvider.SourceTypeBuilder> sourceTypeBuilders = new ArrayList<>();
+        @Nullable
+        public static volatile HttpDataSourceFactoryProvider httpDataSourceFactoryProvider;
 
         static {
             instantiateRendererClasses();

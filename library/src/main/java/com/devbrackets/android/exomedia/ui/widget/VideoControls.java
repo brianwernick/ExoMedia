@@ -175,6 +175,23 @@ public abstract class VideoControls extends RelativeLayout {
     }
 
     @Override
+    protected void onAttachedToWindow() {
+        super.onAttachedToWindow();
+
+        //A poll used to periodically update the progress bar
+        progressPollRepeater.setRepeatListener(new Repeater.RepeatListener() {
+            @Override
+            public void onRepeat() {
+                updateProgress();
+            }
+        });
+
+        if (videoView != null && videoView.isPlaying()) {
+            updatePlaybackState(true);
+        }
+    }
+
+    @Override
     protected void onDetachedFromWindow() {
         super.onDetachedFromWindow();
 
@@ -592,14 +609,6 @@ public abstract class VideoControls extends RelativeLayout {
 
         registerListeners();
         updateButtonDrawables();
-
-        //A poll used to periodically update the progress bar
-        progressPollRepeater.setRepeatListener(new Repeater.RepeatListener() {
-            @Override
-            public void onRepeat() {
-                updateProgress();
-            }
-        });
     }
 
     /**

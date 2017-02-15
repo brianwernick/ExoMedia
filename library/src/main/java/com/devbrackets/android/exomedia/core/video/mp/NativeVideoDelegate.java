@@ -367,6 +367,7 @@ public class NativeVideoDelegate implements MediaController.MediaPlayerControl {
         currentBufferPercent = 0;
 
         try {
+            mediaPlayer.reset();
             mediaPlayer.setDataSource(context.getApplicationContext(), uri, headers);
             mediaPlayer.prepareAsync();
 

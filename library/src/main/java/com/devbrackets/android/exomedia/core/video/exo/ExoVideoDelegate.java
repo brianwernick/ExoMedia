@@ -30,9 +30,9 @@ import com.devbrackets.android.exomedia.core.exoplayer.ExoMediaPlayer;
 import com.devbrackets.android.exomedia.core.listener.MetadataListener;
 import com.devbrackets.android.exomedia.core.video.ClearableSurface;
 import com.devbrackets.android.exomedia.listener.OnBufferUpdateListener;
-import com.devbrackets.android.exomedia.util.DrmProvider;
 import com.google.android.exoplayer2.audio.AudioCapabilities;
 import com.google.android.exoplayer2.audio.AudioCapabilitiesReceiver;
+import com.google.android.exoplayer2.drm.MediaDrmCallback;
 import com.google.android.exoplayer2.metadata.Metadata;
 import com.google.android.exoplayer2.source.MediaSource;
 import com.google.android.exoplayer2.source.TrackGroupArray;
@@ -51,8 +51,6 @@ public class ExoVideoDelegate implements AudioCapabilitiesReceiver.Listener {
     protected Context context;
     protected ClearableSurface clearableSurface;
 
-    @Nullable
-    protected DrmProvider drmProvider;
     @NonNull
     protected InternalListeners internalListeners = new InternalListeners();
 
@@ -91,15 +89,15 @@ public class ExoVideoDelegate implements AudioCapabilitiesReceiver.Listener {
     }
 
     /**
-     * Sets the {@link DrmProvider} to use when handling DRM for media.
+     * Sets the {@link MediaDrmCallback} to use when handling DRM for media.
      * This should be called before specifying the videos uri or path
      * <br>
      * <b>NOTE:</b> DRM is only supported on API 18 +
      *
-     * @param drmProvider The provider to use when handling DRM media
+     * @param drmCallback The callback to use when handling DRM media
      */
-    public void setDrmProvider(@Nullable DrmProvider drmProvider) {
-        this.drmProvider = drmProvider;
+    public void setDrmCallback(@Nullable MediaDrmCallback drmCallback) {
+        exoMediaPlayer.setDrmCallback(drmCallback);
     }
 
     public boolean restart() {

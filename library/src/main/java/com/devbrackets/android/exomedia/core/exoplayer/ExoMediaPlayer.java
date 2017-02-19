@@ -55,6 +55,11 @@ import com.google.android.exoplayer2.audio.AudioCapabilitiesReceiver;
 import com.google.android.exoplayer2.audio.AudioRendererEventListener;
 import com.google.android.exoplayer2.decoder.DecoderCounters;
 import com.google.android.exoplayer2.drm.DefaultDrmSessionManager;
+import com.google.android.exoplayer2.drm.DrmSessionManager;
+import com.google.android.exoplayer2.drm.ExoMediaDrm;
+import com.google.android.exoplayer2.drm.FrameworkMediaCrypto;
+import com.google.android.exoplayer2.drm.FrameworkMediaDrm;
+import com.google.android.exoplayer2.drm.MediaDrmCallback;
 import com.google.android.exoplayer2.metadata.Metadata;
 import com.google.android.exoplayer2.metadata.MetadataRenderer;
 import com.google.android.exoplayer2.source.MediaSource;
@@ -74,6 +79,7 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -106,6 +112,8 @@ public class ExoMediaPlayer implements ExoPlayer.EventListener {
 
     @Nullable
     private Surface surface;
+    @Nullable
+    private MediaDrmCallback drmCallback;
     @Nullable
     private MediaSource mediaSource;
     @NonNull
@@ -142,6 +150,7 @@ public class ExoMediaPlayer implements ExoPlayer.EventListener {
 
         ComponentListener componentListener = new ComponentListener();
         RendererProvider rendererProvider = new RendererProvider(context, mainHandler, componentListener, componentListener, componentListener, componentListener);
+        rendererProvider.setDrmSessionManager(generateDrmSessionManager());
 
         renderers = rendererProvider.generate();
 
@@ -182,6 +191,18 @@ public class ExoMediaPlayer implements ExoPlayer.EventListener {
         for (ExoPlayerListener listener : listeners) {
             listener.onError(this, exception);
         }
+    }
+
+    /**
+     * Sets the {@link MediaDrmCallback} to use when handling DRM for media.
+     * This should be called before specifying the videos uri or path
+     * <br>
+     * <b>NOTE:</b> DRM is only supported on API 18 +
+     *
+     * @param drmCallback The callback to use when handling DRM media
+     */
+    public void setDrmCallback(@Nullable MediaDrmCallback drmCallback) {
+        this.drmCallback = drmCallback;
     }
 
     public void setUri(@Nullable Uri uri) {
@@ -531,6 +552,31 @@ public class ExoMediaPlayer implements ExoPlayer.EventListener {
         }
     }
 
+    /**
+     * Generates the {@link DrmSessionManager} to use with the {@link RendererProvider}. This will
+     * return null on API's &lt; {@value Build.VERSION_CODES#JELLY_BEAN_MR2}
+     *
+     * @return The {@link DrmSessionManager} to use or <code>null</code>
+     */
+    @Nullable
+    protected DrmSessionManager<FrameworkMediaCrypto> generateDrmSessionManager() {
+        // DRM is only supported on API 18 + in the ExoPlayer
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN_MR2) {
+            return null;
+        }
+
+        // see https://github.com/google/ExoPlayer/blob/dev-v2/demo/src/main/java/com/google/android/exoplayer2/demo/SampleChooserActivity.java#L264
+        // for the UUID stuff. I'm not sure how/if that affects this
+        UUID uuid = C.WIDEVINE_UUID; //TODO: this will capture most cases, but we may still have PLAYREADY_UUID on AndroidTV
+
+        try {
+            return new DefaultDrmSessionManager<>(uuid, FrameworkMediaDrm.newInstance(uuid), new DelegatedMediaDrmCallback(), null, mainHandler, capabilitiesListener);
+        } catch (Exception e) {
+            Log.d(TAG, "Unable to create a DrmSessionManager due to an exception", e);
+            return null;
+        }
+    }
+
     private void reportPlayerState() {
         boolean playWhenReady = player.getPlayWhenReady();
         int playbackState = getPlaybackState();
@@ -621,6 +667,22 @@ public class ExoMediaPlayer implements ExoPlayer.EventListener {
             if (bufferUpdateListener != null) {
                 bufferUpdateListener.onBufferingUpdate(getBufferedPercentage());
             }
+        }
+    }
+
+    /**
+     * Delegates the {@link #drmCallback} so that we don't need to re-initialize the renderers
+     * when the callback is set.
+     */
+    private class DelegatedMediaDrmCallback implements MediaDrmCallback {
+        @Override
+        public byte[] executeProvisionRequest(UUID uuid, ExoMediaDrm.ProvisionRequest request) throws Exception {
+            return drmCallback != null ? drmCallback.executeProvisionRequest(uuid, request) : new byte[0];
+        }
+
+        @Override
+        public byte[] executeKeyRequest(UUID uuid, ExoMediaDrm.KeyRequest request) throws Exception {
+            return drmCallback != null ? drmCallback.executeKeyRequest(uuid, request) : new byte[0];
         }
     }
 

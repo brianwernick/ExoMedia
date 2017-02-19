@@ -32,7 +32,7 @@ import com.devbrackets.android.exomedia.core.api.AudioPlayerApi;
 import com.devbrackets.android.exomedia.core.exoplayer.ExoMediaPlayer;
 import com.devbrackets.android.exomedia.core.listener.MetadataListener;
 import com.devbrackets.android.exomedia.listener.OnBufferUpdateListener;
-import com.devbrackets.android.exomedia.util.DrmProvider;
+import com.google.android.exoplayer2.drm.MediaDrmCallback;
 import com.google.android.exoplayer2.metadata.Metadata;
 import com.google.android.exoplayer2.source.MediaSource;
 import com.google.android.exoplayer2.source.TrackGroupArray;
@@ -52,8 +52,6 @@ public class ExoAudioPlayer implements AudioPlayerApi {
 
     protected ListenerMux listenerMux;
 
-    @Nullable
-    protected DrmProvider drmProvider;
     @NonNull
     protected InternalListeners internalListeners = new InternalListeners();
 
@@ -91,8 +89,8 @@ public class ExoAudioPlayer implements AudioPlayerApi {
     }
 
     @Override
-    public void setDrmProvider(@Nullable DrmProvider drmProvider) {
-        this.drmProvider = drmProvider;
+    public void setDrmCallback(@Nullable MediaDrmCallback drmCallback) {
+        exoMediaPlayer.setDrmCallback(drmCallback);
     }
 
     @Override

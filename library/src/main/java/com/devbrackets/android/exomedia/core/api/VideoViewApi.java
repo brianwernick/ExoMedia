@@ -26,7 +26,7 @@ import android.view.View;
 import com.devbrackets.android.exomedia.ExoMedia;
 import com.devbrackets.android.exomedia.core.ListenerMux;
 import com.devbrackets.android.exomedia.core.video.scale.ScaleType;
-import com.devbrackets.android.exomedia.util.DrmProvider;
+import com.google.android.exoplayer2.drm.MediaDrmCallback;
 import com.google.android.exoplayer2.source.MediaSource;
 import com.google.android.exoplayer2.source.TrackGroupArray;
 
@@ -53,14 +53,14 @@ public interface VideoViewApi {
     void setVideoUri(@Nullable Uri uri, @Nullable MediaSource mediaSource);
 
     /**
-     * Sets the {@link DrmProvider} to use when handling DRM for media.
+     * Sets the {@link MediaDrmCallback} to use when handling DRM for media.
      * This should be called before specifying the videos uri or path
      * <br>
      * <b>NOTE:</b> DRM is only supported on API 18 +
      *
-     * @param drmProvider The provider to use when handling DRM media
+     * @param drmCallback The callback to use when handling DRM media
      */
-    void setDrmProvider(@Nullable DrmProvider drmProvider);
+    void setDrmCallback(@Nullable MediaDrmCallback drmCallback);
 
     boolean setVolume(@FloatRange(from = 0.0, to = 1.0) float volume);
 

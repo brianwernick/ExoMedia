@@ -25,7 +25,7 @@ import android.support.annotation.Nullable;
 
 import com.devbrackets.android.exomedia.ExoMedia;
 import com.devbrackets.android.exomedia.core.ListenerMux;
-import com.devbrackets.android.exomedia.util.DrmProvider;
+import com.google.android.exoplayer2.drm.MediaDrmCallback;
 import com.google.android.exoplayer2.source.MediaSource;
 import com.google.android.exoplayer2.source.TrackGroupArray;
 
@@ -43,14 +43,14 @@ public interface AudioPlayerApi {
     void setDataSource(@Nullable Uri uri, @Nullable MediaSource mediaSource);
 
     /**
-     * Sets the {@link DrmProvider} to use when handling DRM for media.
-     * This should be called before specifying the data source
+     * Sets the {@link MediaDrmCallback} to use when handling DRM for media.
+     * This should be called before specifying the videos uri or path
      * <br>
      * <b>NOTE:</b> DRM is only supported on API 18 +
      *
-     * @param drmProvider The provider to use when handling DRM media
+     * @param drmCallback The callback to use when handling DRM media
      */
-    void setDrmProvider(@Nullable DrmProvider drmProvider);
+    void setDrmCallback(@Nullable MediaDrmCallback drmCallback);
 
     /**
      * Prepares the media specified with {@link #setDataSource(Uri)} or

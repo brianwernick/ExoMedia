@@ -35,7 +35,7 @@ import com.devbrackets.android.exomedia.listener.OnErrorListener;
 import com.devbrackets.android.exomedia.listener.OnPreparedListener;
 import com.devbrackets.android.exomedia.listener.OnSeekCompletionListener;
 import com.devbrackets.android.exomedia.util.DeviceUtil;
-import com.devbrackets.android.exomedia.util.DrmProvider;
+import com.google.android.exoplayer2.drm.MediaDrmCallback;
 import com.google.android.exoplayer2.source.MediaSource;
 import com.google.android.exoplayer2.source.TrackGroupArray;
 
@@ -133,15 +133,15 @@ public class AudioPlayer {
     }
 
     /**
-     * Sets the {@link DrmProvider} to use when handling DRM for media.
-     * This should be called before specifying the data source
+     * Sets the {@link MediaDrmCallback} to use when handling DRM for media.
+     * This should be called before specifying the videos uri or path
      * <br>
      * <b>NOTE:</b> DRM is only supported on API 18 +
      *
-     * @param drmProvider The provider to use when handling DRM media
+     * @param drmCallback The callback to use when handling DRM media
      */
-    public void setDrmProvider(@Nullable DrmProvider drmProvider) {
-        audioPlayerImpl.setDrmProvider(drmProvider);
+    public void setDrmCallback(@Nullable MediaDrmCallback drmCallback) {
+        audioPlayerImpl.setDrmCallback(drmCallback);
     }
 
     /**

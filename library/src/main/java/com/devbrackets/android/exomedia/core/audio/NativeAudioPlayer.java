@@ -30,7 +30,7 @@ import android.util.Log;
 import com.devbrackets.android.exomedia.ExoMedia;
 import com.devbrackets.android.exomedia.core.ListenerMux;
 import com.devbrackets.android.exomedia.core.api.AudioPlayerApi;
-import com.devbrackets.android.exomedia.util.DrmProvider;
+import com.google.android.exoplayer2.drm.MediaDrmCallback;
 import com.google.android.exoplayer2.source.MediaSource;
 import com.google.android.exoplayer2.source.TrackGroupArray;
 
@@ -84,7 +84,7 @@ public class NativeAudioPlayer implements AudioPlayerApi {
     }
 
     @Override
-    public void setDrmProvider(@Nullable DrmProvider drmProvider) {
+    public void setDrmCallback(@Nullable MediaDrmCallback drmCallback) {
         //Purposefully left blank
     }
 

@@ -27,7 +27,6 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
 import android.util.Log;
-import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
 import android.view.ViewTreeObserver;
@@ -259,16 +258,7 @@ public class ResizingSurfaceView extends SurfaceView implements ClearableSurface
         videoSize.x = width;
         videoSize.y = height;
 
-        if (width == 0 || height == 0) {
-            return false;
-        }
-
-        SurfaceHolder holder = getHolder();
-        if (holder != null) {
-            holder.setFixedSize(width, height);
-        }
-
-        return true;
+        return !(width == 0 || height == 0);
     }
 
     /**

@@ -930,17 +930,20 @@ public class VideoView extends RelativeLayout {
          * can be added through source code with {@link #setControls(VideoControls)}
          */
         private boolean useDefaultControls = false;
+
         /**
-         * Specifies if the {@link VideoViewApi} implementations should use the {@link android.view.SurfaceView}
+         * Specifies if the {@link VideoViewApi} implementations should use the {@link android.view.TextureView}
          * implementations.  If this is false then the implementations will be based on
-         * the {@link android.view.TextureView}
+         * the {@link android.view.SurfaceView}
          */
-        private boolean useSurfaceViewBacking = false;
+        private boolean useTextureViewBacking = false;
+
         /**
          * The resource id that points to a custom implementation for the <code>ExoPlayer</code>
          * backed {@link VideoViewApi}
          */
         private int apiImplResourceId = R.layout.exomedia_default_exo_texture_video_view;
+
         /**
          * The resource id that points to a custom implementation for the Android {@link android.media.MediaPlayer}
          * backed {@link VideoViewApi}.  This will only be used on devices that do not support the
@@ -965,11 +968,11 @@ public class VideoView extends RelativeLayout {
             }
 
             useDefaultControls = typedArray.getBoolean(R.styleable.VideoView_useDefaultControls, useDefaultControls);
-            useSurfaceViewBacking = typedArray.getBoolean(R.styleable.VideoView_useSurfaceViewBacking, useSurfaceViewBacking);
+            useTextureViewBacking = typedArray.getBoolean(R.styleable.VideoView_useTextureViewBacking, useTextureViewBacking);
 
-            //Resets the default implementations based on useSurfaceViewBacking
-            apiImplResourceId = useSurfaceViewBacking ? R.layout.exomedia_default_exo_surface_video_view : R.layout.exomedia_default_exo_texture_video_view;
-            apiImplLegacyResourceId = useSurfaceViewBacking ? R.layout.exomedia_default_native_surface_video_view : R.layout.exomedia_default_native_texture_video_view;
+            //Resets the default implementations based on useTextureViewBacking
+            apiImplResourceId = useTextureViewBacking ? R.layout.exomedia_default_exo_texture_video_view : R.layout.exomedia_default_exo_surface_video_view;
+            apiImplLegacyResourceId = useTextureViewBacking ? R.layout.exomedia_default_native_texture_video_view : R.layout.exomedia_default_native_surface_video_view;
 
             apiImplResourceId = typedArray.getResourceId(R.styleable.VideoView_videoViewApiImpl, apiImplResourceId);
             apiImplLegacyResourceId = typedArray.getResourceId(R.styleable.VideoView_videoViewApiImplLegacy, apiImplLegacyResourceId);

@@ -112,7 +112,9 @@ public class ResizingSurfaceView extends SurfaceView implements ClearableSurface
     @IntRange(from = 0, to = 359)
     protected int requestedConfigurationRotation = 0;
 
-    protected boolean measureBasedOnAspectRatio;
+    // This is purposefully true to support older devices (below API 21) which
+    // isn't needed by the ResizingTextureView (which is false be default)
+    protected boolean measureBasedOnAspectRatio = true;
 
     public ResizingSurfaceView(Context context) {
         super(context);
@@ -258,7 +260,7 @@ public class ResizingSurfaceView extends SurfaceView implements ClearableSurface
         videoSize.x = width;
         videoSize.y = height;
 
-        return !(width == 0 || height == 0);
+        return width != 0 && height != 0;
     }
 
     /**

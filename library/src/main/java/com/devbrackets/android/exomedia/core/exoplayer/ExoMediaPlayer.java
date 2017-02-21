@@ -50,8 +50,6 @@ import com.google.android.exoplayer2.ExoPlayerFactory;
 import com.google.android.exoplayer2.Format;
 import com.google.android.exoplayer2.Renderer;
 import com.google.android.exoplayer2.Timeline;
-import com.google.android.exoplayer2.audio.AudioCapabilities;
-import com.google.android.exoplayer2.audio.AudioCapabilitiesReceiver;
 import com.google.android.exoplayer2.audio.AudioRendererEventListener;
 import com.google.android.exoplayer2.decoder.DecoderCounters;
 import com.google.android.exoplayer2.drm.DefaultDrmSessionManager;
@@ -118,11 +116,6 @@ public class ExoMediaPlayer implements ExoPlayer.EventListener {
     private MediaSource mediaSource;
     @NonNull
     private List<Renderer> renderers = new LinkedList<>();
-
-    @Nullable
-    private AudioCapabilities audioCapabilities;
-    @Nullable
-    private AudioCapabilitiesReceiver audioCapabilitiesReceiver;
 
     @Nullable
     private CaptionListener captionListener;
@@ -212,12 +205,6 @@ public class ExoMediaPlayer implements ExoPlayer.EventListener {
     public void setMediaSource(@Nullable MediaSource source) {
         this.mediaSource = source;
 
-        // If we have something to play then create a new receiver
-        if (mediaSource != null && audioCapabilitiesReceiver == null) {
-            audioCapabilitiesReceiver = new AudioCapabilitiesReceiver(context, capabilitiesListener);
-            audioCapabilitiesReceiver.register();
-        }
-
         prepared = false;
         prepare();
     }
@@ -268,11 +255,6 @@ public class ExoMediaPlayer implements ExoPlayer.EventListener {
 
         surface = null;
         sendMessage(C.TRACK_TYPE_VIDEO, C.MSG_SET_SURFACE, null, true);
-    }
-
-    @Nullable
-    public AudioCapabilities getAudioCapabilities() {
-        return audioCapabilities;
     }
 
     /**
@@ -407,11 +389,6 @@ public class ExoMediaPlayer implements ExoPlayer.EventListener {
     }
 
     public void release() {
-        if (audioCapabilitiesReceiver != null) {
-            audioCapabilitiesReceiver.unregister();
-            audioCapabilitiesReceiver = null;
-        }
-
         setBufferRepeaterStarted(false);
         listeners.clear();
 
@@ -686,33 +663,7 @@ public class ExoMediaPlayer implements ExoPlayer.EventListener {
         }
     }
 
-    private class CapabilitiesListener implements
-            AudioCapabilitiesReceiver.Listener,
-            DefaultDrmSessionManager.EventListener {
-
-        @Override
-        public void onAudioCapabilitiesChanged(AudioCapabilities capabilities) {
-            if (capabilities.equals(audioCapabilities)) {
-                return;
-            }
-
-            audioCapabilities = capabilities;
-            if (mediaSource == null) {
-                return;
-            }
-
-            //Restarts the media playback to allow the RenderBuilder to handle the audio channel determination
-            boolean playWhenReady = getPlayWhenReady();
-            long currentPosition = getCurrentPosition();
-
-            //TODO: is this still necessary? or does the ExoPlayer now already handle this?
-            // I think we need to re-build the renderers (as they take the current audio capabilities) and push those in to the ExoPlayer
-            setMediaSource(mediaSource);
-
-            player.seekTo(currentPosition);
-            player.setPlayWhenReady(playWhenReady);
-        }
-
+    private class CapabilitiesListener implements DefaultDrmSessionManager.EventListener {
         @Override
         public void onDrmKeysLoaded() {
             // Purposefully left blank

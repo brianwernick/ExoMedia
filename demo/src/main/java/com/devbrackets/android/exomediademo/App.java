@@ -67,6 +67,7 @@ public class App extends Application {
         // Registers the media sources to use the OkHttp client instead of the standard Apache one
         // Note: the OkHttpDataSourceFactory can be found in the ExoPlayer extension library `extension-okhttp`
         ExoMedia.setHttpDataSourceFactoryProvider(new ExoMedia.HttpDataSourceFactoryProvider() {
+            @NonNull
             @Override
             public HttpDataSource.BaseFactory provide(@NonNull String userAgent, @Nullable TransferListener<? super DataSource> listener) {
                 return new OkHttpDataSourceFactory(new OkHttpClient(), userAgent, listener);

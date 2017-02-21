@@ -30,8 +30,6 @@ import com.devbrackets.android.exomedia.core.exoplayer.ExoMediaPlayer;
 import com.devbrackets.android.exomedia.core.listener.MetadataListener;
 import com.devbrackets.android.exomedia.core.video.ClearableSurface;
 import com.devbrackets.android.exomedia.listener.OnBufferUpdateListener;
-import com.google.android.exoplayer2.audio.AudioCapabilities;
-import com.google.android.exoplayer2.audio.AudioCapabilitiesReceiver;
 import com.google.android.exoplayer2.drm.MediaDrmCallback;
 import com.google.android.exoplayer2.metadata.Metadata;
 import com.google.android.exoplayer2.source.MediaSource;
@@ -39,11 +37,8 @@ import com.google.android.exoplayer2.source.TrackGroupArray;
 
 import java.util.Map;
 
-
-public class ExoVideoDelegate implements AudioCapabilitiesReceiver.Listener {
+public class ExoVideoDelegate {
     protected ExoMediaPlayer exoMediaPlayer;
-    protected AudioCapabilities audioCapabilities;
-    protected AudioCapabilitiesReceiver audioCapabilitiesReceiver;
 
     protected ListenerMux listenerMux;
     protected boolean playRequested = false;
@@ -59,13 +54,6 @@ public class ExoVideoDelegate implements AudioCapabilitiesReceiver.Listener {
         this.clearableSurface = clearableSurface;
 
         setup();
-    }
-
-    @Override
-    public void onAudioCapabilitiesChanged(AudioCapabilities audioCapabilities) {
-        if (!audioCapabilities.equals(this.audioCapabilities)) {
-            this.audioCapabilities = audioCapabilities;
-        }
     }
 
     public void setVideoUri(@Nullable Uri uri) {
@@ -186,11 +174,6 @@ public class ExoVideoDelegate implements AudioCapabilitiesReceiver.Listener {
 
     public void release() {
         exoMediaPlayer.release();
-
-        if (audioCapabilitiesReceiver != null) {
-            audioCapabilitiesReceiver.unregister();
-            audioCapabilitiesReceiver = null;
-        }
     }
 
     public void setListenerMux(ListenerMux listenerMux) {
@@ -211,8 +194,6 @@ public class ExoVideoDelegate implements AudioCapabilitiesReceiver.Listener {
 
     protected void setup() {
         initExoPlayer();
-        audioCapabilitiesReceiver = new AudioCapabilitiesReceiver(context, this);
-        audioCapabilitiesReceiver.register();
     }
 
     protected void initExoPlayer() {

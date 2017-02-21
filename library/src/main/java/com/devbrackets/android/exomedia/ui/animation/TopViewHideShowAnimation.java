@@ -29,7 +29,6 @@ import android.view.animation.TranslateAnimation;
  * in and out from the top of the screen when changing visibilities.
  */
 public class TopViewHideShowAnimation extends AnimationSet {
-
     private View animationView;
     private boolean toVisible;
 

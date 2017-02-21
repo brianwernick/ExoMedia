@@ -25,6 +25,7 @@ import java.util.Map;
  */
 public class ExoMedia {
     public interface HttpDataSourceFactoryProvider {
+        @NonNull
         HttpDataSource.BaseFactory provide(@NonNull String userAgent, @Nullable TransferListener<? super DataSource> listener);
     }
 

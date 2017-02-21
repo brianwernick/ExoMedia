@@ -287,7 +287,6 @@ public class ExoMediaPlayer implements ExoPlayer.EventListener {
         return trackMap;
     }
 
-    //todo we should have a special case for auto / disabled / and unknown (e.g. -10, -5, -1)
     public int getSelectedTrackIndex(@NonNull RendererType type) {
         // Retrieves the available tracks
         int exoPlayerTrackIndex = getExoPlayerTrackType(type);
@@ -303,11 +302,9 @@ public class ExoMediaPlayer implements ExoPlayer.EventListener {
             return -1;
         }
 
-        //TODO: Do we only allow 1 selected track? (ExoPlayer supports multiple with the adaptive streams)
         return selectionOverride.tracks[0];
     }
 
-    // TODO: pay attention to auto / disabled / unknown indexes
     public void setSelectedTrack(@NonNull RendererType type, int index) {
         // Retrieves the available tracks
         int exoPlayerTrackIndex = getExoPlayerTrackType(type);
@@ -416,8 +413,7 @@ public class ExoMediaPlayer implements ExoPlayer.EventListener {
         }
 
         //TODO: backwards compatibility for playback speed (ExoMediaPlayer)
-        // Google is adding this /soon/ to the ExoPlayer
-        // https://github.com/google/ExoPlayer/issues/26
+        // Google is adding this /soon/ to the ExoPlayer (https://github.com/google/ExoPlayer/issues/26)
         return false;
     }
 
@@ -542,9 +538,8 @@ public class ExoMediaPlayer implements ExoPlayer.EventListener {
             return null;
         }
 
-        // see https://github.com/google/ExoPlayer/blob/dev-v2/demo/src/main/java/com/google/android/exoplayer2/demo/SampleChooserActivity.java#L264
-        // for the UUID stuff. I'm not sure how/if that affects this
-        UUID uuid = C.WIDEVINE_UUID; //TODO: this will capture most cases, but we may still have PLAYREADY_UUID on AndroidTV
+        // Widevine will capture the majority of use cases however playready is supported on all AndroidTV devices
+        UUID uuid = C.WIDEVINE_UUID;
 
         try {
             return new DefaultDrmSessionManager<>(uuid, FrameworkMediaDrm.newInstance(uuid), new DelegatedMediaDrmCallback(), null, mainHandler, capabilitiesListener);

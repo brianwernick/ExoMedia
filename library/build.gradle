@@ -12,7 +12,7 @@ def libraryVersion = "${versionMajor}.${versionMinor}.${versionPatch}" // releas
 
 dependencies {
     // Android
-    compile 'com.android.support:appcompat-v7:25.1.1' // includes support-v4
+    compile 'com.android.support:appcompat-v7:25.2.0' // includes support-v4
 
     // ExoPlayer
     compile 'com.google.android.exoplayer:exoplayer:r2.2.0'

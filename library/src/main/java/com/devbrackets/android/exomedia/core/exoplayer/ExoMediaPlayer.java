@@ -64,7 +64,7 @@ import com.google.android.exoplayer2.source.MediaSource;
 import com.google.android.exoplayer2.source.TrackGroupArray;
 import com.google.android.exoplayer2.text.Cue;
 import com.google.android.exoplayer2.text.TextRenderer;
-import com.google.android.exoplayer2.trackselection.AdaptiveVideoTrackSelection;
+import com.google.android.exoplayer2.trackselection.AdaptiveTrackSelection;
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
 import com.google.android.exoplayer2.trackselection.FixedTrackSelection;
 import com.google.android.exoplayer2.trackselection.MappingTrackSelector;
@@ -93,7 +93,7 @@ public class ExoMediaPlayer implements ExoPlayer.EventListener {
     @NonNull
     private final DefaultTrackSelector trackSelector;
     @NonNull
-    private final AdaptiveVideoTrackSelection.Factory adaptiveTrackSelectionFactory;
+    private final AdaptiveTrackSelection.Factory adaptiveTrackSelectionFactory;
     @NonNull
     private final Handler mainHandler;
     @NonNull
@@ -147,7 +147,7 @@ public class ExoMediaPlayer implements ExoPlayer.EventListener {
 
         renderers = rendererProvider.generate();
 
-        adaptiveTrackSelectionFactory = new AdaptiveVideoTrackSelection.Factory(new DefaultBandwidthMeter());
+        adaptiveTrackSelectionFactory = new AdaptiveTrackSelection.Factory(new DefaultBandwidthMeter());
         trackSelector = new DefaultTrackSelector(adaptiveTrackSelectionFactory);
 
         player = ExoPlayerFactory.newInstance(renderers.toArray(new Renderer[renderers.size()]), trackSelector, new DefaultLoadControl());

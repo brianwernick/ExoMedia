@@ -2,9 +2,9 @@ apply plugin: 'com.android.application'
 
 dependencies {
     compile project(':library')
-    compile 'com.android.support:appcompat-v7:25.2.0'
+    compile 'com.android.support:appcompat-v7:25.3.0'
     compile 'com.squareup.picasso:picasso:2.5.2'
-    compile 'com.google.android.exoplayer:extension-okhttp:r2.2.0'
+    compile 'com.google.android.exoplayer:extension-okhttp:r2.3.0'
 
     // Playlist support
     compile 'com.devbrackets.android:playlistcore:1.1.1'

@@ -708,6 +708,10 @@ public class VideoView extends RelativeLayout {
         if (attributeContainer.useDefaultControls) {
             setControls(deviceUtil.isDeviceTV(getContext()) ? new VideoControlsLeanback(getContext()) : new VideoControlsMobile(getContext()));
         }
+
+        if (attributeContainer.scaleType != null) {
+            setScaleType(attributeContainer.scaleType);
+        }
     }
 
     /**
@@ -929,27 +933,35 @@ public class VideoView extends RelativeLayout {
          * Specifies if the {@link VideoControls} should be added to the view.  These
          * can be added through source code with {@link #setControls(VideoControls)}
          */
-        private boolean useDefaultControls = false;
+        public boolean useDefaultControls = false;
 
         /**
          * Specifies if the {@link VideoViewApi} implementations should use the {@link android.view.TextureView}
          * implementations.  If this is false then the implementations will be based on
          * the {@link android.view.SurfaceView}
          */
-        private boolean useTextureViewBacking = false;
+        public boolean useTextureViewBacking = false;
 
         /**
          * The resource id that points to a custom implementation for the <code>ExoPlayer</code>
          * backed {@link VideoViewApi}
          */
-        private int apiImplResourceId = R.layout.exomedia_default_exo_texture_video_view;
+        public int apiImplResourceId = R.layout.exomedia_default_exo_texture_video_view;
 
         /**
          * The resource id that points to a custom implementation for the Android {@link android.media.MediaPlayer}
          * backed {@link VideoViewApi}.  This will only be used on devices that do not support the
          * <code>ExoPlayer</code> (see {@link DeviceUtil#supportsExoPlayer(Context)} for details)
          */
-        private int apiImplLegacyResourceId = R.layout.exomedia_default_native_texture_video_view;
+        public int apiImplLegacyResourceId = R.layout.exomedia_default_native_texture_video_view;
+
+        /**
+         * Specifies the scale that the {@link VideoView} should use. If this is <code>null</code>
+         * then the default value from the {@link com.devbrackets.android.exomedia.core.video.scale.MatrixManager}
+         * will be used.
+         */
+        @Nullable
+        public ScaleType scaleType;
 
         /**
          * Reads the attributes associated with this view, setting any values found
@@ -969,6 +981,10 @@ public class VideoView extends RelativeLayout {
 
             useDefaultControls = typedArray.getBoolean(R.styleable.VideoView_useDefaultControls, useDefaultControls);
             useTextureViewBacking = typedArray.getBoolean(R.styleable.VideoView_useTextureViewBacking, useTextureViewBacking);
+
+            if (typedArray.hasValue(R.styleable.VideoView_videoScale)) {
+                scaleType = ScaleType.fromOrdinal(typedArray.getInt(R.styleable.VideoView_videoScale, -1));
+            }
 
             //Resets the default implementations based on useTextureViewBacking
             apiImplResourceId = useTextureViewBacking ? R.layout.exomedia_default_exo_texture_video_view : R.layout.exomedia_default_exo_surface_video_view;

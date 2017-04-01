@@ -52,6 +52,7 @@ import com.devbrackets.android.exomedia.listener.OnCompletionListener;
 import com.devbrackets.android.exomedia.listener.OnErrorListener;
 import com.devbrackets.android.exomedia.listener.OnPreparedListener;
 import com.devbrackets.android.exomedia.listener.OnSeekCompletionListener;
+import com.devbrackets.android.exomedia.listener.OnVideoSizeChangedListener;
 import com.devbrackets.android.exomedia.util.DeviceUtil;
 import com.devbrackets.android.exomedia.util.StopWatch;
 import com.google.android.exoplayer2.drm.MediaDrmCallback;
@@ -610,7 +611,7 @@ public class VideoView extends RelativeLayout {
      *
      * @param listener The listener
      */
-    public void setOnPreparedListener(OnPreparedListener listener) {
+    public void setOnPreparedListener(@Nullable OnPreparedListener listener) {
         listenerMux.setOnPreparedListener(listener);
     }
 
@@ -619,7 +620,7 @@ public class VideoView extends RelativeLayout {
      *
      * @param listener The listener
      */
-    public void setOnCompletionListener(OnCompletionListener listener) {
+    public void setOnCompletionListener(@Nullable OnCompletionListener listener) {
         listenerMux.setOnCompletionListener(listener);
     }
 
@@ -628,7 +629,7 @@ public class VideoView extends RelativeLayout {
      *
      * @param listener The listener
      */
-    public void setOnBufferUpdateListener(OnBufferUpdateListener listener) {
+    public void setOnBufferUpdateListener(@Nullable OnBufferUpdateListener listener) {
         listenerMux.setOnBufferUpdateListener(listener);
     }
 
@@ -637,7 +638,7 @@ public class VideoView extends RelativeLayout {
      *
      * @param listener The listener
      */
-    public void setOnSeekCompletionListener(OnSeekCompletionListener listener) {
+    public void setOnSeekCompletionListener(@Nullable OnSeekCompletionListener listener) {
         listenerMux.setOnSeekCompletionListener(listener);
     }
 
@@ -646,17 +647,26 @@ public class VideoView extends RelativeLayout {
      *
      * @param listener The listener
      */
-    public void setOnErrorListener(OnErrorListener listener) {
+    public void setOnErrorListener(@Nullable OnErrorListener listener) {
         listenerMux.setOnErrorListener(listener);
     }
 
     /**
      * Sets the listener to inform of ID3 metadata updates
      *
-     * @param listener The listener to inform
+     * @param listener The listener
      */
     public void setId3MetadataListener(@Nullable MetadataListener listener) {
         listenerMux.setMetadataListener(listener);
+    }
+
+    /**
+     * Sets the listener to inform of video size changes
+     *
+     * @param listener The listener
+     */
+    public void setOnVideoSizedChangedListener(@Nullable OnVideoSizeChangedListener listener) {
+        muxNotifier.videoSizeChangedListener = listener;
     }
 
     /**
@@ -843,6 +853,9 @@ public class VideoView extends RelativeLayout {
     }
 
     protected class MuxNotifier extends ListenerMux.Notifier {
+        @Nullable
+        public OnVideoSizeChangedListener videoSizeChangedListener;
+
         @Override
         public boolean shouldNotifyCompletion(long endLeeway) {
             return getCurrentPosition() + endLeeway >= getDuration();
@@ -876,6 +889,10 @@ public class VideoView extends RelativeLayout {
             //NOTE: Android 5.0+ will always have an unAppliedRotationDegrees of 0 (ExoPlayer already handles it)
             videoViewImpl.setVideoRotation(unAppliedRotationDegrees, false);
             videoViewImpl.onVideoSizeChanged(width, height);
+
+            if (videoSizeChangedListener != null) {
+                videoSizeChangedListener.onVideoSizeChanged(width, height);
+            }
         }
 
         @Override

@@ -413,7 +413,7 @@ public class ExoMediaPlayer implements ExoPlayer.EventListener {
         }
 
         //TODO: backwards compatibility for playback speed (ExoMediaPlayer)
-        // Google is adding this /soon/ to the ExoPlayer (https://github.com/google/ExoPlayer/issues/26)
+        // Google added this natively so use that instead https://github.com/google/ExoPlayer/issues/26#issuecomment-290844837
         return false;
     }
 

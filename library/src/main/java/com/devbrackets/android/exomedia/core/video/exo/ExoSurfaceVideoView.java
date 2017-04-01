@@ -110,8 +110,8 @@ public class ExoSurfaceVideoView extends ResizingSurfaceView implements VideoVie
     }
 
     @Override
-    public void stopPlayback() {
-        delegate.stopPlayback();
+    public void stopPlayback(boolean clearSurface) {
+        delegate.stopPlayback(clearSurface);
     }
 
     @Override

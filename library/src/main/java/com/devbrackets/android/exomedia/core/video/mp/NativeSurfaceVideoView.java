@@ -163,8 +163,8 @@ public class NativeSurfaceVideoView extends ResizingSurfaceView implements Nativ
     }
 
     @Override
-    public void stopPlayback() {
-        delegate.stopPlayback();
+    public void stopPlayback(boolean clearSurface) {
+        delegate.stopPlayback(clearSurface);
     }
 
     @Override

@@ -325,7 +325,7 @@ public class AudioPlayer {
      *
      * @param listener The listener
      */
-    public void setOnPreparedListener(OnPreparedListener listener) {
+    public void setOnPreparedListener(@Nullable OnPreparedListener listener) {
         listenerMux.setOnPreparedListener(listener);
     }
 
@@ -334,7 +334,7 @@ public class AudioPlayer {
      *
      * @param listener The listener
      */
-    public void setOnCompletionListener(OnCompletionListener listener) {
+    public void setOnCompletionListener(@Nullable OnCompletionListener listener) {
         listenerMux.setOnCompletionListener(listener);
     }
 
@@ -343,7 +343,7 @@ public class AudioPlayer {
      *
      * @param listener The listener
      */
-    public void setOnBufferUpdateListener(OnBufferUpdateListener listener) {
+    public void setOnBufferUpdateListener(@Nullable OnBufferUpdateListener listener) {
         listenerMux.setOnBufferUpdateListener(listener);
     }
 
@@ -352,7 +352,7 @@ public class AudioPlayer {
      *
      * @param listener The listener
      */
-    public void setOnSeekCompletionListener(OnSeekCompletionListener listener) {
+    public void setOnSeekCompletionListener(@Nullable OnSeekCompletionListener listener) {
         listenerMux.setOnSeekCompletionListener(listener);
     }
 
@@ -361,7 +361,7 @@ public class AudioPlayer {
      *
      * @param listener The listener
      */
-    public void setOnErrorListener(OnErrorListener listener) {
+    public void setOnErrorListener(@Nullable OnErrorListener listener) {
         listenerMux.setOnErrorListener(listener);
     }
 

@@ -409,13 +409,7 @@ public class VideoView extends RelativeLayout {
      * If a video is currently in playback then the playback will be stopped
      */
     public void stopPlayback() {
-        audioFocusHelper.abandonFocus();
-        videoViewImpl.stopPlayback();
-        setKeepScreenOn(false);
-
-        if (videoControls != null) {
-            videoControls.updatePlaybackState(false);
-        }
+        stopPlayback(true);
     }
 
     /**
@@ -768,7 +762,25 @@ public class VideoView extends RelativeLayout {
      * procedures from running that we no longer need.
      */
     protected void onPlaybackEnded() {
-        stopPlayback();
+        stopPlayback(false);
+    }
+
+    /**
+     * Stops the video currently in playback, making sure to only clear the surface
+     * when requested. This allows us to leave the last frame of a video intact when
+     * it plays to completion while still clearing it when the user requests playback
+     * to stop.
+     *
+     * @param clearSurface <code>true</code> if the surface should be cleared
+     */
+    protected void stopPlayback(boolean clearSurface) {
+        audioFocusHelper.abandonFocus();
+        videoViewImpl.stopPlayback(clearSurface);
+        setKeepScreenOn(false);
+
+        if (videoControls != null) {
+            videoControls.updatePlaybackState(false);
+        }
     }
 
     protected class AudioFocusHelper implements AudioManager.OnAudioFocusChangeListener {

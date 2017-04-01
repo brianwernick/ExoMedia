@@ -124,10 +124,18 @@ public class ExoVideoDelegate {
         playRequested = false;
     }
 
-    public void stopPlayback() {
+    /**
+     * Performs the functionality to stop the video in playback
+     *
+     * @param clearSurface <code>true</code> if the surface should be cleared
+     */
+    public void stopPlayback(boolean clearSurface) {
         exoMediaPlayer.stop();
         playRequested = false;
-        listenerMux.clearSurfaceWhenReady(clearableSurface);
+
+        if (clearSurface) {
+            listenerMux.clearSurfaceWhenReady(clearableSurface);
+        }
     }
 
     public void suspend() {

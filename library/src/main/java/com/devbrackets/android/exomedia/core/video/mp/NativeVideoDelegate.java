@@ -134,7 +134,7 @@ public class NativeVideoDelegate {
 
     public void seekTo(long milliseconds) {
         if (isReady()) {
-            mediaPlayer.seekTo((int)milliseconds);
+            mediaPlayer.seekTo((int) milliseconds);
             requestedSeek = 0;
         } else {
             requestedSeek = milliseconds;
@@ -168,8 +168,10 @@ public class NativeVideoDelegate {
 
     /**
      * Performs the functionality to stop the video in playback
+     *
+     * @param clearSurface <code>true</code> if the surface should be cleared
      */
-    public void stopPlayback() {
+    public void stopPlayback(boolean clearSurface) {
         currentState = State.IDLE;
 
         if (isReady()) {
@@ -181,7 +183,9 @@ public class NativeVideoDelegate {
         }
 
         playRequested = false;
-        listenerMux.clearSurfaceWhenReady(clearableSurface);
+        if (clearSurface) {
+            listenerMux.clearSurfaceWhenReady(clearableSurface);
+        }
     }
 
     /**
@@ -202,7 +206,7 @@ public class NativeVideoDelegate {
     }
 
     public boolean restart() {
-        if(currentState != State.COMPLETED) {
+        if (currentState != State.COMPLETED) {
             return false;
         }
 

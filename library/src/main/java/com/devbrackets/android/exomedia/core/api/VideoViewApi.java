@@ -74,8 +74,10 @@ public interface VideoViewApi {
 
     /**
      * Performs the functionality to stop the video in playback
+     *
+     * @param clearSurface <code>true</code> if the surface should be cleared
      */
-    void stopPlayback();
+    void stopPlayback(boolean clearSurface);
 
     /**
      * Prepares the media previously specified for playback.  This should only be called after

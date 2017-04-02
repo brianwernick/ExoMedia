@@ -716,6 +716,10 @@ public class VideoView extends RelativeLayout {
         if (attributeContainer.scaleType != null) {
             setScaleType(attributeContainer.scaleType);
         }
+
+        if (attributeContainer.measureBasedOnAspectRatio != null) {
+            setMeasureBasedOnAspectRatioEnabled(attributeContainer.measureBasedOnAspectRatio);
+        }
     }
 
     /**
@@ -783,6 +787,10 @@ public class VideoView extends RelativeLayout {
         }
     }
 
+    /**
+     * A utility used to handle the audio focus for the {@link VideoView}
+     * when enabled.
+     */
     protected class AudioFocusHelper implements AudioManager.OnAudioFocusChangeListener {
         protected boolean startRequested = false;
         protected boolean pausedForLoss = false;
@@ -992,6 +1000,15 @@ public class VideoView extends RelativeLayout {
         public ScaleType scaleType;
 
         /**
+         * Specifies if the {@link VideoView} should be measured based on the aspect ratio. Because
+         * the default value is different between the {@link com.devbrackets.android.exomedia.core.video.ResizingSurfaceView}
+         * and {@link com.devbrackets.android.exomedia.core.video.ResizingTextureView} this will be <code>null</code>
+         * when not specified.
+         */
+        @Nullable
+        public Boolean measureBasedOnAspectRatio;
+
+        /**
          * Reads the attributes associated with this view, setting any values found
          *
          * @param context The context to retrieve the styled attributes with
@@ -1012,6 +1029,10 @@ public class VideoView extends RelativeLayout {
 
             if (typedArray.hasValue(R.styleable.VideoView_videoScale)) {
                 scaleType = ScaleType.fromOrdinal(typedArray.getInt(R.styleable.VideoView_videoScale, -1));
+            }
+
+            if (typedArray.hasValue(R.styleable.VideoView_measureBasedOnAspectRatio)) {
+                measureBasedOnAspectRatio = typedArray.getBoolean(R.styleable.VideoView_measureBasedOnAspectRatio, false);
             }
 
             //Resets the default implementations based on useTextureViewBacking

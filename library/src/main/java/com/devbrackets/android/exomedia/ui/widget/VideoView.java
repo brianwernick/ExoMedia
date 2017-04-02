@@ -274,7 +274,7 @@ public class VideoView extends RelativeLayout {
     /**
      * Sets the Uri location for the video to play
      *
-     * @param uri The video's Uri
+     * @param uri         The video's Uri
      * @param mediaSource MediaSource that should be used
      */
     public void setVideoURI(@Nullable Uri uri, @Nullable MediaSource mediaSource) {
@@ -560,7 +560,7 @@ public class VideoView extends RelativeLayout {
      * Changes to the track with <code>trackIndex</code> for the specified
      * <code>trackType</code>
      *
-     * @param trackType The type for the track to switch to the selected index
+     * @param trackType  The type for the track to switch to the selected index
      * @param trackIndex The index for the track to switch to
      */
     public void setTrack(ExoMedia.RendererType trackType, int trackIndex) {
@@ -664,7 +664,7 @@ public class VideoView extends RelativeLayout {
      * determining the backing implementation and reading xml attributes
      *
      * @param context The context to use for setting up the view
-     * @param attrs The xml attributes associated with this instance
+     * @param attrs   The xml attributes associated with this instance
      */
     protected void setup(Context context, @Nullable AttributeSet attrs) {
         if (isInEditMode()) {
@@ -683,7 +683,7 @@ public class VideoView extends RelativeLayout {
      * backing layout, linking the implementation, and finding the necessary view
      * references.
      *
-     * @param context The context for the initialization
+     * @param context            The context for the initialization
      * @param attributeContainer The attributes associated with this instance
      */
     protected void initView(Context context, @NonNull AttributeContainer attributeContainer) {
@@ -718,7 +718,7 @@ public class VideoView extends RelativeLayout {
      * Inflates the video view layout, replacing the {@link ViewStub} with the
      * correct backing implementation.
      *
-     * @param context The context to use for inflating the correct video view
+     * @param context            The context to use for inflating the correct video view
      * @param attributeContainer The attributes for retrieving custom backing implementations.
      */
     protected void inflateVideoView(@NonNull Context context, @NonNull AttributeContainer attributeContainer) {
@@ -743,7 +743,7 @@ public class VideoView extends RelativeLayout {
      * <b>NOTE:</b> overriding the default implementations may cause inconsistencies and isn't
      * recommended.
      *
-     * @param context The Context to use when retrieving the backing video view implementation
+     * @param context            The Context to use when retrieving the backing video view implementation
      * @param attributeContainer The attributes to use for finding overridden video view implementations
      * @return The layout resource for the backing implementation on the current device
      */
@@ -913,7 +913,11 @@ public class VideoView extends RelativeLayout {
         @Override
         public boolean onSingleTapConfirmed(MotionEvent e) {
             if (videoControls != null) {
-                videoControls.show();
+                if (videoControls.areVisible()) {
+                    videoControls.hideDelayed(0);
+                } else {
+                    videoControls.show();
+                }
 
                 if (isPlaying()) {
                     videoControls.hideDelayed(VideoControls.DEFAULT_CONTROL_HIDE_DELAY);
@@ -967,7 +971,7 @@ public class VideoView extends RelativeLayout {
          * Reads the attributes associated with this view, setting any values found
          *
          * @param context The context to retrieve the styled attributes with
-         * @param attrs The {@link AttributeSet} to retrieve the values from
+         * @param attrs   The {@link AttributeSet} to retrieve the values from
          */
         public AttributeContainer(@NonNull Context context, @Nullable AttributeSet attrs) {
             if (attrs == null) {

@@ -465,6 +465,13 @@ public abstract class VideoControls extends RelativeLayout {
     }
 
     /**
+     * Whether the controls are visible.
+     */
+    public boolean areVisible() {
+        return isVisible;
+    }
+
+    /**
      * After the specified delay the view will be hidden.  If the user is interacting
      * with the controls then we wait until after they are done to start the delay.
      *

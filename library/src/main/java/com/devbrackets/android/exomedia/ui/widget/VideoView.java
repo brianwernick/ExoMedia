@@ -924,7 +924,7 @@ public class VideoView extends RelativeLayout {
     }
 
     /**
-     * Monitors the view click events to show the video controls if they have been specified.
+     * Monitors the view click events to show and hide the video controls if they have been specified.
      */
     protected class TouchListener extends GestureDetector.SimpleOnGestureListener implements OnTouchListener {
         protected GestureDetector gestureDetector;
@@ -934,19 +934,18 @@ public class VideoView extends RelativeLayout {
         }
 
         @Override
-        public boolean onTouch(View v, MotionEvent event) {
+        public boolean onTouch(View view, MotionEvent event) {
             gestureDetector.onTouchEvent(event);
             return true;
         }
 
         @Override
-        public boolean onSingleTapConfirmed(MotionEvent e) {
-            if (videoControls != null) {
-                videoControls.show();
-
-                if (isPlaying()) {
-                    videoControls.hideDelayed(VideoControls.DEFAULT_CONTROL_HIDE_DELAY);
-                }
+        public boolean onSingleTapConfirmed(MotionEvent event) {
+            // Toggles between hiding and showing the controls
+            if (videoControls != null && videoControls.isVisible()) {
+                videoControls.hide();
+            } else {
+                showControls();
             }
 
             return true;

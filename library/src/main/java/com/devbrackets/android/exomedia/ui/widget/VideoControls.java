@@ -465,6 +465,21 @@ public abstract class VideoControls extends RelativeLayout {
     }
 
     /**
+     * Immediately starts the animation to hide the controls
+     */
+    public void hide() {
+        if (!canViewHide || isLoading) {
+            return;
+        }
+
+        //Makes sure we don't have a separate hide animation scheduled
+        visibilityHandler.removeCallbacksAndMessages(null);
+        clearAnimation();
+
+        animateVisibility(false);
+    }
+
+    /**
      * After the specified delay the view will be hidden.  If the user is interacting
      * with the controls then we wait until after they are done to start the delay.
      *
@@ -480,7 +495,7 @@ public abstract class VideoControls extends RelativeLayout {
         visibilityHandler.postDelayed(new Runnable() {
             @Override
             public void run() {
-                animateVisibility(false);
+                hide();
             }
         }, delay);
     }
@@ -503,6 +518,15 @@ public abstract class VideoControls extends RelativeLayout {
     public void setHideEmptyTextContainer(boolean hide) {
         this.hideEmptyTextContainer = hide;
         updateTextContainerVisibility();
+    }
+
+    /**
+     * Returns <code>true</code> if the {@link VideoControls} are visible
+     *
+     * @return <code>true</code> if the controls are visible
+     */
+    public boolean isVisible() {
+        return isVisible;
     }
 
     /**

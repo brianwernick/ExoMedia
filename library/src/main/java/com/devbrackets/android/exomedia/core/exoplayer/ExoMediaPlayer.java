@@ -33,6 +33,7 @@ import android.support.v4.util.ArrayMap;
 import android.util.Log;
 import android.view.Surface;
 
+import com.devbrackets.android.exomedia.ExoMedia;
 import com.devbrackets.android.exomedia.ExoMedia.RendererType;
 import com.devbrackets.android.exomedia.core.listener.CaptionListener;
 import com.devbrackets.android.exomedia.core.listener.ExoPlayerListener;
@@ -48,6 +49,7 @@ import com.google.android.exoplayer2.ExoPlaybackException;
 import com.google.android.exoplayer2.ExoPlayer;
 import com.google.android.exoplayer2.ExoPlayerFactory;
 import com.google.android.exoplayer2.Format;
+import com.google.android.exoplayer2.LoadControl;
 import com.google.android.exoplayer2.Renderer;
 import com.google.android.exoplayer2.Timeline;
 import com.google.android.exoplayer2.audio.AudioRendererEventListener;
@@ -150,7 +152,8 @@ public class ExoMediaPlayer implements ExoPlayer.EventListener {
         adaptiveTrackSelectionFactory = new AdaptiveTrackSelection.Factory(new DefaultBandwidthMeter());
         trackSelector = new DefaultTrackSelector(adaptiveTrackSelectionFactory);
 
-        player = ExoPlayerFactory.newInstance(renderers.toArray(new Renderer[renderers.size()]), trackSelector, new DefaultLoadControl());
+        LoadControl loadControl = ExoMedia.Data.loadControl != null ? ExoMedia.Data.loadControl : new DefaultLoadControl();
+        player = ExoPlayerFactory.newInstance(renderers.toArray(new Renderer[renderers.size()]), trackSelector, loadControl);
         player.addListener(this);
     }
 

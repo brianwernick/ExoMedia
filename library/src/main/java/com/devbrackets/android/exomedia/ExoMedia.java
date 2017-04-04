@@ -8,6 +8,7 @@ import com.devbrackets.android.exomedia.core.source.MediaSourceProvider;
 import com.devbrackets.android.exomedia.core.source.builder.DashMediaSourceBuilder;
 import com.devbrackets.android.exomedia.core.source.builder.HlsMediaSourceBuilder;
 import com.devbrackets.android.exomedia.core.source.builder.SsMediaSourceBuilder;
+import com.google.android.exoplayer2.LoadControl;
 import com.google.android.exoplayer2.Renderer;
 import com.google.android.exoplayer2.upstream.DataSource;
 import com.google.android.exoplayer2.upstream.HttpDataSource;
@@ -71,6 +72,20 @@ public class ExoMedia {
         Data.httpDataSourceFactoryProvider = provider;
     }
 
+    /**
+     * Specifies the {@link LoadControl} to use when building the {@link com.google.android.exoplayer2.ExoPlayer} instance
+     * used in the {@link com.devbrackets.android.exomedia.ui.widget.VideoView} and {@link AudioPlayer}. This allows the
+     * buffering amounts to be modified to better suit your needs which can be easily specified by using an instance of
+     * {@link com.google.android.exoplayer2.DefaultLoadControl}. When the <code>loadControl</code> is <code>null</code>
+     * the default instance of the {@link com.google.android.exoplayer2.DefaultLoadControl} will be used. This will only
+     * take effect for any instances created <i>after</i> this was set.
+     *
+     * @param loadControl The {@link LoadControl} to use for any new {@link com.google.android.exoplayer2.ExoPlayer} instances
+     */
+    public static void setLoadControl(@Nullable LoadControl loadControl) {
+        Data.loadControl = loadControl;
+    }
+
     public static class Data {
         @NonNull
         public static final Map<RendererType, List<String>> registeredRendererClasses = new HashMap<>();
@@ -78,6 +93,8 @@ public class ExoMedia {
         public static final List<MediaSourceProvider.SourceTypeBuilder> sourceTypeBuilders = new ArrayList<>();
         @Nullable
         public static volatile HttpDataSourceFactoryProvider httpDataSourceFactoryProvider;
+        @Nullable
+        public static volatile LoadControl loadControl;
 
         static {
             instantiateRendererClasses();

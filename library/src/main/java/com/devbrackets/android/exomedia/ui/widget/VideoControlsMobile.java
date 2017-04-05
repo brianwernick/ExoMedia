@@ -190,8 +190,15 @@ public class VideoControlsMobile extends VideoControls {
         }
 
         isLoading = true;
-        controlsContainer.setVisibility(View.GONE);
         loadingProgressBar.setVisibility(View.VISIBLE);
+
+        if (initialLoad) {
+            controlsContainer.setVisibility(View.GONE);
+        } else {
+            playPauseButton.setEnabled(false);
+            previousButton.setEnabled(false);
+            nextButton.setEnabled(false);
+        }
 
         show();
     }
@@ -203,8 +210,12 @@ public class VideoControlsMobile extends VideoControls {
         }
 
         isLoading = false;
-        controlsContainer.setVisibility(View.VISIBLE);
         loadingProgressBar.setVisibility(View.GONE);
+        controlsContainer.setVisibility(View.VISIBLE);
+
+        playPauseButton.setEnabled(true);
+        previousButton.setEnabled(enabledViews.get(R.id.exomedia_controls_previous_btn, true));
+        nextButton.setEnabled(enabledViews.get(R.id.exomedia_controls_next_btn, true));
 
         updatePlaybackState(videoView != null && videoView.isPlaying());
     }

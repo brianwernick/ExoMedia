@@ -130,6 +130,7 @@ public class VideoControlsLeanback extends VideoControls {
     public void setRewindButtonEnabled(boolean enabled) {
         if (rewindButton != null) {
             rewindButton.setEnabled(enabled);
+            enabledViews.put(R.id.exomedia_controls_rewind_btn, enabled);
         }
     }
 
@@ -137,6 +138,7 @@ public class VideoControlsLeanback extends VideoControls {
     public void setFastForwardButtonEnabled(boolean enabled) {
         if (fastForwardButton != null) {
             fastForwardButton.setEnabled(enabled);
+            enabledViews.put(R.id.exomedia_controls_fast_forward_btn, enabled);
         }
     }
 

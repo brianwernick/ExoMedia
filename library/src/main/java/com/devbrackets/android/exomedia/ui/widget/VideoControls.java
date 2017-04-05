@@ -26,6 +26,7 @@ import android.support.annotation.LayoutRes;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
+import android.util.SparseBooleanArray;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
@@ -88,6 +89,9 @@ public abstract class VideoControls extends RelativeLayout {
 
     @NonNull
     protected InternalListener internalListener = new InternalListener();
+
+    @NonNull
+    protected SparseBooleanArray enabledViews = new SparseBooleanArray();
 
     protected long hideDelay = -1;
 
@@ -356,6 +360,7 @@ public abstract class VideoControls extends RelativeLayout {
      */
     public void setPreviousButtonEnabled(boolean enabled) {
         previousButton.setEnabled(enabled);
+        enabledViews.put(R.id.exomedia_controls_previous_btn, enabled);
     }
 
     /**
@@ -370,6 +375,7 @@ public abstract class VideoControls extends RelativeLayout {
      */
     public void setNextButtonEnabled(boolean enabled) {
         nextButton.setEnabled(enabled);
+        enabledViews.put(R.id.exomedia_controls_next_btn, enabled);
     }
 
     /**

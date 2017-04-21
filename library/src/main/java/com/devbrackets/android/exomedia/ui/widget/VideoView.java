@@ -675,7 +675,7 @@ public class VideoView extends RelativeLayout {
             return;
         }
 
-        audioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
+        audioManager = (AudioManager) context.getApplicationContext().getSystemService(Context.AUDIO_SERVICE);
 
         AttributeContainer attributeContainer = new AttributeContainer(context, attrs);
         initView(context, attributeContainer);

@@ -10,6 +10,8 @@ import android.widget.ProgressBar;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.RequestManager;
 import com.devbrackets.android.exomedia.util.TimeFormatUtil;
 import com.devbrackets.android.exomediademo.App;
 import com.devbrackets.android.exomediademo.R;
@@ -21,7 +23,6 @@ import com.devbrackets.android.playlistcore.event.PlaylistItemChange;
 import com.devbrackets.android.playlistcore.listener.PlaylistListener;
 import com.devbrackets.android.playlistcore.listener.ProgressListener;
 import com.devbrackets.android.playlistcore.service.PlaylistServiceCore;
-import com.squareup.picasso.Picasso;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -52,7 +53,7 @@ public class AudioPlayerActivity extends AppCompatActivity implements PlaylistLi
     private PlaylistManager playlistManager;
     private int selectedIndex = 0;
 
-    private Picasso picasso;
+    private RequestManager glide;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -90,7 +91,7 @@ public class AudioPlayerActivity extends AppCompatActivity implements PlaylistLi
         previousButton.setEnabled(hasPrevious);
 
         //Loads the new image
-        picasso.load(currentItem.getArtworkUrl()).into(artworkView);
+        glide.load(currentItem.getArtworkUrl()).into(artworkView);
 
         return true;
     }
@@ -176,7 +177,7 @@ public class AudioPlayerActivity extends AppCompatActivity implements PlaylistLi
         retrieveViews();
         setupListeners();
 
-        picasso = Picasso.with(getApplicationContext());
+        glide = Glide.with(getApplicationContext());
 
         boolean generatedPlaylist = setupPlaylistManager();
         startPlayback(generatedPlaylist);

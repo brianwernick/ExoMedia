@@ -93,7 +93,7 @@ public abstract class VideoControls extends RelativeLayout {
     @NonNull
     protected SparseBooleanArray enabledViews = new SparseBooleanArray();
 
-    protected long hideDelay = -1;
+    protected long hideDelay = DEFAULT_CONTROL_HIDE_DELAY;
 
     protected boolean isLoading = false;
     protected boolean isVisible = true;
@@ -251,7 +251,7 @@ public abstract class VideoControls extends RelativeLayout {
         progressPollRepeater.start();
 
         if (isPlaying) {
-            hideDelayed(DEFAULT_CONTROL_HIDE_DELAY);
+            hideDelayed();
         } else {
             show();
         }
@@ -488,6 +488,14 @@ public abstract class VideoControls extends RelativeLayout {
     /**
      * After the specified delay the view will be hidden.  If the user is interacting
      * with the controls then we wait until after they are done to start the delay.
+     */
+    public void hideDelayed() {
+        hideDelayed(hideDelay);
+    }
+
+    /**
+     * After the specified delay the view will be hidden.  If the user is interacting
+     * with the controls then we wait until after they are done to start the delay.
      *
      * @param delay The delay in milliseconds to wait to start the hide animation
      */
@@ -504,6 +512,16 @@ public abstract class VideoControls extends RelativeLayout {
                 hide();
             }
         }, delay);
+    }
+
+    /**
+     * Sets the delay to use when hiding the controls via the {@link #hideDelayed()}
+     * method. This value will be overridden if {@link #hideDelayed(long)} is called.
+     *
+     * @param delay The delay in milliseconds to wait to start the hide animation
+     */
+    public void setHideDelay(long delay) {
+        hideDelay = delay;
     }
 
     /**
@@ -760,7 +778,7 @@ public abstract class VideoControls extends RelativeLayout {
             if (pausedForSeek) {
                 pausedForSeek = false;
                 videoView.start();
-                hideDelayed(hideDelay);
+                hideDelayed();
             }
 
             return true;

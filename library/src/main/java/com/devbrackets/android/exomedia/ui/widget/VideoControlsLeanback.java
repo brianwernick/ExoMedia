@@ -301,7 +301,7 @@ public class VideoControlsLeanback extends VideoControls {
         show();
 
         if (videoView != null && videoView.isPlaying()) {
-            hideDelayed(DEFAULT_CONTROL_HIDE_DELAY);
+            hideDelayed();
         }
     }
 
@@ -411,7 +411,7 @@ public class VideoControlsLeanback extends VideoControls {
             switch (keyCode) {
                 case KeyEvent.KEYCODE_BACK:
                     if (isVisible && canViewHide && !isLoading) {
-                        hideDelayed(0);
+                        hide();
                         return true;
                     } else if (controlsParent.getAnimation() != null) {
                         //This occurs if we are animating the hide or show of the controls
@@ -424,7 +424,7 @@ public class VideoControlsLeanback extends VideoControls {
                     return true;
 
                 case KeyEvent.KEYCODE_DPAD_DOWN:
-                    hideDelayed(0);
+                    hide();
                     return true;
 
                 case KeyEvent.KEYCODE_DPAD_LEFT:

@@ -20,7 +20,6 @@ package com.devbrackets.android.exomedia.core.exoplayer;
 import android.Manifest;
 import android.content.Context;
 import android.content.pm.PackageManager;
-import android.media.PlaybackParams;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Handler;
@@ -50,6 +49,7 @@ import com.google.android.exoplayer2.ExoPlayer;
 import com.google.android.exoplayer2.ExoPlayerFactory;
 import com.google.android.exoplayer2.Format;
 import com.google.android.exoplayer2.LoadControl;
+import com.google.android.exoplayer2.PlaybackParameters;
 import com.google.android.exoplayer2.Renderer;
 import com.google.android.exoplayer2.Timeline;
 import com.google.android.exoplayer2.audio.AudioRendererEventListener;
@@ -174,6 +174,11 @@ public class ExoMediaPlayer implements ExoPlayer.EventListener {
 
     @Override
     public void onPositionDiscontinuity() {
+        // Purposefully left blank
+    }
+
+    @Override
+    public void onPlaybackParametersChanged(PlaybackParameters playbackParameters) {
         // Purposefully left blank
     }
 
@@ -406,18 +411,10 @@ public class ExoMediaPlayer implements ExoPlayer.EventListener {
     }
 
     public boolean setPlaybackSpeed(float speed) {
-        // Marshmallow+ support setting the playback speed natively
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            PlaybackParams params = new PlaybackParams();
-            params.setSpeed(speed);
+        PlaybackParameters params = new PlaybackParameters(speed, 1.0f);
+        player.setPlaybackParameters(params);
 
-            sendMessage(C.TRACK_TYPE_AUDIO, C.MSG_SET_PLAYBACK_PARAMS, params);
-            return true;
-        }
-
-        //TODO: backwards compatibility for playback speed (ExoMediaPlayer)
-        // Google added this natively so use that instead https://github.com/google/ExoPlayer/issues/26#issuecomment-290844837
-        return false;
+        return true;
     }
 
     public long getCurrentPosition() {

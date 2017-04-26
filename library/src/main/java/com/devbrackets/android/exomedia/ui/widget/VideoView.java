@@ -240,7 +240,7 @@ public class VideoView extends RelativeLayout {
             videoControls.show();
 
             if (isPlaying()) {
-                videoControls.hideDelayed(VideoControls.DEFAULT_CONTROL_HIDE_DELAY);
+                videoControls.hideDelayed();
             }
         }
     }

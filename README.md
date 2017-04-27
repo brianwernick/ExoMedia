@@ -24,7 +24,7 @@ repositories {
 }
 
 dependencies {
-    compile 'com.devbrackets.android:exomedia:4.0.0-preview4'
+    compile 'com.devbrackets.android:exomedia:4.0.0'
 }
 ```
 
@@ -56,7 +56,7 @@ private void setupVideoView() {
 
     //For now we just picked an arbitrary item to play.  More can be found at
     //https://archive.org/details/more_animation
-    emVideoView.setVideoURI(Uri.parse("https://archive.org/download/Popeye_forPresident/Popeye_forPresident_512kb.mp4"));
+    videoView.setVideoURI(Uri.parse("https://archive.org/download/Popeye_forPresident/Popeye_forPresident_512kb.mp4"));
 }
 
 @Override
@@ -95,6 +95,6 @@ Attribution
  [CTS]: https://source.android.com/compatibility/cts/index.html
  [Design Icons]: https://github.com/google/material-design-icons
  [ExoPlayer]: https://github.com/google/ExoPlayer
- [Java Docs]: https://devbrackets.com/dev/libs/docs/exomedia/3.1.0/index.html
+ [Java Docs]: https://devbrackets.com/dev/libs/docs/exomedia/4.0.0/index.html
  [JCenter]: https://bintray.com/brianwernick/maven/ExoMedia/view#files
  [Website]: https://devbrackets.com/dev/libs/exomedia.html

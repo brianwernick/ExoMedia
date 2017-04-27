@@ -14,21 +14,23 @@
  * limitations under the License.
  */
 
-package com.devbrackets.android.exomedia.core.video.exo;
+package com.devbrackets.android.exomedia.core.audio;
 
+import android.annotation.TargetApi;
 import android.content.Context;
+import android.media.AudioManager;
 import android.net.Uri;
+import android.os.Build;
 import android.support.annotation.FloatRange;
 import android.support.annotation.IntRange;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.view.Surface;
 
 import com.devbrackets.android.exomedia.ExoMedia;
 import com.devbrackets.android.exomedia.core.ListenerMux;
+import com.devbrackets.android.exomedia.core.api.AudioPlayerApi;
 import com.devbrackets.android.exomedia.core.exoplayer.ExoMediaPlayer;
 import com.devbrackets.android.exomedia.core.listener.MetadataListener;
-import com.devbrackets.android.exomedia.core.video.ClearableSurface;
 import com.devbrackets.android.exomedia.listener.OnBufferUpdateListener;
 import com.google.android.exoplayer2.drm.MediaDrmCallback;
 import com.google.android.exoplayer2.metadata.Metadata;
@@ -37,30 +39,40 @@ import com.google.android.exoplayer2.source.TrackGroupArray;
 
 import java.util.Map;
 
-public class ExoVideoDelegate {
-    protected ExoMediaPlayer exoMediaPlayer;
+/**
+ * A {@link AudioPlayerApi} implementation that uses the ExoPlayer
+ * as the backing media player.
+ */
+@TargetApi(Build.VERSION_CODES.JELLY_BEAN)
+public class ExoAudioPlayer implements AudioPlayerApi {
+    @NonNull
+    protected final ExoMediaPlayer exoMediaPlayer;
+    @NonNull
+    protected final Context context;
 
     protected ListenerMux listenerMux;
-    protected boolean playRequested = false;
-
-    protected Context context;
-    protected ClearableSurface clearableSurface;
 
     @NonNull
     protected InternalListeners internalListeners = new InternalListeners();
 
-    public ExoVideoDelegate(@NonNull Context context, @NonNull ClearableSurface clearableSurface) {
-        this.context = context.getApplicationContext();
-        this.clearableSurface = clearableSurface;
+    protected boolean playRequested = false;
+    protected int audioStreamType = AudioManager.STREAM_MUSIC;
 
-        setup();
+    public ExoAudioPlayer(@NonNull Context context) {
+        this.context = context;
+
+        exoMediaPlayer = new ExoMediaPlayer(context);
+        exoMediaPlayer.setMetadataListener(internalListeners);
+        exoMediaPlayer.setBufferUpdateListener(internalListeners);
     }
 
-    public void setVideoUri(@Nullable Uri uri) {
-        setVideoUri(uri, null);
+    @Override
+    public void setDataSource(@Nullable Uri uri) {
+        setDataSource(uri, null);
     }
 
-    public void setVideoUri(@Nullable Uri uri, @Nullable MediaSource mediaSource) {
+    @Override
+    public void setDataSource(@Nullable Uri uri, @Nullable MediaSource mediaSource) {
         if (mediaSource != null) {
             exoMediaPlayer.setMediaSource(mediaSource);
             listenerMux.setNotifiedCompleted(false);
@@ -76,73 +88,74 @@ public class ExoVideoDelegate {
         exoMediaPlayer.seekTo(0);
     }
 
-    /**
-     * Sets the {@link MediaDrmCallback} to use when handling DRM for media.
-     * This should be called before specifying the videos uri or path
-     * <br>
-     * <b>NOTE:</b> DRM is only supported on API 18 +
-     *
-     * @param drmCallback The callback to use when handling DRM media
-     */
+    @Override
     public void setDrmCallback(@Nullable MediaDrmCallback drmCallback) {
         exoMediaPlayer.setDrmCallback(drmCallback);
     }
 
-    public boolean restart() {
-        if(!exoMediaPlayer.restart()) {
-            return false;
-        }
-
-        //Makes sure the listeners get the onPrepared callback
-        listenerMux.setNotifiedPrepared(false);
-        listenerMux.setNotifiedCompleted(false);
-
-        return true;
+    @Override
+    public void prepareAsync() {
+        exoMediaPlayer.prepare();
     }
 
-    public boolean setVolume(@FloatRange(from = 0.0, to = 1.0) float volume) {
-        exoMediaPlayer.setVolume(volume);
-        return true;
+    @Override
+    public void reset() {
+        //Purposefully left blank
     }
 
+    @Override
+    public void setVolume(@FloatRange(from = 0.0, to = 1.0) float left, @FloatRange(from = 0.0, to = 1.0) float right) {
+        //Averages the volume since the ExoPlayer only takes a single channel
+        exoMediaPlayer.setVolume((left + right) / 2);
+    }
+
+    @Override
     public void seekTo(@IntRange(from = 0) long milliseconds) {
         exoMediaPlayer.seekTo(milliseconds);
     }
 
+    @Override
     public boolean isPlaying() {
         return exoMediaPlayer.getPlayWhenReady();
     }
 
+    @Override
     public void start() {
         exoMediaPlayer.setPlayWhenReady(true);
         listenerMux.setNotifiedCompleted(false);
         playRequested = true;
     }
 
+    @Override
     public void pause() {
         exoMediaPlayer.setPlayWhenReady(false);
         playRequested = false;
     }
 
-    /**
-     * Performs the functionality to stop the video in playback
-     *
-     * @param clearSurface <code>true</code> if the surface should be cleared
-     */
-    public void stopPlayback(boolean clearSurface) {
+    @Override
+    public void stopPlayback() {
         exoMediaPlayer.stop();
         playRequested = false;
+    }
 
-        if (clearSurface) {
-            listenerMux.clearSurfaceWhenReady(clearableSurface);
+    /**
+     * If the media has completed playback, calling {@code restart} will seek to the beginning of the media, and play it.
+     *
+     * @return {@code true} if the media was successfully restarted, otherwise {@code false}
+     */
+    @Override
+    public boolean restart() {
+        if(!exoMediaPlayer.restart()) {
+            return false;
         }
+
+        listenerMux.setNotifiedCompleted(false);
+        listenerMux.setNotifiedPrepared(false);
+
+        return true;
     }
 
-    public void suspend() {
-        exoMediaPlayer.release();
-        playRequested = false;
-    }
-
+    @Override
     public long getDuration() {
         if (!listenerMux.isPrepared()) {
             return 0;
@@ -151,6 +164,7 @@ public class ExoVideoDelegate {
         return exoMediaPlayer.getDuration();
     }
 
+    @Override
     public long getCurrentPosition() {
         if (!listenerMux.isPrepared()) {
             return 0;
@@ -159,56 +173,61 @@ public class ExoVideoDelegate {
         return exoMediaPlayer.getCurrentPosition();
     }
 
+    @Override
     public int getBufferedPercent() {
         return exoMediaPlayer.getBufferedPercentage();
     }
 
-    public boolean trackSelectionAvailable() {
-        return true;
-    }
-
-    public void setTrack(ExoMedia.RendererType trackType, int trackIndex) {
-        exoMediaPlayer.setSelectedTrack(trackType, trackIndex);
-    }
-
-    @Nullable
-    public Map<ExoMedia.RendererType, TrackGroupArray> getAvailableTracks() {
-        return exoMediaPlayer.getAvailableTracks();
-    }
-
-    public boolean setPlaybackSpeed(float speed) {
-        return exoMediaPlayer.setPlaybackSpeed(speed);
-    }
-
+    @Override
     public void release() {
         exoMediaPlayer.release();
     }
 
+    @Override
+    public int getAudioSessionId() {
+        return exoMediaPlayer.getAudioSessionId();
+    }
+
+    @Override
+    public boolean setPlaybackSpeed(float speed) {
+        return exoMediaPlayer.setPlaybackSpeed(speed);
+    }
+
+    @Override
+    public void setAudioStreamType(int streamType) {
+        this.audioStreamType = streamType;
+    }
+
+    @Override
+    public void setWakeMode(Context context, int mode) {
+        exoMediaPlayer.setWakeMode(context, mode);
+    }
+
+    @Override
+    public boolean trackSelectionAvailable() {
+        return true;
+    }
+
+    @Override
+    public void setTrack(ExoMedia.RendererType type, int trackIndex) {
+        exoMediaPlayer.setSelectedTrack(type, trackIndex);
+    }
+
+    @Nullable
+    @Override
+    public Map<ExoMedia.RendererType, TrackGroupArray> getAvailableTracks() {
+        return exoMediaPlayer.getAvailableTracks();
+    }
+
+    @Override
     public void setListenerMux(ListenerMux listenerMux) {
         this.listenerMux = listenerMux;
         exoMediaPlayer.addListener(listenerMux);
     }
 
-    public void onSurfaceReady(Surface surface) {
-        exoMediaPlayer.setSurface(surface);
-        if (playRequested) {
-            exoMediaPlayer.setPlayWhenReady(true);
-        }
-    }
-
-    public void onSurfaceDestroyed() {
-        exoMediaPlayer.blockingClearSurface();
-    }
-
-    protected void setup() {
-        initExoPlayer();
-    }
-
-    protected void initExoPlayer() {
-        exoMediaPlayer = new ExoMediaPlayer(context);
-
-        exoMediaPlayer.setMetadataListener(internalListeners);
-        exoMediaPlayer.setBufferUpdateListener(internalListeners);
+    @Override
+    public void onMediaPrepared() {
+        //Purposefully left blank
     }
 
     protected class InternalListeners implements MetadataListener, OnBufferUpdateListener {

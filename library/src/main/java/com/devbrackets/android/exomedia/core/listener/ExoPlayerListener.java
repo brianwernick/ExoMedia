@@ -17,16 +17,16 @@
 
 package com.devbrackets.android.exomedia.core.listener;
 
-import com.devbrackets.android.exomedia.core.exoplayer.EMExoPlayer;
+import com.devbrackets.android.exomedia.core.exoplayer.ExoMediaPlayer;
 import com.devbrackets.android.exomedia.listener.OnSeekCompletionListener;
 
 /**
- * A listener for core EMExoPlayer events
+ * A listener for core {@link ExoMediaPlayer} events
  */
 public interface ExoPlayerListener extends OnSeekCompletionListener {
     void onStateChanged(boolean playWhenReady, int playbackState);
 
-    void onError(EMExoPlayer emExoPlayer, Exception e);
+    void onError(ExoMediaPlayer exoMediaPlayer, Exception e);
 
     void onVideoSizeChanged(int width, int height, int unAppliedRotationDegrees, float pixelWidthHeightRatio);
 }

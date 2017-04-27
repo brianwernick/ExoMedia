@@ -1,10 +1,10 @@
 - [ ] I have verified there are no duplicate active or recent bugs, questions, or requests
 
 ###### Include the following:
- - ExoMedia version: `3.0.0`
- - Device OS version: `6.0`
- - Devide Manufacturer: `Huawei`
- - Device Name: `Nexus 6P`
+ - ExoMedia version: `4.0.0`
+ - Device OS version: `7.0`
+ - Devide Manufacturer: `Google`
+ - Device Name: `Pixel XL`
  
 ###### Reproduction Steps
  0.  

@@ -30,15 +30,14 @@ import android.view.MotionEvent;
 import android.view.Surface;
 import android.widget.MediaController;
 
-import com.devbrackets.android.exomedia.annotation.TrackRenderType;
-import com.devbrackets.android.exomedia.core.EMListenerMux;
+import com.devbrackets.android.exomedia.ExoMedia;
+import com.devbrackets.android.exomedia.core.ListenerMux;
 import com.devbrackets.android.exomedia.core.api.VideoViewApi;
-import com.devbrackets.android.exomedia.core.builder.RenderBuilder;
 import com.devbrackets.android.exomedia.core.video.ResizingTextureView;
-import com.devbrackets.android.exomedia.util.DrmProvider;
-import com.google.android.exoplayer.MediaFormat;
+import com.google.android.exoplayer2.drm.MediaDrmCallback;
+import com.google.android.exoplayer2.source.MediaSource;
+import com.google.android.exoplayer2.source.TrackGroupArray;
 
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -53,7 +52,8 @@ import java.util.Map;
  * <li>The {@link MediaController}</li>
  * </ul>
  */
-public class NativeTextureVideoView extends ResizingTextureView implements MediaController.MediaPlayerControl, NativeVideoDelegate.Callback, VideoViewApi {
+@SuppressWarnings("unused")
+public class NativeTextureVideoView extends ResizingTextureView implements NativeVideoDelegate.Callback, VideoViewApi {
     protected OnTouchListener touchListener;
     protected NativeVideoDelegate delegate;
 
@@ -79,7 +79,7 @@ public class NativeTextureVideoView extends ResizingTextureView implements Media
     }
 
     @Override
-    public void setDrmProvider(@Nullable DrmProvider drmProvider) {
+    public void setDrmCallback(@Nullable MediaDrmCallback drmCallback) {
         //Purposefully left blank
     }
 
@@ -95,48 +95,23 @@ public class NativeTextureVideoView extends ResizingTextureView implements Media
     }
 
     @Override
-    public int getDuration() {
+    public long getDuration() {
         return delegate.getDuration();
     }
 
     @Override
-    public int getCurrentPosition() {
+    public long getCurrentPosition() {
         return delegate.getCurrentPosition();
     }
 
     @Override
-    public void seekTo(int msec) {
-        delegate.seekTo(msec);
+    public void seekTo(long milliseconds) {
+        delegate.seekTo(milliseconds);
     }
 
     @Override
     public boolean isPlaying() {
         return delegate.isPlaying();
-    }
-
-    @Override
-    public int getBufferPercentage() {
-        return delegate.getBufferPercentage();
-    }
-
-    @Override
-    public boolean canPause() {
-        return delegate.canPause();
-    }
-
-    @Override
-    public boolean canSeekBackward() {
-        return delegate.canSeekBackward();
-    }
-
-    @Override
-    public boolean canSeekForward() {
-        return delegate.canSeekForward();
-    }
-
-    @Override
-    public int getAudioSessionId() {
-        return delegate.getAudioSessionId();
     }
 
     @Override
@@ -168,7 +143,7 @@ public class NativeTextureVideoView extends ResizingTextureView implements Media
     }
 
     @Override
-    public void setVideoUri(@Nullable Uri uri, @Nullable RenderBuilder renderBuilder) {
+    public void setVideoUri(@Nullable Uri uri, @Nullable MediaSource mediaSource) {
         setVideoURI(uri);
     }
 
@@ -179,7 +154,7 @@ public class NativeTextureVideoView extends ResizingTextureView implements Media
 
     @Override
     public int getBufferedPercent() {
-        return getBufferPercentage();
+        return delegate.getBufferPercentage();
     }
 
     /**
@@ -193,8 +168,8 @@ public class NativeTextureVideoView extends ResizingTextureView implements Media
     }
 
     @Override
-    public void stopPlayback() {
-        delegate.stopPlayback();
+    public void stopPlayback(boolean clearSurface) {
+        delegate.stopPlayback(clearSurface);
     }
 
     @Override
@@ -203,23 +178,28 @@ public class NativeTextureVideoView extends ResizingTextureView implements Media
     }
 
     @Override
+    public boolean setPlaybackSpeed(float speed) {
+        return delegate.setPlaybackSpeed(speed);
+    }
+
+    @Override
     public boolean trackSelectionAvailable() {
         return false;
     }
 
     @Override
-    public void setTrack(@TrackRenderType int trackType, int trackIndex) {
+    public void setTrack(ExoMedia.RendererType trackType, int trackIndex) {
         //Purposefully left blank
     }
 
     @Nullable
     @Override
-    public Map<Integer, List<MediaFormat>> getAvailableTracks() {
+    public Map<ExoMedia.RendererType, TrackGroupArray> getAvailableTracks() {
         return null;
     }
 
     @Override
-    public void setListenerMux(EMListenerMux listenerMux) {
+    public void setListenerMux(ListenerMux listenerMux) {
         delegate.setListenerMux(listenerMux);
     }
 

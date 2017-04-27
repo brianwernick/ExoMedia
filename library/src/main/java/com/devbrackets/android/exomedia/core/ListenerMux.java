@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 Brian Wernick
+ * Copyright (C) 2015-2017 Brian Wernick
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,35 +22,35 @@ import android.support.annotation.IntRange;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
-import com.devbrackets.android.exomedia.core.exoplayer.EMExoPlayer;
+import com.devbrackets.android.exomedia.core.exception.NativeMediaPlaybackException;
+import com.devbrackets.android.exomedia.core.exoplayer.ExoMediaPlayer;
 import com.devbrackets.android.exomedia.core.listener.ExoPlayerListener;
+import com.devbrackets.android.exomedia.core.listener.MetadataListener;
 import com.devbrackets.android.exomedia.core.video.ClearableSurface;
-import com.devbrackets.android.exomedia.core.listener.Id3MetadataListener;
 import com.devbrackets.android.exomedia.listener.OnBufferUpdateListener;
 import com.devbrackets.android.exomedia.listener.OnCompletionListener;
 import com.devbrackets.android.exomedia.listener.OnErrorListener;
 import com.devbrackets.android.exomedia.listener.OnPreparedListener;
 import com.devbrackets.android.exomedia.listener.OnSeekCompletionListener;
-import com.google.android.exoplayer.ExoPlayer;
-import com.google.android.exoplayer.metadata.id3.Id3Frame;
+import com.google.android.exoplayer2.ExoPlayer;
+import com.google.android.exoplayer2.metadata.Metadata;
 
 import java.lang.ref.WeakReference;
-import java.util.List;
 
 /**
- * An internal Listener that implements the listeners for the {@link EMExoPlayer},
+ * An internal Listener that implements the listeners for the {@link ExoMediaPlayer},
  * Android VideoView, and the Android MediaPlayer to output to the correct
  * error listeners.
  */
-public class EMListenerMux implements ExoPlayerListener, MediaPlayer.OnPreparedListener, MediaPlayer.OnCompletionListener, MediaPlayer.OnErrorListener,
-        MediaPlayer.OnBufferingUpdateListener, MediaPlayer.OnSeekCompleteListener, OnBufferUpdateListener, Id3MetadataListener {
+public class ListenerMux implements ExoPlayerListener, MediaPlayer.OnPreparedListener, MediaPlayer.OnCompletionListener, MediaPlayer.OnErrorListener,
+        MediaPlayer.OnBufferingUpdateListener, MediaPlayer.OnSeekCompleteListener, OnBufferUpdateListener, MetadataListener {
     //The amount of time the current position can be off the duration to call the onCompletion listener
     private static final long COMPLETED_DURATION_LEEWAY = 1000;
 
     @NonNull
     private Handler delayedHandler = new Handler();
     @NonNull
-    private EMListenerMuxNotifier muxNotifier;
+    private Notifier muxNotifier;
 
     @Nullable
     private OnPreparedListener preparedListener;
@@ -63,7 +63,7 @@ public class EMListenerMux implements ExoPlayerListener, MediaPlayer.OnPreparedL
     @Nullable
     private OnErrorListener errorListener;
     @Nullable
-    private Id3MetadataListener id3MetadataListener;
+    private MetadataListener metadataListener;
 
     @NonNull
     private WeakReference<ClearableSurface> clearableSurfaceRef = new WeakReference<>(null);
@@ -72,7 +72,7 @@ public class EMListenerMux implements ExoPlayerListener, MediaPlayer.OnPreparedL
     private boolean notifiedCompleted = false;
     private boolean clearRequested = false;
 
-    public EMListenerMux(@NonNull EMListenerMuxNotifier notifier) {
+    public ListenerMux(@NonNull Notifier notifier) {
         muxNotifier = notifier;
     }
 
@@ -90,7 +90,7 @@ public class EMListenerMux implements ExoPlayerListener, MediaPlayer.OnPreparedL
 
     @Override
     public boolean onError(MediaPlayer mp, int what, int extra) {
-        return notifyErrorListener();
+        return notifyErrorListener(new NativeMediaPlaybackException(what, extra));
     }
 
     @Override
@@ -106,10 +106,10 @@ public class EMListenerMux implements ExoPlayerListener, MediaPlayer.OnPreparedL
     }
 
     @Override
-    public void onError(EMExoPlayer emExoPlayer, Exception e) {
+    public void onError(ExoMediaPlayer exoMediaPlayer, Exception e) {
         muxNotifier.onMediaPlaybackEnded();
-        muxNotifier.onExoPlayerError(emExoPlayer, e);
-        notifyErrorListener();
+        muxNotifier.onExoPlayerError(exoMediaPlayer, e);
+        notifyErrorListener(e);
     }
 
     @Override
@@ -159,9 +159,9 @@ public class EMListenerMux implements ExoPlayerListener, MediaPlayer.OnPreparedL
     }
 
     @Override
-    public void onId3Metadata(List<Id3Frame> metadata) {
-        if (id3MetadataListener != null) {
-            id3MetadataListener.onId3Metadata(metadata);
+    public void onMetadata(Metadata metadata) {
+        if (metadataListener != null) {
+            metadataListener.onMetadata(metadata);
         }
     }
 
@@ -231,8 +231,8 @@ public class EMListenerMux implements ExoPlayerListener, MediaPlayer.OnPreparedL
      *
      * @param listener The listener to inform
      */
-    public void setId3MetadataListener(@Nullable Id3MetadataListener listener) {
-        id3MetadataListener = listener;
+    public void setMetadataListener(@Nullable MetadataListener listener) {
+        metadataListener = listener;
     }
 
     /**
@@ -264,8 +264,8 @@ public class EMListenerMux implements ExoPlayerListener, MediaPlayer.OnPreparedL
         notifiedCompleted = wasNotified;
     }
 
-    private boolean notifyErrorListener() {
-        return errorListener != null && errorListener.onError();
+    private boolean notifyErrorListener(Exception e) {
+        return errorListener != null && errorListener.onError(e);
     }
 
     private void notifyPreparedListener() {
@@ -304,7 +304,7 @@ public class EMListenerMux implements ExoPlayerListener, MediaPlayer.OnPreparedL
         });
     }
 
-    public static abstract class EMListenerMuxNotifier {
+    public static abstract class Notifier {
         public void onSeekComplete() {
             //Purposefully left blank
         }
@@ -327,7 +327,7 @@ public class EMListenerMux implements ExoPlayerListener, MediaPlayer.OnPreparedL
 
         public abstract boolean shouldNotifyCompletion(long endLeeway);
 
-        public abstract void onExoPlayerError(EMExoPlayer emExoPlayer, Exception e);
+        public abstract void onExoPlayerError(ExoMediaPlayer exoMediaPlayer, Exception e);
 
         public abstract void onMediaPlaybackEnded();
     }

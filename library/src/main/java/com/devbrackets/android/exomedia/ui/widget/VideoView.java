@@ -38,13 +38,12 @@ import android.view.ViewStub;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 
+import com.devbrackets.android.exomedia.ExoMedia;
 import com.devbrackets.android.exomedia.R;
-import com.devbrackets.android.exomedia.annotation.TrackRenderType;
-import com.devbrackets.android.exomedia.core.EMListenerMux;
+import com.devbrackets.android.exomedia.core.ListenerMux;
 import com.devbrackets.android.exomedia.core.api.VideoViewApi;
-import com.devbrackets.android.exomedia.core.builder.RenderBuilder;
-import com.devbrackets.android.exomedia.core.exoplayer.EMExoPlayer;
-import com.devbrackets.android.exomedia.core.listener.Id3MetadataListener;
+import com.devbrackets.android.exomedia.core.exoplayer.ExoMediaPlayer;
+import com.devbrackets.android.exomedia.core.listener.MetadataListener;
 import com.devbrackets.android.exomedia.core.video.exo.ExoTextureVideoView;
 import com.devbrackets.android.exomedia.core.video.mp.NativeTextureVideoView;
 import com.devbrackets.android.exomedia.core.video.scale.ScaleType;
@@ -53,12 +52,13 @@ import com.devbrackets.android.exomedia.listener.OnCompletionListener;
 import com.devbrackets.android.exomedia.listener.OnErrorListener;
 import com.devbrackets.android.exomedia.listener.OnPreparedListener;
 import com.devbrackets.android.exomedia.listener.OnSeekCompletionListener;
+import com.devbrackets.android.exomedia.listener.OnVideoSizeChangedListener;
 import com.devbrackets.android.exomedia.util.DeviceUtil;
-import com.devbrackets.android.exomedia.util.DrmProvider;
 import com.devbrackets.android.exomedia.util.StopWatch;
-import com.google.android.exoplayer.MediaFormat;
+import com.google.android.exoplayer2.drm.MediaDrmCallback;
+import com.google.android.exoplayer2.source.MediaSource;
+import com.google.android.exoplayer2.source.TrackGroupArray;
 
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -71,8 +71,8 @@ import java.util.Map;
  * to help with quick implementations.
  */
 @SuppressWarnings("UnusedDeclaration")
-public class EMVideoView extends RelativeLayout {
-    private static final String TAG = EMVideoView.class.getSimpleName();
+public class VideoView extends RelativeLayout {
+    private static final String TAG = VideoView.class.getSimpleName();
 
     @Nullable
     protected VideoControls videoControls;
@@ -86,36 +86,36 @@ public class EMVideoView extends RelativeLayout {
     @NonNull
     protected AudioFocusHelper audioFocusHelper = new AudioFocusHelper();
 
-    protected int positionOffset = 0;
-    protected int overriddenDuration = -1;
+    protected long positionOffset = 0;
+    protected long overriddenDuration = -1;
 
     protected boolean overridePosition = false;
     protected StopWatch overriddenPositionStopWatch = new StopWatch();
 
     protected MuxNotifier muxNotifier = new MuxNotifier();
-    protected EMListenerMux listenerMux;
+    protected ListenerMux listenerMux;
 
     protected boolean releaseOnDetachFromWindow = true;
     protected boolean handleAudioFocus = true;
 
-    public EMVideoView(Context context) {
+    public VideoView(Context context) {
         super(context);
         setup(context, null);
     }
 
-    public EMVideoView(Context context, AttributeSet attrs) {
+    public VideoView(Context context, AttributeSet attrs) {
         super(context, attrs);
         setup(context, attrs);
     }
 
     @TargetApi(Build.VERSION_CODES.HONEYCOMB)
-    public EMVideoView(Context context, AttributeSet attrs, int defStyleAttr) {
+    public VideoView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         setup(context, attrs);
     }
 
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
-    public EMVideoView(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
+    public VideoView(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
         super(context, attrs, defStyleAttr, defStyleRes);
         setup(context, attrs);
     }
@@ -138,7 +138,7 @@ public class EMVideoView extends RelativeLayout {
     /**
      * <b><em>WARNING:</em></b> Use of this method may cause memory leaks.
      * <p>
-     * Enables or disables the automatic release when the EMVideoView is detached
+     * Enables or disables the automatic release when the VideoView is detached
      * from the window.  Normally this is expected to release all resources used
      * by calling {@link #release()}.  If <code>releaseOnDetach</code> is disabled
      * then {@link #release()} will need to be manually called.
@@ -151,7 +151,7 @@ public class EMVideoView extends RelativeLayout {
 
     /**
      * Stops the playback and releases all resources attached to this
-     * EMVideoView.  This should not be called manually unless
+     * VideoView.  This should not be called manually unless
      * {@link #setReleaseOnDetachFromWindow(boolean)} has been set.
      */
     public void release() {
@@ -240,7 +240,7 @@ public class EMVideoView extends RelativeLayout {
             videoControls.show();
 
             if (isPlaying()) {
-                videoControls.hideDelayed(VideoControls.DEFAULT_CONTROL_HIDE_DELAY);
+                videoControls.hideDelayed();
             }
         }
     }
@@ -276,11 +276,11 @@ public class EMVideoView extends RelativeLayout {
      * Sets the Uri location for the video to play
      *
      * @param uri The video's Uri
-     * @param renderBuilder RenderBuilder that should be used
+     * @param mediaSource MediaSource that should be used
      */
-    public void setVideoURI(@Nullable Uri uri, @Nullable RenderBuilder renderBuilder) {
+    public void setVideoURI(@Nullable Uri uri, @Nullable MediaSource mediaSource) {
         videoUri = uri;
-        videoViewImpl.setVideoUri(uri, renderBuilder);
+        videoViewImpl.setVideoUri(uri, mediaSource);
 
         if (videoControls != null) {
             videoControls.showLoading(true);
@@ -309,15 +309,15 @@ public class EMVideoView extends RelativeLayout {
     }
 
     /**
-     * Sets the {@link DrmProvider} to use when handling DRM for media.
+     * Sets the {@link MediaDrmCallback} to use when handling DRM for media.
      * This should be called before specifying the videos uri or path
      * <br>
      * <b>NOTE:</b> DRM is only supported on API 18 +
      *
-     * @param drmProvider The provider to use when handling DRM media
+     * @param drmCallback The callback to use when handling DRM media
      */
-    public void setDrmProvider(@Nullable DrmProvider drmProvider) {
-        videoViewImpl.setDrmProvider(drmProvider);
+    public void setDrmCallback(@Nullable MediaDrmCallback drmCallback) {
+        videoViewImpl.setDrmCallback(drmCallback);
     }
 
     /**
@@ -357,7 +357,7 @@ public class EMVideoView extends RelativeLayout {
      *
      * @param milliSeconds The time to move the playback to
      */
-    public void seekTo(int milliSeconds) {
+    public void seekTo(long milliSeconds) {
         if (videoControls != null) {
             videoControls.showLoading(false);
         }
@@ -409,13 +409,7 @@ public class EMVideoView extends RelativeLayout {
      * If a video is currently in playback then the playback will be stopped
      */
     public void stopPlayback() {
-        audioFocusHelper.abandonFocus();
-        videoViewImpl.stopPlayback();
-        setKeepScreenOn(false);
-
-        if (videoControls != null) {
-            videoControls.updatePlaybackState(false);
-        }
+        stopPlayback(true);
     }
 
     /**
@@ -454,11 +448,11 @@ public class EMVideoView extends RelativeLayout {
     /**
      * Retrieves the duration of the current audio item.  This should only be called after
      * the item is prepared (see {@link #setOnPreparedListener(OnPreparedListener)}).
-     * If {@link #overrideDuration(int)} is set then that value will be returned.
+     * If {@link #overrideDuration(long)} is set then that value will be returned.
      *
      * @return The millisecond duration of the video
      */
-    public int getDuration() {
+    public long getDuration() {
         if (overriddenDuration >= 0) {
             return overriddenDuration;
         }
@@ -473,7 +467,7 @@ public class EMVideoView extends RelativeLayout {
      *
      * @param duration The duration for the current media item or &lt; 0 to disable
      */
-    public void overrideDuration(int duration) {
+    public void overrideDuration(long duration) {
         overriddenDuration = duration;
     }
 
@@ -484,7 +478,7 @@ public class EMVideoView extends RelativeLayout {
      *
      * @return The millisecond value for the current position
      */
-    public int getCurrentPosition() {
+    public long getCurrentPosition() {
         if (overridePosition) {
             return positionOffset + overriddenPositionStopWatch.getTimeInt();
         }
@@ -498,13 +492,13 @@ public class EMVideoView extends RelativeLayout {
      *
      * @param offset The millisecond value to offset the position
      */
-    public void setPositionOffset(int offset) {
+    public void setPositionOffset(long offset) {
         positionOffset = offset;
     }
 
     /**
      * Restarts the audio position to the start if the position is being overridden (see {@link #overridePosition(boolean)}).
-     * This will be the value specified with {@link #setPositionOffset(int)} or 0 if it hasn't been set.
+     * This will be the value specified with {@link #setPositionOffset(long)} or 0 if it hasn't been set.
      */
     public void restartOverridePosition() {
         overriddenPositionStopWatch.reset();
@@ -538,6 +532,16 @@ public class EMVideoView extends RelativeLayout {
     }
 
     /**
+     * Sets the playback speed for this MediaPlayer.
+     *
+     * @param speed The speed to play the media back at
+     * @return True if the speed was set
+     */
+    public boolean setPlaybackSpeed(float speed) {
+        return videoViewImpl.setPlaybackSpeed(speed);
+    }
+
+    /**
      * Determines if the current video player implementation supports
      * track selection for audio or video tracks.
      *
@@ -552,9 +556,9 @@ public class EMVideoView extends RelativeLayout {
      * <code>trackType</code>
      *
      * @param trackType The type for the track to switch to the selected index
-     * @param trackIndex The index for the track to swith to
+     * @param trackIndex The index for the track to switch to
      */
-    public void setTrack(@TrackRenderType int trackType, int trackIndex) {
+    public void setTrack(ExoMedia.RendererType trackType, int trackIndex) {
         videoViewImpl.setTrack(trackType, trackIndex);
     }
 
@@ -562,10 +566,10 @@ public class EMVideoView extends RelativeLayout {
      * Retrieves a list of available tracks to select from.  Typically {@link #trackSelectionAvailable()}
      * should be called before this.
      *
-     * @return A list of available tracks associated with each track type (see {@link com.devbrackets.android.exomedia.annotation.TrackRenderType})
+     * @return A list of available tracks associated with each track type
      */
     @Nullable
-    public Map<Integer, List<MediaFormat>> getAvailableTracks() {
+    public Map<ExoMedia.RendererType, TrackGroupArray> getAvailableTracks() {
         return videoViewImpl.getAvailableTracks();
     }
 
@@ -601,7 +605,7 @@ public class EMVideoView extends RelativeLayout {
      *
      * @param listener The listener
      */
-    public void setOnPreparedListener(OnPreparedListener listener) {
+    public void setOnPreparedListener(@Nullable OnPreparedListener listener) {
         listenerMux.setOnPreparedListener(listener);
     }
 
@@ -610,7 +614,7 @@ public class EMVideoView extends RelativeLayout {
      *
      * @param listener The listener
      */
-    public void setOnCompletionListener(OnCompletionListener listener) {
+    public void setOnCompletionListener(@Nullable OnCompletionListener listener) {
         listenerMux.setOnCompletionListener(listener);
     }
 
@@ -619,7 +623,7 @@ public class EMVideoView extends RelativeLayout {
      *
      * @param listener The listener
      */
-    public void setOnBufferUpdateListener(OnBufferUpdateListener listener) {
+    public void setOnBufferUpdateListener(@Nullable OnBufferUpdateListener listener) {
         listenerMux.setOnBufferUpdateListener(listener);
     }
 
@@ -628,7 +632,7 @@ public class EMVideoView extends RelativeLayout {
      *
      * @param listener The listener
      */
-    public void setOnSeekCompletionListener(OnSeekCompletionListener listener) {
+    public void setOnSeekCompletionListener(@Nullable OnSeekCompletionListener listener) {
         listenerMux.setOnSeekCompletionListener(listener);
     }
 
@@ -637,17 +641,26 @@ public class EMVideoView extends RelativeLayout {
      *
      * @param listener The listener
      */
-    public void setOnErrorListener(OnErrorListener listener) {
+    public void setOnErrorListener(@Nullable OnErrorListener listener) {
         listenerMux.setOnErrorListener(listener);
     }
 
     /**
      * Sets the listener to inform of ID3 metadata updates
      *
-     * @param listener The listener to inform
+     * @param listener The listener
      */
-    public void setId3MetadataListener(@Nullable Id3MetadataListener listener) {
-        listenerMux.setId3MetadataListener(listener);
+    public void setId3MetadataListener(@Nullable MetadataListener listener) {
+        listenerMux.setMetadataListener(listener);
+    }
+
+    /**
+     * Sets the listener to inform of video size changes
+     *
+     * @param listener The listener
+     */
+    public void setOnVideoSizedChangedListener(@Nullable OnVideoSizeChangedListener listener) {
+        muxNotifier.videoSizeChangedListener = listener;
     }
 
     /**
@@ -662,7 +675,7 @@ public class EMVideoView extends RelativeLayout {
             return;
         }
 
-        audioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
+        audioManager = (AudioManager) context.getApplicationContext().getSystemService(Context.AUDIO_SERVICE);
 
         AttributeContainer attributeContainer = new AttributeContainer(context, attrs);
         initView(context, attributeContainer);
@@ -684,7 +697,7 @@ public class EMVideoView extends RelativeLayout {
         videoViewImpl = (VideoViewApi) findViewById(R.id.exomedia_video_view);
 
         muxNotifier = new MuxNotifier();
-        listenerMux = new EMListenerMux(muxNotifier);
+        listenerMux = new ListenerMux(muxNotifier);
 
         videoViewImpl.setListenerMux(listenerMux);
     }
@@ -698,6 +711,14 @@ public class EMVideoView extends RelativeLayout {
     protected void postInit(@NonNull AttributeContainer attributeContainer) {
         if (attributeContainer.useDefaultControls) {
             setControls(deviceUtil.isDeviceTV(getContext()) ? new VideoControlsLeanback(getContext()) : new VideoControlsMobile(getContext()));
+        }
+
+        if (attributeContainer.scaleType != null) {
+            setScaleType(attributeContainer.scaleType);
+        }
+
+        if (attributeContainer.measureBasedOnAspectRatio != null) {
+            setMeasureBasedOnAspectRatioEnabled(attributeContainer.measureBasedOnAspectRatio);
         }
     }
 
@@ -720,8 +741,7 @@ public class EMVideoView extends RelativeLayout {
      * Retrieves the layout resource to use for the backing video view implementation.  By
      * default this uses the Android {@link android.widget.VideoView} on legacy devices with
      * APIs below Jellybean (16) or that don't pass the Compatibility Test Suite [CTS] via
-     * {@link NativeTextureVideoView}
-     * , and an ExoPlayer backed video view on the remaining devices via
+     * {@link NativeTextureVideoView}, and an ExoPlayer backed video view on the remaining devices via
      * {@link ExoTextureVideoView}.
      * <p>
      * In the rare cases that the default implementations need to be extended, or replaced, the
@@ -746,9 +766,31 @@ public class EMVideoView extends RelativeLayout {
      * procedures from running that we no longer need.
      */
     protected void onPlaybackEnded() {
-        stopPlayback();
+        stopPlayback(false);
     }
 
+    /**
+     * Stops the video currently in playback, making sure to only clear the surface
+     * when requested. This allows us to leave the last frame of a video intact when
+     * it plays to completion while still clearing it when the user requests playback
+     * to stop.
+     *
+     * @param clearSurface <code>true</code> if the surface should be cleared
+     */
+    protected void stopPlayback(boolean clearSurface) {
+        audioFocusHelper.abandonFocus();
+        videoViewImpl.stopPlayback(clearSurface);
+        setKeepScreenOn(false);
+
+        if (videoControls != null) {
+            videoControls.updatePlaybackState(false);
+        }
+    }
+
+    /**
+     * A utility used to handle the audio focus for the {@link VideoView}
+     * when enabled.
+     */
     protected class AudioFocusHelper implements AudioManager.OnAudioFocusChangeListener {
         protected boolean startRequested = false;
         protected boolean pausedForLoss = false;
@@ -830,18 +872,21 @@ public class EMVideoView extends RelativeLayout {
         }
     }
 
-    protected class MuxNotifier extends EMListenerMux.EMListenerMuxNotifier {
+    protected class MuxNotifier extends ListenerMux.Notifier {
+        @Nullable
+        public OnVideoSizeChangedListener videoSizeChangedListener;
+
         @Override
         public boolean shouldNotifyCompletion(long endLeeway) {
             return getCurrentPosition() + endLeeway >= getDuration();
         }
 
         @Override
-        public void onExoPlayerError(EMExoPlayer emExoPlayer, Exception e) {
+        public void onExoPlayerError(ExoMediaPlayer exoMediaPlayer, Exception e) {
             stopPlayback();
 
-            if (emExoPlayer != null) {
-                emExoPlayer.forcePrepare();
+            if (exoMediaPlayer != null) {
+                exoMediaPlayer.forcePrepare();
             }
         }
 
@@ -864,6 +909,10 @@ public class EMVideoView extends RelativeLayout {
             //NOTE: Android 5.0+ will always have an unAppliedRotationDegrees of 0 (ExoPlayer already handles it)
             videoViewImpl.setVideoRotation(unAppliedRotationDegrees, false);
             videoViewImpl.onVideoSizeChanged(width, height);
+
+            if (videoSizeChangedListener != null) {
+                videoSizeChangedListener.onVideoSizeChanged(width, height);
+            }
         }
 
         @Override
@@ -883,7 +932,7 @@ public class EMVideoView extends RelativeLayout {
     }
 
     /**
-     * Monitors the view click events to show the video controls if they have been specified.
+     * Monitors the view click events to show and hide the video controls if they have been specified.
      */
     protected class TouchListener extends GestureDetector.SimpleOnGestureListener implements OnTouchListener {
         protected GestureDetector gestureDetector;
@@ -893,19 +942,18 @@ public class EMVideoView extends RelativeLayout {
         }
 
         @Override
-        public boolean onTouch(View v, MotionEvent event) {
+        public boolean onTouch(View view, MotionEvent event) {
             gestureDetector.onTouchEvent(event);
             return true;
         }
 
         @Override
-        public boolean onSingleTapConfirmed(MotionEvent e) {
-            if (videoControls != null) {
-                videoControls.show();
-
-                if (isPlaying()) {
-                    videoControls.hideDelayed(VideoControls.DEFAULT_CONTROL_HIDE_DELAY);
-                }
+        public boolean onSingleTapConfirmed(MotionEvent event) {
+            // Toggles between hiding and showing the controls
+            if (videoControls != null && videoControls.isVisible()) {
+                videoControls.hide();
+            } else {
+                showControls();
             }
 
             return true;
@@ -921,24 +969,44 @@ public class EMVideoView extends RelativeLayout {
          * Specifies if the {@link VideoControls} should be added to the view.  These
          * can be added through source code with {@link #setControls(VideoControls)}
          */
-        private boolean useDefaultControls = false;
+        public boolean useDefaultControls = false;
+
         /**
-         * Specifies if the {@link VideoViewApi} implementations should use the {@link android.view.SurfaceView}
+         * Specifies if the {@link VideoViewApi} implementations should use the {@link android.view.TextureView}
          * implementations.  If this is false then the implementations will be based on
-         * the {@link android.view.TextureView}
+         * the {@link android.view.SurfaceView}
          */
-        private boolean useSurfaceViewBacking = false;
+        public boolean useTextureViewBacking = false;
+
         /**
          * The resource id that points to a custom implementation for the <code>ExoPlayer</code>
          * backed {@link VideoViewApi}
          */
-        private int apiImplResourceId = R.layout.exomedia_default_exo_texture_video_view;
+        public int apiImplResourceId = R.layout.exomedia_default_exo_texture_video_view;
+
         /**
          * The resource id that points to a custom implementation for the Android {@link android.media.MediaPlayer}
          * backed {@link VideoViewApi}.  This will only be used on devices that do not support the
          * <code>ExoPlayer</code> (see {@link DeviceUtil#supportsExoPlayer(Context)} for details)
          */
-        private int apiImplLegacyResourceId = R.layout.exomedia_default_native_texture_video_view;
+        public int apiImplLegacyResourceId = R.layout.exomedia_default_native_texture_video_view;
+
+        /**
+         * Specifies the scale that the {@link VideoView} should use. If this is <code>null</code>
+         * then the default value from the {@link com.devbrackets.android.exomedia.core.video.scale.MatrixManager}
+         * will be used.
+         */
+        @Nullable
+        public ScaleType scaleType;
+
+        /**
+         * Specifies if the {@link VideoView} should be measured based on the aspect ratio. Because
+         * the default value is different between the {@link com.devbrackets.android.exomedia.core.video.ResizingSurfaceView}
+         * and {@link com.devbrackets.android.exomedia.core.video.ResizingTextureView} this will be <code>null</code>
+         * when not specified.
+         */
+        @Nullable
+        public Boolean measureBasedOnAspectRatio;
 
         /**
          * Reads the attributes associated with this view, setting any values found
@@ -951,20 +1019,28 @@ public class EMVideoView extends RelativeLayout {
                 return;
             }
 
-            TypedArray typedArray = context.obtainStyledAttributes(attrs, R.styleable.EMVideoView);
+            TypedArray typedArray = context.obtainStyledAttributes(attrs, R.styleable.VideoView);
             if (typedArray == null) {
                 return;
             }
 
-            useDefaultControls = typedArray.getBoolean(R.styleable.EMVideoView_useDefaultControls, useDefaultControls);
-            useSurfaceViewBacking = typedArray.getBoolean(R.styleable.EMVideoView_useSurfaceViewBacking, useSurfaceViewBacking);
+            useDefaultControls = typedArray.getBoolean(R.styleable.VideoView_useDefaultControls, useDefaultControls);
+            useTextureViewBacking = typedArray.getBoolean(R.styleable.VideoView_useTextureViewBacking, useTextureViewBacking);
 
-            //Resets the default implementations based on useSurfaceViewBacking
-            apiImplResourceId = useSurfaceViewBacking ? R.layout.exomedia_default_exo_surface_video_view : R.layout.exomedia_default_exo_texture_video_view;
-            apiImplLegacyResourceId = useSurfaceViewBacking ? R.layout.exomedia_default_native_surface_video_view : R.layout.exomedia_default_native_texture_video_view;
+            if (typedArray.hasValue(R.styleable.VideoView_videoScale)) {
+                scaleType = ScaleType.fromOrdinal(typedArray.getInt(R.styleable.VideoView_videoScale, -1));
+            }
 
-            apiImplResourceId = typedArray.getResourceId(R.styleable.EMVideoView_videoViewApiImpl, apiImplResourceId);
-            apiImplLegacyResourceId = typedArray.getResourceId(R.styleable.EMVideoView_videoViewApiImplLegacy, apiImplLegacyResourceId);
+            if (typedArray.hasValue(R.styleable.VideoView_measureBasedOnAspectRatio)) {
+                measureBasedOnAspectRatio = typedArray.getBoolean(R.styleable.VideoView_measureBasedOnAspectRatio, false);
+            }
+
+            //Resets the default implementations based on useTextureViewBacking
+            apiImplResourceId = useTextureViewBacking ? R.layout.exomedia_default_exo_texture_video_view : R.layout.exomedia_default_exo_surface_video_view;
+            apiImplLegacyResourceId = useTextureViewBacking ? R.layout.exomedia_default_native_texture_video_view : R.layout.exomedia_default_native_surface_video_view;
+
+            apiImplResourceId = typedArray.getResourceId(R.styleable.VideoView_videoViewApiImpl, apiImplResourceId);
+            apiImplLegacyResourceId = typedArray.getResourceId(R.styleable.VideoView_videoViewApiImplLegacy, apiImplLegacyResourceId);
 
             typedArray.recycle();
         }

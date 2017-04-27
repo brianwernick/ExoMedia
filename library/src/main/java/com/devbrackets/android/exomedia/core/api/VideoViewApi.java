@@ -23,14 +23,13 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.view.View;
 
-import com.devbrackets.android.exomedia.annotation.TrackRenderType;
-import com.devbrackets.android.exomedia.core.EMListenerMux;
-import com.devbrackets.android.exomedia.core.builder.RenderBuilder;
+import com.devbrackets.android.exomedia.ExoMedia;
+import com.devbrackets.android.exomedia.core.ListenerMux;
 import com.devbrackets.android.exomedia.core.video.scale.ScaleType;
-import com.devbrackets.android.exomedia.util.DrmProvider;
-import com.google.android.exoplayer.MediaFormat;
+import com.google.android.exoplayer2.drm.MediaDrmCallback;
+import com.google.android.exoplayer2.source.MediaSource;
+import com.google.android.exoplayer2.source.TrackGroupArray;
 
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -51,21 +50,21 @@ public interface VideoViewApi {
 
     void setVideoUri(@Nullable Uri uri);
 
-    void setVideoUri(@Nullable Uri uri, @Nullable RenderBuilder renderBuilder);
+    void setVideoUri(@Nullable Uri uri, @Nullable MediaSource mediaSource);
 
     /**
-     * Sets the {@link DrmProvider} to use when handling DRM for media.
+     * Sets the {@link MediaDrmCallback} to use when handling DRM for media.
      * This should be called before specifying the videos uri or path
      * <br>
      * <b>NOTE:</b> DRM is only supported on API 18 +
      *
-     * @param drmProvider The provider to use when handling DRM media
+     * @param drmCallback The callback to use when handling DRM media
      */
-    void setDrmProvider(@Nullable DrmProvider drmProvider);
+    void setDrmCallback(@Nullable MediaDrmCallback drmCallback);
 
     boolean setVolume(@FloatRange(from = 0.0, to = 1.0) float volume);
 
-    void seekTo(@IntRange(from = 0) int milliseconds);
+    void seekTo(@IntRange(from = 0) long milliseconds);
 
     boolean isPlaying();
 
@@ -75,8 +74,10 @@ public interface VideoViewApi {
 
     /**
      * Performs the functionality to stop the video in playback
+     *
+     * @param clearSurface <code>true</code> if the surface should be cleared
      */
-    void stopPlayback();
+    void stopPlayback(boolean clearSurface);
 
     /**
      * Prepares the media previously specified for playback.  This should only be called after
@@ -91,26 +92,34 @@ public interface VideoViewApi {
     void release();
 
     @IntRange(from = 0)
-    int getDuration();
+    long getDuration();
 
     @IntRange(from = 0)
-    int getCurrentPosition();
+    long getCurrentPosition();
 
     @IntRange(from = 0, to = 100)
     int getBufferedPercent();
 
+    /**
+     * Sets the playback speed for this MediaPlayer.
+     *
+     * @param speed The speed to play the media back at
+     * @return True if the speed was set
+     */
+    boolean setPlaybackSpeed(float speed);
+
     boolean trackSelectionAvailable();
 
-    void setTrack(@TrackRenderType int trackType, int trackIndex);
+    void setTrack(ExoMedia.RendererType type, int trackIndex);
 
     /**
      * Retrieves a list of available tracks to select from.  Typically {@link #trackSelectionAvailable()}
      * should be called before this.
      *
-     * @return A list of available tracks associated with each track type (see {@link com.devbrackets.android.exomedia.annotation.TrackRenderType})
+     * @return A list of available tracks associated with each track type
      */
     @Nullable
-    Map<Integer, List<MediaFormat>> getAvailableTracks();
+    Map<ExoMedia.RendererType, TrackGroupArray> getAvailableTracks();
 
     void setScaleType(@NonNull ScaleType scaleType);
 
@@ -128,7 +137,7 @@ public interface VideoViewApi {
 
     void setOnTouchListener(View.OnTouchListener listener);
 
-    void setListenerMux(EMListenerMux listenerMux);
+    void setListenerMux(ListenerMux listenerMux);
 
     void onVideoSizeChanged(int width, int height);
 }

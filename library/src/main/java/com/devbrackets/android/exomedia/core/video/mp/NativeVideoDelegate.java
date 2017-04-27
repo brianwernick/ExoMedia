@@ -19,14 +19,15 @@ package com.devbrackets.android.exomedia.core.video.mp;
 import android.content.Context;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
+import android.media.PlaybackParams;
 import android.net.Uri;
+import android.os.Build;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Log;
 import android.view.Surface;
-import android.widget.MediaController;
 
-import com.devbrackets.android.exomedia.core.EMListenerMux;
+import com.devbrackets.android.exomedia.core.ListenerMux;
 import com.devbrackets.android.exomedia.core.video.ClearableSurface;
 
 import java.io.IOException;
@@ -40,7 +41,7 @@ import static android.content.ContentValues.TAG;
  * to simplify support for both the {@link android.view.TextureView}
  * and {@link android.view.SurfaceView} implementations
  */
-public class NativeVideoDelegate implements MediaController.MediaPlayerControl {
+public class NativeVideoDelegate {
     public interface Callback {
         void videoSizeChanged(int width, int height);
     }
@@ -66,10 +67,10 @@ public class NativeVideoDelegate implements MediaController.MediaPlayerControl {
     protected MediaPlayer mediaPlayer;
 
     protected boolean playRequested = false;
-    protected int requestedSeek;
+    protected long requestedSeek;
     protected int currentBufferPercent;
 
-    protected EMListenerMux listenerMux;
+    protected ListenerMux listenerMux;
 
     @NonNull
     protected InternalListeners internalListeners = new InternalListeners();
@@ -96,7 +97,6 @@ public class NativeVideoDelegate implements MediaController.MediaPlayerControl {
         currentState = State.IDLE;
     }
 
-    @Override
     public void start() {
         if (isReady()) {
             mediaPlayer.start();
@@ -107,7 +107,6 @@ public class NativeVideoDelegate implements MediaController.MediaPlayerControl {
         listenerMux.setNotifiedCompleted(false);
     }
 
-    @Override
     public void pause() {
         if (isReady() && mediaPlayer.isPlaying()) {
             mediaPlayer.pause();
@@ -117,8 +116,7 @@ public class NativeVideoDelegate implements MediaController.MediaPlayerControl {
         playRequested = false;
     }
 
-    @Override
-    public int getDuration() {
+    public long getDuration() {
         if (!listenerMux.isPrepared() || !isReady()) {
             return 0;
         }
@@ -126,8 +124,7 @@ public class NativeVideoDelegate implements MediaController.MediaPlayerControl {
         return mediaPlayer.getDuration();
     }
 
-    @Override
-    public int getCurrentPosition() {
+    public long getCurrentPosition() {
         if (!listenerMux.isPrepared() || !isReady()) {
             return 0;
         }
@@ -135,22 +132,19 @@ public class NativeVideoDelegate implements MediaController.MediaPlayerControl {
         return mediaPlayer.getCurrentPosition();
     }
 
-    @Override
-    public void seekTo(int msec) {
+    public void seekTo(long milliseconds) {
         if (isReady()) {
-            mediaPlayer.seekTo(msec);
+            mediaPlayer.seekTo((int) milliseconds);
             requestedSeek = 0;
         } else {
-            requestedSeek = msec;
+            requestedSeek = milliseconds;
         }
     }
 
-    @Override
     public boolean isPlaying() {
         return isReady() && mediaPlayer.isPlaying();
     }
 
-    @Override
     public int getBufferPercentage() {
         if (mediaPlayer != null) {
             return currentBufferPercent;
@@ -159,30 +153,25 @@ public class NativeVideoDelegate implements MediaController.MediaPlayerControl {
         return 0;
     }
 
-    @Override
-    public boolean canPause() {
-        return currentState == State.PREPARED || currentState == State.PLAYING;
-    }
+    public boolean setPlaybackSpeed(float speed) {
+        // Marshmallow+ support setting the playback speed natively
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            PlaybackParams params = new PlaybackParams();
+            params.setSpeed(speed);
 
-    @Override
-    public boolean canSeekBackward() {
-        return currentState == State.PREPARED || currentState == State.PLAYING || currentState == State.PAUSED;
-    }
+            mediaPlayer.setPlaybackParams(params);
+            return true;
+        }
 
-    @Override
-    public boolean canSeekForward() {
-        return currentState == State.PREPARED || currentState == State.PLAYING || currentState == State.PAUSED;
-    }
-
-    @Override
-    public int getAudioSessionId() {
-        return mediaPlayer.getAudioSessionId();
+        return false;
     }
 
     /**
      * Performs the functionality to stop the video in playback
+     *
+     * @param clearSurface <code>true</code> if the surface should be cleared
      */
-    public void stopPlayback() {
+    public void stopPlayback(boolean clearSurface) {
         currentState = State.IDLE;
 
         if (isReady()) {
@@ -194,7 +183,9 @@ public class NativeVideoDelegate implements MediaController.MediaPlayerControl {
         }
 
         playRequested = false;
-        listenerMux.clearSurfaceWhenReady(clearableSurface);
+        if (clearSurface) {
+            listenerMux.clearSurfaceWhenReady(clearableSurface);
+        }
     }
 
     /**
@@ -215,7 +206,7 @@ public class NativeVideoDelegate implements MediaController.MediaPlayerControl {
     }
 
     public boolean restart() {
-        if(currentState != State.COMPLETED) {
+        if (currentState != State.COMPLETED) {
             return false;
         }
 
@@ -247,7 +238,7 @@ public class NativeVideoDelegate implements MediaController.MediaPlayerControl {
         openVideo(uri);
     }
 
-    public void setListenerMux(EMListenerMux listenerMux) {
+    public void setListenerMux(ListenerMux listenerMux) {
         this.listenerMux = listenerMux;
 
         setOnCompletionListener(listenerMux);

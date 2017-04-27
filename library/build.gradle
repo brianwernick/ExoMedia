@@ -2,24 +2,23 @@ apply plugin: 'com.android.library'
 apply plugin: 'maven'
 apply plugin: 'com.novoda.bintray-release'
 
-def versionMajor = 3
-def versionMinor = 1
-def versionPatch = 1
+def versionMajor = 4
+def versionMinor = 0
+def versionPatch = 0
 
 def libraryGroupId = 'com.devbrackets.android'
 def libraryBaseName = 'exomedia'
-def libraryVersion = "${versionMajor}.${versionMinor}.${versionPatch}" // release version
+def libraryVersion = "${versionMajor}.${versionMinor}.${versionPatch}"
 
 dependencies {
     // Android
-    compile 'com.android.support:appcompat-v7:25.1.0' // includes support-v4
+    compile 'com.android.support:appcompat-v7:25.3.1'
 
     // ExoPlayer
-    compile 'com.google.android.exoplayer:exoplayer:r1.5.13'
-
-    //Android unit tests
-    androidTestCompile 'com.android.support.test:runner:0.5'
-    androidTestCompile "junit:junit:4.12"
+    compile 'com.google.android.exoplayer:exoplayer-core:r2.4.0'
+    compile 'com.google.android.exoplayer:exoplayer-dash:r2.4.0'
+    compile 'com.google.android.exoplayer:exoplayer-hls:r2.4.0'
+    compile 'com.google.android.exoplayer:exoplayer-smoothstreaming:r2.4.0'
 }
 
 android {
@@ -34,8 +33,6 @@ android {
         versionName "${versionMajor}.${versionMinor}.${versionPatch}"
 
         vectorDrawables.useSupportLibrary = true
-
-        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
 
     compileOptions {
@@ -71,6 +68,7 @@ uploadArchives {
     }
 }
 
+//todo Until the next Bintray-upload is published we can't updated past Gradle 3.3; see https://github.com/novoda/bintray-release/issues/112
 // ======= BINTRAY DEPLOY (command: $ ./gradlew clean build bintrayUpload -PbintrayUser=BINTRAY_USERNAME -PbintrayKey=BINTRAY_KEY -PdryRun=false) ====
 publish {
     groupId = libraryGroupId

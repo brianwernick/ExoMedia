@@ -6,13 +6,13 @@ import android.support.annotation.FloatRange;
 import android.support.annotation.IntRange;
 import android.support.annotation.NonNull;
 
-import com.devbrackets.android.exomedia.EMAudioPlayer;
+import com.devbrackets.android.exomedia.AudioPlayer;
 import com.devbrackets.android.playlistcore.api.AudioPlayerApi;
 
 public class AudioApi extends BaseMediaApi implements AudioPlayerApi {
-    private EMAudioPlayer audioPlayer;
+    private AudioPlayer audioPlayer;
 
-    public AudioApi(EMAudioPlayer audioPlayer) {
+    public AudioApi(AudioPlayer audioPlayer) {
         this.audioPlayer = audioPlayer;
 
         audioPlayer.setOnErrorListener(this);
@@ -68,13 +68,13 @@ public class AudioApi extends BaseMediaApi implements AudioPlayerApi {
     }
 
     @Override
-    public void setWakeMode(Context context, int mode) {
+    public void setWakeMode(@NonNull Context context, int mode) {
         audioPlayer.setWakeMode(context, mode);
     }
 
     @Override
     public void setDataSource(@NonNull Context context, @NonNull Uri uri) {
-        audioPlayer.setDataSource(context, uri);
+        audioPlayer.setDataSource(uri);
     }
 
     @Override

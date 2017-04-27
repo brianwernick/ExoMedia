@@ -35,7 +35,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 /**
- * Provides playback controls for the EMVideoView on Mobile
+ * Provides playback controls for the {@link VideoView} on Mobile
  * (Phone, Tablet, etc.) devices.
  */
 @SuppressWarnings("unused")
@@ -69,14 +69,14 @@ public class VideoControlsMobile extends VideoControls {
 
     @Override
     public void setPosition(@IntRange(from = 0) long position) {
-        currentTime.setText(TimeFormatUtil.formatMs(position));
+        currentTimeTextView.setText(TimeFormatUtil.formatMs(position));
         seekBar.setProgress((int) position);
     }
 
     @Override
     public void setDuration(@IntRange(from = 0) long duration) {
         if (duration != seekBar.getMax()) {
-            endTime.setText(TimeFormatUtil.formatMs(duration));
+            endTimeTextView.setText(TimeFormatUtil.formatMs(duration));
             seekBar.setMax((int) duration);
         }
     }
@@ -86,7 +86,7 @@ public class VideoControlsMobile extends VideoControls {
         if (!userInteracting) {
             seekBar.setSecondaryProgress((int) (seekBar.getMax() * ((float)bufferPercent / 100)));
             seekBar.setProgress((int) position);
-            currentTime.setText(TimeFormatUtil.formatMs(position));
+            currentTimeTextView.setText(TimeFormatUtil.formatMs(position));
         }
     }
 
@@ -190,8 +190,15 @@ public class VideoControlsMobile extends VideoControls {
         }
 
         isLoading = true;
-        controlsContainer.setVisibility(View.GONE);
-        loadingProgress.setVisibility(View.VISIBLE);
+        loadingProgressBar.setVisibility(View.VISIBLE);
+
+        if (initialLoad) {
+            controlsContainer.setVisibility(View.GONE);
+        } else {
+            playPauseButton.setEnabled(false);
+            previousButton.setEnabled(false);
+            nextButton.setEnabled(false);
+        }
 
         show();
     }
@@ -203,8 +210,12 @@ public class VideoControlsMobile extends VideoControls {
         }
 
         isLoading = false;
+        loadingProgressBar.setVisibility(View.GONE);
         controlsContainer.setVisibility(View.VISIBLE);
-        loadingProgress.setVisibility(View.GONE);
+
+        playPauseButton.setEnabled(true);
+        previousButton.setEnabled(enabledViews.get(R.id.exomedia_controls_previous_btn, true));
+        nextButton.setEnabled(enabledViews.get(R.id.exomedia_controls_next_btn, true));
 
         updatePlaybackState(videoView != null && videoView.isPlaying());
     }
@@ -213,7 +224,7 @@ public class VideoControlsMobile extends VideoControls {
      * Listens to the seek bar change events and correctly handles the changes
      */
     protected class SeekBarChanged implements SeekBar.OnSeekBarChangeListener {
-        private int seekToTime;
+        private long seekToTime;
 
         @Override
         public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
@@ -222,8 +233,8 @@ public class VideoControlsMobile extends VideoControls {
             }
 
             seekToTime = progress;
-            if (currentTime != null) {
-                currentTime.setText(TimeFormatUtil.formatMs(seekToTime));
+            if (currentTimeTextView != null) {
+                currentTimeTextView.setText(TimeFormatUtil.formatMs(seekToTime));
             }
         }
 

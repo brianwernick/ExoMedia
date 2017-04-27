@@ -27,15 +27,14 @@ import android.support.annotation.Nullable;
 import android.util.AttributeSet;
 import android.view.Surface;
 
-import com.devbrackets.android.exomedia.annotation.TrackRenderType;
-import com.devbrackets.android.exomedia.core.EMListenerMux;
+import com.devbrackets.android.exomedia.ExoMedia;
+import com.devbrackets.android.exomedia.core.ListenerMux;
 import com.devbrackets.android.exomedia.core.api.VideoViewApi;
-import com.devbrackets.android.exomedia.core.builder.RenderBuilder;
 import com.devbrackets.android.exomedia.core.video.ResizingTextureView;
-import com.devbrackets.android.exomedia.util.DrmProvider;
-import com.google.android.exoplayer.MediaFormat;
+import com.google.android.exoplayer2.drm.MediaDrmCallback;
+import com.google.android.exoplayer2.source.MediaSource;
+import com.google.android.exoplayer2.source.TrackGroupArray;
 
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -72,13 +71,13 @@ public class ExoTextureVideoView extends ResizingTextureView implements VideoVie
     }
 
     @Override
-    public void setVideoUri(@Nullable Uri uri, @Nullable RenderBuilder renderBuilder) {
-        delegate.setVideoUri(uri, renderBuilder);
+    public void setVideoUri(@Nullable Uri uri, @Nullable MediaSource mediaSource) {
+        delegate.setVideoUri(uri, mediaSource);
     }
 
     @Override
-    public void setDrmProvider(@Nullable DrmProvider drmProvider) {
-        delegate.setDrmProvider(drmProvider);
+    public void setDrmCallback(@Nullable MediaDrmCallback drmCallback) {
+        delegate.setDrmCallback(drmCallback);
     }
 
     @Override
@@ -92,7 +91,7 @@ public class ExoTextureVideoView extends ResizingTextureView implements VideoVie
     }
 
     @Override
-    public void seekTo(@IntRange(from = 0) int milliseconds) {
+    public void seekTo(@IntRange(from = 0) long milliseconds) {
         delegate.seekTo(milliseconds);
     }
 
@@ -112,8 +111,8 @@ public class ExoTextureVideoView extends ResizingTextureView implements VideoVie
     }
 
     @Override
-    public void stopPlayback() {
-        delegate.stopPlayback();
+    public void stopPlayback(boolean clearSurface) {
+        delegate.stopPlayback(clearSurface);
     }
 
     @Override
@@ -122,12 +121,12 @@ public class ExoTextureVideoView extends ResizingTextureView implements VideoVie
     }
 
     @Override
-    public int getDuration() {
+    public long getDuration() {
         return delegate.getDuration();
     }
 
     @Override
-    public int getCurrentPosition() {
+    public long getCurrentPosition() {
         return delegate.getCurrentPosition();
     }
 
@@ -137,18 +136,23 @@ public class ExoTextureVideoView extends ResizingTextureView implements VideoVie
     }
 
     @Override
+    public boolean setPlaybackSpeed(float speed) {
+        return delegate.setPlaybackSpeed(speed);
+    }
+
+    @Override
     public boolean trackSelectionAvailable() {
         return delegate.trackSelectionAvailable();
     }
 
     @Override
-    public void setTrack(@TrackRenderType int trackType, int trackIndex) {
+    public void setTrack(ExoMedia.RendererType trackType, int trackIndex) {
         delegate.setTrack(trackType, trackIndex);
     }
 
     @Nullable
     @Override
-    public Map<Integer, List<MediaFormat>> getAvailableTracks() {
+    public Map<ExoMedia.RendererType, TrackGroupArray> getAvailableTracks() {
         return delegate.getAvailableTracks();
     }
 
@@ -158,7 +162,7 @@ public class ExoTextureVideoView extends ResizingTextureView implements VideoVie
     }
 
     @Override
-    public void setListenerMux(EMListenerMux listenerMux) {
+    public void setListenerMux(ListenerMux listenerMux) {
         delegate.setListenerMux(listenerMux);
     }
 
@@ -169,24 +173,14 @@ public class ExoTextureVideoView extends ResizingTextureView implements VideoVie
         }
     }
 
-    /**
-     * Retrieves the user agent that the EMVideoView will use when communicating
-     * with media servers
-     *
-     * @return The String user agent for the EMVideoView
-     */
-    public String getUserAgent() {
-        return delegate.getUserAgent();
-    }
-
     protected void setup() {
         delegate = new ExoVideoDelegate(getContext(), this);
 
-        setSurfaceTextureListener(new EMExoVideoSurfaceTextureListener());
+        setSurfaceTextureListener(new ExoMediaVideoSurfaceTextureListener());
         updateVideoSize(0, 0);
     }
 
-    protected class EMExoVideoSurfaceTextureListener implements SurfaceTextureListener {
+    protected class ExoMediaVideoSurfaceTextureListener implements SurfaceTextureListener {
         @Override
         public void onSurfaceTextureAvailable(SurfaceTexture surfaceTexture, int width, int height) {
             delegate.onSurfaceReady(new Surface(surfaceTexture));

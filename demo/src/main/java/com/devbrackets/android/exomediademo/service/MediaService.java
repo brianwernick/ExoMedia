@@ -4,13 +4,16 @@ import android.app.PendingIntent;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.drawable.Drawable;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
-import com.devbrackets.android.exomedia.EMAudioPlayer;
-import com.devbrackets.android.exomedia.ui.widget.EMVideoView;
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.RequestManager;
+import com.bumptech.glide.request.animation.GlideAnimation;
+import com.bumptech.glide.request.target.SimpleTarget;
+import com.devbrackets.android.exomedia.AudioPlayer;
 import com.devbrackets.android.exomedia.ui.widget.VideoControls;
+import com.devbrackets.android.exomedia.ui.widget.VideoView;
 import com.devbrackets.android.exomediademo.App;
 import com.devbrackets.android.exomediademo.R;
 import com.devbrackets.android.exomediademo.data.MediaItem;
@@ -20,9 +23,6 @@ import com.devbrackets.android.exomediademo.playlist.VideoApi;
 import com.devbrackets.android.exomediademo.ui.activity.StartupActivity;
 import com.devbrackets.android.playlistcore.api.AudioPlayerApi;
 import com.devbrackets.android.playlistcore.service.BasePlaylistService;
-import com.squareup.picasso.Picasso;
-import com.squareup.picasso.Target;
-
 /**
  * A simple service that extends {@link BasePlaylistService} in order to provide
  * the application specific information required.
@@ -39,13 +39,12 @@ public class MediaService extends BasePlaylistService<MediaItem, PlaylistManager
     private NotificationTarget notificationImageTarget = new NotificationTarget();
     private LockScreenTarget lockScreenImageTarget = new LockScreenTarget();
 
-    //Picasso is an image loading library (NOTE: google now recommends using glide for image loading)
-    private Picasso picasso;
+    private RequestManager glide;
 
     @Override
     public void onCreate() {
         super.onCreate();
-        picasso = Picasso.with(getApplicationContext());
+        glide = Glide.with(getApplicationContext());
     }
 
     @Override
@@ -57,7 +56,7 @@ public class MediaService extends BasePlaylistService<MediaItem, PlaylistManager
     @NonNull
     @Override
     protected AudioPlayerApi getNewAudioPlayer() {
-        return new AudioApi(new EMAudioPlayer(getApplicationContext()));
+        return new AudioApi(new AudioPlayer(getApplicationContext()));
     }
 
     @Override
@@ -110,12 +109,12 @@ public class MediaService extends BasePlaylistService<MediaItem, PlaylistManager
 
     @Override
     protected void updateLargeNotificationImage(int size, MediaItem playlistItem) {
-        picasso.load(playlistItem.getThumbnailUrl()).into(notificationImageTarget);
+        glide.load(playlistItem.getThumbnailUrl()).asBitmap().into(notificationImageTarget);
     }
 
     @Override
     protected void updateRemoteViewArtwork(MediaItem playlistItem) {
-        picasso.load(playlistItem.getArtworkUrl()).into(lockScreenImageTarget);
+        glide.load(playlistItem.getArtworkUrl()).asBitmap().into(lockScreenImageTarget);
     }
 
     @Nullable
@@ -132,7 +131,7 @@ public class MediaService extends BasePlaylistService<MediaItem, PlaylistManager
 
     /**
      * Overridden to allow updating the Title, SubTitle, and description in
-     * the EMVideoView (VideoControls)
+     * the VideoView (VideoControls)
      */
     @Override
     protected boolean playVideoItem() {
@@ -145,7 +144,7 @@ public class MediaService extends BasePlaylistService<MediaItem, PlaylistManager
     }
 
     /**
-     * Helper method used to verify we can access the EMVideoView#getVideoControls()
+     * Helper method used to verify we can access the {@link VideoView#getVideoControls()}
      * to update both the text and available next/previous buttons
      */
     private void updateVideoControls() {
@@ -154,7 +153,7 @@ public class MediaService extends BasePlaylistService<MediaItem, PlaylistManager
             return;
         }
 
-        EMVideoView videoView = videoApi.getVideoView();
+        VideoView videoView = videoApi.getVideoView();
         if (videoView == null) {
             return;
         }
@@ -185,21 +184,11 @@ public class MediaService extends BasePlaylistService<MediaItem, PlaylistManager
      * <p>
      * <b>NOTE:</b> This is a Picasso Image loader class
      */
-    private class NotificationTarget implements Target {
+    private class NotificationTarget extends SimpleTarget<Bitmap> {
         @Override
-        public void onBitmapLoaded(Bitmap bitmap, Picasso.LoadedFrom from) {
-            largeNotificationImage = bitmap;
+        public void onResourceReady(Bitmap resource, GlideAnimation<? super Bitmap> glideAnimation) {
+            largeNotificationImage = resource;
             onLargeNotificationImageUpdated();
-        }
-
-        @Override
-        public void onBitmapFailed(Drawable errorDrawable) {
-            largeNotificationImage = null;
-        }
-
-        @Override
-        public void onPrepareLoad(Drawable placeHolderDrawable) {
-            //Purposefully left blank
         }
     }
 
@@ -209,21 +198,11 @@ public class MediaService extends BasePlaylistService<MediaItem, PlaylistManager
      * <p>
      * <b>NOTE:</b> This is a Picasso Image loader class
      */
-    private class LockScreenTarget implements Target {
+    private class LockScreenTarget extends SimpleTarget<Bitmap> {
         @Override
-        public void onBitmapLoaded(Bitmap bitmap, Picasso.LoadedFrom from) {
-            lockScreenArtwork = bitmap;
+        public void onResourceReady(Bitmap resource, GlideAnimation<? super Bitmap> glideAnimation) {
+            lockScreenArtwork = resource;
             onRemoteViewArtworkUpdated();
-        }
-
-        @Override
-        public void onBitmapFailed(Drawable errorDrawable) {
-            lockScreenArtwork = null;
-        }
-
-        @Override
-        public void onPrepareLoad(Drawable placeHolderDrawable) {
-            //Purposefully left blank
         }
     }
 }

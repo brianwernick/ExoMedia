@@ -20,7 +20,6 @@ import android.annotation.TargetApi;
 import android.content.Context;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
-import android.support.annotation.DrawableRes;
 import android.support.annotation.IntRange;
 import android.util.AttributeSet;
 import android.view.KeyEvent;
@@ -34,11 +33,11 @@ import android.widget.ProgressBar;
 
 import com.devbrackets.android.exomedia.R;
 import com.devbrackets.android.exomedia.ui.animation.BottomViewHideShowAnimation;
-import com.devbrackets.android.exomedia.util.EMResourceUtil;
+import com.devbrackets.android.exomedia.util.ResourceUtil;
 import com.devbrackets.android.exomedia.util.TimeFormatUtil;
 
 /**
- * Provides playback controls for the EMVideoView on TV devices.
+ * Provides playback controls for the {@link VideoView} on TV devices.
  */
 @SuppressWarnings("unused")
 @TargetApi(Build.VERSION_CODES.LOLLIPOP)
@@ -52,9 +51,6 @@ public class VideoControlsLeanback extends VideoControls {
 
     protected ImageButton fastForwardButton;
     protected ImageButton rewindButton;
-
-    protected Drawable defaultRewindDrawable;
-    protected Drawable defaultFastForwardDrawable;
 
     protected View currentFocus;
     protected ButtonFocusChangeListener buttonFocusChangeListener = new ButtonFocusChangeListener();
@@ -97,14 +93,14 @@ public class VideoControlsLeanback extends VideoControls {
 
     @Override
     public void setPosition(long position) {
-        currentTime.setText(TimeFormatUtil.formatMs(position));
+        currentTimeTextView.setText(TimeFormatUtil.formatMs(position));
         progressBar.setProgress((int) position);
     }
 
     @Override
     public void setDuration(long duration) {
         if (duration != progressBar.getMax()) {
-            endTime.setText(TimeFormatUtil.formatMs(duration));
+            endTimeTextView.setText(TimeFormatUtil.formatMs(duration));
             progressBar.setMax((int) duration);
         }
     }
@@ -113,39 +109,13 @@ public class VideoControlsLeanback extends VideoControls {
     public void updateProgress(@IntRange(from = 0) long position, @IntRange(from = 0) long duration, @IntRange(from = 0, to = 100) int bufferPercent) {
         progressBar.setSecondaryProgress((int) (progressBar.getMax() * ((float)bufferPercent / 100)));
         progressBar.setProgress((int) position);
-        currentTime.setText(TimeFormatUtil.formatMs(position));
-    }
-
-    @Override
-    public void setRewindImageResource(@DrawableRes int resourceId) {
-        if (rewindButton == null) {
-            return;
-        }
-
-        if (resourceId != 0) {
-            rewindButton.setImageResource(resourceId);
-        } else {
-            rewindButton.setImageDrawable(defaultRewindDrawable);
-        }
+        currentTimeTextView.setText(TimeFormatUtil.formatMs(position));
     }
 
     @Override
     public void setRewindDrawable(Drawable drawable) {
         if (rewindButton != null) {
             rewindButton.setImageDrawable(drawable);
-        }
-    }
-
-    @Override
-    public void setFastForwardImageResource(@DrawableRes int resourceId) {
-        if (fastForwardButton == null) {
-            return;
-        }
-
-        if (resourceId != 0) {
-            fastForwardButton.setImageResource(resourceId);
-        } else {
-            fastForwardButton.setImageDrawable(defaultFastForwardDrawable);
         }
     }
 
@@ -160,6 +130,7 @@ public class VideoControlsLeanback extends VideoControls {
     public void setRewindButtonEnabled(boolean enabled) {
         if (rewindButton != null) {
             rewindButton.setEnabled(enabled);
+            enabledViews.put(R.id.exomedia_controls_rewind_btn, enabled);
         }
     }
 
@@ -167,6 +138,7 @@ public class VideoControlsLeanback extends VideoControls {
     public void setFastForwardButtonEnabled(boolean enabled) {
         if (fastForwardButton != null) {
             fastForwardButton.setEnabled(enabled);
+            enabledViews.put(R.id.exomedia_controls_fast_forward_btn, enabled);
         }
     }
 
@@ -223,11 +195,11 @@ public class VideoControlsLeanback extends VideoControls {
     protected void updateButtonDrawables() {
         super.updateButtonDrawables();
 
-        defaultRewindDrawable = EMResourceUtil.tintList(getContext(), R.drawable.exomedia_ic_rewind_white, R.color.exomedia_default_controls_button_selector);
-        rewindButton.setImageDrawable(defaultRewindDrawable);
+        Drawable rewindDrawable = ResourceUtil.tintList(getContext(), R.drawable.exomedia_ic_rewind_white, R.color.exomedia_default_controls_button_selector);
+        rewindButton.setImageDrawable(rewindDrawable);
 
-        defaultFastForwardDrawable = EMResourceUtil.tintList(getContext(), R.drawable.exomedia_ic_fast_forward_white, R.color.exomedia_default_controls_button_selector);
-        fastForwardButton.setImageDrawable(defaultFastForwardDrawable);
+        Drawable fastForwardDrawable = ResourceUtil.tintList(getContext(), R.drawable.exomedia_ic_fast_forward_white, R.color.exomedia_default_controls_button_selector);
+        fastForwardButton.setImageDrawable(fastForwardDrawable);
     }
 
     @Override
@@ -269,7 +241,7 @@ public class VideoControlsLeanback extends VideoControls {
         isLoading = true;
         controlsContainer.setVisibility(View.GONE);
         rippleIndicator.setVisibility(View.GONE);
-        loadingProgress.setVisibility(View.VISIBLE);
+        loadingProgressBar.setVisibility(View.VISIBLE);
 
         show();
     }
@@ -283,7 +255,7 @@ public class VideoControlsLeanback extends VideoControls {
         isLoading = false;
         controlsContainer.setVisibility(View.VISIBLE);
         rippleIndicator.setVisibility(View.VISIBLE);
-        loadingProgress.setVisibility(View.GONE);
+        loadingProgressBar.setVisibility(View.GONE);
 
         updatePlaybackState(videoView != null && videoView.isPlaying());
     }
@@ -314,7 +286,7 @@ public class VideoControlsLeanback extends VideoControls {
      *
      * @param seekToTime The time to seek to in milliseconds
      */
-    protected void performSeek(int seekToTime) {
+    protected void performSeek(long seekToTime) {
         if (seekListener == null || !seekListener.onSeekEnded(seekToTime)) {
             internalListener.onSeekEnded(seekToTime);
         }
@@ -329,7 +301,7 @@ public class VideoControlsLeanback extends VideoControls {
         show();
 
         if (videoView != null && videoView.isPlaying()) {
-            hideDelayed(DEFAULT_CONTROL_HIDE_DELAY);
+            hideDelayed();
         }
     }
 
@@ -439,7 +411,7 @@ public class VideoControlsLeanback extends VideoControls {
             switch (keyCode) {
                 case KeyEvent.KEYCODE_BACK:
                     if (isVisible && canViewHide && !isLoading) {
-                        hideDelayed(0);
+                        hide();
                         return true;
                     } else if (controlsParent.getAnimation() != null) {
                         //This occurs if we are animating the hide or show of the controls
@@ -452,7 +424,7 @@ public class VideoControlsLeanback extends VideoControls {
                     return true;
 
                 case KeyEvent.KEYCODE_DPAD_DOWN:
-                    hideDelayed(0);
+                    hide();
                     return true;
 
                 case KeyEvent.KEYCODE_DPAD_LEFT:
@@ -550,7 +522,7 @@ public class VideoControlsLeanback extends VideoControls {
                 return false;
             }
 
-            int newPosition = videoView.getCurrentPosition() + FAST_FORWARD_REWIND_AMOUNT;
+            long newPosition = videoView.getCurrentPosition() + FAST_FORWARD_REWIND_AMOUNT;
             if (newPosition > progressBar.getMax()) {
                 newPosition = progressBar.getMax();
             }
@@ -565,7 +537,7 @@ public class VideoControlsLeanback extends VideoControls {
                 return false;
             }
 
-            int newPosition = videoView.getCurrentPosition() - FAST_FORWARD_REWIND_AMOUNT;
+            long newPosition = videoView.getCurrentPosition() - FAST_FORWARD_REWIND_AMOUNT;
             if (newPosition < 0) {
                 newPosition = 0;
             }

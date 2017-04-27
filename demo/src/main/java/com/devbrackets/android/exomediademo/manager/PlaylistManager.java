@@ -6,7 +6,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
 import com.devbrackets.android.exomedia.listener.VideoControlsButtonListener;
-import com.devbrackets.android.exomedia.ui.widget.EMVideoView;
+import com.devbrackets.android.exomedia.ui.widget.VideoView;
 import com.devbrackets.android.exomedia.ui.widget.VideoControls;
 import com.devbrackets.android.exomediademo.App;
 import com.devbrackets.android.exomediademo.data.MediaItem;
@@ -50,7 +50,7 @@ public class PlaylistManager extends ListPlaylistManager<MediaItem> {
      */
     private void updateVideoControls(@NonNull VideoPlayerApi videoPlayer) {
         VideoApi api = (VideoApi)videoPlayer;
-        EMVideoView videoView = api.getVideoView();
+        VideoView videoView = api.getVideoView();
         if (videoView == null) {
             return;
         }

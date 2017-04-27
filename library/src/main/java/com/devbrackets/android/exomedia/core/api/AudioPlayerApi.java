@@ -23,13 +23,12 @@ import android.support.annotation.FloatRange;
 import android.support.annotation.IntRange;
 import android.support.annotation.Nullable;
 
-import com.devbrackets.android.exomedia.annotation.TrackRenderType;
-import com.devbrackets.android.exomedia.core.EMListenerMux;
-import com.devbrackets.android.exomedia.core.builder.RenderBuilder;
-import com.devbrackets.android.exomedia.util.DrmProvider;
-import com.google.android.exoplayer.MediaFormat;
+import com.devbrackets.android.exomedia.ExoMedia;
+import com.devbrackets.android.exomedia.core.ListenerMux;
+import com.google.android.exoplayer2.drm.MediaDrmCallback;
+import com.google.android.exoplayer2.source.MediaSource;
+import com.google.android.exoplayer2.source.TrackGroupArray;
 
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -38,24 +37,24 @@ import java.util.Map;
  * between the Native (Android) MediaPlayer and the AudioPlayer
  * using the ExoPlayer.
  */
-public interface MediaPlayerApi {
-    void setDataSource(Context context, Uri uri);
+public interface AudioPlayerApi {
+    void setDataSource(@Nullable Uri uri);
 
-    void setDataSource(Context context, Uri uri, RenderBuilder renderBuilder);
+    void setDataSource(@Nullable Uri uri, @Nullable MediaSource mediaSource);
 
     /**
-     * Sets the {@link DrmProvider} to use when handling DRM for media.
-     * This should be called before specifying the data source
+     * Sets the {@link MediaDrmCallback} to use when handling DRM for media.
+     * This should be called before specifying the videos uri or path
      * <br>
      * <b>NOTE:</b> DRM is only supported on API 18 +
      *
-     * @param drmProvider The provider to use when handling DRM media
+     * @param drmCallback The callback to use when handling DRM media
      */
-    void setDrmProvider(@Nullable DrmProvider drmProvider);
+    void setDrmCallback(@Nullable MediaDrmCallback drmCallback);
 
     /**
-     * Prepares the media specified with {@link #setDataSource(Context, Uri)} or
-     * {@link #setDataSource(Context, Uri, RenderBuilder)} in an asynchronous manner
+     * Prepares the media specified with {@link #setDataSource(Uri)} or
+     * {@link #setDataSource(Uri, MediaSource)} in an asynchronous manner
      */
     void prepareAsync();
 
@@ -83,15 +82,23 @@ public interface MediaPlayerApi {
     void reset();
 
     @IntRange(from = 0)
-    int getDuration();
+    long getDuration();
 
     @IntRange(from = 0)
-    int getCurrentPosition();
+    long getCurrentPosition();
 
     @IntRange(from = 0, to = 100)
     int getBufferedPercent();
 
     int getAudioSessionId();
+
+    /**
+     * Sets the playback speed for this MediaPlayer.
+     *
+     * @param speed The speed to play the media back at
+     * @return True if the speed was set
+     */
+    boolean setPlaybackSpeed(float speed);
 
     /**
      * Sets the audio stream type for this MediaPlayer. See {@link AudioManager}
@@ -106,24 +113,24 @@ public interface MediaPlayerApi {
 
     boolean trackSelectionAvailable();
 
-    void setTrack(@TrackRenderType int trackType, int trackIndex);
+    void setTrack(ExoMedia.RendererType type, int trackIndex);
 
     /**
      * Retrieves a list of available tracks to select from.  Typically {@link #trackSelectionAvailable()}
      * should be called before this.
      *
-     * @return A list of available tracks associated with each track type (see {@link com.devbrackets.android.exomedia.annotation.TrackRenderType})
+     * @return A list of available tracks associated with each track type
      */
     @Nullable
-    Map<Integer, List<MediaFormat>> getAvailableTracks();
+    Map<ExoMedia.RendererType, TrackGroupArray> getAvailableTracks();
 
     void setVolume(@FloatRange(from = 0.0, to = 1.0) float left, @FloatRange(from = 0.0, to = 1.0) float right);
 
-    void seekTo(@IntRange(from = 0) int milliseconds);
+    void seekTo(@IntRange(from = 0) long milliseconds);
 
     void setWakeMode(Context context, int mode);
 
-    void setListenerMux(EMListenerMux listenerMux);
+    void setListenerMux(ListenerMux listenerMux);
 
     void onMediaPrepared();
 }

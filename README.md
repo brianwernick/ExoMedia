@@ -1,5 +1,6 @@
 ExoMedia
 ============
+[//]: # (SEO terms: Simple ExoPlayer, ExoPlayer TextureView, ExoPlayer SurfaceView, ExoPlayer VideoView, ExoPlayer Audio)
 ExoMedia is a media playback library with similar APIs to the Android MediaPlayer
 and VideoView that uses the [ExoPlayer][ExoPlayer] as a backing when possible, 
 otherwise the default Android MediaPlayer and VideoView are used.
@@ -20,7 +21,7 @@ Or included in your gradle dependencies
 
 ```gradle
 repositories {
-    jcenter();
+    jcenter()
 }
 
 dependencies {
@@ -50,12 +51,14 @@ The ExoMedia VideoView can be added in your layout files like any other Android 
 While in your Activity or Fragment you treat it like a standard Android VideoView
 
 ```java
+private VideoView videoView;
+
 private void setupVideoView() {
-	VideoView videoView = (VideoView)findViewById(R.id.video_view);
+	// Make sure to use the correct VideoView import
+	videoView = (VideoView)findViewById(R.id.video_view);
 	videoView.setOnPreparedListener(this);
 
-    //For now we just picked an arbitrary item to play.  More can be found at
-    //https://archive.org/details/more_animation
+    //For now we just picked an arbitrary item to play
     videoView.setVideoURI(Uri.parse("https://archive.org/download/Popeye_forPresident/Popeye_forPresident_512kb.mp4"));
 }
 
@@ -69,7 +72,6 @@ public void onPrepared() {
 
 License
 -------
-
     Copyright 2015-2017 Brian Wernick
 
     Licensed under the Apache License, Version 2.0 (the "License");

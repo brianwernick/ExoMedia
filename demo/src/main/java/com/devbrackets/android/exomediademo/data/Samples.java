@@ -27,14 +27,15 @@ public class Samples {
         //Video items
         videoSamples = new ArrayList<>();
         videoSamples.add(new Sample("FLV - Big Buck Bunny by Blender", "http://vod.leasewebcdn.com/bbb.flv?ri=1024&rs=150&start=0"));
-        videoSamples.add(new Sample("HLS - Wildlife", "http://playertest.longtailvideo.com/adaptive/wowzaid3/playlist.m3u8"));
+        videoSamples.add(new Sample("HLS - ArtBeats", "http://cdn-fms.rbs.com.br/vod/hls_sample1_manifest.m3u8"));
         videoSamples.add(new Sample("MKV - Android Screens", "http://storage.googleapis.com/exoplayer-test-media-1/mkv/android-screens-lavf-56.36.100-aac-avc-main-1280x720.mkv"));
         videoSamples.add(new Sample("MP4 (VP9) - Google Glass", "http://demos.webmproject.org/exoplayer/glass.mp4"));
         videoSamples.add(new Sample("MPEG DASH - Sintel by Blender", "https://bitdash-a.akamaihd.net/content/sintel/sintel.mpd"));
         videoSamples.add(new Sample("MPEG DASH - Big Buck Bunny by Blender, Live", "https://wowzaec2demo.streamlock.net/live/bigbuckbunny/manifest_mpm4sav_mvtime.mpd"));
         videoSamples.add(new Sample("Smooth Stream - Caminandes: Llama Drama by Blender", "http://amssamples.streaming.mediaservices.windows.net/634cd01c-6822-4630-8444-8dd6279f94c6/CaminandesLlamaDrama4K.ism/manifest"));
         videoSamples.add(new Sample("Smooth Stream - Tears of Steel Teaser by Blender", "http://amssamples.streaming.mediaservices.windows.net/3d7eaff9-39fa-442f-81cc-f2ea7db1797e/TearsOfSteelTeaser.ism/manifest"));
-        videoSamples.add(new Sample("WEBM - Big Buck Bunny", "http://video.webmfiles.org/big-buck-bunny_trailer.webm"));
+        videoSamples.add(new Sample("WEBM - Big Buck Bunny", "http://dl1.webmfiles.org/big-buck-bunny_trailer.webm"));
+        videoSamples.add(new Sample("WEBM - Elephants Dream", "http://dl1.webmfiles.org/elephants-dream.webm"));
     }
 
     @NonNull

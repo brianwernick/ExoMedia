@@ -182,7 +182,7 @@ public class MediaService extends BasePlaylistService<MediaItem, PlaylistManager
      * A class used to listen to the loading of the large notification images and perform
      * the correct functionality to update the notification once it is loaded.
      * <p>
-     * <b>NOTE:</b> This is a Picasso Image loader class
+     * <b>NOTE:</b> This is a Glide Image loader class
      */
     private class NotificationTarget extends SimpleTarget<Bitmap> {
         @Override
@@ -196,7 +196,7 @@ public class MediaService extends BasePlaylistService<MediaItem, PlaylistManager
      * A class used to listen to the loading of the large lock screen images and perform
      * the correct functionality to update the artwork once it is loaded.
      * <p>
-     * <b>NOTE:</b> This is a Picasso Image loader class
+     * <b>NOTE:</b> This is a Glide Image loader class
      */
     private class LockScreenTarget extends SimpleTarget<Bitmap> {
         @Override

@@ -83,10 +83,11 @@ import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-@SuppressWarnings("unused")
+@SuppressWarnings({"unused", "WeakerAccess"})
 public class ExoMediaPlayer implements ExoPlayer.EventListener {
     private static final String TAG = "ExoMediaPlayer";
     private static final int BUFFER_REPEAT_DELAY = 1_000;
+    private static final int WAKE_LOCK_TIMEOUT = 1_000;
 
     @NonNull
     private final Context context;
@@ -348,8 +349,7 @@ public class ExoMediaPlayer implements ExoPlayer.EventListener {
             player.stop();
         }
 
-        reportPlayerState();
-
+        stateStore.reset();
         player.prepare(mediaSource);
         prepared = true;
 
@@ -519,7 +519,7 @@ public class ExoMediaPlayer implements ExoPlayer.EventListener {
         }
 
         if (awake && !wakeLock.isHeld()) {
-            wakeLock.acquire();
+            wakeLock.acquire(WAKE_LOCK_TIMEOUT);
         } else if (!awake && wakeLock.isHeld()) {
             wakeLock.release();
         }
@@ -595,6 +595,12 @@ public class ExoMediaPlayer implements ExoPlayer.EventListener {
 
         //We keep the last few states because that is all we need currently
         private int[] prevStates = new int[]{ExoPlayer.STATE_IDLE, ExoPlayer.STATE_IDLE, ExoPlayer.STATE_IDLE, ExoPlayer.STATE_IDLE};
+
+        public void reset() {
+            for (int i = 0; i < prevStates.length; i++) {
+                prevStates[i] = ExoPlayer.STATE_IDLE;
+            }
+        }
 
         public void setMostRecentState(boolean playWhenReady, int state) {
             int newState = getState(playWhenReady, state);

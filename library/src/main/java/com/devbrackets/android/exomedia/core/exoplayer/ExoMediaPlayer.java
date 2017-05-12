@@ -119,6 +119,10 @@ public class ExoMediaPlayer implements ExoPlayer.EventListener {
     private MediaSource mediaSource;
     @NonNull
     private List<Renderer> renderers = new LinkedList<>();
+    @NonNull
+    private MediaSourceProvider mediaSourceProvider = new MediaSourceProvider();
+    @NonNull
+    private DefaultBandwidthMeter bandwidthMeter = new DefaultBandwidthMeter();
 
     @Nullable
     private CaptionListener captionListener;
@@ -150,7 +154,7 @@ public class ExoMediaPlayer implements ExoPlayer.EventListener {
 
         renderers = rendererProvider.generate();
 
-        adaptiveTrackSelectionFactory = new AdaptiveTrackSelection.Factory(new DefaultBandwidthMeter());
+        adaptiveTrackSelectionFactory = new AdaptiveTrackSelection.Factory(bandwidthMeter);
         trackSelector = new DefaultTrackSelector(adaptiveTrackSelectionFactory);
 
         LoadControl loadControl = ExoMedia.Data.loadControl != null ? ExoMedia.Data.loadControl : new DefaultLoadControl();
@@ -208,7 +212,7 @@ public class ExoMediaPlayer implements ExoPlayer.EventListener {
     }
 
     public void setUri(@Nullable Uri uri) {
-        setMediaSource(uri != null ? new MediaSourceProvider().generate(context, mainHandler, uri) : null);
+        setMediaSource(uri != null ? mediaSourceProvider.generate(context, mainHandler, uri, bandwidthMeter) : null);
     }
 
     public void setMediaSource(@Nullable MediaSource source) {

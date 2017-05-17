@@ -68,7 +68,6 @@ uploadArchives {
     }
 }
 
-//todo Until the next Bintray-upload is published we can't updated past Gradle 3.3; see https://github.com/novoda/bintray-release/issues/112
 // ======= BINTRAY DEPLOY (command: $ ./gradlew clean build bintrayUpload -PbintrayUser=BINTRAY_USERNAME -PbintrayKey=BINTRAY_KEY -PdryRun=false) ====
 publish {
     groupId = libraryGroupId

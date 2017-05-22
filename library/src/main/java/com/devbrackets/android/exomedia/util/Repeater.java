@@ -26,18 +26,22 @@ import android.support.annotation.Nullable;
  * amount of elapsed time use the {@link StopWatch} instead.
  */
 public class Repeater {
-    private static final String HANDLER_THREAD_NAME = "ExoMedia_Repeater_HandlerThread";
-    private static final int DEFAULT_REPEAT_DELAY = 33; // ~30 fps
+    protected static final String HANDLER_THREAD_NAME = "ExoMedia_Repeater_HandlerThread";
+    protected static final int DEFAULT_REPEAT_DELAY = 33; // ~30 fps
 
-    private volatile boolean repeaterRunning = false;
-    private int repeatDelay = DEFAULT_REPEAT_DELAY;
+    public interface RepeatListener {
+        void onRepeat();
+    }
 
-    private Handler delayedHandler;
-    private HandlerThread handlerThread;
-    private boolean useHandlerThread = false;
+    protected volatile boolean repeaterRunning = false;
+    protected int repeatDelay = DEFAULT_REPEAT_DELAY;
 
-    private RepeatListener listener;
-    private PollRunnable pollRunnable = new PollRunnable();
+    protected Handler delayedHandler;
+    protected HandlerThread handlerThread;
+    protected boolean useHandlerThread = false;
+
+    protected RepeatListener listener;
+    protected PollRunnable pollRunnable = new PollRunnable();
 
     public Repeater() {
         this(true);
@@ -126,11 +130,7 @@ public class Repeater {
         this.listener = listener;
     }
 
-    public interface RepeatListener {
-        void onRepeat();
-    }
-
-    private class PollRunnable implements Runnable {
+    protected class PollRunnable implements Runnable {
         @Override
         public void run() {
             if (listener != null) {

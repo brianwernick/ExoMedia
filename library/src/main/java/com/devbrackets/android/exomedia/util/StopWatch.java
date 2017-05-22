@@ -26,22 +26,26 @@ import android.support.annotation.Nullable;
  * of processes.
  */
 public class StopWatch {
-    private static final String HANDLER_THREAD_NAME = "ExoMedia_StopWatch_HandlerThread";
-    private static final int DEFAULT_TICK_DELAY = 33; // ~30 fps
+    protected static final String HANDLER_THREAD_NAME = "ExoMedia_StopWatch_HandlerThread";
+    protected static final int DEFAULT_TICK_DELAY = 33; // ~30 fps
 
-    private volatile boolean isRunning = false;
-    private int tickDelay = DEFAULT_TICK_DELAY;
+    public interface TickListener {
+        void onStopWatchTick(long currentTime);
+    }
 
-    private Handler delayedHandler;
-    private HandlerThread handlerThread;
-    private boolean useHandlerThread = false;
+    protected volatile boolean isRunning = false;
+    protected int tickDelay = DEFAULT_TICK_DELAY;
 
-    private TickListener listener;
-    private TickRunnable tickRunnable = new TickRunnable();
+    protected Handler delayedHandler;
+    protected HandlerThread handlerThread;
+    protected boolean useHandlerThread = false;
 
-    private long startTime = 0;
-    private long currentTime = 0;
-    private long storedTime = 0;
+    protected TickListener listener;
+    protected TickRunnable tickRunnable = new TickRunnable();
+
+    protected long startTime = 0;
+    protected long currentTime = 0;
+    protected long storedTime = 0;
 
     public StopWatch() {
         this(true);
@@ -182,11 +186,7 @@ public class StopWatch {
         this.listener = listener;
     }
 
-    public interface TickListener {
-        void onStopWatchTick(long currentTime);
-    }
-
-    private class TickRunnable implements Runnable {
+    protected class TickRunnable implements Runnable {
         @Override
         public void run() {
             currentTime = System.currentTimeMillis() - startTime;

@@ -340,6 +340,10 @@ public class ExoMediaPlayer implements ExoPlayer.EventListener {
         sendMessage(C.TRACK_TYPE_AUDIO, C.MSG_SET_VOLUME, volume);
     }
 
+    public void setAudioStreamType(int streamType) {
+        sendMessage(C.TRACK_TYPE_AUDIO, C.MSG_SET_STREAM_TYPE, streamType);
+    }
+
     public void forcePrepare() {
         prepared = false;
     }

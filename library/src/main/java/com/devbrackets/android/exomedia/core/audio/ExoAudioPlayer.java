@@ -56,7 +56,6 @@ public class ExoAudioPlayer implements AudioPlayerApi {
     protected InternalListeners internalListeners = new InternalListeners();
 
     protected boolean playRequested = false;
-    protected int audioStreamType = AudioManager.STREAM_MUSIC;
 
     public ExoAudioPlayer(@NonNull Context context) {
         this.context = context;
@@ -195,7 +194,7 @@ public class ExoAudioPlayer implements AudioPlayerApi {
 
     @Override
     public void setAudioStreamType(int streamType) {
-        this.audioStreamType = streamType;
+        exoMediaPlayer.setAudioStreamType(streamType);
     }
 
     @Override

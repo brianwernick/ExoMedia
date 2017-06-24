@@ -9,7 +9,7 @@
    xmlns="http://www.w3.org/2000/svg"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   sodipodi:docname="ExoMedia_icon.svg"
+   sodipodi:docname="demo_icon.svg"
    inkscape:version="0.92.1 r15371"
    id="svg8"
    version="1.1"
@@ -28,11 +28,11 @@
      inkscape:showpageshadow="false"
      units="px"
      showgrid="false"
-     inkscape:current-layer="layer1"
+     inkscape:current-layer="layer3"
      inkscape:document-units="px"
-     inkscape:cy="199.37329"
-     inkscape:cx="84.987691"
-     inkscape:zoom="3.959798"
+     inkscape:cy="89.869327"
+     inkscape:cx="40.988351"
+     inkscape:zoom="5.6"
      inkscape:pageshadow="2"
      inkscape:pageopacity="0.0"
      borderopacity="1.0"
@@ -56,20 +56,7 @@
     <filter
        inkscape:collect="always"
        style="color-interpolation-filters:sRGB"
-       id="filter5331"
-       x="-0.10342563"
-       width="1.2068513"
-       y="-0.089569217"
-       height="1.1791384">
-      <feGaussianBlur
-         inkscape:collect="always"
-         stdDeviation="0.72492152"
-         id="feGaussianBlur5333" />
-    </filter>
-    <filter
-       inkscape:collect="always"
-       style="color-interpolation-filters:sRGB"
-       id="filter4573"
+       id="filter4504"
        x="-0.041454545"
        width="1.0829091"
        y="-0.057000001"
@@ -77,7 +64,20 @@
       <feGaussianBlur
          inkscape:collect="always"
          stdDeviation="0.80433331"
-         id="feGaussianBlur4575" />
+         id="feGaussianBlur4506" />
+    </filter>
+    <filter
+       inkscape:collect="always"
+       style="color-interpolation-filters:sRGB"
+       id="filter4510"
+       x="-0.051712814"
+       width="1.1034256"
+       y="-0.044784609"
+       height="1.0895692">
+      <feGaussianBlur
+         inkscape:collect="always"
+         stdDeviation="0.36246076"
+         id="feGaussianBlur4512" />
     </filter>
   </defs>
   <metadata
@@ -99,14 +99,13 @@
      inkscape:groupmode="layer"
      inkscape:label="background">
     <rect
-       style="opacity:0.5;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332;stroke-opacity:1;filter:url(#filter4573)"
-       id="rect4567"
+       style="opacity:0.2;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332;stroke-opacity:1;filter:url(#filter4504)"
+       id="rect4502"
        width="46.566666"
        height="33.866665"
        x="2.1166673"
-       y="254.66664"
-       ry="2.1166666"
-       transform="matrix(0.99898354,0,0,1.0257038,0.02581806,-6.5220206)" />
+       y="255.72498"
+       ry="2.1166666" />
     <rect
        ry="2.1166666"
        y="254.66664"
@@ -166,7 +165,7 @@
      inkscape:groupmode="layer"
      style="display:inline">
     <g
-       style="display:inline;opacity:0.369;fill:#333333;fill-opacity:1;stroke:none;stroke-width:0.26458332;stroke-opacity:1"
+       style="display:inline;opacity:0.3;fill:#333333;fill-opacity:1;stroke:none;stroke-width:0.26458332;stroke-opacity:1"
        id="g3986"
        clip-path="url(#clipPath4873)">
       <path
@@ -177,13 +176,11 @@
          inkscape:connector-curvature="0" />
     </g>
     <path
-       inkscape:connector-curvature="0"
-       style="display:inline;opacity:0.5;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332;stroke-opacity:1;filter:url(#filter5331)"
-       inkscape:transform-center-x="-2.78509"
-       d="M 16.989069,35.112107 V 15.687893 l 16.821862,9.712108 z"
-       id="path3852-5"
-       transform="matrix(0.99338218,0,0,1.04906,0.16809274,-0.71398633)"
-       inkscape:transform-center-y="-1.060602e-06" />
+       id="path4508"
+       d="M 17.518236,35.641274 V 16.21706 l 16.821862,9.712108 z"
+       inkscape:transform-center-x="-2.8036439"
+       style="display:inline;opacity:0.2;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332;stroke-opacity:1;filter:url(#filter4510)"
+       inkscape:connector-curvature="0" />
     <path
        inkscape:connector-curvature="0"
        style="display:inline;fill:#42a5f5;fill-opacity:1;stroke:none;stroke-width:0.26458332;stroke-opacity:1"

@@ -11,7 +11,7 @@ def libraryBaseName = 'exomedia'
 def libraryVersion = "${versionMajor}.${versionMinor}.${versionPatch}"
 
 ext {
-    exoPlayerVersion = "r2.4.2"
+    exoPlayerVersion = "r2.4.3"
 }
 
 dependencies {

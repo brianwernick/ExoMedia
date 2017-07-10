@@ -18,7 +18,6 @@ package com.devbrackets.android.exomedia.core.audio;
 
 import android.annotation.TargetApi;
 import android.content.Context;
-import android.media.AudioManager;
 import android.net.Uri;
 import android.os.Build;
 import android.support.annotation.FloatRange;
@@ -220,6 +219,10 @@ public class ExoAudioPlayer implements AudioPlayerApi {
 
     @Override
     public void setListenerMux(ListenerMux listenerMux) {
+        if (this.listenerMux != null) {
+            exoMediaPlayer.removeListener(this.listenerMux);
+        }
+
         this.listenerMux = listenerMux;
         exoMediaPlayer.addListener(listenerMux);
     }

@@ -185,6 +185,10 @@ public class ExoVideoDelegate {
     }
 
     public void setListenerMux(ListenerMux listenerMux) {
+        if (this.listenerMux != null) {
+            exoMediaPlayer.removeListener(this.listenerMux);
+        }
+
         this.listenerMux = listenerMux;
         exoMediaPlayer.addListener(listenerMux);
     }

@@ -24,6 +24,7 @@ import android.support.annotation.Nullable;
 
 import com.devbrackets.android.exomedia.core.exception.NativeMediaPlaybackException;
 import com.devbrackets.android.exomedia.core.exoplayer.ExoMediaPlayer;
+import com.devbrackets.android.exomedia.core.listener.CaptionListener;
 import com.devbrackets.android.exomedia.core.listener.ExoPlayerListener;
 import com.devbrackets.android.exomedia.core.listener.MetadataListener;
 import com.devbrackets.android.exomedia.core.video.ClearableSurface;
@@ -34,8 +35,10 @@ import com.devbrackets.android.exomedia.listener.OnPreparedListener;
 import com.devbrackets.android.exomedia.listener.OnSeekCompletionListener;
 import com.google.android.exoplayer2.ExoPlayer;
 import com.google.android.exoplayer2.metadata.Metadata;
+import com.google.android.exoplayer2.text.Cue;
 
 import java.lang.ref.WeakReference;
+import java.util.List;
 
 /**
  * An internal Listener that implements the listeners for the {@link ExoMediaPlayer},
@@ -43,7 +46,7 @@ import java.lang.ref.WeakReference;
  * error listeners.
  */
 public class ListenerMux implements ExoPlayerListener, MediaPlayer.OnPreparedListener, MediaPlayer.OnCompletionListener, MediaPlayer.OnErrorListener,
-        MediaPlayer.OnBufferingUpdateListener, MediaPlayer.OnSeekCompleteListener, OnBufferUpdateListener, MetadataListener {
+        MediaPlayer.OnBufferingUpdateListener, MediaPlayer.OnSeekCompleteListener, OnBufferUpdateListener, MetadataListener, CaptionListener {
     //The amount of time the current position can be off the duration to call the onCompletion listener
     private static final long COMPLETED_DURATION_LEEWAY = 1000;
 
@@ -168,6 +171,11 @@ public class ListenerMux implements ExoPlayerListener, MediaPlayer.OnPreparedLis
     @Override
     public void onVideoSizeChanged(int width, int height, int unAppliedRotationDegrees, float pixelWidthHeightRatio) {
         muxNotifier.onVideoSizeChanged(width, height, unAppliedRotationDegrees, pixelWidthHeightRatio);
+    }
+
+    @Override
+    public void onCues(List<Cue> cues) {
+        muxNotifier.onCues(cues);
     }
 
     /**
@@ -322,6 +330,10 @@ public class ListenerMux implements ExoPlayerListener, MediaPlayer.OnPreparedLis
         }
 
         public void onPreviewImageStateChanged(boolean toVisible) {
+            //Purposefully left blank
+        }
+
+        public void onCues(List<Cue> cues) {
             //Purposefully left blank
         }
 

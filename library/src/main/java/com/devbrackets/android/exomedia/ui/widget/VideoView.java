@@ -58,7 +58,10 @@ import com.devbrackets.android.exomedia.util.StopWatch;
 import com.google.android.exoplayer2.drm.MediaDrmCallback;
 import com.google.android.exoplayer2.source.MediaSource;
 import com.google.android.exoplayer2.source.TrackGroupArray;
+import com.google.android.exoplayer2.text.Cue;
+import com.google.android.exoplayer2.ui.SubtitleView;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -77,6 +80,7 @@ public class VideoView extends RelativeLayout {
     @Nullable
     protected VideoControls videoControls;
     protected ImageView previewImageView;
+    protected SubtitleView subtitleView;
 
     protected Uri videoUri;
     protected VideoViewApi videoViewImpl;
@@ -563,6 +567,26 @@ public class VideoView extends RelativeLayout {
     }
 
     /**
+     * Changes to the track with <code>trackGroupIndex</code> for the specified
+     * <code>trackType</code>
+     *
+     * @param trackType The type for the track to switch to the selected trackGroupIndex
+     * @param trackGroupIndex The index for the trackGroup to switch to
+     */
+    public void setRendererTrackGroupIndex(ExoMedia.RendererType trackType, int trackGroupIndex) {
+        videoViewImpl.setRendererTrackGroupIndex(trackType, trackGroupIndex);
+    }
+
+    /**
+     * Gets the selected trackGroup index for the renderer with the specified <code>trackType</code>
+     *
+     * @param trackType The type of the track to get the selected trackGroupIndex
+     */
+    public int getRendererTrackGroupIndex(ExoMedia.RendererType trackType) {
+        return videoViewImpl.getRendererTrackGroupIndex(trackType);
+    }
+
+    /**
      * Retrieves a list of available tracks to select from.  Typically {@link #trackSelectionAvailable()}
      * should be called before this.
      *
@@ -695,6 +719,7 @@ public class VideoView extends RelativeLayout {
 
         previewImageView = (ImageView) findViewById(R.id.exomedia_video_preview_image);
         videoViewImpl = (VideoViewApi) findViewById(R.id.exomedia_video_view);
+        subtitleView = (SubtitleView) findViewById(R.id.exo_subtitles);
 
         muxNotifier = new MuxNotifier();
         listenerMux = new ListenerMux(muxNotifier);
@@ -928,6 +953,10 @@ public class VideoView extends RelativeLayout {
             if (previewImageView != null) {
                 previewImageView.setVisibility(toVisible ? View.VISIBLE : View.GONE);
             }
+        }
+
+        public void onCues(List<Cue> cues) {
+            subtitleView.onCues(cues);
         }
     }
 

@@ -37,6 +37,8 @@ public class ExoMedia {
         METADATA
     }
 
+    public static final int TRACK_GROUP_DISABLED  = -1;
+
     /**
      * Registers additional customized {@link com.google.android.exoplayer2.Renderer}s
      * that will be used by the {@link com.google.android.exoplayer2.source.MediaSource}s to

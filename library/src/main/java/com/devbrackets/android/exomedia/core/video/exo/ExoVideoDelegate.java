@@ -27,6 +27,7 @@ import android.view.Surface;
 import com.devbrackets.android.exomedia.ExoMedia;
 import com.devbrackets.android.exomedia.core.ListenerMux;
 import com.devbrackets.android.exomedia.core.exoplayer.ExoMediaPlayer;
+import com.devbrackets.android.exomedia.core.listener.CaptionListener;
 import com.devbrackets.android.exomedia.core.listener.MetadataListener;
 import com.devbrackets.android.exomedia.core.video.ClearableSurface;
 import com.devbrackets.android.exomedia.listener.OnBufferUpdateListener;
@@ -34,7 +35,9 @@ import com.google.android.exoplayer2.drm.MediaDrmCallback;
 import com.google.android.exoplayer2.metadata.Metadata;
 import com.google.android.exoplayer2.source.MediaSource;
 import com.google.android.exoplayer2.source.TrackGroupArray;
+import com.google.android.exoplayer2.text.Cue;
 
+import java.util.List;
 import java.util.Map;
 
 public class ExoVideoDelegate {
@@ -171,6 +174,14 @@ public class ExoVideoDelegate {
         exoMediaPlayer.setSelectedTrack(trackType, trackIndex);
     }
 
+    public void setRendererTrackGroupIndex(ExoMedia.RendererType trackType, int trackGroupIndex) {
+        exoMediaPlayer.setSelectedRendererTrackGroupIndex(trackType, trackGroupIndex);
+    }
+
+    public int getRendererTrackGroupIndex(ExoMedia.RendererType trackType) {
+        return exoMediaPlayer.getSelectedRendererTrackGroupIndex(trackType);
+    }
+
     @Nullable
     public Map<ExoMedia.RendererType, TrackGroupArray> getAvailableTracks() {
         return exoMediaPlayer.getAvailableTracks();
@@ -213,9 +224,10 @@ public class ExoVideoDelegate {
 
         exoMediaPlayer.setMetadataListener(internalListeners);
         exoMediaPlayer.setBufferUpdateListener(internalListeners);
+        exoMediaPlayer.setCaptionListener(internalListeners);
     }
 
-    protected class InternalListeners implements MetadataListener, OnBufferUpdateListener {
+    protected class InternalListeners implements MetadataListener, OnBufferUpdateListener, CaptionListener {
         @Override
         public void onMetadata(Metadata metadata) {
             listenerMux.onMetadata(metadata);
@@ -224,6 +236,11 @@ public class ExoVideoDelegate {
         @Override
         public void onBufferingUpdate(@IntRange(from = 0, to = 100) int percent) {
             listenerMux.onBufferingUpdate(percent);
+        }
+
+        @Override
+        public void onCues(List<Cue> cues) {
+            listenerMux.onCues(cues);
         }
     }
 }

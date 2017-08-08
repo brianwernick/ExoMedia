@@ -11,12 +11,12 @@ def libraryBaseName = 'exomedia'
 def libraryVersion = "${versionMajor}.${versionMinor}.${versionPatch}"
 
 ext {
-    exoPlayerVersion = "r2.4.3"
+    exoPlayerVersion = "r2.5.1"
 }
 
 dependencies {
     // Android
-    compile 'com.android.support:appcompat-v7:25.4.0'
+    compile 'com.android.support:appcompat-v7:26.0.0'
 
     // ExoPlayer
     compile "com.google.android.exoplayer:exoplayer-core:$exoPlayerVersion"
@@ -26,12 +26,12 @@ dependencies {
 }
 
 android {
-    compileSdkVersion 25
-    buildToolsVersion '25.0.3'
+    compileSdkVersion 26
+    buildToolsVersion '26.0.1'
 
     defaultConfig {
         minSdkVersion 14
-        targetSdkVersion 25
+        targetSdkVersion 26
 
         versionCode versionMajor * 10000 + versionMinor * 1000 + versionPatch * 100
         versionName "${versionMajor}.${versionMinor}.${versionPatch}"

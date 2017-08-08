@@ -50,6 +50,7 @@ import com.google.android.exoplayer2.ExoPlayerFactory;
 import com.google.android.exoplayer2.Format;
 import com.google.android.exoplayer2.LoadControl;
 import com.google.android.exoplayer2.PlaybackParameters;
+import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.Renderer;
 import com.google.android.exoplayer2.Timeline;
 import com.google.android.exoplayer2.audio.AudioRendererEventListener;
@@ -84,7 +85,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 @SuppressWarnings({"unused", "WeakerAccess"})
-public class ExoMediaPlayer implements ExoPlayer.EventListener {
+public class ExoMediaPlayer implements Player.EventListener {
     private static final String TAG = "ExoMediaPlayer";
     private static final int BUFFER_REPEAT_DELAY = 1_000;
     private static final int WAKE_LOCK_TIMEOUT = 1_000;
@@ -174,6 +175,11 @@ public class ExoMediaPlayer implements ExoPlayer.EventListener {
 
     @Override
     public void onLoadingChanged(boolean isLoading) {
+        // Purposefully left blank
+    }
+
+    @Override
+    public void onRepeatModeChanged(int repeatMode) {
         // Purposefully left blank
     }
 
@@ -341,7 +347,7 @@ public class ExoMediaPlayer implements ExoPlayer.EventListener {
     }
 
     public void setAudioStreamType(int streamType) {
-        sendMessage(C.TRACK_TYPE_AUDIO, C.MSG_SET_STREAM_TYPE, streamType);
+//        sendMessage(C.TRACK_TYPE_AUDIO, C.MSG_SET_STREAM_TYPE, streamType);
     }
 
     public void forcePrepare() {

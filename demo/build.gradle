@@ -21,7 +21,7 @@ android {
 
     defaultConfig {
         applicationId "com.devbrackets.android.exomediademo"
-        minSdkVersion 14
+        minSdkVersion 15
         targetSdkVersion 26
         versionCode 1
         versionName "1.0.0"

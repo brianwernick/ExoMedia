@@ -22,16 +22,21 @@ import android.support.annotation.FloatRange;
 import android.support.annotation.IntRange;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.util.Log;
 import android.view.Surface;
 
 import com.devbrackets.android.exomedia.ExoMedia;
 import com.devbrackets.android.exomedia.core.ListenerMux;
 import com.devbrackets.android.exomedia.core.exoplayer.ExoMediaPlayer;
 import com.devbrackets.android.exomedia.core.listener.MetadataListener;
+import com.devbrackets.android.exomedia.core.source.RtmpDataSource;
 import com.devbrackets.android.exomedia.core.video.ClearableSurface;
 import com.devbrackets.android.exomedia.listener.OnBufferUpdateListener;
 import com.google.android.exoplayer2.drm.MediaDrmCallback;
+import com.google.android.exoplayer2.extractor.DefaultExtractorsFactory;
+import com.google.android.exoplayer2.extractor.ExtractorsFactory;
 import com.google.android.exoplayer2.metadata.Metadata;
+import com.google.android.exoplayer2.source.ExtractorMediaSource;
 import com.google.android.exoplayer2.source.MediaSource;
 import com.google.android.exoplayer2.source.TrackGroupArray;
 
@@ -65,7 +70,14 @@ public class ExoVideoDelegate {
         listenerMux.setNotifiedPrepared(false);
         exoMediaPlayer.seekTo(0);
 
-        if (mediaSource != null) {
+        if(uri.toString().startsWith("rtmp")) {
+            RtmpDataSource.RtmpDataSourceFactory rtmpDataSourceFactory = new RtmpDataSource.RtmpDataSourceFactory();
+            ExtractorsFactory extractorsFactory = new DefaultExtractorsFactory();
+            MediaSource videoSource = new ExtractorMediaSource(uri,
+                    rtmpDataSourceFactory, extractorsFactory, null, null);
+            exoMediaPlayer.setMediaSource(videoSource);
+            listenerMux.setNotifiedCompleted(false);
+        } else if (mediaSource != null) {
             exoMediaPlayer.setMediaSource(mediaSource);
             listenerMux.setNotifiedCompleted(false);
         } else if (uri != null) {

@@ -12,6 +12,7 @@ def libraryVersion = "${versionMajor}.${versionMinor}.${versionPatch}"
 
 ext {
     exoPlayerVersion = "r2.5.1"
+    butterflyTv = "0.2.8"
 }
 
 dependencies {
@@ -23,6 +24,7 @@ dependencies {
     compile "com.google.android.exoplayer:exoplayer-dash:$exoPlayerVersion"
     compile "com.google.android.exoplayer:exoplayer-hls:$exoPlayerVersion"
     compile "com.google.android.exoplayer:exoplayer-smoothstreaming:$exoPlayerVersion"
+    compile "net.butterflytv.utils:rtmp-client:$butterflyTv"
 }
 
 android {
@@ -30,7 +32,7 @@ android {
     buildToolsVersion '26.0.1'
 
     defaultConfig {
-        minSdkVersion 14
+        minSdkVersion 15
         targetSdkVersion 26
 
         versionCode versionMajor * 10000 + versionMinor * 1000 + versionPatch * 100

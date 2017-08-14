@@ -16,7 +16,7 @@ ext {
 
 dependencies {
     // Android
-    compile 'com.android.support:appcompat-v7:26.0.0'
+    compile 'com.android.support:appcompat-v7:26.0.1'
 
     // ExoPlayer
     compile "com.google.android.exoplayer:exoplayer-core:$exoPlayerVersion"

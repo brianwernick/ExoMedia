@@ -25,9 +25,18 @@ import java.util.Map;
  * {@link com.google.android.exoplayer2.source.MediaSource}s
  */
 public class ExoMedia {
+    /**
+     * @deprecated Use {@link DataSourceFactoryProvider} instead
+     */
+    @Deprecated
     public interface HttpDataSourceFactoryProvider {
         @NonNull
         HttpDataSource.BaseFactory provide(@NonNull String userAgent, @Nullable TransferListener<? super DataSource> listener);
+    }
+
+    public interface DataSourceFactoryProvider {
+        @NonNull
+        DataSource.Factory provide(@NonNull String userAgent, @Nullable TransferListener<? super DataSource> listener);
     }
 
     public enum RendererType {
@@ -67,9 +76,23 @@ public class ExoMedia {
      * method.
      *
      * @param provider The provider to use for the {@link com.devbrackets.android.exomedia.core.source.builder.MediaSourceBuilder}s
+     * @deprecated Use {@link #setDataSourceFactoryProvider(DataSourceFactoryProvider)} instead as it is more permissive
      */
+    @Deprecated
     public static void setHttpDataSourceFactoryProvider(@Nullable HttpDataSourceFactoryProvider provider) {
         Data.httpDataSourceFactoryProvider = provider;
+    }
+
+    /**
+     * Specifies the provider to use when building {@link com.google.android.exoplayer2.upstream.DataSource.Factory}
+     * instances for use with the {@link com.devbrackets.android.exomedia.core.source.builder.MediaSourceBuilder}s. This will
+     * only be used for builders that haven't customized the {@link com.devbrackets.android.exomedia.core.source.builder.MediaSourceBuilder#buildDataSourceFactory(Context, String, TransferListener)}
+     * method.
+     *
+     * @param provider The provider to use for the {@link com.devbrackets.android.exomedia.core.source.builder.MediaSourceBuilder}s
+     */
+    public static void setDataSourceFactoryProvider(@Nullable DataSourceFactoryProvider provider) {
+        Data.dataSourceFactoryProvider = provider;
     }
 
     /**
@@ -92,7 +115,10 @@ public class ExoMedia {
         @NonNull
         public static final List<MediaSourceProvider.SourceTypeBuilder> sourceTypeBuilders = new ArrayList<>();
         @Nullable
+        @Deprecated
         public static volatile HttpDataSourceFactoryProvider httpDataSourceFactoryProvider;
+        @Nullable
+        public static volatile DataSourceFactoryProvider dataSourceFactoryProvider;
         @Nullable
         public static volatile LoadControl loadControl;
 

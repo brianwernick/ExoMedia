@@ -2,7 +2,7 @@ apply plugin: 'com.android.application'
 
 dependencies {
     compile project(':library')
-    compile 'com.android.support:appcompat-v7:26.0.0'
+    compile 'com.android.support:appcompat-v7:26.0.1'
     compile 'com.google.android.exoplayer:extension-okhttp:r2.5.1'
 
     // Image Loading

@@ -54,7 +54,7 @@ public class ExoMedia {
      * @param type The type for the renderer
      * @param clazz The class of the customized Renderer
      */
-    public static void registerRenderer(@NonNull RendererType type, @NonNull Class<? super Renderer> clazz) {
+    public static void registerRenderer(@NonNull RendererType type, @NonNull Class<? extends Renderer> clazz) {
         Data.registeredRendererClasses.get(type).add(clazz.getName());
     }
 

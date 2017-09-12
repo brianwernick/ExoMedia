@@ -760,7 +760,7 @@ public abstract class VideoControls extends RelativeLayout {
 
             if (videoView.isPlaying()) {
                 pausedForSeek = true;
-                videoView.pause();
+                videoView.pause(true);
             }
 
             show();

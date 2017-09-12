@@ -396,7 +396,21 @@ public class VideoView extends RelativeLayout {
      * If a video is currently in playback, it will be paused
      */
     public void pause() {
-        audioFocusHelper.abandonFocus();
+        pause(false);
+    }
+
+    /**
+     * Pauses the current video in playback, only abandoning the audio focus if
+     * <code>transientFocusLoss</code> is <code>false</code>. Calling {@link #pause()} should
+     * be used in most cases unless the audio focus is being handled manually
+     *
+     * @param transientFocusLoss <code>true</code> if the pause is temporary and the audio focus should be retained
+     */
+    public void pause(boolean transientFocusLoss) {
+        if (!transientFocusLoss) {
+            audioFocusHelper.abandonFocus();
+        }
+
         videoViewImpl.pause();
         setKeepScreenOn(false);
 
@@ -822,7 +836,7 @@ public class VideoView extends RelativeLayout {
                 case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK:
                     if (isPlaying()) {
                         pausedForLoss = true;
-                        pause();
+                        pause(true);
                     }
                     break;
             }

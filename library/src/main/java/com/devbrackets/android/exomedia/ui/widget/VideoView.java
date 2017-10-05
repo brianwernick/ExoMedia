@@ -33,6 +33,7 @@ import android.support.annotation.Nullable;
 import android.util.AttributeSet;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
+import android.view.TextureView;
 import android.view.View;
 import android.view.ViewStub;
 import android.widget.ImageView;
@@ -675,6 +676,26 @@ public class VideoView extends RelativeLayout {
      */
     public void setOnVideoSizedChangedListener(@Nullable OnVideoSizeChangedListener listener) {
         muxNotifier.videoSizeChangedListener = listener;
+    }
+
+    /**
+     * Returns a {@link Bitmap} representation of the current contents of the
+     * view. If the surface isn't ready or we cannot access it for some reason then
+     * <code>null</code> will be returned instead.
+     *
+     * <b>NOTE:</b> Only the <code>TextureView</code> implementations support getting the bitmap
+     * meaning that if the backing implementation is a <code>SurfaceView</code> then the result
+     * will always be <code>null</code>
+     *
+     * @return A {@link Bitmap} representation of the view or <code>null</code>
+     */
+    @Nullable
+    public Bitmap getBitmap() {
+        if (videoViewImpl instanceof TextureView) {
+            return ((TextureView) videoViewImpl).getBitmap();
+        }
+
+        return null;
     }
 
     /**

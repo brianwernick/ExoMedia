@@ -23,6 +23,7 @@ dependencies {
     compile "com.google.android.exoplayer:exoplayer-dash:$exoPlayerVersion"
     compile "com.google.android.exoplayer:exoplayer-hls:$exoPlayerVersion"
     compile "com.google.android.exoplayer:exoplayer-smoothstreaming:$exoPlayerVersion"
+    compile "com.google.android.exoplayer:exoplayer-ui:$exoPlayerVersion"
 }
 
 android {

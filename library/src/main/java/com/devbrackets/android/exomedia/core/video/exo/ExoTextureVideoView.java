@@ -150,6 +150,16 @@ public class ExoTextureVideoView extends ResizingTextureView implements VideoVie
         delegate.setTrack(trackType, trackIndex);
     }
 
+    @Override
+    public void setRendererTrackGroupIndex(ExoMedia.RendererType trackType, int trackGroupIndex) {
+        delegate.setRendererTrackGroupIndex(trackType, trackGroupIndex);
+    }
+
+    @Override
+    public int getRendererTrackGroupIndex(ExoMedia.RendererType trackType) {
+        return delegate.getRendererTrackGroupIndex(trackType);
+    }
+
     @Nullable
     @Override
     public Map<ExoMedia.RendererType, TrackGroupArray> getAvailableTracks() {

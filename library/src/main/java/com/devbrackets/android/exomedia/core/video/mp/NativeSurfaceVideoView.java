@@ -187,6 +187,17 @@ public class NativeSurfaceVideoView extends ResizingSurfaceView implements Nativ
         //Purposefully left blank
     }
 
+    @Override
+    public void setRendererTrackGroupIndex(ExoMedia.RendererType trackType, int trackGroupIndex) {
+        //Purposefully left blank
+    }
+
+    @Override
+    public int getRendererTrackGroupIndex(ExoMedia.RendererType trackType) {
+        //Purposefully left blank
+        return ExoMedia.TRACK_GROUP_DISABLED;
+    }
+
     @Nullable
     @Override
     public Map<ExoMedia.RendererType, TrackGroupArray> getAvailableTracks() {

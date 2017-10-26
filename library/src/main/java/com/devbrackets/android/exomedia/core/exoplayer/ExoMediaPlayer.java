@@ -89,6 +89,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 @SuppressWarnings({"unused", "WeakerAccess"})
 public class ExoMediaPlayer implements Player.EventListener {
     private static final String TAG = "ExoMediaPlayer";
+    public static final int RENDERER_INDEX_UNKNOWN = -1;
     private static final int BUFFER_REPEAT_DELAY = 1_000;
     private static final int WAKE_LOCK_TIMEOUT = 1_000;
 
@@ -344,6 +345,54 @@ public class ExoMediaPlayer implements Player.EventListener {
         trackSelector.setSelectionOverride(exoPlayerTrackIndex, trackGroupArray, selectionOverride);
     }
 
+    public int getSelectedRendererTrackGroupIndex(@NonNull RendererType type) {
+        int exoPlayerRendererIndex = getExoPlayerRendererIndex(type);
+        if (exoPlayerRendererIndex == RENDERER_INDEX_UNKNOWN) {
+            // This RendererType of the renderer does not exists in the current media
+            return ExoMedia.TRACK_GROUP_DISABLED;
+        }
+        MappingTrackSelector.MappedTrackInfo mappedTrackInfo = trackSelector.getCurrentMappedTrackInfo();
+        TrackGroupArray trackGroupArray = mappedTrackInfo == null ? null : mappedTrackInfo.getTrackGroups(exoPlayerRendererIndex);
+        MappingTrackSelector.SelectionOverride selectionOverride = trackSelector.getSelectionOverride(exoPlayerRendererIndex, trackGroupArray);
+        if (selectionOverride == null || selectionOverride.length <= 0) {
+            return -1;
+        }
+
+        return selectionOverride.groupIndex;
+    }
+
+    public void setSelectedRendererTrackGroupIndex(@NonNull RendererType type, int groupIndex) {
+        // Retrieves the available tracks
+        int exoPlayerRendererIndex = getExoPlayerRendererIndex(type);
+        if (exoPlayerRendererIndex == RENDERER_INDEX_UNKNOWN) {
+            // This RendererType of the renderer does not exists in the current media
+            return;
+        }
+
+        if (groupIndex == ExoMedia.TRACK_GROUP_DISABLED) {
+            trackSelector.setRendererDisabled(exoPlayerRendererIndex, true);
+            trackSelector.clearSelectionOverrides(exoPlayerRendererIndex);
+            return;
+        }
+
+        MappingTrackSelector.MappedTrackInfo mappedTrackInfo = trackSelector.getCurrentMappedTrackInfo();
+        TrackGroupArray trackGroupArray = mappedTrackInfo == null ? null : mappedTrackInfo.getTrackGroups(exoPlayerRendererIndex);
+        if ((trackGroupArray == null) || (groupIndex >= trackGroupArray.length)) {
+            // Renderer exists in the current stream,
+            // but either the renderer does not have any tracks or
+            // the requested groupIndex is greater than the amount of track groups in this renderer.
+            return;
+        }
+
+        trackSelector.setRendererDisabled(exoPlayerRendererIndex, false);
+        // Creates the track selection override
+        MappingTrackSelector.SelectionOverride selectionOverride =
+                new MappingTrackSelector.SelectionOverride(new FixedTrackSelection.Factory(), groupIndex, new int[] {0});
+        // Specifies the renderer index in the current media stream
+        // and the trackGroupArray for which the override should be applied.
+        trackSelector.setSelectionOverride(exoPlayerRendererIndex, trackGroupArray, selectionOverride);
+    }
+
     public void setVolume(@FloatRange(from = 0.0, to = 1.0) float volume) {
         sendMessage(C.TRACK_TYPE_AUDIO, C.MSG_SET_VOLUME, volume);
     }
@@ -507,6 +556,19 @@ public class ExoMediaPlayer implements Player.EventListener {
         }
 
         return C.TRACK_TYPE_UNKNOWN;
+    }
+
+    protected int getExoPlayerRendererIndex(@NonNull RendererType type) {
+        MappingTrackSelector.MappedTrackInfo mappedTrackInfo = trackSelector.getCurrentMappedTrackInfo();
+        if (mappedTrackInfo == null) {
+            return RENDERER_INDEX_UNKNOWN;
+        }
+        for (int i = 0; i < mappedTrackInfo.length; i++) {
+            if (player.getRendererType(i) == getExoPlayerTrackType(type)) {
+                return i;
+            }
+        }
+        return RENDERER_INDEX_UNKNOWN;
     }
 
     protected void sendMessage(int renderType, int messageType, Object message) {

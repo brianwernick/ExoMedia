@@ -112,6 +112,10 @@ public interface VideoViewApi {
 
     void setTrack(ExoMedia.RendererType type, int trackIndex);
 
+    void setRendererTrackGroupIndex(ExoMedia.RendererType trackType, int trackGroupIndex);
+
+    int getRendererTrackGroupIndex(ExoMedia.RendererType trackType);
+
     /**
      * Retrieves a list of available tracks to select from.  Typically {@link #trackSelectionAvailable()}
      * should be called before this.

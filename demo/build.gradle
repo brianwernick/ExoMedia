@@ -2,8 +2,8 @@ apply plugin: 'com.android.application'
 
 dependencies {
     compile project(':library')
-    compile 'com.android.support:appcompat-v7:26.1.0'
-    compile 'com.google.android.exoplayer:extension-okhttp:r2.5.4'
+    compile "com.android.support:appcompat-v7:$rootProject.ext.supportLibVersion"
+    compile "com.google.android.exoplayer:extension-okhttp:$rootProject.ext.exoPlayerVersion"
 
     // Image Loading
     compile 'com.github.bumptech.glide:glide:3.8.0'
@@ -16,13 +16,13 @@ dependencies {
 }
 
 android {
-    compileSdkVersion 26
+    compileSdkVersion 27
     buildToolsVersion '26.0.2'
 
     defaultConfig {
         applicationId "com.devbrackets.android.exomediademo"
         minSdkVersion 14
-        targetSdkVersion 26
+        targetSdkVersion 27
         versionCode 1
         versionName "1.0.0"
     }

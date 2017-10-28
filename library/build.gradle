@@ -10,28 +10,24 @@ def libraryGroupId = 'com.devbrackets.android'
 def libraryBaseName = 'exomedia'
 def libraryVersion = "${versionMajor}.${versionMinor}.${versionPatch}"
 
-ext {
-    exoPlayerVersion = "r2.5.4"
-}
-
 dependencies {
-    // Android
-    compile 'com.android.support:appcompat-v7:26.1.0'
+    compile "com.android.support:support-media-compat:$rootProject.ext.supportLibVersion"
+    compile "com.android.support:appcompat-v7:$rootProject.ext.supportLibVersion"
 
     // ExoPlayer
-    compile "com.google.android.exoplayer:exoplayer-core:$exoPlayerVersion"
-    compile "com.google.android.exoplayer:exoplayer-dash:$exoPlayerVersion"
-    compile "com.google.android.exoplayer:exoplayer-hls:$exoPlayerVersion"
-    compile "com.google.android.exoplayer:exoplayer-smoothstreaming:$exoPlayerVersion"
+    compile "com.google.android.exoplayer:exoplayer-core:$rootProject.ext.exoPlayerVersion"
+    compile "com.google.android.exoplayer:exoplayer-dash:$rootProject.ext.exoPlayerVersion"
+    compile "com.google.android.exoplayer:exoplayer-hls:$rootProject.ext.exoPlayerVersion"
+    compile "com.google.android.exoplayer:exoplayer-smoothstreaming:$rootProject.ext.exoPlayerVersion"
 }
 
 android {
-    compileSdkVersion 26
+    compileSdkVersion 27
     buildToolsVersion '26.0.2'
 
     defaultConfig {
         minSdkVersion 14
-        targetSdkVersion 26
+        targetSdkVersion 27
 
         versionCode versionMajor * 10000 + versionMinor * 1000 + versionPatch * 100
         versionName "${versionMajor}.${versionMinor}.${versionPatch}"
@@ -46,14 +42,6 @@ android {
 
     lintOptions {
         abortOnError false
-    }
-
-    packagingOptions {
-        exclude 'META-INF/LICENSE'
-        exclude 'META-INF/LICENSE.txt'
-        exclude 'META-INF/NOTICE'
-        exclude 'META-INF/NOTICE.txt'
-        exclude 'META-INF/services/javax.annotation.processing.Processor'
     }
 }
 

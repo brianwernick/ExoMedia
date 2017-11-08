@@ -107,7 +107,7 @@ public class VideoPlayerActivity extends Activity implements PlaylistListener<Me
     protected void init() {
         setupPlaylistManager();
 
-        videoView = (VideoView)findViewById(R.id.video_play_activity_video_view);
+        videoView = findViewById(R.id.video_play_activity_video_view);
 
         playlistManager.setVideoPlayer(new VideoApi(videoView));
         playlistManager.play(0, false);

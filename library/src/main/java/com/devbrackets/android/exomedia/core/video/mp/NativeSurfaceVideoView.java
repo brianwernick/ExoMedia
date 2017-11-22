@@ -135,7 +135,7 @@ public class NativeSurfaceVideoView extends ResizingSurfaceView implements Nativ
 
     @Override
     public void setVideoUri(@Nullable Uri uri, @Nullable Uri subtitleUri) {
-        setVideoUri(uri, subtitleUri);
+        setVideoUri(uri, subtitleUri, null);
     }
 
     @Override

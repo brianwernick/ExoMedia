@@ -92,11 +92,11 @@ public class SubtitleUtil {
         }
 
         return new MergingMediaSource(
+                mediaSource,
                 createSubtitleMediaSource(
                         dataSourceFactory,
                         captionUri
-                ),
-                mediaSource
+                )
         );
     }
 

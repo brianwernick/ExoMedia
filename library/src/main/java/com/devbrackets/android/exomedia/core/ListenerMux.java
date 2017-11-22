@@ -344,11 +344,5 @@ public class ListenerMux implements ExoPlayerListener, MediaPlayer.OnPreparedLis
 
         public abstract void onCues(List<Cue> cues);
 
-
-//            if(cues == null || cues.size() == 0) {
-//            return;
-//        }
-//
-//            Log.d(TAG, cues.get(0).text.toString());
     }
 }

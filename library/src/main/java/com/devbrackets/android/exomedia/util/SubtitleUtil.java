@@ -32,16 +32,16 @@ public class SubtitleUtil {
      * @return If recognized, the associated MimeTypes value. Else, null.
      */
     public static String getSubtitleMimeType(Uri uri) {
-        String extension = MediaUtil.getUriFileExtension(uri.toString());
+        String extension = MediaSourceUtil.getExtension(uri);
 
         if (extension == null) {
             return null;
         }
 
         switch (extension.toLowerCase()) {
-            case "srt":
+            case ".srt":
                 return MimeTypes.APPLICATION_SUBRIP;
-            case "vtt":
+            case ".vtt":
                 return MimeTypes.TEXT_VTT;
             default:
                 return null;

@@ -50,19 +50,4 @@ public class MediaUtil {
         return uri;
     }
 
-
-    /**
-     * Get the file extension of the provided media Uri.
-     *
-     * @param uri The media Uri.
-     * @return The file extension of the provided media Uri.
-     */
-    public static String getUriFileExtension(String uri) {
-        int index = uri.lastIndexOf('.');
-
-        return index > 0
-                ? uri.substring(index + 1)
-                : null;
-    }
-
 }

@@ -304,6 +304,11 @@ public class VideoView extends RelativeLayout {
      * @param videoPath The path to the video
      */
     public void setVideoPath(String videoPath, String subtitlePath) {
+        if(subtitlePath == null) {
+            setVideoURI(Uri.parse(videoPath), null);
+            return;
+        }
+
         setVideoURI(Uri.parse(videoPath), Uri.parse(videoPath));
     }
 

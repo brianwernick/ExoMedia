@@ -231,15 +231,12 @@ public class NativeVideoDelegate {
      * "android-allow-cross-domain-redirect" as the key and "0" or "1" as the value
      * to disallow or allow cross domain redirection.
      */
-    public void setVideoURI(Uri uri, @Nullable Uri subtitleUri, @Nullable Map<String, String> headers) {
+    public void setVideoURI(Uri uri, @Nullable Map<String, String> headers) {
         this.headers = headers;
         requestedSeek = 0;
         playRequested = false;
 
         openVideo(uri);
-
-        // TODO: SET SUBTITLES
-
     }
 
     public void setListenerMux(ListenerMux listenerMux) {

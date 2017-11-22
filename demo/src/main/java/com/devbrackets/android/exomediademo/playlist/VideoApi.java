@@ -67,7 +67,7 @@ public class VideoApi extends BaseMediaApi implements VideoPlayerApi {
     public void setDataSource(@NonNull Uri uri) {
         Uri subtitleUri = null;
 
-//        subtitleUri = Uri.parse("http://www.maxovahra.com/TAP_MAXSGAME_SUBS_GR.srt");
+        subtitleUri = Uri.parse("http://www.maxovahra.com/TAP_MAXSGAME_SUBS_GR.srt");
 
         videoView.setVideoURI(uri, subtitleUri);
     }

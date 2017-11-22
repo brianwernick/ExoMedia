@@ -145,7 +145,7 @@ public class NativeTextureVideoView extends ResizingTextureView implements Nativ
 
     @Override
     public void setVideoUri(@Nullable Uri uri, @Nullable Uri subtitleUri, @Nullable MediaSource mediaSource) {
-        setVideoURI(uri, subtitleUri);
+        setVideoURI(uri);
     }
 
 
@@ -225,8 +225,8 @@ public class NativeTextureVideoView extends ResizingTextureView implements Nativ
      *
      * @param uri the URI of the video.
      */
-    public void setVideoURI(Uri uri, @Nullable Uri subtitleUri) {
-        setVideoURI(uri, subtitleUri, null);
+    public void setVideoURI(Uri uri) {
+        setVideoURI(uri, null);
     }
 
     /**
@@ -240,8 +240,8 @@ public class NativeTextureVideoView extends ResizingTextureView implements Nativ
      * "android-allow-cross-domain-redirect" as the key and "0" or "1" as the value
      * to disallow or allow cross domain redirection.
      */
-    public void setVideoURI(Uri uri, @Nullable Uri subtitleUri, @Nullable Map<String, String> headers) {
-        delegate.setVideoURI(uri, subtitleUri, headers);
+    public void setVideoURI(Uri uri, @Nullable Map<String, String> headers) {
+        delegate.setVideoURI(uri, headers);
 
         requestLayout();
         invalidate();

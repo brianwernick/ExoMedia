@@ -101,6 +101,7 @@ public class VideoView extends RelativeLayout {
     protected boolean releaseOnDetachFromWindow = true;
     protected boolean handleAudioFocus = true;
     private SubtitleView subtitleView;
+    private Uri subtitleUri;
 
     public VideoView(Context context) {
         super(context);
@@ -267,9 +268,10 @@ public class VideoView extends RelativeLayout {
      *
      * @param uri The video's Uri
      */
-    public void setVideoURI(@Nullable Uri uri) {
+    public void setVideoURI(@Nullable Uri uri, @Nullable Uri subtitleUri) {
         videoUri = uri;
-        videoViewImpl.setVideoUri(uri);
+        this.subtitleUri = subtitleUri;
+        videoViewImpl.setVideoUri(uri, subtitleUri);
 
         if (videoControls != null) {
             videoControls.showLoading(true);
@@ -282,9 +284,13 @@ public class VideoView extends RelativeLayout {
      * @param uri         The video's Uri
      * @param mediaSource MediaSource that should be used
      */
-    public void setVideoURI(@Nullable Uri uri, @Nullable MediaSource mediaSource) {
+    public void setVideoURI(
+            @Nullable Uri uri,
+            @Nullable Uri subtitleUri,
+            @Nullable MediaSource mediaSource
+    ) {
         videoUri = uri;
-        videoViewImpl.setVideoUri(uri, mediaSource);
+        videoViewImpl.setVideoUri(uri, subtitleUri, mediaSource);
 
         if (videoControls != null) {
             videoControls.showLoading(true);
@@ -295,21 +301,32 @@ public class VideoView extends RelativeLayout {
      * Sets the path to the video.  This path can be a web address (e.g. http://) or
      * an absolute local path (e.g. file://)
      *
-     * @param path The path to the video
+     * @param videoPath The path to the video
      */
-    public void setVideoPath(String path) {
-        setVideoURI(Uri.parse(path));
+    public void setVideoPath(String videoPath, String subtitlePath) {
+        setVideoURI(Uri.parse(videoPath), Uri.parse(videoPath));
     }
 
     /**
-     * Retrieves the current Video URI.  If this hasn't been set with {@link #setVideoURI(android.net.Uri)}
-     * or {@link #setVideoPath(String)} then null will be returned.
+     * Retrieves the current Video URI.  If this hasn't been set with {@link #setVideoURI(android.net.Uri, android.net.Uri)}
+     * or {@link #setVideoPath(String, String)} then null will be returned.
      *
      * @return The current video URI or null
      */
     @Nullable
     public Uri getVideoUri() {
         return videoUri;
+    }
+
+    /**
+     * Retrieves the current subtitle URI.  If this hasn't been set with {@link #setVideoURI(android.net.Uri, android.net.Uri)}
+     * or {@link #setVideoPath(String, String)} then null will be returned.
+     *
+     * @return The current subtitle URI or null
+     */
+    @Nullable
+    public Uri getSubtitleUri() {
+        return subtitleUri;
     }
 
     /**
@@ -353,7 +370,7 @@ public class VideoView extends RelativeLayout {
      */
     public void reset() {
         stopPlayback();
-        setVideoURI(null);
+        setVideoURI(null, null);
     }
 
     /**
@@ -379,8 +396,8 @@ public class VideoView extends RelativeLayout {
     }
 
     /**
-     * Starts the playback for the video specified in {@link #setVideoURI(android.net.Uri)}
-     * or {@link #setVideoPath(String)}.  This should be called after the VideoView is correctly
+     * Starts the playback for the video specified in {@link #setVideoURI(android.net.Uri, android.net.Uri)}
+     * or {@link #setVideoPath(String, String)}.  This should be called after the VideoView is correctly
      * prepared (see {@link #setOnPreparedListener(OnPreparedListener)})
      */
     public void start() {

@@ -63,10 +63,14 @@ public class ExoVideoDelegate {
     }
 
     public void setVideoUri(@Nullable Uri uri) {
-        setVideoUri(uri, null);
+        setVideoUri(uri, null, null);
     }
 
-    public void setVideoUri(@Nullable Uri uri, @Nullable MediaSource mediaSource) {
+    public void setVideoUri(@Nullable Uri uri, @Nullable Uri subtitleUri) {
+        setVideoUri(uri, subtitleUri, null);
+    }
+
+    public void setVideoUri(@Nullable Uri uri, @Nullable Uri subtitleUri, @Nullable MediaSource mediaSource) {
         //Makes sure the listeners get the onPrepared callback
         listenerMux.setNotifiedPrepared(false);
         exoMediaPlayer.seekTo(0);
@@ -75,7 +79,7 @@ public class ExoVideoDelegate {
             exoMediaPlayer.setMediaSource(mediaSource);
             listenerMux.setNotifiedCompleted(false);
         } else if (uri != null) {
-            exoMediaPlayer.setUri(uri);
+            exoMediaPlayer.setUri(uri, subtitleUri);
             listenerMux.setNotifiedCompleted(false);
         } else {
             exoMediaPlayer.setMediaSource(null);
@@ -95,7 +99,7 @@ public class ExoVideoDelegate {
     }
 
     public boolean restart() {
-        if(!exoMediaPlayer.restart()) {
+        if (!exoMediaPlayer.restart()) {
             return false;
         }
 

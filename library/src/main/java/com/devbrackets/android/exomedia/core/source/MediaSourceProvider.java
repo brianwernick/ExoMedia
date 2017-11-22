@@ -29,7 +29,13 @@ public class MediaSourceProvider {
     protected String userAgent = String.format(USER_AGENT_FORMAT, BuildConfig.VERSION_NAME, BuildConfig.VERSION_CODE, Build.VERSION.RELEASE, Build.MODEL);
 
     @NonNull
-    public MediaSource generate(@NonNull Context context, @NonNull Handler handler, @NonNull Uri uri, @Nullable TransferListener<? super DataSource> transferListener ) {
+    public MediaSource generate(
+            @NonNull Context context,
+            @NonNull Handler handler,
+            @NonNull Uri uri,
+            @Nullable Uri subtitleUri,
+            @Nullable TransferListener<? super DataSource> transferListener
+    ) {
         String extension = MediaSourceUtil.getExtension(uri);
 
         // Searches for a registered builder
@@ -40,7 +46,7 @@ public class MediaSourceProvider {
 
         // If a registered builder wasn't found then use the default
         MediaSourceBuilder builder = sourceTypeBuilder != null ? sourceTypeBuilder.builder : new DefaultMediaSourceBuilder();
-        return builder.build(context, uri, userAgent, handler, transferListener);
+        return builder.build(context, uri, subtitleUri, userAgent, handler, transferListener);
     }
 
     @Nullable

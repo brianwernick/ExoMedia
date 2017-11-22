@@ -78,6 +78,7 @@ public class NativeTextureVideoView extends ResizingTextureView implements Nativ
         setup(context, attrs);
     }
 
+
     @Override
     public void setDrmCallback(@Nullable MediaDrmCallback drmCallback) {
         //Purposefully left blank
@@ -138,14 +139,15 @@ public class NativeTextureVideoView extends ResizingTextureView implements Nativ
     }
 
     @Override
-    public void setVideoUri(@Nullable Uri uri) {
-        setVideoUri(uri, null);
+    public void setVideoUri(@Nullable Uri uri, @Nullable Uri subtitleUri) {
+        setVideoUri(uri, subtitleUri, null);
     }
 
     @Override
-    public void setVideoUri(@Nullable Uri uri, @Nullable MediaSource mediaSource) {
-        setVideoURI(uri);
+    public void setVideoUri(@Nullable Uri uri, @Nullable Uri subtitleUri, @Nullable MediaSource mediaSource) {
+        setVideoURI(uri, subtitleUri);
     }
+
 
     @Override
     public boolean setVolume(@FloatRange(from = 0.0, to = 1.0) float volume) {
@@ -223,22 +225,23 @@ public class NativeTextureVideoView extends ResizingTextureView implements Nativ
      *
      * @param uri the URI of the video.
      */
-    public void setVideoURI(Uri uri) {
-        setVideoURI(uri, null);
+    public void setVideoURI(Uri uri, @Nullable Uri subtitleUri) {
+        setVideoURI(uri, subtitleUri, null);
     }
 
     /**
      * Sets video URI using specific headers.
      *
      * @param uri The Uri for the video to play
+     * @param uri The Uri for the subtitles
      * @param headers The headers for the URI request.
      * Note that the cross domain redirection is allowed by default, but that can be
      * changed with key/value pairs through the headers parameter with
      * "android-allow-cross-domain-redirect" as the key and "0" or "1" as the value
      * to disallow or allow cross domain redirection.
      */
-    public void setVideoURI(Uri uri, @Nullable Map<String, String> headers) {
-        delegate.setVideoURI(uri, headers);
+    public void setVideoURI(Uri uri, @Nullable Uri subtitleUri, @Nullable Map<String, String> headers) {
+        delegate.setVideoURI(uri, subtitleUri, headers);
 
         requestLayout();
         invalidate();

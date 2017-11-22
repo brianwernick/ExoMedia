@@ -48,9 +48,9 @@ public interface VideoViewApi {
 
     int getWidth();
 
-    void setVideoUri(@Nullable Uri uri);
+    void setVideoUri(@Nullable Uri uri, @Nullable Uri subtitleUri);
 
-    void setVideoUri(@Nullable Uri uri, @Nullable MediaSource mediaSource);
+    void setVideoUri(@Nullable Uri uri, @Nullable Uri subtitleUri, @Nullable MediaSource mediaSource);
 
     /**
      * Sets the {@link MediaDrmCallback} to use when handling DRM for media.

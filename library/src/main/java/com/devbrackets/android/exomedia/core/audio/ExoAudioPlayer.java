@@ -79,7 +79,7 @@ public class ExoAudioPlayer implements AudioPlayerApi {
             exoMediaPlayer.setMediaSource(mediaSource);
             listenerMux.setNotifiedCompleted(false);
         } else if (uri != null) {
-            exoMediaPlayer.setUri(uri);
+            exoMediaPlayer.setUri(uri, null);
             listenerMux.setNotifiedCompleted(false);
         } else {
             exoMediaPlayer.setMediaSource(null);
@@ -143,7 +143,7 @@ public class ExoAudioPlayer implements AudioPlayerApi {
      */
     @Override
     public boolean restart() {
-        if(!exoMediaPlayer.restart()) {
+        if (!exoMediaPlayer.restart()) {
             return false;
         }
 

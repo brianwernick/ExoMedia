@@ -4,6 +4,7 @@ import android.net.Uri;
 import android.support.annotation.FloatRange;
 import android.support.annotation.IntRange;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 
 import com.devbrackets.android.exomedia.ui.widget.VideoView;
 import com.devbrackets.android.playlistcore.api.VideoPlayerApi;
@@ -61,9 +62,14 @@ public class VideoApi extends BaseMediaApi implements VideoPlayerApi {
         videoView.seekTo((int)milliseconds);
     }
 
+    // TODO: Modify contract to accept subtitle URI's
     @Override
     public void setDataSource(@NonNull Uri uri) {
-        videoView.setVideoURI(uri);
+        Uri subtitleUri = null;
+
+//        subtitleUri = Uri.parse("http://www.maxovahra.com/TAP_MAXSGAME_SUBS_GR.srt");
+
+        videoView.setVideoURI(uri, subtitleUri);
     }
 
     @Override

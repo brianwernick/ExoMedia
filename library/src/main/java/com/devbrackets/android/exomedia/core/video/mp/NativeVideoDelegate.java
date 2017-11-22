@@ -224,18 +224,22 @@ public class NativeVideoDelegate {
      * Sets video URI using specific headers.
      *
      * @param uri The Uri for the video to play
+     * @param uri The Uri for the video subtitles.
      * @param headers The headers for the URI request.
      * Note that the cross domain redirection is allowed by default, but that can be
      * changed with key/value pairs through the headers parameter with
      * "android-allow-cross-domain-redirect" as the key and "0" or "1" as the value
      * to disallow or allow cross domain redirection.
      */
-    public void setVideoURI(Uri uri, @Nullable Map<String, String> headers) {
+    public void setVideoURI(Uri uri, @Nullable Uri subtitleUri, @Nullable Map<String, String> headers) {
         this.headers = headers;
         requestedSeek = 0;
         playRequested = false;
 
         openVideo(uri);
+
+        // TODO: SET SUBTITLES
+
     }
 
     public void setListenerMux(ListenerMux listenerMux) {

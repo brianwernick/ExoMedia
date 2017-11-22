@@ -62,12 +62,12 @@ public class VideoApi extends BaseMediaApi implements VideoPlayerApi {
         videoView.seekTo((int)milliseconds);
     }
 
-    // TODO: Modify contract to accept subtitle URI's
     @Override
     public void setDataSource(@NonNull Uri uri) {
         Uri subtitleUri = null;
 
-        subtitleUri = Uri.parse("http://www.maxovahra.com/TAP_MAXSGAME_SUBS_GR.srt");
+        // Uncomment to see subtitles in demo.
+//        subtitleUri = Uri.parse("SOME_SUBTITLE_FILE");
 
         videoView.setVideoURI(uri, subtitleUri);
     }

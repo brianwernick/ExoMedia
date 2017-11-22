@@ -2,6 +2,7 @@ package com.devbrackets.android.exomedia.util;
 
 
 import android.net.Uri;
+import android.support.annotation.NonNull;
 import android.webkit.MimeTypeMap;
 
 import com.google.android.exoplayer2.C;
@@ -11,6 +12,8 @@ import com.google.android.exoplayer2.source.MergingMediaSource;
 import com.google.android.exoplayer2.source.SingleSampleMediaSource;
 import com.google.android.exoplayer2.upstream.DataSource;
 import com.google.android.exoplayer2.util.MimeTypes;
+
+import java.net.URLEncoder;
 
 
 /**
@@ -29,11 +32,13 @@ public class SubtitleUtil {
      * @return If recognized, the associated MimeTypes value. Else, null.
      */
     public static String getSubtitleMimeType(Uri uri) {
-        String extension = MimeTypeMap
-                .getFileExtensionFromUrl(uri.toString())
-                .toLowerCase();
+        String extension = MediaUtil.getUriFileExtension(uri.toString());
 
-        switch (extension) {
+        if (extension == null) {
+            return null;
+        }
+
+        switch (extension.toLowerCase()) {
             case "srt":
                 return MimeTypes.APPLICATION_SUBRIP;
             case "vtt":
@@ -42,7 +47,6 @@ public class SubtitleUtil {
                 return null;
         }
     }
-
 
     /**
      * Create a subtitle MediaSource instance.

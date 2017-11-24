@@ -50,7 +50,7 @@ public class StartupListAdapter extends BaseAdapter {
             convertView = inflater.inflate(R.layout.simple_text_item, null);
 
             holder = new ViewHolder();
-            holder.text = (TextView) convertView.findViewById(R.id.simple_text_text_view);
+            holder.text = convertView.findViewById(R.id.simple_text_text_view);
             convertView.setTag(holder);
         } else {
             holder = (ViewHolder) convertView.getTag();

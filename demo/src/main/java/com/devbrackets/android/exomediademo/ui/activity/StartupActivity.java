@@ -17,7 +17,7 @@ public class StartupActivity extends AppCompatActivity implements AdapterView.On
         super.onCreate(savedInstanceState);
         setContentView(R.layout.startup_activity);
 
-        ListView exampleList = (ListView) findViewById(R.id.startup_activity_list);
+        ListView exampleList = findViewById(R.id.startup_activity_list);
         exampleList.setAdapter(new StartupListAdapter(this));
         exampleList.setOnItemClickListener(this);
     }

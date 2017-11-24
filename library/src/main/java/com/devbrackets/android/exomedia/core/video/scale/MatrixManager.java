@@ -9,6 +9,7 @@ import android.view.View;
 
 import java.lang.ref.WeakReference;
 
+@SuppressWarnings("WeakerAccess")
 public class MatrixManager {
     private static final String TAG = "MatrixManager";
     protected static final int QUARTER_ROTATION = 90;

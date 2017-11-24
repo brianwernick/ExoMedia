@@ -52,7 +52,6 @@ import com.google.android.exoplayer2.LoadControl;
 import com.google.android.exoplayer2.PlaybackParameters;
 import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.Renderer;
-import com.google.android.exoplayer2.Timeline;
 import com.google.android.exoplayer2.audio.AudioAttributes;
 import com.google.android.exoplayer2.audio.AudioRendererEventListener;
 import com.google.android.exoplayer2.decoder.DecoderCounters;
@@ -63,17 +62,16 @@ import com.google.android.exoplayer2.drm.FrameworkMediaCrypto;
 import com.google.android.exoplayer2.drm.FrameworkMediaDrm;
 import com.google.android.exoplayer2.drm.MediaDrmCallback;
 import com.google.android.exoplayer2.metadata.Metadata;
-import com.google.android.exoplayer2.metadata.MetadataRenderer;
+import com.google.android.exoplayer2.metadata.MetadataOutput;
 import com.google.android.exoplayer2.source.MediaSource;
 import com.google.android.exoplayer2.source.TrackGroupArray;
 import com.google.android.exoplayer2.text.Cue;
-import com.google.android.exoplayer2.text.TextRenderer;
+import com.google.android.exoplayer2.text.TextOutput;
 import com.google.android.exoplayer2.trackselection.AdaptiveTrackSelection;
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
 import com.google.android.exoplayer2.trackselection.FixedTrackSelection;
 import com.google.android.exoplayer2.trackselection.MappingTrackSelector;
 import com.google.android.exoplayer2.trackselection.TrackSelection;
-import com.google.android.exoplayer2.trackselection.TrackSelectionArray;
 import com.google.android.exoplayer2.upstream.DefaultBandwidthMeter;
 import com.google.android.exoplayer2.util.Util;
 import com.google.android.exoplayer2.video.VideoRendererEventListener;
@@ -87,7 +85,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 @SuppressWarnings({"unused", "WeakerAccess"})
-public class ExoMediaPlayer implements Player.EventListener {
+public class ExoMediaPlayer extends Player.DefaultEventListener {
     private static final String TAG = "ExoMediaPlayer";
     private static final int BUFFER_REPEAT_DELAY = 1_000;
     private static final int WAKE_LOCK_TIMEOUT = 1_000;
@@ -163,36 +161,6 @@ public class ExoMediaPlayer implements Player.EventListener {
         LoadControl loadControl = ExoMedia.Data.loadControl != null ? ExoMedia.Data.loadControl : new DefaultLoadControl();
         player = ExoPlayerFactory.newInstance(renderers.toArray(new Renderer[renderers.size()]), trackSelector, loadControl);
         player.addListener(this);
-    }
-
-    @Override
-    public void onTimelineChanged(Timeline timeline, Object manifest) {
-        // Purposefully left blank
-    }
-
-    @Override
-    public void onTracksChanged(TrackGroupArray trackGroups, TrackSelectionArray trackSelections) {
-        // Purposefully left blank
-    }
-
-    @Override
-    public void onLoadingChanged(boolean isLoading) {
-        // Purposefully left blank
-    }
-
-    @Override
-    public void onRepeatModeChanged(int repeatMode) {
-        // Purposefully left blank
-    }
-
-    @Override
-    public void onPositionDiscontinuity() {
-        // Purposefully left blank
-    }
-
-    @Override
-    public void onPlaybackParametersChanged(PlaybackParameters playbackParameters) {
-        // Purposefully left blank
     }
 
     @Override
@@ -485,8 +453,12 @@ public class ExoMediaPlayer implements Player.EventListener {
         //Acquires the wakelock if we have permissions to
         if (context.getPackageManager().checkPermission(Manifest.permission.WAKE_LOCK, context.getPackageName()) == PackageManager.PERMISSION_GRANTED) {
             PowerManager pm = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
-            wakeLock = pm.newWakeLock(mode | PowerManager.ON_AFTER_RELEASE, ExoMediaPlayer.class.getName());
-            wakeLock.setReferenceCounted(false);
+            if (pm != null) {
+                wakeLock = pm.newWakeLock(mode | PowerManager.ON_AFTER_RELEASE, ExoMediaPlayer.class.getName());
+                wakeLock.setReferenceCounted(false);
+            } else {
+                Log.e(TAG, "Unable to acquire WAKE_LOCK due to a null power manager");
+            }
         } else {
             Log.w(TAG, "Unable to acquire WAKE_LOCK due to missing manifest permission");
         }
@@ -717,8 +689,8 @@ public class ExoMediaPlayer implements Player.EventListener {
     private class ComponentListener implements
             VideoRendererEventListener,
             AudioRendererEventListener,
-            TextRenderer.Output,
-            MetadataRenderer.Output {
+            TextOutput,
+            MetadataOutput {
 
         @Override
         public void onAudioEnabled(DecoderCounters counters) {
@@ -746,9 +718,9 @@ public class ExoMediaPlayer implements Player.EventListener {
         }
 
         @Override
-        public void onAudioTrackUnderrun(int bufferSize, long bufferSizeMs, long elapsedSinceLastFeedMs) {
+        public void onAudioSinkUnderrun(int bufferSize, long bufferSizeMs, long elapsedSinceLastFeedMs) {
             if (internalErrorListener != null) {
-                internalErrorListener.onAudioTrackUnderrun(bufferSize, bufferSizeMs, elapsedSinceLastFeedMs);
+                internalErrorListener.onAudioSinkUnderrun(bufferSize, bufferSizeMs, elapsedSinceLastFeedMs);
             }
         }
 

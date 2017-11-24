@@ -32,7 +32,7 @@ import com.devbrackets.android.exomedia.listener.OnCompletionListener;
 import com.devbrackets.android.exomedia.listener.OnErrorListener;
 import com.devbrackets.android.exomedia.listener.OnPreparedListener;
 import com.devbrackets.android.exomedia.listener.OnSeekCompletionListener;
-import com.google.android.exoplayer2.ExoPlayer;
+import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.metadata.Metadata;
 
 import java.lang.ref.WeakReference;
@@ -114,23 +114,23 @@ public class ListenerMux implements ExoPlayerListener, MediaPlayer.OnPreparedLis
 
     @Override
     public void onStateChanged(boolean playWhenReady, int playbackState) {
-        if (playbackState == ExoPlayer.STATE_ENDED) {
+        if (playbackState == Player.STATE_ENDED) {
             muxNotifier.onMediaPlaybackEnded();
 
             if (!notifiedCompleted) {
                 notifyCompletionListener();
             }
-        } else if (playbackState == ExoPlayer.STATE_READY && !notifiedPrepared) {
+        } else if (playbackState == Player.STATE_READY && !notifiedPrepared) {
             notifyPreparedListener();
         }
 
         //Updates the previewImage
-        if (playbackState == ExoPlayer.STATE_READY && playWhenReady) {
+        if (playbackState == Player.STATE_READY && playWhenReady) {
             muxNotifier.onPreviewImageStateChanged(false);
         }
 
         //Clears the textureView when requested
-        if (playbackState == ExoPlayer.STATE_IDLE && clearRequested) {
+        if (playbackState == Player.STATE_IDLE && clearRequested) {
             clearRequested = false;
             ClearableSurface clearableSurface = clearableSurfaceRef.get();
 

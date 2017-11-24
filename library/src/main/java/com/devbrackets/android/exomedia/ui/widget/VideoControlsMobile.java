@@ -93,8 +93,8 @@ public class VideoControlsMobile extends VideoControls {
     @Override
     protected void retrieveViews() {
         super.retrieveViews();
-        seekBar = (SeekBar) findViewById(R.id.exomedia_controls_video_seek);
-        extraViewsContainer = (LinearLayout) findViewById(R.id.exomedia_controls_extra_container);
+        seekBar = findViewById(R.id.exomedia_controls_video_seek);
+        extraViewsContainer = findViewById(R.id.exomedia_controls_extra_container);
     }
 
     @Override

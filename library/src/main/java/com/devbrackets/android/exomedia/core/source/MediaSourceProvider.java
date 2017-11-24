@@ -21,6 +21,7 @@ import com.google.android.exoplayer2.upstream.TransferListener;
  * Provides the functionality to determine which {@link MediaSource} should be used
  * to play a particular URL.
  */
+@SuppressWarnings("WeakerAccess")
 public class MediaSourceProvider {
     protected static final String USER_AGENT_FORMAT = "ExoMedia %s (%d) / Android %s / %s";
 

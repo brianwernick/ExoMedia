@@ -557,21 +557,21 @@ public abstract class VideoControls extends RelativeLayout {
      * Retrieves the view references from the xml layout
      */
     protected void retrieveViews() {
-        currentTimeTextView = (TextView) findViewById(R.id.exomedia_controls_current_time);
-        endTimeTextView = (TextView) findViewById(R.id.exomedia_controls_end_time);
+        currentTimeTextView = findViewById(R.id.exomedia_controls_current_time);
+        endTimeTextView = findViewById(R.id.exomedia_controls_end_time);
 
-        titleTextView = (TextView) findViewById(R.id.exomedia_controls_title);
-        subTitleTextView = (TextView) findViewById(R.id.exomedia_controls_sub_title);
-        descriptionTextView = (TextView) findViewById(R.id.exomedia_controls_description);
+        titleTextView = findViewById(R.id.exomedia_controls_title);
+        subTitleTextView = findViewById(R.id.exomedia_controls_sub_title);
+        descriptionTextView = findViewById(R.id.exomedia_controls_description);
 
-        playPauseButton = (ImageButton) findViewById(R.id.exomedia_controls_play_pause_btn);
-        previousButton = (ImageButton) findViewById(R.id.exomedia_controls_previous_btn);
-        nextButton = (ImageButton) findViewById(R.id.exomedia_controls_next_btn);
+        playPauseButton = findViewById(R.id.exomedia_controls_play_pause_btn);
+        previousButton = findViewById(R.id.exomedia_controls_previous_btn);
+        nextButton = findViewById(R.id.exomedia_controls_next_btn);
 
-        loadingProgressBar = (ProgressBar) findViewById(R.id.exomedia_controls_video_loading);
+        loadingProgressBar = findViewById(R.id.exomedia_controls_video_loading);
 
-        controlsContainer = (ViewGroup) findViewById(R.id.exomedia_controls_interactive_container);
-        textContainer = (ViewGroup) findViewById(R.id.exomedia_controls_text_container);
+        controlsContainer = findViewById(R.id.exomedia_controls_interactive_container);
+        textContainer = findViewById(R.id.exomedia_controls_text_container);
     }
 
     /**

@@ -41,6 +41,7 @@ import static android.content.ContentValues.TAG;
  * to simplify support for both the {@link android.view.TextureView}
  * and {@link android.view.SurfaceView} implementations
  */
+@SuppressWarnings("WeakerAccess")
 public class NativeVideoDelegate {
     public interface Callback {
         void videoSizeChanged(int width, int height);

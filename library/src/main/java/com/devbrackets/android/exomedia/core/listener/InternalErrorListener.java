@@ -27,7 +27,7 @@ import com.devbrackets.android.exomedia.core.exoplayer.ExoMediaPlayer;
  * will be invoked.
  */
 public interface InternalErrorListener {
-    void onAudioTrackUnderrun(int bufferSize, long bufferSizeMs, long elapsedSinceLastFeedMs);
+    void onAudioSinkUnderrun(int bufferSize, long bufferSizeMs, long elapsedSinceLastFeedMs);
 
     void onDrmSessionManagerError(Exception e);
 }

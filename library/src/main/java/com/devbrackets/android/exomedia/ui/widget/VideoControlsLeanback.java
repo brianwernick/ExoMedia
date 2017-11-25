@@ -159,12 +159,12 @@ public class VideoControlsLeanback extends VideoControls {
     @Override
     protected void retrieveViews() {
         super.retrieveViews();
-        progressBar = (ProgressBar) findViewById(R.id.exomedia_controls_video_progress);
+        progressBar = findViewById(R.id.exomedia_controls_video_progress);
 
-        rewindButton = (ImageButton) findViewById(R.id.exomedia_controls_rewind_btn);
-        fastForwardButton = (ImageButton) findViewById(R.id.exomedia_controls_fast_forward_btn);
-        rippleIndicator = (ImageView) findViewById(R.id.exomedia_controls_leanback_ripple);
-        controlsParent = (ViewGroup) findViewById(R.id.exomedia_controls_parent);
+        rewindButton = findViewById(R.id.exomedia_controls_rewind_btn);
+        fastForwardButton = findViewById(R.id.exomedia_controls_fast_forward_btn);
+        rippleIndicator = findViewById(R.id.exomedia_controls_leanback_ripple);
+        controlsParent = findViewById(R.id.exomedia_controls_parent);
     }
 
     @Override

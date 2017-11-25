@@ -805,7 +805,7 @@ public class VideoView extends RelativeLayout {
      */
     protected void inflateVideoView(@NonNull Context context, @NonNull AttributeContainer attributeContainer) {
         View.inflate(context, R.layout.exomedia_video_view_layout, this);
-        ViewStub videoViewStub = (ViewStub) findViewById(R.id.video_view_api_impl_stub);
+        ViewStub videoViewStub = findViewById(R.id.video_view_api_impl_stub);
 
         videoViewStub.setLayoutResource(getVideoViewApiImplementation(context, attributeContainer));
         videoViewStub.inflate();

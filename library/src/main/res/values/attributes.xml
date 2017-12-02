@@ -11,7 +11,8 @@
             <enum name="centerCrop" value="1"/>
             <enum name="centerInside" value="2"/>
             <enum name="fitCenter" value="3"/>
-            <enum name="none" value="4"/>
+            <enum name="fitXY" value="4"/>
+            <enum name="none" value="5"/>
         </attr>
     </declare-styleable>
 </resources>

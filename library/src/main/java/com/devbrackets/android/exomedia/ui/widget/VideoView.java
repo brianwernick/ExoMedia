@@ -913,7 +913,9 @@ public class VideoView extends RelativeLayout {
 
         @Override
         public boolean shouldNotifyCompletion(long endLeeway) {
-            return getCurrentPosition() + endLeeway >= getDuration();
+            long position = getCurrentPosition();
+            long duration = getDuration();
+            return position > 0 && duration > 0 && position + endLeeway >= duration;
         }
 
         @Override

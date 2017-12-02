@@ -3,8 +3,8 @@ apply plugin: 'maven'
 apply plugin: 'com.novoda.bintray-release'
 
 def versionMajor = 4
-def versionMinor = 0
-def versionPatch = 3
+def versionMinor = 1
+def versionPatch = 0
 
 def libraryGroupId = 'com.devbrackets.android'
 def libraryBaseName = 'exomedia'
@@ -23,7 +23,6 @@ dependencies {
 
 android {
     compileSdkVersion 27
-    buildToolsVersion '26.0.2'
 
     defaultConfig {
         minSdkVersion 14

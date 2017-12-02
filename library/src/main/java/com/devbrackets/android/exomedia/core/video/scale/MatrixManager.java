@@ -114,6 +114,9 @@ public class MatrixManager {
             case FIT_CENTER:
                 applyFitCenter(view);
                 break;
+            case FIT_XY:
+                applyFitXy(view);
+                break;
             case NONE:
                 setScale(view, 1, 1);
                 break;
@@ -143,8 +146,8 @@ public class MatrixManager {
      * @param view The view to apply the transformation to
      */
     protected void applyCenterCrop(@NonNull View view) {
-        float xScale = (float)view.getWidth() / intrinsicVideoSize.x;
-        float yScale = (float)view.getHeight() / intrinsicVideoSize.y;
+        float xScale = (float) view.getWidth() / intrinsicVideoSize.x;
+        float yScale = (float) view.getHeight() / intrinsicVideoSize.y;
 
         float scale = Math.max(xScale, yScale);
         xScale = scale / xScale;
@@ -161,7 +164,7 @@ public class MatrixManager {
      * @param view The view to apply the transformation to
      */
     protected void applyCenterInside(@NonNull View view) {
-        if(intrinsicVideoSize.x <= view.getWidth() && intrinsicVideoSize.y <= view.getHeight()) {
+        if (intrinsicVideoSize.x <= view.getWidth() && intrinsicVideoSize.y <= view.getHeight()) {
             applyCenter(view);
         } else {
             applyFitCenter(view);
@@ -175,13 +178,24 @@ public class MatrixManager {
      * @param view The view to apply the transformation to
      */
     protected void applyFitCenter(@NonNull View view) {
-        float xScale = (float)view.getWidth() / intrinsicVideoSize.x;
-        float yScale = (float)view.getHeight() / intrinsicVideoSize.y;
+        float xScale = (float) view.getWidth() / intrinsicVideoSize.x;
+        float yScale = (float) view.getHeight() / intrinsicVideoSize.y;
 
         float scale = Math.min(xScale, yScale);
         xScale = scale / xScale;
         yScale = scale / yScale;
         setScale(view, xScale, yScale);
+    }
+
+    /**
+     * Applies the {@link ScaleType#FIT_XY} to the specified matrix.  This will
+     * scale the video so that both the width and height will always match that of
+     * the <code>view</code>
+     *
+     * @param view The view to apply the transformation to
+     */
+    protected void applyFitXy(@NonNull View view) {
+        setScale(view, 1, 1);
     }
 
     /**
@@ -194,10 +208,10 @@ public class MatrixManager {
     protected void setScale(@NonNull View view, float xScale, float yScale) {
         //If the width and height have been swapped, we need to re-calculate the scales based on the swapped sizes
         boolean currentWidthHeightSwapped = ((currentRotation / QUARTER_ROTATION) % 2) == 1;
-        if (currentWidthHeightSwapped){
+        if (currentWidthHeightSwapped) {
             float scaleTemp = xScale;
-            xScale = yScale *  view.getHeight() / view.getWidth();
-            yScale = scaleTemp *  view.getWidth() / view.getHeight();
+            xScale = yScale * view.getHeight() / view.getWidth();
+            yScale = scaleTemp * view.getWidth() / view.getHeight();
         }
 
         view.setScaleX(xScale);

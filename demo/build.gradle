@@ -17,7 +17,6 @@ dependencies {
 
 android {
     compileSdkVersion 27
-    buildToolsVersion '26.0.2'
 
     defaultConfig {
         applicationId "com.devbrackets.android.exomediademo"

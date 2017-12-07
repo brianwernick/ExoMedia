@@ -48,6 +48,12 @@ public class MediaService extends BasePlaylistService<MediaItem, PlaylistManager
     }
 
     @Override
+    protected void onServiceCreate() {
+        super.onServiceCreate();
+        notificationHelper = new DemoNotificationHelper(getApplicationContext());
+    }
+
+    @Override
     protected void performOnMediaCompletion() {
         performNext();
         immediatelyPause = false;

@@ -1,15 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-                xmlns:tools="http://schemas.android.com/tools"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent">
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
 
     <ViewStub
         android:id="@+id/video_view_api_impl_stub"
-        android:inflatedId="@+id/exomedia_video_view"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_centerInParent="true"/>
+        android:layout_height="match_parent"
+        android:layout_centerInParent="true"
+        android:inflatedId="@+id/exomedia_video_view"/>
 
     <ImageView
         android:id="@+id/exomedia_video_preview_image"

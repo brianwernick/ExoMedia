@@ -30,7 +30,7 @@ public class App extends Application {
         super.onCreate();
 
         application = this;
-        playlistManager = new PlaylistManager();
+        playlistManager = new PlaylistManager(this);
         LeakCanary.install(this);
 
         configureExoMedia();

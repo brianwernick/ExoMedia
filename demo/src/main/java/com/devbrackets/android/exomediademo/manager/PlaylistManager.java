@@ -1,61 +1,58 @@
 package com.devbrackets.android.exomediademo.manager;
 
 import android.app.Application;
-import android.app.Service;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 
 import com.devbrackets.android.exomedia.listener.VideoControlsButtonListener;
-import com.devbrackets.android.exomedia.ui.widget.VideoView;
 import com.devbrackets.android.exomedia.ui.widget.VideoControls;
-import com.devbrackets.android.exomediademo.App;
 import com.devbrackets.android.exomediademo.data.MediaItem;
 import com.devbrackets.android.exomediademo.playlist.VideoApi;
 import com.devbrackets.android.exomediademo.service.MediaService;
-import com.devbrackets.android.playlistcore.api.VideoPlayerApi;
-import com.devbrackets.android.playlistcore.manager.BasePlaylistManager;
 import com.devbrackets.android.playlistcore.manager.ListPlaylistManager;
 
 /**
- * A PlaylistManager that extends the {@link BasePlaylistManager} for use with the
+ * A PlaylistManager that extends the {@link ListPlaylistManager} for use with the
  * {@link MediaService} which extends {@link com.devbrackets.android.playlistcore.service.BasePlaylistService}.
  */
 public class PlaylistManager extends ListPlaylistManager<MediaItem> {
 
-    @NonNull
-    @Override
-    protected Application getApplication() {
-        return App.getApplication();
+    public PlaylistManager(Application application) {
+        super(application, MediaService.class);
     }
 
-    @NonNull
-    @Override
-    protected Class<? extends Service> getMediaServiceClass() {
-        return MediaService.class;
+    /**
+     * Note: You can call {@link #getMediaPlayers()} and add it manually in the activity,
+     * however we have this helper method to allow registration of the media controls
+     * listener provided by ExoMedia's {@link com.devbrackets.android.exomedia.ui.widget.VideoControls}
+     */
+    public void addVideoApi(@NonNull VideoApi videoApi) {
+        getMediaPlayers().add(videoApi);
+        updateVideoControls(videoApi);
+        registerPlaylistListener(videoApi);
     }
 
-    @Override
-    public void setVideoPlayer(@Nullable VideoPlayerApi videoPlayer) {
-        super.setVideoPlayer(videoPlayer);
-        if (videoPlayer != null) {
-            updateVideoControls(videoPlayer);
+    /**
+     * Note: You can call {@link #getMediaPlayers()} and remove it manually in the activity,
+     * however we have this helper method to remove the registered listener from {@link #addVideoApi(VideoApi)}
+     */
+    public void removeVideoApi(@NonNull VideoApi videoApi) {
+        VideoControls controls = videoApi.videoView.getVideoControls();
+        if (controls != null) {
+            controls.setButtonListener(null);
         }
+
+        unRegisterPlaylistListener(videoApi);
+        getMediaPlayers().remove(videoApi);
     }
 
     /**
      * Updates the available controls on the VideoView and links the
      * button events to the playlist service and this.
      *
-     * @param videoPlayer The videoPlayerApi to link
+     * @param videoApi The VideoApi to link
      */
-    private void updateVideoControls(@NonNull VideoPlayerApi videoPlayer) {
-        VideoApi api = (VideoApi)videoPlayer;
-        VideoView videoView = api.getVideoView();
-        if (videoView == null) {
-            return;
-        }
-
-        VideoControls videoControls = videoView.getVideoControls();
+    private void updateVideoControls(@NonNull VideoApi videoApi) {
+        VideoControls videoControls = videoApi.videoView.getVideoControls();
         if (videoControls != null) {
             videoControls.setPreviousButtonRemoved(false);
             videoControls.setNextButtonRemoved(false);

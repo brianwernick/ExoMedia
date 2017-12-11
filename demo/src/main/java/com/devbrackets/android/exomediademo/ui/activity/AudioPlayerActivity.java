@@ -2,6 +2,7 @@ package com.devbrackets.android.exomediademo.ui.activity;
 
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.ImageButton;
@@ -18,11 +19,11 @@ import com.devbrackets.android.exomediademo.R;
 import com.devbrackets.android.exomediademo.data.MediaItem;
 import com.devbrackets.android.exomediademo.data.Samples;
 import com.devbrackets.android.exomediademo.manager.PlaylistManager;
-import com.devbrackets.android.playlistcore.event.MediaProgress;
-import com.devbrackets.android.playlistcore.event.PlaylistItemChange;
+import com.devbrackets.android.playlistcore.data.MediaProgress;
+import com.devbrackets.android.playlistcore.data.PlaybackState;
+import com.devbrackets.android.playlistcore.data.PlaylistItemChange;
 import com.devbrackets.android.playlistcore.listener.PlaylistListener;
 import com.devbrackets.android.playlistcore.listener.ProgressListener;
-import com.devbrackets.android.playlistcore.service.PlaylistServiceCore;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -30,7 +31,8 @@ import java.util.List;
 /**
  * An example activity to show how to implement and audio UI
  * that interacts with the {@link com.devbrackets.android.playlistcore.service.BasePlaylistService}
- * and {@link com.devbrackets.android.playlistcore.manager.BasePlaylistManager} classes.
+ * and {@link com.devbrackets.android.playlistcore.manager.ListPlaylistManager}
+ * classes.
  */
 public class AudioPlayerActivity extends AppCompatActivity implements PlaylistListener<MediaItem>, ProgressListener {
     public static final String EXTRA_INDEX = "EXTRA_INDEX";
@@ -51,7 +53,7 @@ public class AudioPlayerActivity extends AppCompatActivity implements PlaylistLi
     private ImageButton nextButton;
 
     private PlaylistManager playlistManager;
-    private int selectedIndex = 0;
+    private int selectedPosition = 0;
 
     private RequestManager glide;
 
@@ -83,7 +85,7 @@ public class AudioPlayerActivity extends AppCompatActivity implements PlaylistLi
     }
 
     @Override
-    public boolean onPlaylistItemChanged(MediaItem currentItem, boolean hasNext, boolean hasPrevious) {
+    public boolean onPlaylistItemChanged(@Nullable MediaItem currentItem, boolean hasNext, boolean hasPrevious) {
         shouldSetDuration = true;
 
         //Updates the button states
@@ -91,13 +93,15 @@ public class AudioPlayerActivity extends AppCompatActivity implements PlaylistLi
         previousButton.setEnabled(hasPrevious);
 
         //Loads the new image
-        glide.load(currentItem.getArtworkUrl()).into(artworkView);
+        if (currentItem != null) {
+            glide.load(currentItem.getArtworkUrl()).into(artworkView);
+        }
 
         return true;
     }
 
     @Override
-    public boolean onPlaybackStateChanged(@NonNull PlaylistServiceCore.PlaybackState playbackState) {
+    public boolean onPlaybackStateChanged(@NonNull PlaybackState playbackState) {
         switch (playbackState) {
             case STOPPED:
                 finish();
@@ -144,19 +148,19 @@ public class AudioPlayerActivity extends AppCompatActivity implements PlaylistLi
      * Makes sure to update the UI to the current playback item.
      */
     private void updateCurrentPlaybackInformation() {
-        PlaylistItemChange<MediaItem> itemChangedEvent = playlistManager.getCurrentItemChange();
-        if (itemChangedEvent != null) {
-            onPlaylistItemChanged(itemChangedEvent.getCurrentItem(), itemChangedEvent.hasNext(), itemChangedEvent.hasPrevious());
+        PlaylistItemChange<MediaItem> itemChange = playlistManager.getCurrentItemChange();
+        if (itemChange != null) {
+            onPlaylistItemChanged(itemChange.getCurrentItem(), itemChange.getHasNext(), itemChange.getHasPrevious());
         }
 
-        PlaylistServiceCore.PlaybackState currentPlaybackState = playlistManager.getCurrentPlaybackState();
-        if (currentPlaybackState != PlaylistServiceCore.PlaybackState.STOPPED) {
+        PlaybackState currentPlaybackState = playlistManager.getCurrentPlaybackState();
+        if (currentPlaybackState != PlaybackState.STOPPED) {
             onPlaybackStateChanged(currentPlaybackState);
         }
 
-        MediaProgress progressEvent = playlistManager.getCurrentProgress();
-        if (progressEvent != null) {
-            onProgressUpdated(progressEvent);
+        MediaProgress mediaProgress = playlistManager.getCurrentProgress();
+        if (mediaProgress != null) {
+            onProgressUpdated(mediaProgress);
         }
     }
 
@@ -166,7 +170,7 @@ public class AudioPlayerActivity extends AppCompatActivity implements PlaylistLi
      */
     private void retrieveExtras() {
         Bundle extras = getIntent().getExtras();
-        selectedIndex = extras.getInt(EXTRA_INDEX, 0);
+        selectedPosition = extras.getInt(EXTRA_INDEX, 0);
     }
 
     /**
@@ -177,7 +181,7 @@ public class AudioPlayerActivity extends AppCompatActivity implements PlaylistLi
         retrieveViews();
         setupListeners();
 
-        glide = Glide.with(getApplicationContext());
+        glide = Glide.with(this);
 
         boolean generatedPlaylist = setupPlaylistManager();
         startPlayback(generatedPlaylist);
@@ -260,7 +264,7 @@ public class AudioPlayerActivity extends AppCompatActivity implements PlaylistLi
             mediaItems.add(mediaItem);
         }
 
-        playlistManager.setParameters(mediaItems, selectedIndex);
+        playlistManager.setParameters(mediaItems, selectedPosition);
         playlistManager.setId(PLAYLIST_ID);
 
         return true;
@@ -321,8 +325,8 @@ public class AudioPlayerActivity extends AppCompatActivity implements PlaylistLi
      */
     private void startPlayback(boolean forceStart) {
         //If we are changing audio files, or we haven't played before then start the playback
-        if (forceStart || playlistManager.getCurrentPosition() != selectedIndex) {
-            playlistManager.setCurrentPosition(selectedIndex);
+        if (forceStart || playlistManager.getCurrentPosition() != selectedPosition) {
+            playlistManager.setCurrentPosition(selectedPosition);
             playlistManager.play(0, false);
         }
     }

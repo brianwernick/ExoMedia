@@ -26,7 +26,7 @@ public class VideoSelectionActivity extends AppCompatActivity implements Adapter
             getSupportActionBar().setTitle(getResources().getString(R.string.title_video_selection_activity));
         }
 
-        ListView exampleList = (ListView) findViewById(R.id.selection_activity_list);
+        ListView exampleList = findViewById(R.id.selection_activity_list);
         exampleList.setAdapter(new SampleListAdapter(this, Samples.getVideoSamples()));
         exampleList.setOnItemClickListener(this);
     }

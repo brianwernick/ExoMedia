@@ -267,7 +267,7 @@ public class ExoMediaPlayer extends Player.DefaultEventListener {
         // Maps the available tracks
         RendererType[] types = new RendererType[] {RendererType.AUDIO, RendererType.VIDEO, RendererType.CLOSED_CAPTION, RendererType.METADATA};
         for (RendererType type : types) {
-            int exoPlayerTrackIndex = getExoPlayerTrackType(type);
+            int exoPlayerTrackIndex = getExoPlayerTrackIndex(type);
             if (mappedTrackInfo.length > exoPlayerTrackIndex) {
                 trackMap.put(type, mappedTrackInfo.getTrackGroups(exoPlayerTrackIndex));
             }
@@ -278,7 +278,7 @@ public class ExoMediaPlayer extends Player.DefaultEventListener {
 
     public int getSelectedTrackIndex(@NonNull RendererType type) {
         // Retrieves the available tracks
-        int exoPlayerTrackIndex = getExoPlayerTrackType(type);
+        int exoPlayerTrackIndex = getExoPlayerTrackIndex(type);
         MappingTrackSelector.MappedTrackInfo mappedTrackInfo = trackSelector.getCurrentMappedTrackInfo();
         TrackGroupArray trackGroupArray = mappedTrackInfo == null ? null : mappedTrackInfo.getTrackGroups(exoPlayerTrackIndex);
         if (trackGroupArray == null || trackGroupArray.length == 0) {
@@ -296,7 +296,7 @@ public class ExoMediaPlayer extends Player.DefaultEventListener {
 
     public void setSelectedTrack(@NonNull RendererType type, int index) {
         // Retrieves the available tracks
-        int exoPlayerTrackIndex = getExoPlayerTrackType(type);
+        int exoPlayerTrackIndex = getExoPlayerTrackIndex(type);
         MappingTrackSelector.MappedTrackInfo mappedTrackInfo = trackSelector.getCurrentMappedTrackInfo();
         TrackGroupArray trackGroupArray = mappedTrackInfo == null ? null : mappedTrackInfo.getTrackGroups(exoPlayerTrackIndex);
         if (trackGroupArray == null || trackGroupArray.length == 0) {
@@ -479,6 +479,18 @@ public class ExoMediaPlayer extends Player.DefaultEventListener {
         }
 
         return C.TRACK_TYPE_UNKNOWN;
+    }
+
+    protected int getExoPlayerTrackIndex(@NonNull RendererType type) {
+        switch (type) {
+            case AUDIO:
+            case VIDEO:
+            case CLOSED_CAPTION:
+            case METADATA:
+                return type.ordinal();
+        }
+
+        return C.INDEX_UNSET;
     }
 
     protected void sendMessage(int renderType, int messageType, Object message) {

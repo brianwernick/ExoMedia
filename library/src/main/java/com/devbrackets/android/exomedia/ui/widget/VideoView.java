@@ -59,7 +59,9 @@ import com.devbrackets.android.exomedia.util.StopWatch;
 import com.google.android.exoplayer2.drm.MediaDrmCallback;
 import com.google.android.exoplayer2.source.MediaSource;
 import com.google.android.exoplayer2.source.TrackGroupArray;
+import com.google.android.exoplayer2.text.Cue;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -98,6 +100,8 @@ public class VideoView extends RelativeLayout {
 
     protected boolean releaseOnDetachFromWindow = true;
     protected boolean handleAudioFocus = true;
+    private SubtitleView subtitleView;
+    private Uri subtitleUri;
 
     public VideoView(Context context) {
         super(context);
@@ -264,9 +268,10 @@ public class VideoView extends RelativeLayout {
      *
      * @param uri The video's Uri
      */
-    public void setVideoURI(@Nullable Uri uri) {
+    public void setVideoURI(@Nullable Uri uri, @Nullable Uri subtitleUri) {
         videoUri = uri;
-        videoViewImpl.setVideoUri(uri);
+        this.subtitleUri = subtitleUri;
+        videoViewImpl.setVideoUri(uri, subtitleUri);
 
         if (videoControls != null) {
             videoControls.showLoading(true);
@@ -276,12 +281,16 @@ public class VideoView extends RelativeLayout {
     /**
      * Sets the Uri location for the video to play
      *
-     * @param uri The video's Uri
+     * @param uri         The video's Uri
      * @param mediaSource MediaSource that should be used
      */
-    public void setVideoURI(@Nullable Uri uri, @Nullable MediaSource mediaSource) {
+    public void setVideoURI(
+            @Nullable Uri uri,
+            @Nullable Uri subtitleUri,
+            @Nullable MediaSource mediaSource
+    ) {
         videoUri = uri;
-        videoViewImpl.setVideoUri(uri, mediaSource);
+        videoViewImpl.setVideoUri(uri, subtitleUri, mediaSource);
 
         if (videoControls != null) {
             videoControls.showLoading(true);
@@ -292,21 +301,37 @@ public class VideoView extends RelativeLayout {
      * Sets the path to the video.  This path can be a web address (e.g. http://) or
      * an absolute local path (e.g. file://)
      *
-     * @param path The path to the video
+     * @param videoPath The path to the video
      */
-    public void setVideoPath(String path) {
-        setVideoURI(Uri.parse(path));
+    public void setVideoPath(String videoPath, String subtitlePath) {
+        if (subtitlePath == null) {
+            setVideoURI(Uri.parse(videoPath), null);
+            return;
+        }
+
+        setVideoURI(Uri.parse(videoPath), Uri.parse(subtitlePath));
     }
 
     /**
-     * Retrieves the current Video URI.  If this hasn't been set with {@link #setVideoURI(android.net.Uri)}
-     * or {@link #setVideoPath(String)} then null will be returned.
+     * Retrieves the current Video URI.  If this hasn't been set with {@link #setVideoURI(android.net.Uri, android.net.Uri)}
+     * or {@link #setVideoPath(String, String)} then null will be returned.
      *
      * @return The current video URI or null
      */
     @Nullable
     public Uri getVideoUri() {
         return videoUri;
+    }
+
+    /**
+     * Retrieves the current subtitle URI.  If this hasn't been set with {@link #setVideoURI(android.net.Uri, android.net.Uri)}
+     * or {@link #setVideoPath(String, String)} then null will be returned.
+     *
+     * @return The current subtitle URI or null
+     */
+    @Nullable
+    public Uri getSubtitleUri() {
+        return subtitleUri;
     }
 
     /**
@@ -350,7 +375,7 @@ public class VideoView extends RelativeLayout {
      */
     public void reset() {
         stopPlayback();
-        setVideoURI(null);
+        setVideoURI(null, null);
     }
 
     /**
@@ -376,8 +401,8 @@ public class VideoView extends RelativeLayout {
     }
 
     /**
-     * Starts the playback for the video specified in {@link #setVideoURI(android.net.Uri)}
-     * or {@link #setVideoPath(String)}.  This should be called after the VideoView is correctly
+     * Starts the playback for the video specified in {@link #setVideoURI(android.net.Uri, android.net.Uri)}
+     * or {@link #setVideoPath(String, String)}.  This should be called after the VideoView is correctly
      * prepared (see {@link #setOnPreparedListener(OnPreparedListener)})
      */
     public void start() {
@@ -570,7 +595,7 @@ public class VideoView extends RelativeLayout {
      * Changes to the track with <code>trackIndex</code> for the specified
      * <code>trackType</code>
      *
-     * @param trackType The type for the track to switch to the selected index
+     * @param trackType  The type for the track to switch to the selected index
      * @param trackIndex The index for the track to switch to
      */
     public void setTrack(ExoMedia.RendererType trackType, int trackIndex) {
@@ -682,7 +707,7 @@ public class VideoView extends RelativeLayout {
      * Returns a {@link Bitmap} representation of the current contents of the
      * view. If the surface isn't ready or we cannot access it for some reason then
      * <code>null</code> will be returned instead.
-     *
+     * <p>
      * <b>NOTE:</b> Only the <code>TextureView</code> implementations support getting the bitmap
      * meaning that if the backing implementation is a <code>SurfaceView</code> then the result
      * will always be <code>null</code>
@@ -703,7 +728,7 @@ public class VideoView extends RelativeLayout {
      * determining the backing implementation and reading xml attributes
      *
      * @param context The context to use for setting up the view
-     * @param attrs The xml attributes associated with this instance
+     * @param attrs   The xml attributes associated with this instance
      */
     protected void setup(Context context, @Nullable AttributeSet attrs) {
         if (isInEditMode()) {
@@ -722,19 +747,33 @@ public class VideoView extends RelativeLayout {
      * backing layout, linking the implementation, and finding the necessary view
      * references.
      *
-     * @param context The context for the initialization
+     * @param context            The context for the initialization
      * @param attributeContainer The attributes associated with this instance
      */
     protected void initView(Context context, @NonNull AttributeContainer attributeContainer) {
         inflateVideoView(context, attributeContainer);
 
-        previewImageView = findViewById(R.id.exomedia_video_preview_image);
-        videoViewImpl = findViewById(R.id.exomedia_video_view);
+        previewImageView = (ImageView) findViewById(R.id.exomedia_video_preview_image);
+        videoViewImpl = (VideoViewApi) findViewById(R.id.exomedia_video_view);
+        subtitleView = (SubtitleView) findViewById(R.id.exo_subtitles);
+
+        if (subtitleView != null) {
+            subtitleView.setUserDefaultStyle();
+            subtitleView.setUserDefaultTextSize();
+        }
 
         muxNotifier = new MuxNotifier();
         listenerMux = new ListenerMux(muxNotifier);
 
         videoViewImpl.setListenerMux(listenerMux);
+    }
+
+    public SubtitleView getSubtitleView() {
+        return subtitleView;
+    }
+
+    public void onCues(List<Cue> cues) {
+        subtitleView.onCues(cues);
     }
 
     /**
@@ -761,7 +800,7 @@ public class VideoView extends RelativeLayout {
      * Inflates the video view layout, replacing the {@link ViewStub} with the
      * correct backing implementation.
      *
-     * @param context The context to use for inflating the correct video view
+     * @param context            The context to use for inflating the correct video view
      * @param attributeContainer The attributes for retrieving custom backing implementations.
      */
     protected void inflateVideoView(@NonNull Context context, @NonNull AttributeContainer attributeContainer) {
@@ -786,7 +825,7 @@ public class VideoView extends RelativeLayout {
      * <b>NOTE:</b> overriding the default implementations may cause inconsistencies and isn't
      * recommended.
      *
-     * @param context The Context to use when retrieving the backing video view implementation
+     * @param context            The Context to use when retrieving the backing video view implementation
      * @param attributeContainer The attributes to use for finding overridden video view implementations
      * @return The layout resource for the backing implementation on the current device
      */
@@ -934,6 +973,11 @@ public class VideoView extends RelativeLayout {
         }
 
         @Override
+        public void onCues(List<Cue> cues) {
+            VideoView.this.onCues(cues);
+        }
+
+        @Override
         public void onSeekComplete() {
             if (videoControls != null) {
                 videoControls.finishLoading();
@@ -1049,7 +1093,7 @@ public class VideoView extends RelativeLayout {
          * Reads the attributes associated with this view, setting any values found
          *
          * @param context The context to retrieve the styled attributes with
-         * @param attrs The {@link AttributeSet} to retrieve the values from
+         * @param attrs   The {@link AttributeSet} to retrieve the values from
          */
         public AttributeContainer(@NonNull Context context, @Nullable AttributeSet attrs) {
             if (attrs == null) {

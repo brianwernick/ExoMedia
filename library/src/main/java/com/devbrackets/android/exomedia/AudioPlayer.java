@@ -38,7 +38,9 @@ import com.devbrackets.android.exomedia.util.DeviceUtil;
 import com.google.android.exoplayer2.drm.MediaDrmCallback;
 import com.google.android.exoplayer2.source.MediaSource;
 import com.google.android.exoplayer2.source.TrackGroupArray;
+import com.google.android.exoplayer2.text.Cue;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -402,6 +404,11 @@ public class AudioPlayer {
         @Override
         public void onMediaPlaybackEnded() {
            onPlaybackEnded();
+        }
+
+        @Override
+        public void onCues(List<Cue> cues) {
+            // Intentionally left blank
         }
 
         @Override

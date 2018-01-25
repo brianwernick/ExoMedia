@@ -132,14 +132,15 @@ public class NativeSurfaceVideoView extends ResizingSurfaceView implements Nativ
         super.setOnTouchListener(listener);
     }
 
+
     @Override
-    public void setVideoUri(@Nullable Uri uri) {
-        setVideoUri(uri, null);
+    public void setVideoUri(@Nullable Uri uri, @Nullable Uri subtitleUri) {
+        setVideoUri(uri, subtitleUri, null);
     }
 
     @Override
-    public void setVideoUri(@Nullable Uri uri, @Nullable MediaSource mediaSource) {
-        setVideoURI(uri);
+    public void setVideoUri(@Nullable Uri uri, @Nullable Uri subtitleUri, @Nullable MediaSource mediaSource) {
+        setVideoURI(uri, null);
     }
 
     @Override
@@ -226,6 +227,7 @@ public class NativeSurfaceVideoView extends ResizingSurfaceView implements Nativ
      * Sets video URI using specific headers.
      *
      * @param uri The Uri for the video to play
+     * @param uri The Uri for the subtitles.
      * @param headers The headers for the URI request.
      * Note that the cross domain redirection is allowed by default, but that can be
      * changed with key/value pairs through the headers parameter with

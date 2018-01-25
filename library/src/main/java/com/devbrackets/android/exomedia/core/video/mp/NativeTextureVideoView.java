@@ -78,6 +78,7 @@ public class NativeTextureVideoView extends ResizingTextureView implements Nativ
         setup(context, attrs);
     }
 
+
     @Override
     public void setDrmCallback(@Nullable MediaDrmCallback drmCallback) {
         //Purposefully left blank
@@ -138,14 +139,15 @@ public class NativeTextureVideoView extends ResizingTextureView implements Nativ
     }
 
     @Override
-    public void setVideoUri(@Nullable Uri uri) {
-        setVideoUri(uri, null);
+    public void setVideoUri(@Nullable Uri uri, @Nullable Uri subtitleUri) {
+        setVideoUri(uri, subtitleUri, null);
     }
 
     @Override
-    public void setVideoUri(@Nullable Uri uri, @Nullable MediaSource mediaSource) {
+    public void setVideoUri(@Nullable Uri uri, @Nullable Uri subtitleUri, @Nullable MediaSource mediaSource) {
         setVideoURI(uri);
     }
+
 
     @Override
     public boolean setVolume(@FloatRange(from = 0.0, to = 1.0) float volume) {
@@ -231,6 +233,7 @@ public class NativeTextureVideoView extends ResizingTextureView implements Nativ
      * Sets video URI using specific headers.
      *
      * @param uri The Uri for the video to play
+     * @param uri The Uri for the subtitles
      * @param headers The headers for the URI request.
      * Note that the cross domain redirection is allowed by default, but that can be
      * changed with key/value pairs through the headers parameter with

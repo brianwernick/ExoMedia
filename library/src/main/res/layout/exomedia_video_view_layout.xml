@@ -18,4 +18,10 @@
         android:layout_height="match_parent"
         android:scaleType="centerCrop"
         tools:ignore="ContentDescription"/>
+
+    <com.devbrackets.android.exomedia.ui.widget.SubtitleView
+        android:id="@+id/exo_subtitles"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"/>
+
 </RelativeLayout>

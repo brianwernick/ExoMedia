@@ -3,7 +3,6 @@ package com.devbrackets.android.exomediademo.playlist;
 import android.net.Uri;
 import android.support.annotation.FloatRange;
 import android.support.annotation.IntRange;
-
 import com.devbrackets.android.exomedia.ui.widget.VideoControls;
 import com.devbrackets.android.exomedia.ui.widget.VideoView;
 import com.devbrackets.android.exomediademo.data.MediaItem;
@@ -82,7 +81,12 @@ public class VideoApi extends BaseMediaApi implements PlaylistListener<MediaItem
     public void playItem(@NotNull MediaItem item) {
         prepared = false;
         bufferPercent = 0;
-        videoView.setVideoURI(Uri.parse(item.getDownloaded() ? item.getDownloadedMediaUri() : item.getMediaUrl()));
+        videoView.setVideoURI(
+                Uri.parse(item.getDownloaded()
+                        ? item.getDownloadedMediaUri()
+                        : item.getMediaUrl()),
+                null
+        );
     }
 
     @Override

@@ -225,6 +225,7 @@ public class NativeVideoDelegate {
      * Sets video URI using specific headers.
      *
      * @param uri The Uri for the video to play
+     * @param uri The Uri for the video subtitles.
      * @param headers The headers for the URI request.
      * Note that the cross domain redirection is allowed by default, but that can be
      * changed with key/value pairs through the headers parameter with

@@ -27,6 +27,7 @@ import android.view.Surface;
 import com.devbrackets.android.exomedia.ExoMedia;
 import com.devbrackets.android.exomedia.core.ListenerMux;
 import com.devbrackets.android.exomedia.core.exoplayer.ExoMediaPlayer;
+import com.devbrackets.android.exomedia.core.listener.CaptionListener;
 import com.devbrackets.android.exomedia.core.listener.MetadataListener;
 import com.devbrackets.android.exomedia.core.video.ClearableSurface;
 import com.devbrackets.android.exomedia.listener.OnBufferUpdateListener;
@@ -34,7 +35,9 @@ import com.google.android.exoplayer2.drm.MediaDrmCallback;
 import com.google.android.exoplayer2.metadata.Metadata;
 import com.google.android.exoplayer2.source.MediaSource;
 import com.google.android.exoplayer2.source.TrackGroupArray;
+import com.google.android.exoplayer2.text.Cue;
 
+import java.util.List;
 import java.util.Map;
 
 public class ExoVideoDelegate {
@@ -49,7 +52,10 @@ public class ExoVideoDelegate {
     @NonNull
     protected InternalListeners internalListeners = new InternalListeners();
 
-    public ExoVideoDelegate(@NonNull Context context, @NonNull ClearableSurface clearableSurface) {
+    public ExoVideoDelegate(
+            @NonNull Context context,
+            @NonNull ClearableSurface clearableSurface
+    ) {
         this.context = context.getApplicationContext();
         this.clearableSurface = clearableSurface;
 
@@ -57,10 +63,14 @@ public class ExoVideoDelegate {
     }
 
     public void setVideoUri(@Nullable Uri uri) {
-        setVideoUri(uri, null);
+        setVideoUri(uri, null, null);
     }
 
-    public void setVideoUri(@Nullable Uri uri, @Nullable MediaSource mediaSource) {
+    public void setVideoUri(@Nullable Uri uri, @Nullable Uri subtitleUri) {
+        setVideoUri(uri, subtitleUri, null);
+    }
+
+    public void setVideoUri(@Nullable Uri uri, @Nullable Uri subtitleUri, @Nullable MediaSource mediaSource) {
         //Makes sure the listeners get the onPrepared callback
         listenerMux.setNotifiedPrepared(false);
         exoMediaPlayer.seekTo(0);
@@ -69,7 +79,7 @@ public class ExoVideoDelegate {
             exoMediaPlayer.setMediaSource(mediaSource);
             listenerMux.setNotifiedCompleted(false);
         } else if (uri != null) {
-            exoMediaPlayer.setUri(uri);
+            exoMediaPlayer.setUri(uri, subtitleUri);
             listenerMux.setNotifiedCompleted(false);
         } else {
             exoMediaPlayer.setMediaSource(null);
@@ -89,7 +99,7 @@ public class ExoVideoDelegate {
     }
 
     public boolean restart() {
-        if(!exoMediaPlayer.restart()) {
+        if (!exoMediaPlayer.restart()) {
             return false;
         }
 
@@ -116,6 +126,7 @@ public class ExoVideoDelegate {
     public void start() {
         exoMediaPlayer.setPlayWhenReady(true);
         listenerMux.setNotifiedCompleted(false);
+
         playRequested = true;
     }
 
@@ -213,9 +224,10 @@ public class ExoVideoDelegate {
 
         exoMediaPlayer.setMetadataListener(internalListeners);
         exoMediaPlayer.setBufferUpdateListener(internalListeners);
+        exoMediaPlayer.setCaptionListener(internalListeners);
     }
 
-    protected class InternalListeners implements MetadataListener, OnBufferUpdateListener {
+    protected class InternalListeners implements MetadataListener, OnBufferUpdateListener, CaptionListener {
         @Override
         public void onMetadata(Metadata metadata) {
             listenerMux.onMetadata(metadata);
@@ -224,6 +236,11 @@ public class ExoVideoDelegate {
         @Override
         public void onBufferingUpdate(@IntRange(from = 0, to = 100) int percent) {
             listenerMux.onBufferingUpdate(percent);
+        }
+
+        @Override
+        public void onCues(List<Cue> cues) {
+            listenerMux.onCues(cues);
         }
     }
 }

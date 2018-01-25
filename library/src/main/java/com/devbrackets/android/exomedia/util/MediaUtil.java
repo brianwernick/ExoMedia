@@ -17,6 +17,7 @@
 package com.devbrackets.android.exomedia.util;
 
 import android.net.Uri;
+import android.support.annotation.NonNull;
 
 /**
  * A Utility class to help with determining information about media
@@ -48,4 +49,5 @@ public class MediaUtil {
 
         return uri;
     }
+
 }

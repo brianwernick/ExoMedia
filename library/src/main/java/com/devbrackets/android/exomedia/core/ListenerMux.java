@@ -21,9 +21,11 @@ import android.os.Handler;
 import android.support.annotation.IntRange;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.util.Log;
 
 import com.devbrackets.android.exomedia.core.exception.NativeMediaPlaybackException;
 import com.devbrackets.android.exomedia.core.exoplayer.ExoMediaPlayer;
+import com.devbrackets.android.exomedia.core.listener.CaptionListener;
 import com.devbrackets.android.exomedia.core.listener.ExoPlayerListener;
 import com.devbrackets.android.exomedia.core.listener.MetadataListener;
 import com.devbrackets.android.exomedia.core.video.ClearableSurface;
@@ -34,8 +36,12 @@ import com.devbrackets.android.exomedia.listener.OnPreparedListener;
 import com.devbrackets.android.exomedia.listener.OnSeekCompletionListener;
 import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.metadata.Metadata;
+import com.google.android.exoplayer2.text.Cue;
 
 import java.lang.ref.WeakReference;
+import java.util.List;
+
+import static android.content.ContentValues.TAG;
 
 /**
  * An internal Listener that implements the listeners for the {@link ExoMediaPlayer},
@@ -43,7 +49,7 @@ import java.lang.ref.WeakReference;
  * error listeners.
  */
 public class ListenerMux implements ExoPlayerListener, MediaPlayer.OnPreparedListener, MediaPlayer.OnCompletionListener, MediaPlayer.OnErrorListener,
-        MediaPlayer.OnBufferingUpdateListener, MediaPlayer.OnSeekCompleteListener, OnBufferUpdateListener, MetadataListener {
+        MediaPlayer.OnBufferingUpdateListener, MediaPlayer.OnSeekCompleteListener, OnBufferUpdateListener, MetadataListener, CaptionListener {
     //The amount of time the current position can be off the duration to call the onCompletion listener
     private static final long COMPLETED_DURATION_LEEWAY = 1000;
 
@@ -304,6 +310,11 @@ public class ListenerMux implements ExoPlayerListener, MediaPlayer.OnPreparedLis
         });
     }
 
+    @Override
+    public void onCues(List<Cue> cues) {
+        muxNotifier.onCues(cues);
+    }
+
     public static abstract class Notifier {
         public void onSeekComplete() {
             //Purposefully left blank
@@ -330,5 +341,8 @@ public class ListenerMux implements ExoPlayerListener, MediaPlayer.OnPreparedLis
         public abstract void onExoPlayerError(ExoMediaPlayer exoMediaPlayer, Exception e);
 
         public abstract void onMediaPlaybackEnded();
+
+        public abstract void onCues(List<Cue> cues);
+
     }
 }

@@ -238,13 +238,21 @@ public class ExoMediaPlayer extends Player.DefaultEventListener {
         return surface;
     }
 
-    public void blockingClearSurface() {
+    public void clearSurface() {
         if (surface != null) {
             surface.release();
         }
 
         surface = null;
-        sendMessage(C.TRACK_TYPE_VIDEO, C.MSG_SET_SURFACE, null, true);
+        sendMessage(C.TRACK_TYPE_VIDEO, C.MSG_SET_SURFACE, null, false);
+    }
+
+    /**
+     * @deprecated use {@link #clearSurface()} as this is no longer blocking
+     */
+    @Deprecated
+    public void blockingClearSurface() {
+        clearSurface();
     }
 
     /**

@@ -201,7 +201,7 @@ public class ExoVideoDelegate {
     }
 
     public void onSurfaceDestroyed() {
-        exoMediaPlayer.blockingClearSurface();
+        exoMediaPlayer.clearSurface();
     }
 
     protected void setup() {

@@ -51,6 +51,7 @@ import com.google.android.exoplayer2.Format;
 import com.google.android.exoplayer2.LoadControl;
 import com.google.android.exoplayer2.PlaybackParameters;
 import com.google.android.exoplayer2.Player;
+import com.google.android.exoplayer2.PlayerMessage;
 import com.google.android.exoplayer2.Renderer;
 import com.google.android.exoplayer2.audio.AudioAttributes;
 import com.google.android.exoplayer2.audio.AudioRendererEventListener;
@@ -502,17 +503,42 @@ public class ExoMediaPlayer extends Player.DefaultEventListener {
             return;
         }
 
-        List<ExoPlayer.ExoPlayerMessage> messages = new ArrayList<>();
+        List<PlayerMessage> messages = new ArrayList<>();
         for (Renderer renderer : renderers) {
             if (renderer.getTrackType() == renderType) {
-                messages.add(new ExoPlayer.ExoPlayerMessage(renderer, messageType, message));
+                messages.add(player.createMessage(renderer).setType(messageType).setPayload(message));
             }
         }
 
         if (blocking) {
-            player.blockingSendMessages(messages.toArray(new ExoPlayer.ExoPlayerMessage[messages.size()]));
+            blockingSendMessages(messages);
         } else {
-            player.sendMessages(messages.toArray(new ExoPlayer.ExoPlayerMessage[messages.size()]));
+            for (PlayerMessage playerMessage : messages) {
+                playerMessage.send();
+            }
+        }
+    }
+
+    /**
+     * This was pulled from the <i>Deprecated</i> {@link com.google.android.exoplayer2.ExoPlayerImpl#blockingSendMessages(ExoPlayer.ExoPlayerMessage...)}
+     */
+    protected void blockingSendMessages(List<PlayerMessage> messages) {
+        boolean wasInterrupted = false;
+        for (PlayerMessage message : messages) {
+            boolean blockMessage = true;
+            while (blockMessage) {
+                try {
+                    message.blockUntilDelivered();
+                    blockMessage = false;
+                } catch (InterruptedException e) {
+                    wasInterrupted = true;
+                }
+            }
+        }
+
+        if (wasInterrupted) {
+            // Restore the interrupted status.
+            Thread.currentThread().interrupt();
         }
     }
 

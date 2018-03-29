@@ -528,7 +528,9 @@ public class ExoMediaPlayer extends Player.DefaultEventListener {
     }
 
     /**
-     * This was pulled from the <i>Deprecated</i> {@link com.google.android.exoplayer2.ExoPlayerImpl#blockingSendMessages(ExoPlayer.ExoPlayerMessage...)}
+     * This was pulled from the <i>Deprecated</i> ExoPlayerImpl#blockingSendMessages method
+     *
+     * @param messages The messages
      */
     protected void blockingSendMessages(List<PlayerMessage> messages) {
         boolean wasInterrupted = false;

@@ -41,7 +41,7 @@ public class MediaService extends BasePlaylistService<MediaItem, PlaylistManager
     @NonNull
     @Override
     protected PlaylistManager getPlaylistManager() {
-        return App.getPlaylistManager();
+        return ((App)getApplicationContext()).getPlaylistManager();
     }
 
     @NonNull

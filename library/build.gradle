@@ -11,14 +11,14 @@ def libraryBaseName = 'exomedia'
 def libraryVersion = "${versionMajor}.${versionMinor}.${versionPatch}"
 
 dependencies {
-    compile "com.android.support:support-media-compat:$rootProject.ext.supportLibVersion"
-    compile "com.android.support:appcompat-v7:$rootProject.ext.supportLibVersion"
+    implementation "com.android.support:support-media-compat:$rootProject.ext.supportLibVersion"
+    implementation "com.android.support:appcompat-v7:$rootProject.ext.supportLibVersion"
 
     // ExoPlayer
-    compile "com.google.android.exoplayer:exoplayer-core:$rootProject.ext.exoPlayerVersion"
-    compile "com.google.android.exoplayer:exoplayer-dash:$rootProject.ext.exoPlayerVersion"
-    compile "com.google.android.exoplayer:exoplayer-hls:$rootProject.ext.exoPlayerVersion"
-    compile "com.google.android.exoplayer:exoplayer-smoothstreaming:$rootProject.ext.exoPlayerVersion"
+    api "com.google.android.exoplayer:exoplayer-core:$rootProject.ext.exoPlayerVersion"
+    api "com.google.android.exoplayer:exoplayer-dash:$rootProject.ext.exoPlayerVersion"
+    api "com.google.android.exoplayer:exoplayer-hls:$rootProject.ext.exoPlayerVersion"
+    api "com.google.android.exoplayer:exoplayer-smoothstreaming:$rootProject.ext.exoPlayerVersion"
 }
 
 android {
@@ -61,10 +61,12 @@ uploadArchives {
 
 // ======= BINTRAY DEPLOY (command: $ ./gradlew clean build bintrayUpload -PbintrayUser=BINTRAY_USERNAME -PbintrayKey=BINTRAY_KEY -PdryRun=false) ====
 publish {
+    userOrg = ""
     groupId = libraryGroupId
     artifactId = libraryBaseName
     uploadName = 'ExoMedia'
-    version = libraryVersion
+    publishVersion = libraryVersion
+    desc = ""
     autoPublish = false
     dryRun = false
 }

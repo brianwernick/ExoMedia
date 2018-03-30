@@ -86,7 +86,7 @@ public class VideoPlayerActivity extends Activity implements VideoControlsSeekLi
      * of content if it hasn't already been performed.
      */
     private void setupPlaylistManager() {
-        playlistManager = App.getPlaylistManager();
+        playlistManager = ((App)getApplicationContext()).getPlaylistManager();
 
         List<MediaItem> mediaItems = new LinkedList<>();
         for (Samples.Sample sample : Samples.getVideoSamples()) {

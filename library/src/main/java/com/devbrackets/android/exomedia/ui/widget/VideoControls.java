@@ -119,6 +119,10 @@ public abstract class VideoControls extends RelativeLayout {
     /**
      * Performs the progress update on the current time field,
      * and the seek bar
+     *
+     * @param position The position in milliseconds
+     * @param duration The duration of the video in milliseconds
+     * @param bufferPercent The integer percent that is buffered [0, 100] inclusive
      */
     public abstract void updateProgress(@IntRange(from = 0) long position, @IntRange(from = 0) long duration, @IntRange(from = 0, to = 100) int bufferPercent);
 

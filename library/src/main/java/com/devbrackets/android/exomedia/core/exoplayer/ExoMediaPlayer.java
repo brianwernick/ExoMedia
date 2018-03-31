@@ -142,6 +142,9 @@ public class ExoMediaPlayer extends Player.DefaultEventListener {
     private CapabilitiesListener capabilitiesListener = new CapabilitiesListener();
     private int audioSessionId = C.AUDIO_SESSION_ID_UNSET;
 
+    @FloatRange(from = 0.0, to = 1.0)
+    protected float requestedVolume = 1.0f;
+
     public ExoMediaPlayer(@NonNull Context context) {
         this.context = context;
 
@@ -322,7 +325,13 @@ public class ExoMediaPlayer extends Player.DefaultEventListener {
     }
 
     public void setVolume(@FloatRange(from = 0.0, to = 1.0) float volume) {
-        sendMessage(C.TRACK_TYPE_AUDIO, C.MSG_SET_VOLUME, volume);
+        requestedVolume = volume;
+        sendMessage(C.TRACK_TYPE_AUDIO, C.MSG_SET_VOLUME, requestedVolume);
+    }
+
+    @FloatRange(from = 0.0, to = 1.0)
+    public float getVolume() {
+        return requestedVolume;
     }
 
     public void setAudioStreamType(int streamType) {

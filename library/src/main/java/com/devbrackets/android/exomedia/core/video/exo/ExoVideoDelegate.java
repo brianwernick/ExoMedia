@@ -100,6 +100,11 @@ public class ExoVideoDelegate {
         return true;
     }
 
+    @FloatRange(from = 0.0, to = 1.0)
+    public float getVolume() {
+        return exoMediaPlayer.getVolume();
+    }
+
     public boolean setVolume(@FloatRange(from = 0.0, to = 1.0) float volume) {
         exoMediaPlayer.setVolume(volume);
         return true;

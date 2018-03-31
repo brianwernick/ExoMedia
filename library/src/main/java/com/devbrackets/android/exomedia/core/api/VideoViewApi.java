@@ -63,6 +63,9 @@ public interface VideoViewApi {
      */
     void setDrmCallback(@Nullable MediaDrmCallback drmCallback);
 
+    @FloatRange(from = 0.0, to = 1.0)
+    float getVolume();
+
     boolean setVolume(@FloatRange(from = 0.0, to = 1.0) float volume);
 
     void seekTo(@IntRange(from = 0) long milliseconds);

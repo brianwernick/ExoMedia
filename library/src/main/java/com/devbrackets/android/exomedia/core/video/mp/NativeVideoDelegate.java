@@ -22,6 +22,7 @@ import android.media.MediaPlayer;
 import android.media.PlaybackParams;
 import android.net.Uri;
 import android.os.Build;
+import android.support.annotation.FloatRange;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Log;
@@ -70,6 +71,9 @@ public class NativeVideoDelegate {
     protected boolean playRequested = false;
     protected long requestedSeek;
     protected int currentBufferPercent;
+
+    @FloatRange(from = 0.0, to = 1.0)
+    protected float requestedVolume = 1.0f;
 
     protected ListenerMux listenerMux;
 
@@ -131,6 +135,17 @@ public class NativeVideoDelegate {
         }
 
         return mediaPlayer.getCurrentPosition();
+    }
+
+    @FloatRange(from = 0.0, to = 1.0)
+    public float getVolume() {
+        return requestedVolume;
+    }
+
+    public boolean setVolume(@FloatRange(from = 0.0, to = 1.0) float volume) {
+        requestedVolume = volume;
+        mediaPlayer.setVolume(volume, volume);
+        return true;
     }
 
     public void seekTo(long milliseconds) {

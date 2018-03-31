@@ -87,6 +87,11 @@ public class ExoTextureVideoView extends ResizingTextureView implements VideoVie
     }
 
     @Override
+    public float getVolume() {
+        return delegate.getVolume();
+    }
+
+    @Override
     public boolean setVolume(@FloatRange(from = 0.0, to = 1.0) float volume) {
         return delegate.setVolume(volume);
     }

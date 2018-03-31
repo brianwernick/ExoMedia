@@ -30,6 +30,7 @@ import android.util.Log;
 import com.devbrackets.android.exomedia.ExoMedia;
 import com.devbrackets.android.exomedia.core.ListenerMux;
 import com.devbrackets.android.exomedia.core.api.AudioPlayerApi;
+import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.drm.MediaDrmCallback;
 import com.google.android.exoplayer2.source.MediaSource;
 import com.google.android.exoplayer2.source.TrackGroupArray;
@@ -244,6 +245,11 @@ public class NativeAudioPlayer implements AudioPlayerApi {
         if (requestedSeek != 0) {
             seekTo(requestedSeek);
         }
+    }
+
+    @Override
+    public void setRepeatMode(@Player.RepeatMode int repeatMode) {
+        // Purposefully left blank
     }
 
     protected class InternalListeners implements MediaPlayer.OnBufferingUpdateListener {

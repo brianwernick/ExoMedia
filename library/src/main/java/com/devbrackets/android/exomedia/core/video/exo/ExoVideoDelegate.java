@@ -193,6 +193,10 @@ public class ExoVideoDelegate {
         exoMediaPlayer.addListener(listenerMux);
     }
 
+    public void setRepeatMode(int repeatMode) {
+        exoMediaPlayer.setRepeatMode(repeatMode);
+    }
+
     public void onSurfaceReady(Surface surface) {
         exoMediaPlayer.setSurface(surface);
         if (playRequested) {

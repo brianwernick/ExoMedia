@@ -30,6 +30,7 @@ import com.devbrackets.android.exomedia.ExoMedia;
 import com.devbrackets.android.exomedia.core.ListenerMux;
 import com.devbrackets.android.exomedia.core.api.VideoViewApi;
 import com.devbrackets.android.exomedia.core.video.ResizingSurfaceView;
+import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.drm.MediaDrmCallback;
 import com.google.android.exoplayer2.source.MediaSource;
 import com.google.android.exoplayer2.source.TrackGroupArray;
@@ -170,6 +171,11 @@ public class ExoSurfaceVideoView extends ResizingSurfaceView implements VideoVie
         if (updateVideoSize(width, height)) {
             requestLayout();
         }
+    }
+
+    @Override
+    public void setRepeatMode(@Player.RepeatMode int repeatMode) {
+        delegate.setRepeatMode(repeatMode);
     }
 
     protected void setup() {

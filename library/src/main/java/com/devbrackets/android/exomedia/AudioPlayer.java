@@ -35,6 +35,7 @@ import com.devbrackets.android.exomedia.listener.OnErrorListener;
 import com.devbrackets.android.exomedia.listener.OnPreparedListener;
 import com.devbrackets.android.exomedia.listener.OnSeekCompletionListener;
 import com.devbrackets.android.exomedia.util.DeviceUtil;
+import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.drm.MediaDrmCallback;
 import com.google.android.exoplayer2.source.MediaSource;
 import com.google.android.exoplayer2.source.TrackGroupArray;
@@ -84,6 +85,16 @@ public class AudioPlayer {
      */
     public int getAudioSessionId() {
         return audioPlayerImpl.getAudioSessionId();
+    }
+
+    /**
+     * Sets the repeat mode for this MediaPlayer.
+     * <b>Note:</b> This will only change the ExoPlayer implementation
+     *
+     * @param repeatMode The repeat mode to use
+     */
+    public void setRepeatMode(@Player.RepeatMode int repeatMode) {
+        audioPlayerImpl.setRepeatMode(repeatMode);
     }
 
     /**

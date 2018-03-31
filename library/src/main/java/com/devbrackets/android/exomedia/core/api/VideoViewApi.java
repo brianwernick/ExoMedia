@@ -26,6 +26,7 @@ import android.view.View;
 import com.devbrackets.android.exomedia.ExoMedia;
 import com.devbrackets.android.exomedia.core.ListenerMux;
 import com.devbrackets.android.exomedia.core.video.scale.ScaleType;
+import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.drm.MediaDrmCallback;
 import com.google.android.exoplayer2.source.MediaSource;
 import com.google.android.exoplayer2.source.TrackGroupArray;
@@ -140,4 +141,6 @@ public interface VideoViewApi {
     void setListenerMux(ListenerMux listenerMux);
 
     void onVideoSizeChanged(int width, int height);
+
+    void setRepeatMode(@Player.RepeatMode int repeatMode);
 }

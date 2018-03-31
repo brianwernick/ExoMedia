@@ -475,6 +475,10 @@ public class ExoMediaPlayer extends Player.DefaultEventListener {
         stayAwake(wasHeld);
     }
 
+    public void setRepeatMode(@Player.RepeatMode int repeatMode) {
+        player.setRepeatMode(repeatMode);
+    }
+
     protected int getExoPlayerTrackType(@NonNull RendererType type) {
         switch (type) {
             case AUDIO:

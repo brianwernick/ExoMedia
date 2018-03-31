@@ -25,6 +25,7 @@ import android.support.annotation.Nullable;
 
 import com.devbrackets.android.exomedia.ExoMedia;
 import com.devbrackets.android.exomedia.core.ListenerMux;
+import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.drm.MediaDrmCallback;
 import com.google.android.exoplayer2.source.MediaSource;
 import com.google.android.exoplayer2.source.TrackGroupArray;
@@ -133,4 +134,6 @@ public interface AudioPlayerApi {
     void setListenerMux(ListenerMux listenerMux);
 
     void onMediaPrepared();
+
+    void setRepeatMode(@Player.RepeatMode int repeatMode);
 }

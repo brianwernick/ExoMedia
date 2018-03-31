@@ -146,9 +146,9 @@ public class ExoMedia {
 
         private static void instantiateSourceProviders() {
             // Adds the HLS, SmoothStream, and MPEG Dash registrations
-            sourceTypeBuilders.add(new MediaSourceProvider.SourceTypeBuilder(new HlsMediaSourceBuilder(), ".m3u8", ".*m3u8.*"));
-            sourceTypeBuilders.add(new MediaSourceProvider.SourceTypeBuilder(new DashMediaSourceBuilder(), ".mpd", ".*mpd.*"));
-            sourceTypeBuilders.add(new MediaSourceProvider.SourceTypeBuilder(new SsMediaSourceBuilder(), ".ism", ".*ism.*"));
+            sourceTypeBuilders.add(new MediaSourceProvider.SourceTypeBuilder(new HlsMediaSourceBuilder(), ".m3u8", ".*\\.m3u8.*"));
+            sourceTypeBuilders.add(new MediaSourceProvider.SourceTypeBuilder(new DashMediaSourceBuilder(), ".mpd", ".*\\.mpd.*"));
+            sourceTypeBuilders.add(new MediaSourceProvider.SourceTypeBuilder(new SsMediaSourceBuilder(), ".ism", ".*\\.ism.*"));
         }
     }
 }

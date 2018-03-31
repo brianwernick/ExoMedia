@@ -323,6 +323,15 @@ public class VideoView extends RelativeLayout {
     }
 
     /**
+     * Retrieves the current media volume
+     *
+     * @return The volume for the media
+     */
+    public float getVolume() {
+        return videoViewImpl.getVolume();
+    }
+
+    /**
      * Sets the volume level for devices that support
      * the ExoPlayer (JellyBean or greater).
      *

@@ -125,6 +125,12 @@ public interface AudioPlayerApi {
     @Nullable
     Map<ExoMedia.RendererType, TrackGroupArray> getAvailableTracks();
 
+    @FloatRange(from = 0.0, to = 1.0)
+    float getVolumeLeft();
+
+    @FloatRange(from = 0.0, to = 1.0)
+    float getVolumeRight();
+
     void setVolume(@FloatRange(from = 0.0, to = 1.0) float left, @FloatRange(from = 0.0, to = 1.0) float right);
 
     void seekTo(@IntRange(from = 0) long milliseconds);

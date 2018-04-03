@@ -15,5 +15,5 @@ public interface OnVideoSizeChangedListener {
      * @param intrinsicWidth The intrinsic (unscaled) width of the video currently in playback
      * @param intrinsicHeight The intrinsic (unscaled) height of the video currently in playback
      */
-    void onVideoSizeChanged(int intrinsicWidth, int intrinsicHeight);
+    void onVideoSizeChanged(int intrinsicWidth, int intrinsicHeight, float pixelWidthHeightRatio);
 }

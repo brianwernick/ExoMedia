@@ -143,7 +143,7 @@ public interface VideoViewApi {
 
     void setListenerMux(ListenerMux listenerMux);
 
-    void onVideoSizeChanged(int width, int height);
+    void onVideoSizeChanged(int width, int height, float pixelWidthHeightRatio);
 
     void setRepeatMode(@Player.RepeatMode int repeatMode);
 }

@@ -18,6 +18,8 @@ public class DefaultMediaSourceBuilder extends MediaSourceBuilder {
     public MediaSource build(@NonNull Context context, @NonNull Uri uri, @NonNull String userAgent, @NonNull Handler handler, @Nullable TransferListener<? super DataSource> transferListener) {
         DataSource.Factory dataSourceFactory = buildDataSourceFactory(context, userAgent, transferListener);
 
-        return new ExtractorMediaSource(uri, dataSourceFactory, new DefaultExtractorsFactory(), handler, null);
+        return new ExtractorMediaSource.Factory(dataSourceFactory)
+                .setExtractorsFactory(new DefaultExtractorsFactory())
+                .createMediaSource(uri, handler, null);
     }
 }

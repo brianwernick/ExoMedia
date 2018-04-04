@@ -17,6 +17,7 @@ public class HlsMediaSourceBuilder extends MediaSourceBuilder {
     public MediaSource build(@NonNull Context context, @NonNull Uri uri, @NonNull String userAgent, @NonNull Handler handler, @Nullable TransferListener<? super DataSource> transferListener) {
         DataSource.Factory dataSourceFactory = buildDataSourceFactory(context, userAgent, transferListener);
 
-        return new HlsMediaSource(uri, dataSourceFactory, handler, null);
+        return new HlsMediaSource.Factory(dataSourceFactory)
+                .createMediaSource(uri, handler, null);
     }
 }

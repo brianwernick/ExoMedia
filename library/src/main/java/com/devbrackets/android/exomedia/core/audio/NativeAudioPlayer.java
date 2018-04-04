@@ -30,6 +30,7 @@ import android.util.Log;
 import com.devbrackets.android.exomedia.ExoMedia;
 import com.devbrackets.android.exomedia.core.ListenerMux;
 import com.devbrackets.android.exomedia.core.api.AudioPlayerApi;
+import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.drm.MediaDrmCallback;
 import com.google.android.exoplayer2.source.MediaSource;
 import com.google.android.exoplayer2.source.TrackGroupArray;
@@ -60,6 +61,12 @@ public class NativeAudioPlayer implements AudioPlayerApi {
 
     protected long requestedSeek;
     protected int currentBufferPercent = 0;
+
+    @FloatRange(from = 0.0, to = 1.0)
+    protected float volumeLeft = 1.0f;
+
+    @FloatRange(from = 0.0, to = 1.0)
+    protected float volumeRight = 1.0f;
 
     public NativeAudioPlayer(@NonNull Context context) {
         this.context = context;
@@ -103,14 +110,27 @@ public class NativeAudioPlayer implements AudioPlayerApi {
     }
 
     @Override
+    public float getVolumeLeft() {
+        return volumeLeft;
+    }
+
+    @Override
+    public float getVolumeRight() {
+        return volumeRight;
+    }
+
+    @Override
     public void setVolume(@FloatRange(from = 0.0, to = 1.0) float left, @FloatRange(from = 0.0, to = 1.0) float right) {
+        volumeLeft = left;
+        volumeRight = right;
+
         mediaPlayer.setVolume(left, right);
     }
 
     @Override
     public void seekTo(@IntRange(from = 0) long milliseconds) {
         if (listenerMux != null && listenerMux.isPrepared()) {
-            mediaPlayer.seekTo((int)milliseconds);
+            mediaPlayer.seekTo((int) milliseconds);
             requestedSeek = 0;
         } else {
             requestedSeek = milliseconds;
@@ -244,6 +264,11 @@ public class NativeAudioPlayer implements AudioPlayerApi {
         if (requestedSeek != 0) {
             seekTo(requestedSeek);
         }
+    }
+
+    @Override
+    public void setRepeatMode(@Player.RepeatMode int repeatMode) {
+        // Purposefully left blank
     }
 
     protected class InternalListeners implements MediaPlayer.OnBufferingUpdateListener {

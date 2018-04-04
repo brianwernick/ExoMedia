@@ -76,7 +76,7 @@ public class AudioPlayerActivity extends AppCompatActivity implements PlaylistLi
     @Override
     protected void onResume() {
         super.onResume();
-        playlistManager = App.getPlaylistManager();
+        playlistManager = ((App)getApplicationContext()).getPlaylistManager();
         playlistManager.registerPlaylistListener(this);
         playlistManager.registerProgressListener(this);
 
@@ -251,7 +251,7 @@ public class AudioPlayerActivity extends AppCompatActivity implements PlaylistLi
      * @return True if the content was generated
      */
     private boolean setupPlaylistManager() {
-        playlistManager = App.getPlaylistManager();
+        playlistManager = ((App)getApplicationContext()).getPlaylistManager();
 
         //There is nothing to do if the currently playing values are the same
         if (playlistManager.getId() == PLAYLIST_ID) {

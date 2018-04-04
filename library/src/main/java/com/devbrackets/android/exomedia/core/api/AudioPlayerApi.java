@@ -25,6 +25,7 @@ import android.support.annotation.Nullable;
 
 import com.devbrackets.android.exomedia.ExoMedia;
 import com.devbrackets.android.exomedia.core.ListenerMux;
+import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.drm.MediaDrmCallback;
 import com.google.android.exoplayer2.source.MediaSource;
 import com.google.android.exoplayer2.source.TrackGroupArray;
@@ -124,6 +125,12 @@ public interface AudioPlayerApi {
     @Nullable
     Map<ExoMedia.RendererType, TrackGroupArray> getAvailableTracks();
 
+    @FloatRange(from = 0.0, to = 1.0)
+    float getVolumeLeft();
+
+    @FloatRange(from = 0.0, to = 1.0)
+    float getVolumeRight();
+
     void setVolume(@FloatRange(from = 0.0, to = 1.0) float left, @FloatRange(from = 0.0, to = 1.0) float right);
 
     void seekTo(@IntRange(from = 0) long milliseconds);
@@ -133,4 +140,6 @@ public interface AudioPlayerApi {
     void setListenerMux(ListenerMux listenerMux);
 
     void onMediaPrepared();
+
+    void setRepeatMode(@Player.RepeatMode int repeatMode);
 }

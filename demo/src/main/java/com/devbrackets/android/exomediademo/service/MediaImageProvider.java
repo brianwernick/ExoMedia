@@ -7,8 +7,8 @@ import android.support.annotation.NonNull;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.RequestManager;
-import com.bumptech.glide.request.animation.GlideAnimation;
 import com.bumptech.glide.request.target.SimpleTarget;
+import com.bumptech.glide.request.transition.Transition;
 import com.devbrackets.android.exomediademo.R;
 import com.devbrackets.android.exomediademo.data.MediaItem;
 import com.devbrackets.android.playlistcore.components.image.ImageProvider;
@@ -71,8 +71,8 @@ public class MediaImageProvider implements ImageProvider<MediaItem> {
 
     @Override
     public void updateImages(@NotNull MediaItem playlistItem) {
-        glide.load(playlistItem.getThumbnailUrl()).asBitmap().into(notificationImageTarget);
-        glide.load(playlistItem.getArtworkUrl()).asBitmap().into(remoteViewImageTarget);
+        glide.asBitmap().load(playlistItem.getThumbnailUrl()).into(notificationImageTarget);
+        glide.asBitmap().load(playlistItem.getArtworkUrl()).into(remoteViewImageTarget);
     }
 
     /**
@@ -83,7 +83,7 @@ public class MediaImageProvider implements ImageProvider<MediaItem> {
      */
     private class NotificationImageTarget extends SimpleTarget<Bitmap> {
         @Override
-        public void onResourceReady(Bitmap resource, GlideAnimation<? super Bitmap> glideAnimation) {
+        public void onResourceReady(@NonNull Bitmap resource, @Nullable Transition<? super Bitmap> transition) {
             notificationImage = resource;
             listener.onImageUpdated();
         }
@@ -97,7 +97,7 @@ public class MediaImageProvider implements ImageProvider<MediaItem> {
      */
     private class RemoteViewImageTarget extends SimpleTarget<Bitmap> {
         @Override
-        public void onResourceReady(Bitmap resource, GlideAnimation<? super Bitmap> glideAnimation) {
+        public void onResourceReady(@NonNull Bitmap resource, @Nullable Transition<? super Bitmap> transition) {
             artworkImage = resource;
             listener.onImageUpdated();
         }

@@ -31,6 +31,7 @@ import com.devbrackets.android.exomedia.core.api.AudioPlayerApi;
 import com.devbrackets.android.exomedia.core.exoplayer.ExoMediaPlayer;
 import com.devbrackets.android.exomedia.core.listener.MetadataListener;
 import com.devbrackets.android.exomedia.listener.OnBufferUpdateListener;
+import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.drm.MediaDrmCallback;
 import com.google.android.exoplayer2.metadata.Metadata;
 import com.google.android.exoplayer2.source.MediaSource;
@@ -99,6 +100,16 @@ public class ExoAudioPlayer implements AudioPlayerApi {
     @Override
     public void reset() {
         //Purposefully left blank
+    }
+
+    @Override
+    public float getVolumeLeft() {
+        return exoMediaPlayer.getVolume();
+    }
+
+    @Override
+    public float getVolumeRight() {
+        return exoMediaPlayer.getVolume();
     }
 
     @Override
@@ -230,6 +241,11 @@ public class ExoAudioPlayer implements AudioPlayerApi {
     @Override
     public void onMediaPrepared() {
         //Purposefully left blank
+    }
+
+    @Override
+    public void setRepeatMode(@Player.RepeatMode int repeatMode) {
+        exoMediaPlayer.setRepeatMode(repeatMode);
     }
 
     protected class InternalListeners implements MetadataListener, OnBufferUpdateListener {

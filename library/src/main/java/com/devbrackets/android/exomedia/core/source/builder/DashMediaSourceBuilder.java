@@ -19,6 +19,7 @@ public class DashMediaSourceBuilder extends MediaSourceBuilder {
         DataSource.Factory dataSourceFactory = buildDataSourceFactory(context, userAgent, null);
         DataSource.Factory meteredDataSourceFactory = buildDataSourceFactory(context, userAgent, transferListener);
 
-        return new DashMediaSource(uri, dataSourceFactory, new DefaultDashChunkSource.Factory(meteredDataSourceFactory), handler, null);
+        return new DashMediaSource.Factory(new DefaultDashChunkSource.Factory(meteredDataSourceFactory), dataSourceFactory)
+                .createMediaSource(uri, handler, null);
     }
 }

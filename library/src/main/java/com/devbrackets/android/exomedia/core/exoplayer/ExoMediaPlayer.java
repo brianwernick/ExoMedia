@@ -51,6 +51,7 @@ import com.google.android.exoplayer2.Format;
 import com.google.android.exoplayer2.LoadControl;
 import com.google.android.exoplayer2.PlaybackParameters;
 import com.google.android.exoplayer2.Player;
+import com.google.android.exoplayer2.PlayerMessage;
 import com.google.android.exoplayer2.Renderer;
 import com.google.android.exoplayer2.audio.AudioAttributes;
 import com.google.android.exoplayer2.audio.AudioRendererEventListener;
@@ -140,6 +141,9 @@ public class ExoMediaPlayer extends Player.DefaultEventListener {
     @NonNull
     private CapabilitiesListener capabilitiesListener = new CapabilitiesListener();
     private int audioSessionId = C.AUDIO_SESSION_ID_UNSET;
+
+    @FloatRange(from = 0.0, to = 1.0)
+    protected float requestedVolume = 1.0f;
 
     public ExoMediaPlayer(@NonNull Context context) {
         this.context = context;
@@ -237,13 +241,21 @@ public class ExoMediaPlayer extends Player.DefaultEventListener {
         return surface;
     }
 
-    public void blockingClearSurface() {
+    public void clearSurface() {
         if (surface != null) {
             surface.release();
         }
 
         surface = null;
-        sendMessage(C.TRACK_TYPE_VIDEO, C.MSG_SET_SURFACE, null, true);
+        sendMessage(C.TRACK_TYPE_VIDEO, C.MSG_SET_SURFACE, null, false);
+    }
+
+    /**
+     * @deprecated use {@link #clearSurface()} as this is no longer blocking
+     */
+    @Deprecated
+    public void blockingClearSurface() {
+        clearSurface();
     }
 
     /**
@@ -267,7 +279,7 @@ public class ExoMediaPlayer extends Player.DefaultEventListener {
         // Maps the available tracks
         RendererType[] types = new RendererType[] {RendererType.AUDIO, RendererType.VIDEO, RendererType.CLOSED_CAPTION, RendererType.METADATA};
         for (RendererType type : types) {
-            int exoPlayerTrackIndex = getExoPlayerTrackType(type);
+            int exoPlayerTrackIndex = getExoPlayerTrackIndex(type);
             if (mappedTrackInfo.length > exoPlayerTrackIndex) {
                 trackMap.put(type, mappedTrackInfo.getTrackGroups(exoPlayerTrackIndex));
             }
@@ -278,7 +290,7 @@ public class ExoMediaPlayer extends Player.DefaultEventListener {
 
     public int getSelectedTrackIndex(@NonNull RendererType type) {
         // Retrieves the available tracks
-        int exoPlayerTrackIndex = getExoPlayerTrackType(type);
+        int exoPlayerTrackIndex = getExoPlayerTrackIndex(type);
         MappingTrackSelector.MappedTrackInfo mappedTrackInfo = trackSelector.getCurrentMappedTrackInfo();
         TrackGroupArray trackGroupArray = mappedTrackInfo == null ? null : mappedTrackInfo.getTrackGroups(exoPlayerTrackIndex);
         if (trackGroupArray == null || trackGroupArray.length == 0) {
@@ -296,7 +308,7 @@ public class ExoMediaPlayer extends Player.DefaultEventListener {
 
     public void setSelectedTrack(@NonNull RendererType type, int index) {
         // Retrieves the available tracks
-        int exoPlayerTrackIndex = getExoPlayerTrackType(type);
+        int exoPlayerTrackIndex = getExoPlayerTrackIndex(type);
         MappingTrackSelector.MappedTrackInfo mappedTrackInfo = trackSelector.getCurrentMappedTrackInfo();
         TrackGroupArray trackGroupArray = mappedTrackInfo == null ? null : mappedTrackInfo.getTrackGroups(exoPlayerTrackIndex);
         if (trackGroupArray == null || trackGroupArray.length == 0) {
@@ -313,7 +325,13 @@ public class ExoMediaPlayer extends Player.DefaultEventListener {
     }
 
     public void setVolume(@FloatRange(from = 0.0, to = 1.0) float volume) {
-        sendMessage(C.TRACK_TYPE_AUDIO, C.MSG_SET_VOLUME, volume);
+        requestedVolume = volume;
+        sendMessage(C.TRACK_TYPE_AUDIO, C.MSG_SET_VOLUME, requestedVolume);
+    }
+
+    @FloatRange(from = 0.0, to = 1.0)
+    public float getVolume() {
+        return requestedVolume;
     }
 
     public void setAudioStreamType(int streamType) {
@@ -466,6 +484,10 @@ public class ExoMediaPlayer extends Player.DefaultEventListener {
         stayAwake(wasHeld);
     }
 
+    public void setRepeatMode(@Player.RepeatMode int repeatMode) {
+        player.setRepeatMode(repeatMode);
+    }
+
     protected int getExoPlayerTrackType(@NonNull RendererType type) {
         switch (type) {
             case AUDIO:
@@ -481,6 +503,18 @@ public class ExoMediaPlayer extends Player.DefaultEventListener {
         return C.TRACK_TYPE_UNKNOWN;
     }
 
+    protected int getExoPlayerTrackIndex(@NonNull RendererType type) {
+        switch (type) {
+            case AUDIO:
+            case VIDEO:
+            case CLOSED_CAPTION:
+            case METADATA:
+                return type.ordinal();
+        }
+
+        return C.INDEX_UNSET;
+    }
+
     protected void sendMessage(int renderType, int messageType, Object message) {
         sendMessage(renderType, messageType, message, false);
     }
@@ -490,17 +524,44 @@ public class ExoMediaPlayer extends Player.DefaultEventListener {
             return;
         }
 
-        List<ExoPlayer.ExoPlayerMessage> messages = new ArrayList<>();
+        List<PlayerMessage> messages = new ArrayList<>();
         for (Renderer renderer : renderers) {
             if (renderer.getTrackType() == renderType) {
-                messages.add(new ExoPlayer.ExoPlayerMessage(renderer, messageType, message));
+                messages.add(player.createMessage(renderer).setType(messageType).setPayload(message));
             }
         }
 
         if (blocking) {
-            player.blockingSendMessages(messages.toArray(new ExoPlayer.ExoPlayerMessage[messages.size()]));
+            blockingSendMessages(messages);
         } else {
-            player.sendMessages(messages.toArray(new ExoPlayer.ExoPlayerMessage[messages.size()]));
+            for (PlayerMessage playerMessage : messages) {
+                playerMessage.send();
+            }
+        }
+    }
+
+    /**
+     * This was pulled from the <i>Deprecated</i> ExoPlayerImpl#blockingSendMessages method
+     *
+     * @param messages The messages
+     */
+    protected void blockingSendMessages(List<PlayerMessage> messages) {
+        boolean wasInterrupted = false;
+        for (PlayerMessage message : messages) {
+            boolean blockMessage = true;
+            while (blockMessage) {
+                try {
+                    message.blockUntilDelivered();
+                    blockMessage = false;
+                } catch (InterruptedException e) {
+                    wasInterrupted = true;
+                }
+            }
+        }
+
+        if (wasInterrupted) {
+            // Restore the interrupted status.
+            Thread.currentThread().interrupt();
         }
     }
 

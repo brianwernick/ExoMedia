@@ -11,7 +11,7 @@ dependencies {
     annotationProcessor 'com.github.bumptech.glide:compiler:4.6.1'
 
     // Playlist support
-    implementation 'com.devbrackets.android:playlistcore:2.0.0'
+    implementation 'com.devbrackets.android:playlistcore:2.0.1'
 
     // Memory Leak diagnostics
     implementation 'com.squareup.leakcanary:leakcanary-android:1.5.4'

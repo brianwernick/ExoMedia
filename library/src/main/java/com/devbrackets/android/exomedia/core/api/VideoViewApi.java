@@ -125,6 +125,15 @@ public interface VideoViewApi {
     @Nullable
     Map<ExoMedia.RendererType, TrackGroupArray> getAvailableTracks();
 
+    /**
+     * Enables or disables the track associated with the <code>type</code>. Note, by default all
+     * tracks are enabled
+     *
+     * @param type The {@link com.devbrackets.android.exomedia.ExoMedia.RendererType} to enable or disable the track for
+     * @param enabled <code>true</code> if the track should be enabled.
+     */
+    void setRendererEnabled(@NonNull ExoMedia.RendererType type, boolean enabled);
+
     void setScaleType(@NonNull ScaleType scaleType);
 
     ScaleType getScaleType();

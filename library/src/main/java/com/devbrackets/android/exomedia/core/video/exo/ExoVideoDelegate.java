@@ -181,6 +181,10 @@ public class ExoVideoDelegate {
         return exoMediaPlayer.getAvailableTracks();
     }
 
+    public void setRendererEnabled(@NonNull ExoMedia.RendererType type, boolean enabled) {
+        exoMediaPlayer.setRendererEnabled(type, enabled);
+    }
+
     public boolean setPlaybackSpeed(float speed) {
         return exoMediaPlayer.setPlaybackSpeed(speed);
     }

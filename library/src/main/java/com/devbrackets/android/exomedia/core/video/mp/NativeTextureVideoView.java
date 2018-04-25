@@ -205,6 +205,11 @@ public class NativeTextureVideoView extends ResizingTextureView implements Nativ
     }
 
     @Override
+    public void setRendererEnabled(@NonNull ExoMedia.RendererType type, boolean enabled) {
+        // Purposefully left blank
+    }
+
+    @Override
     public void setListenerMux(ListenerMux listenerMux) {
         delegate.setListenerMux(listenerMux);
     }

@@ -609,6 +609,17 @@ public class VideoView extends RelativeLayout {
     }
 
     /**
+     * Enables or disables the track associated with the <code>type</code>. Note, by default all
+     * tracks are enabled
+     *
+     * @param type The {@link com.devbrackets.android.exomedia.ExoMedia.RendererType} to enable or disable the track for
+     * @param enabled <code>true</code> if the track should be enabled.
+     */
+    public void setRendererEnabled(@NonNull ExoMedia.RendererType type, boolean enabled) {
+        videoViewImpl.setRendererEnabled(type, enabled);
+    }
+
+    /**
      * Sets how the video should be scaled in the view
      *
      * @param scaleType how to scale the videos

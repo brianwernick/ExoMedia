@@ -22,6 +22,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.support.annotation.FloatRange;
 import android.support.annotation.IntRange;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
 import android.view.SurfaceHolder;
@@ -159,6 +160,11 @@ public class ExoSurfaceVideoView extends ResizingSurfaceView implements VideoVie
     @Override
     public Map<ExoMedia.RendererType, TrackGroupArray> getAvailableTracks() {
         return delegate.getAvailableTracks();
+    }
+
+    @Override
+    public void setRendererEnabled(@NonNull ExoMedia.RendererType type, boolean enabled) {
+        delegate.setRendererEnabled(type, enabled);
     }
 
     @Override

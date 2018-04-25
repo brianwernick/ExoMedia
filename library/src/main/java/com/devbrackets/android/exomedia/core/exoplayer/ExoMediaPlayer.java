@@ -324,6 +324,11 @@ public class ExoMediaPlayer extends Player.DefaultEventListener {
         trackSelector.setSelectionOverride(exoPlayerTrackIndex, trackGroupArray, selectionOverride);
     }
 
+    public void setRendererEnabled(@NonNull RendererType type, boolean enabled) {
+        int exoPlayerTrackIndex = getExoPlayerTrackIndex(type);
+        trackSelector.setRendererDisabled(exoPlayerTrackIndex, !enabled);
+    }
+
     public void setVolume(@FloatRange(from = 0.0, to = 1.0) float volume) {
         requestedVolume = volume;
         sendMessage(C.TRACK_TYPE_AUDIO, C.MSG_SET_VOLUME, requestedVolume);

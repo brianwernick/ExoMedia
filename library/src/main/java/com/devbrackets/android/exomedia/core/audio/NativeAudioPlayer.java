@@ -223,6 +223,16 @@ public class NativeAudioPlayer implements AudioPlayerApi {
     }
 
     @Override
+    public float getPlaybackSpeed() {
+        // Marshmallow+ support setting the playback speed natively
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            return mediaPlayer.getPlaybackParams().getSpeed();
+        }
+
+        return 1F;
+    }
+
+    @Override
     public void setAudioStreamType(int streamType) {
         mediaPlayer.setAudioStreamType(streamType);
     }

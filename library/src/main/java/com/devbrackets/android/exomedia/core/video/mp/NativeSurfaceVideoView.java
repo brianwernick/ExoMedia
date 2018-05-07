@@ -184,6 +184,11 @@ public class NativeSurfaceVideoView extends ResizingSurfaceView implements Nativ
     }
 
     @Override
+    public float getPlaybackSpeed() {
+        return delegate.getPlaybackSpeed();
+    }
+
+    @Override
     public boolean trackSelectionAvailable() {
         return false;
     }

@@ -434,6 +434,11 @@ public class ExoMediaPlayer extends Player.DefaultEventListener {
         return true;
     }
 
+    public float getPlaybackSpeed() {
+        PlaybackParameters params = player.getPlaybackParameters();
+        return params.speed;
+    }
+
     public long getCurrentPosition() {
         return player.getCurrentPosition();
     }

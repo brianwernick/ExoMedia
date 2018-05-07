@@ -182,6 +182,15 @@ public class NativeVideoDelegate {
         return false;
     }
 
+    public float getPlaybackSpeed() {
+        // Marshmallow+ support setting the playback speed natively
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            return mediaPlayer.getPlaybackParams().getSpeed();
+        }
+
+        return 1F;
+    }
+
     /**
      * Performs the functionality to stop the video in playback
      *

@@ -108,6 +108,15 @@ public class AudioPlayer {
     }
 
     /**
+     * Retrieves the current speed the media is playing at.
+     *
+     * @return The current playback speed
+     */
+    public float getPlaybackSpeed() {
+        return audioPlayerImpl.getPlaybackSpeed();
+    }
+
+    /**
      * Sets the audio stream type for this MediaPlayer. See {@link AudioManager}
      * for a list of stream types. Must call this method before prepare() or
      * prepareAsync() in order for the target stream type to become effective

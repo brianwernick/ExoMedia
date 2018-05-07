@@ -19,6 +19,7 @@ package com.devbrackets.android.exomedia.util;
 
 import android.os.Handler;
 import android.os.HandlerThread;
+import android.support.annotation.FloatRange;
 import android.support.annotation.Nullable;
 
 /**
@@ -46,6 +47,8 @@ public class StopWatch {
     protected long startTime = 0;
     protected long currentTime = 0;
     protected long storedTime = 0;
+    @FloatRange(from = 0F)
+    protected float speedMultiplier = 1F;
 
     public StopWatch() {
         this(true);
@@ -89,6 +92,28 @@ public class StopWatch {
     }
 
     /**
+     * Sets the multiplier to use when calculating the passed duration. This
+     * won't affect the tick delay {@link #setTickDelay(int)} but will change
+     * the output for the current time.
+     *
+     * @param multiplier The amount to multiply the duration between each tick by
+     */
+    public void setSpeedMultiplier(@FloatRange(from = 0F) float multiplier) {
+        speedMultiplier = multiplier;
+    }
+
+    /**
+     * Retrieves the current multiplier used for the current time calculations.
+     * NOTE: the default is 1
+     *
+     * @return The current multiplier
+     */
+    @FloatRange(from = 0F)
+    public float getSpeedMultiplier() {
+        return speedMultiplier;
+    }
+
+    /**
      * Starts the stopwatch.  This will continue from where we last left off,
      * if you need to start from 0 call {@link #reset()} first.
      */
@@ -99,6 +124,7 @@ public class StopWatch {
 
         isRunning = true;
         startTime = System.currentTimeMillis();
+        tickRunnable.lastTickTimestamp = startTime;
 
         if (useHandlerThread) {
             handlerThread = new HandlerThread(HANDLER_THREAD_NAME);
@@ -122,9 +148,9 @@ public class StopWatch {
             handlerThread.quit();
         }
 
+        storedTime = currentTime + storedTime;
         isRunning = false;
         currentTime = 0;
-        storedTime += System.currentTimeMillis() - startTime;
     }
 
     /**
@@ -134,6 +160,7 @@ public class StopWatch {
         currentTime = 0;
         storedTime = 0;
         startTime = System.currentTimeMillis();
+        tickRunnable.lastTickTimestamp = startTime;
     }
 
     /**
@@ -143,6 +170,7 @@ public class StopWatch {
      */
     public void overrideCurrentTime(long time) {
         startTime = System.currentTimeMillis();
+        tickRunnable.lastTickTimestamp = startTime;
         currentTime = 0;
         storedTime = time;
     }
@@ -187,9 +215,18 @@ public class StopWatch {
     }
 
     protected class TickRunnable implements Runnable {
+        protected long tempNow = 0;
+        protected long lastTickTimestamp = -1;
+
         @Override
         public void run() {
-            currentTime = System.currentTimeMillis() - startTime;
+            if (lastTickTimestamp == -1L) {
+                lastTickTimestamp = startTime;
+            }
+
+            tempNow = System.currentTimeMillis();
+            currentTime += (tempNow - lastTickTimestamp) * speedMultiplier;
+            lastTickTimestamp = tempNow;
 
             if (isRunning) {
                 performTick();

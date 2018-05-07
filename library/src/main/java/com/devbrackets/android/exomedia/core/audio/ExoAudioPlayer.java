@@ -203,6 +203,11 @@ public class ExoAudioPlayer implements AudioPlayerApi {
     }
 
     @Override
+    public float getPlaybackSpeed() {
+        return exoMediaPlayer.getPlaybackSpeed();
+    }
+
+    @Override
     public void setAudioStreamType(int streamType) {
         exoMediaPlayer.setAudioStreamType(streamType);
     }

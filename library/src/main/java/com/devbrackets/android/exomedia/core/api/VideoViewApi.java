@@ -112,6 +112,8 @@ public interface VideoViewApi {
      */
     boolean setPlaybackSpeed(float speed);
 
+    float getPlaybackSpeed();
+
     boolean trackSelectionAvailable();
 
     void setTrack(ExoMedia.RendererType type, int trackIndex);

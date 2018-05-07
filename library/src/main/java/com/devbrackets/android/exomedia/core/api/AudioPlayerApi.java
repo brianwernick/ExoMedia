@@ -101,6 +101,8 @@ public interface AudioPlayerApi {
      */
     boolean setPlaybackSpeed(float speed);
 
+    float getPlaybackSpeed();
+
     /**
      * Sets the audio stream type for this MediaPlayer. See {@link AudioManager}
      * for a list of stream types. Must call this method before prepare() or

@@ -189,6 +189,10 @@ public class ExoVideoDelegate {
         return exoMediaPlayer.setPlaybackSpeed(speed);
     }
 
+    public float getPlaybackSpeed() {
+        return exoMediaPlayer.getPlaybackSpeed();
+    }
+
     public void release() {
         exoMediaPlayer.release();
     }

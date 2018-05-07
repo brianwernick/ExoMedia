@@ -92,6 +92,7 @@ public class VideoView extends RelativeLayout {
     protected long overriddenDuration = -1;
 
     protected boolean overridePosition = false;
+    protected boolean matchOverridePositionSpeed = true;
     protected StopWatch overriddenPositionStopWatch = new StopWatch();
 
     protected MuxNotifier muxNotifier = new MuxNotifier();
@@ -505,7 +506,7 @@ public class VideoView extends RelativeLayout {
      */
     public long getCurrentPosition() {
         if (overridePosition) {
-            return positionOffset + overriddenPositionStopWatch.getTimeInt();
+            return positionOffset + overriddenPositionStopWatch.getTime();
         }
 
         return positionOffset + videoViewImpl.getCurrentPosition();
@@ -530,8 +531,8 @@ public class VideoView extends RelativeLayout {
     }
 
     /**
-     * Sets if the audio position should be overridden, allowing the time to be restarted at will.  This
-     * is useful for streaming audio where the audio doesn't have breaks between songs.
+     * Sets if the position should be overridden, allowing the time to be restarted at will.  This
+     * is useful for streaming media where the media doesn't have breaks between songs.
      *
      * @param override True if the position should be overridden
      */
@@ -543,6 +544,24 @@ public class VideoView extends RelativeLayout {
         }
 
         overridePosition = override;
+    }
+
+    /**
+     * If set the overridden position will use the same playback rate as the
+     * media in playback.
+     *
+     * @param match <code>true</code> to match the playback speed
+     */
+    public void setOverridePositionMatchesPlaybackSpeed(boolean match) {
+        if (match != matchOverridePositionSpeed) {
+            matchOverridePositionSpeed = match;
+            if (match) {
+                overriddenPositionStopWatch.setSpeedMultiplier(getPlaybackSpeed());
+            } else {
+                // Defaults to 1x when disabled
+                overriddenPositionStopWatch.setSpeedMultiplier(1F);
+            }
+        }
     }
 
     /**
@@ -573,7 +592,21 @@ public class VideoView extends RelativeLayout {
      * @return True if the speed was set
      */
     public boolean setPlaybackSpeed(float speed) {
-        return videoViewImpl.setPlaybackSpeed(speed);
+        boolean wasSet = videoViewImpl.setPlaybackSpeed(speed);
+        if (wasSet && matchOverridePositionSpeed) {
+            overriddenPositionStopWatch.setSpeedMultiplier(speed);
+        }
+
+        return wasSet;
+    }
+
+    /**
+     * Retrieves the current speed the media is playing at.
+     *
+     * @return The current playback speed
+     */
+    public float getPlaybackSpeed() {
+        return videoViewImpl.getPlaybackSpeed();
     }
 
     /**

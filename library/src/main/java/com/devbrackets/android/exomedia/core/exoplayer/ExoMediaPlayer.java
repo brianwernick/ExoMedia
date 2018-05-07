@@ -39,7 +39,6 @@ import com.devbrackets.android.exomedia.core.listener.ExoPlayerListener;
 import com.devbrackets.android.exomedia.core.listener.InternalErrorListener;
 import com.devbrackets.android.exomedia.core.listener.MetadataListener;
 import com.devbrackets.android.exomedia.core.renderer.RendererProvider;
-import com.devbrackets.android.exomedia.core.source.MediaSourceProvider;
 import com.devbrackets.android.exomedia.listener.OnBufferUpdateListener;
 import com.devbrackets.android.exomedia.util.Repeater;
 import com.google.android.exoplayer2.C;
@@ -78,7 +77,6 @@ import com.google.android.exoplayer2.util.Util;
 import com.google.android.exoplayer2.video.VideoRendererEventListener;
 
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -120,9 +118,7 @@ public class ExoMediaPlayer extends Player.DefaultEventListener {
     @Nullable
     private MediaSource mediaSource;
     @NonNull
-    private List<Renderer> renderers = new LinkedList<>();
-    @NonNull
-    private MediaSourceProvider mediaSourceProvider = new MediaSourceProvider();
+    private List<Renderer> renderers;
     @NonNull
     private DefaultBandwidthMeter bandwidthMeter = new DefaultBandwidthMeter();
 
@@ -192,7 +188,7 @@ public class ExoMediaPlayer extends Player.DefaultEventListener {
     }
 
     public void setUri(@Nullable Uri uri) {
-        setMediaSource(uri != null ? mediaSourceProvider.generate(context, mainHandler, uri, bandwidthMeter) : null);
+        setMediaSource(uri != null ? ExoMedia.Data.mediaSourceProvider.generate(context, mainHandler, uri, bandwidthMeter) : null);
     }
 
     public void setMediaSource(@Nullable MediaSource source) {

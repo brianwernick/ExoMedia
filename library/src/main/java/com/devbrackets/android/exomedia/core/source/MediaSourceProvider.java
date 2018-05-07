@@ -31,13 +31,7 @@ public class MediaSourceProvider {
 
     @NonNull
     public MediaSource generate(@NonNull Context context, @NonNull Handler handler, @NonNull Uri uri, @Nullable TransferListener<? super DataSource> transferListener ) {
-        String extension = MediaSourceUtil.getExtension(uri);
-
-        // Searches for a registered builder
-        SourceTypeBuilder sourceTypeBuilder = findByExtension(extension);
-        if (sourceTypeBuilder == null) {
-            sourceTypeBuilder = findByLooseComparison(uri);
-        }
+        SourceTypeBuilder sourceTypeBuilder = findByProviders(uri);
 
         // If a registered builder wasn't found then use the default
         MediaSourceBuilder builder = sourceTypeBuilder != null ? sourceTypeBuilder.builder : new DefaultMediaSourceBuilder();
@@ -45,14 +39,54 @@ public class MediaSourceProvider {
     }
 
     @Nullable
-    protected static SourceTypeBuilder findByExtension(@Nullable String extension) {
+    protected static SourceTypeBuilder findByProviders(@NonNull Uri uri) {
+        // Uri Scheme (e.g. rtsp)
+        SourceTypeBuilder sourceTypeBuilder = findByScheme(uri);
+        if (sourceTypeBuilder != null) {
+            return sourceTypeBuilder;
+        }
+
+        // Extension
+        sourceTypeBuilder = findByExtension(uri);
+        if (sourceTypeBuilder != null) {
+            return sourceTypeBuilder;
+        }
+
+        // Regex
+        sourceTypeBuilder = findByLooseComparison(uri);
+        if (sourceTypeBuilder != null) {
+             return sourceTypeBuilder;
+        }
+
+        return null;
+    }
+
+    @Nullable
+    protected static SourceTypeBuilder findByScheme(@NonNull Uri uri) {
+        String scheme = uri.getScheme();
+        if (scheme == null || scheme.isEmpty()) {
+            return null;
+        }
+
+        for (SourceTypeBuilder builder : ExoMedia.Data.sourceTypeBuilders) {
+            if (builder.uriScheme != null && builder.uriScheme.equalsIgnoreCase(scheme)) {
+                return builder;
+            }
+        }
+
+        return null;
+    }
+
+    @Nullable
+    protected static SourceTypeBuilder findByExtension(@NonNull Uri uri) {
+        String extension = MediaSourceUtil.getExtension(uri);
         if (extension == null || extension.isEmpty()) {
             return null;
         }
 
-        for (SourceTypeBuilder sourceTypeBuilder : ExoMedia.Data.sourceTypeBuilders) {
-            if (sourceTypeBuilder.extension.equalsIgnoreCase(extension)) {
-                return sourceTypeBuilder;
+        for (SourceTypeBuilder builder : ExoMedia.Data.sourceTypeBuilders) {
+            if (builder.extension != null && builder.extension.equalsIgnoreCase(extension)) {
+                return builder;
             }
         }
 
@@ -61,9 +95,9 @@ public class MediaSourceProvider {
 
     @Nullable
     protected static SourceTypeBuilder findByLooseComparison(@NonNull Uri uri) {
-        for (SourceTypeBuilder sourceTypeBuilder : ExoMedia.Data.sourceTypeBuilders) {
-            if (sourceTypeBuilder.looseComparisonRegex != null && uri.toString().matches(sourceTypeBuilder.looseComparisonRegex)) {
-                return sourceTypeBuilder;
+        for (SourceTypeBuilder builder : ExoMedia.Data.sourceTypeBuilders) {
+            if (builder.looseComparisonRegex != null && uri.toString().matches(builder.looseComparisonRegex)) {
+                return builder;
             }
         }
 
@@ -73,13 +107,24 @@ public class MediaSourceProvider {
     public static class SourceTypeBuilder {
         @NonNull
         public final MediaSourceBuilder builder;
-        @NonNull
+        @Nullable
         public final String extension;
+        @Nullable
+        public final String uriScheme;
         @Nullable
         public final String looseComparisonRegex;
 
+        /**
+         * @deprecated Use {@link #SourceTypeBuilder(MediaSourceBuilder, String, String, String)}
+         */
+        @Deprecated
         public SourceTypeBuilder(@NonNull MediaSourceBuilder builder, @NonNull String extension, @Nullable String looseComparisonRegex) {
+            this(builder, null, extension, looseComparisonRegex);
+        }
+
+        public SourceTypeBuilder(@NonNull MediaSourceBuilder builder, @Nullable String uriScheme, @Nullable String extension, @Nullable String looseComparisonRegex) {
             this.builder = builder;
+            this.uriScheme = uriScheme;
             this.extension = extension;
             this.looseComparisonRegex = looseComparisonRegex;
         }

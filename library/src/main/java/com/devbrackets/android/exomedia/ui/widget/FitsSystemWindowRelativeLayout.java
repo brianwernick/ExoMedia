@@ -98,11 +98,12 @@ public class FitsSystemWindowRelativeLayout extends RelativeLayout {
      * @param insets The Rect containing the additional insets to use for padding
      */
     private void updatePadding(Rect insets) {
+        int leftPadding = originalPadding.left + insets.left;
         int rightPadding = originalPadding.right + insets.right;
         int bottomPadding = originalPadding.bottom + insets.bottom;
         int topPadding = originalPadding.top + insets.top;
 
-        setPadding(originalPadding.left, topPadding, rightPadding, bottomPadding);
+        setPadding(leftPadding, topPadding, rightPadding, bottomPadding);
     }
 
     /**

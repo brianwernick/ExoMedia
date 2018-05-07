@@ -77,7 +77,7 @@ public class VideoView extends RelativeLayout {
     private static final String TAG = VideoView.class.getSimpleName();
 
     @Nullable
-    protected VideoControls videoControls;
+    protected VideoControlsCore videoControls;
     protected ImageView previewImageView;
 
     protected Uri videoUri;
@@ -158,7 +158,11 @@ public class VideoView extends RelativeLayout {
      * {@link #setReleaseOnDetachFromWindow(boolean)} has been set.
      */
     public void release() {
-        videoControls = null;
+        if (videoControls != null) {
+            videoControls.onDetachedFromView(this);
+            videoControls = null;
+        }
+
         stopPlayback();
         overriddenPositionStopWatch.stop();
 
@@ -218,15 +222,22 @@ public class VideoView extends RelativeLayout {
         return previewImageView;
     }
 
+    /**
+     * @deprecated Use {@link #setControls(VideoControlsCore)}
+     */
+    @Deprecated
     public void setControls(@Nullable VideoControls controls) {
+        setControls((VideoControlsCore) controls);
+    }
+
+    public void setControls(@Nullable VideoControlsCore controls) {
         if (videoControls != null && videoControls != controls) {
-            removeView(videoControls);
+            videoControls.onDetachedFromView(this);
         }
 
-        if (controls != null) {
-            videoControls = controls;
-            controls.setVideoView(this);
-            addView(controls);
+        videoControls = controls;
+        if (videoControls != null) {
+            videoControls.onAttachedToView(this);
         }
 
         //Sets the onTouch listener to show the controls
@@ -243,7 +254,7 @@ public class VideoView extends RelativeLayout {
             videoControls.show();
 
             if (isPlaying()) {
-                videoControls.hideDelayed();
+                videoControls.hide(true);
             }
         }
     }
@@ -255,9 +266,21 @@ public class VideoView extends RelativeLayout {
      * null
      *
      * @return The video controls being used by this view or null
+     * @deprecated Use {@link #getVideoControlsCore()}
      */
     @Nullable
+    @Deprecated
     public VideoControls getVideoControls() {
+        if (videoControls != null && videoControls instanceof VideoControls) {
+            return (VideoControls) videoControls;
+        }
+
+        return null;
+    }
+
+    // TODO: Rename this to getVideoControls when we remove the other method of that name
+    @Nullable
+    public VideoControlsCore getVideoControlsCore() {
         return videoControls;
     }
 
@@ -1052,7 +1075,7 @@ public class VideoView extends RelativeLayout {
         public boolean onSingleTapConfirmed(MotionEvent event) {
             // Toggles between hiding and showing the controls
             if (videoControls != null && videoControls.isVisible()) {
-                videoControls.hide();
+                videoControls.hide(false);
             } else {
                 showControls();
             }

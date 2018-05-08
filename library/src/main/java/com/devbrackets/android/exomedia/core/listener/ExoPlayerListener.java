@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 Brian Wernick,
+ * Copyright (C) 2015 - 2017 ExoMedia Contributors,
  * Copyright (C) 2014 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");

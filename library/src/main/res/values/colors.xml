@@ -4,8 +4,4 @@
     <color name="exomedia_default_controls_button_normal">#FFFFFFFF</color>
     <color name="exomedia_default_controls_button_pressed">#FFE0E0E0</color>
     <color name="exomedia_default_controls_button_disabled">#FF757575</color>
-
-    <color name="exomedia_leanback_progress_horizontal_background">#19FFFFFF</color>
-    <color name="exomedia_leanback_progress_horizontal_progress_secondary">#33FFFFFF</color>
-    <color name="exomedia_leanback_progress_horizontal_progress_placeholder">#FF43B2E5</color>
 </resources>

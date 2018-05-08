@@ -21,6 +21,7 @@ import android.content.Context;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Handler;
+import android.support.annotation.ColorRes;
 import android.support.annotation.IntRange;
 import android.support.annotation.LayoutRes;
 import android.support.annotation.NonNull;
@@ -612,14 +613,18 @@ public abstract class VideoControls extends RelativeLayout implements VideoContr
      * Updates the drawables used for the buttons to AppCompatTintDrawables
      */
     protected void updateButtonDrawables() {
-        playDrawable = ResourceUtil.tintList(getContext(), R.drawable.exomedia_ic_play_arrow_white, R.color.exomedia_default_controls_button_selector);
-        pauseDrawable = ResourceUtil.tintList(getContext(), R.drawable.exomedia_ic_pause_white, R.color.exomedia_default_controls_button_selector);
+        updateButtonDrawables(R.color.exomedia_default_controls_button_selector);
+    }
+
+    protected void updateButtonDrawables(@ColorRes int tintList) {
+        playDrawable = ResourceUtil.tintList(getContext(), R.drawable.exomedia_ic_play_arrow_white, tintList);
+        pauseDrawable = ResourceUtil.tintList(getContext(), R.drawable.exomedia_ic_pause_white, tintList);
         playPauseButton.setImageDrawable(playDrawable);
 
-        Drawable previousDrawable = ResourceUtil.tintList(getContext(), R.drawable.exomedia_ic_skip_previous_white, R.color.exomedia_default_controls_button_selector);
+        Drawable previousDrawable = ResourceUtil.tintList(getContext(), R.drawable.exomedia_ic_skip_previous_white, tintList);
         previousButton.setImageDrawable(previousDrawable);
 
-        Drawable nextDrawable = ResourceUtil.tintList(getContext(), R.drawable.exomedia_ic_skip_next_white, R.color.exomedia_default_controls_button_selector);
+        Drawable nextDrawable = ResourceUtil.tintList(getContext(), R.drawable.exomedia_ic_skip_next_white, tintList);
         nextButton.setImageDrawable(nextDrawable);
     }
 

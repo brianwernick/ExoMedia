@@ -63,7 +63,6 @@
             android:layoutDirection="ltr"
             android:maxHeight="4dp"
             android:minHeight="4dp"
-            android:progressDrawable="@drawable/exomedia_leanback_progress_horizontal"
             tools:max="100"
             tools:progress="70"
             tools:secondaryProgress="93"/>
@@ -71,7 +70,7 @@
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="#FF43B2E5"
+            android:background="?android:attr/colorPrimary"
             android:minHeight="@dimen/exomedia_leanback_controls_height">
 
             <TextView
@@ -82,7 +81,8 @@
                 android:layout_marginTop="8dp"
                 android:paddingEnd="16dp"
                 android:paddingStart="16dp"
-                android:textColor="@android:color/white"
+                android:textColor="?android:attr/textColorPrimary"
+                android:typeface="monospace"
                 tools:text="1:06:29"/>
 
             <TextView
@@ -93,7 +93,8 @@
                 android:layout_marginTop="8dp"
                 android:paddingEnd="16dp"
                 android:paddingStart="16dp"
-                android:textColor="@android:color/white"
+                android:textColor="?android:attr/textColorPrimary"
+                android:typeface="monospace"
                 tools:ignore="RelativeOverlap"
                 tools:text="1:23:49"/>
 

@@ -73,6 +73,7 @@
                 android:paddingLeft="2dp"
                 android:paddingRight="2dp"
                 android:textColor="@android:color/white"
+                android:typeface="monospace"
                 tools:ignore="RtlHardcoded"
                 tools:text="1:06:29"/>
 
@@ -91,6 +92,7 @@
                 android:paddingLeft="2dp"
                 android:paddingRight="2dp"
                 android:textColor="@android:color/white"
+                android:typeface="monospace"
                 tools:ignore="RtlHardcoded"
                 tools:text="1:23:49"/>
 

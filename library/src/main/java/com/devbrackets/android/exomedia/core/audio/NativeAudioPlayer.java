@@ -30,6 +30,7 @@ import android.util.Log;
 import com.devbrackets.android.exomedia.ExoMedia;
 import com.devbrackets.android.exomedia.core.ListenerMux;
 import com.devbrackets.android.exomedia.core.api.AudioPlayerApi;
+import com.devbrackets.android.exomedia.core.exoplayer.WindowInfo;
 import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.drm.MediaDrmCallback;
 import com.google.android.exoplayer2.source.MediaSource;
@@ -198,6 +199,12 @@ public class NativeAudioPlayer implements AudioPlayerApi {
         return currentBufferPercent;
     }
 
+    @Nullable
+    @Override
+    public WindowInfo getWindowInfo() {
+        return null;
+    }
+
     @Override
     public void release() {
         mediaPlayer.release();
@@ -238,7 +245,7 @@ public class NativeAudioPlayer implements AudioPlayerApi {
     }
 
     @Override
-    public void setWakeMode(Context context, int mode) {
+    public void setWakeMode(@NonNull Context context, int mode) {
         mediaPlayer.setWakeMode(context, mode);
     }
 
@@ -248,7 +255,7 @@ public class NativeAudioPlayer implements AudioPlayerApi {
     }
 
     @Override
-    public void setTrack(ExoMedia.RendererType trackType, int trackIndex) {
+    public void setTrack(@NonNull ExoMedia.RendererType trackType, int trackIndex) {
         //Purposefully left blank
     }
 

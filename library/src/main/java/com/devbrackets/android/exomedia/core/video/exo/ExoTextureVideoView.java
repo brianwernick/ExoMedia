@@ -31,6 +31,7 @@ import android.view.Surface;
 import com.devbrackets.android.exomedia.ExoMedia;
 import com.devbrackets.android.exomedia.core.ListenerMux;
 import com.devbrackets.android.exomedia.core.api.VideoViewApi;
+import com.devbrackets.android.exomedia.core.exoplayer.WindowInfo;
 import com.devbrackets.android.exomedia.core.video.ResizingTextureView;
 import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.drm.MediaDrmCallback;
@@ -142,6 +143,12 @@ public class ExoTextureVideoView extends ResizingTextureView implements VideoVie
         return delegate.getBufferedPercent();
     }
 
+    @Nullable
+    @Override
+    public WindowInfo getWindowInfo() {
+        return delegate.getWindowInfo();
+    }
+
     @Override
     public boolean setPlaybackSpeed(float speed) {
         return delegate.setPlaybackSpeed(speed);
@@ -158,7 +165,7 @@ public class ExoTextureVideoView extends ResizingTextureView implements VideoVie
     }
 
     @Override
-    public void setTrack(ExoMedia.RendererType trackType, int trackIndex) {
+    public void setTrack(@NonNull ExoMedia.RendererType trackType, int trackIndex) {
         delegate.setTrack(trackType, trackIndex);
     }
 

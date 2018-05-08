@@ -28,6 +28,7 @@ import com.devbrackets.android.exomedia.core.api.AudioPlayerApi;
 import com.devbrackets.android.exomedia.core.audio.ExoAudioPlayer;
 import com.devbrackets.android.exomedia.core.audio.NativeAudioPlayer;
 import com.devbrackets.android.exomedia.core.exoplayer.ExoMediaPlayer;
+import com.devbrackets.android.exomedia.core.exoplayer.WindowInfo;
 import com.devbrackets.android.exomedia.core.listener.MetadataListener;
 import com.devbrackets.android.exomedia.listener.OnBufferUpdateListener;
 import com.devbrackets.android.exomedia.listener.OnCompletionListener;
@@ -326,6 +327,18 @@ public class AudioPlayer {
      */
     public int getBufferPercentage() {
         return audioPlayerImpl.getBufferedPercent();
+    }
+
+    /**
+     * Retrieves the information associated with the current {@link com.google.android.exoplayer2.Timeline.Window}
+     * used by the ExoPlayer backed implementation. When the {@link android.media.MediaPlayer} backed
+     * implementation is being used this will be null.
+     *
+     * @return The current Window information or null
+     */
+    @Nullable
+    public WindowInfo getWindowInfo() {
+        return audioPlayerImpl.getWindowInfo();
     }
 
     /**

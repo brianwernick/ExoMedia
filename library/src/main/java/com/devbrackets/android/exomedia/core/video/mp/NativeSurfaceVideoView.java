@@ -32,6 +32,7 @@ import android.widget.MediaController;
 import com.devbrackets.android.exomedia.ExoMedia;
 import com.devbrackets.android.exomedia.core.ListenerMux;
 import com.devbrackets.android.exomedia.core.api.VideoViewApi;
+import com.devbrackets.android.exomedia.core.exoplayer.WindowInfo;
 import com.devbrackets.android.exomedia.core.video.ResizingSurfaceView;
 import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.drm.MediaDrmCallback;
@@ -158,6 +159,12 @@ public class NativeSurfaceVideoView extends ResizingSurfaceView implements Nativ
         return delegate.getBufferPercentage();
     }
 
+    @Nullable
+    @Override
+    public WindowInfo getWindowInfo() {
+        return delegate.getWindowInfo();
+    }
+
     /**
      * If the video has completed playback, calling {@code restart} will seek to the beginning of the video, and play it.
      *
@@ -194,7 +201,7 @@ public class NativeSurfaceVideoView extends ResizingSurfaceView implements Nativ
     }
 
     @Override
-    public void setTrack(ExoMedia.RendererType trackType, int trackIndex) {
+    public void setTrack(@NonNull ExoMedia.RendererType trackType, int trackIndex) {
         //Purposefully left blank
     }
 

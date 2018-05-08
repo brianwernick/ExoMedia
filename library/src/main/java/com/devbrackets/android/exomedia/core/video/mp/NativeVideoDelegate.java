@@ -29,6 +29,7 @@ import android.util.Log;
 import android.view.Surface;
 
 import com.devbrackets.android.exomedia.core.ListenerMux;
+import com.devbrackets.android.exomedia.core.exoplayer.WindowInfo;
 import com.devbrackets.android.exomedia.core.video.ClearableSurface;
 
 import java.io.IOException;
@@ -167,6 +168,11 @@ public class NativeVideoDelegate {
         }
 
         return 0;
+    }
+
+    @Nullable
+    public WindowInfo getWindowInfo() {
+        return null;
     }
 
     public boolean setPlaybackSpeed(float speed) {

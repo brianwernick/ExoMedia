@@ -52,6 +52,7 @@ import com.google.android.exoplayer2.PlaybackParameters;
 import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.PlayerMessage;
 import com.google.android.exoplayer2.Renderer;
+import com.google.android.exoplayer2.Timeline;
 import com.google.android.exoplayer2.audio.AudioAttributes;
 import com.google.android.exoplayer2.audio.AudioRendererEventListener;
 import com.google.android.exoplayer2.decoder.DecoderCounters;
@@ -313,7 +314,7 @@ public class ExoMediaPlayer extends Player.DefaultEventListener {
 
         // Creates the track selection override
         int[] tracks = new int[] {index};
-        TrackSelection.Factory factory = tracks.length == 1 ? new FixedTrackSelection.Factory() : adaptiveTrackSelectionFactory;
+        TrackSelection.Factory factory = new FixedTrackSelection.Factory();
         MappingTrackSelector.SelectionOverride selectionOverride = new MappingTrackSelector.SelectionOverride(factory, exoPlayerTrackIndex, tracks);
 
         // Specifies the correct track to use
@@ -445,6 +446,24 @@ public class ExoMediaPlayer extends Player.DefaultEventListener {
 
     public int getBufferedPercentage() {
         return player.getBufferedPercentage();
+    }
+
+    @Nullable
+    public WindowInfo getWindowInfo() {
+        Timeline timeline = player.getCurrentTimeline();
+        if (timeline.isEmpty()) {
+            return null;
+        }
+
+        int currentWindowIndex = player.getCurrentWindowIndex();
+        Timeline.Window currentWindow = timeline.getWindow(currentWindowIndex, new Timeline.Window());
+
+        return new WindowInfo(
+                player.getPreviousWindowIndex(),
+                currentWindowIndex,
+                player.getNextWindowIndex(),
+                currentWindow
+        );
     }
 
     public boolean getPlayWhenReady() {

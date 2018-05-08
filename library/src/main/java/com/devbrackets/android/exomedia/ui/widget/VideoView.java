@@ -44,6 +44,7 @@ import com.devbrackets.android.exomedia.R;
 import com.devbrackets.android.exomedia.core.ListenerMux;
 import com.devbrackets.android.exomedia.core.api.VideoViewApi;
 import com.devbrackets.android.exomedia.core.exoplayer.ExoMediaPlayer;
+import com.devbrackets.android.exomedia.core.exoplayer.WindowInfo;
 import com.devbrackets.android.exomedia.core.listener.MetadataListener;
 import com.devbrackets.android.exomedia.core.video.exo.ExoTextureVideoView;
 import com.devbrackets.android.exomedia.core.video.mp.NativeTextureVideoView;
@@ -596,6 +597,18 @@ public class VideoView extends RelativeLayout {
      */
     public int getBufferPercentage() {
         return videoViewImpl.getBufferedPercent();
+    }
+
+    /**
+     * Retrieves the information associated with the current {@link com.google.android.exoplayer2.Timeline.Window}
+     * used by the ExoPlayer backed implementation. When the {@link android.media.MediaPlayer} backed
+     * implementation is being used this will be null.
+     *
+     * @return The current Window information or null
+     */
+    @Nullable
+    public WindowInfo getWindowInfo() {
+        return videoViewImpl.getWindowInfo();
     }
 
     /**

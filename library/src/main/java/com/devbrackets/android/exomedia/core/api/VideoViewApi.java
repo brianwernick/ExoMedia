@@ -25,6 +25,7 @@ import android.view.View;
 
 import com.devbrackets.android.exomedia.ExoMedia;
 import com.devbrackets.android.exomedia.core.ListenerMux;
+import com.devbrackets.android.exomedia.core.exoplayer.WindowInfo;
 import com.devbrackets.android.exomedia.core.video.scale.ScaleType;
 import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.drm.MediaDrmCallback;
@@ -104,6 +105,9 @@ public interface VideoViewApi {
     @IntRange(from = 0, to = 100)
     int getBufferedPercent();
 
+    @Nullable
+    WindowInfo getWindowInfo();
+
     /**
      * Sets the playback speed for this MediaPlayer.
      *
@@ -116,7 +120,7 @@ public interface VideoViewApi {
 
     boolean trackSelectionAvailable();
 
-    void setTrack(ExoMedia.RendererType type, int trackIndex);
+    void setTrack(@NonNull ExoMedia.RendererType type, int trackIndex);
 
     /**
      * Retrieves a list of available tracks to select from.  Typically {@link #trackSelectionAvailable()}
@@ -138,6 +142,7 @@ public interface VideoViewApi {
 
     void setScaleType(@NonNull ScaleType scaleType);
 
+    @NonNull
     ScaleType getScaleType();
 
     void setMeasureBasedOnAspectRatioEnabled(boolean doNotMeasureBasedOnAspectRatio);

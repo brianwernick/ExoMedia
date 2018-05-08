@@ -27,6 +27,7 @@ import android.view.Surface;
 import com.devbrackets.android.exomedia.ExoMedia;
 import com.devbrackets.android.exomedia.core.ListenerMux;
 import com.devbrackets.android.exomedia.core.exoplayer.ExoMediaPlayer;
+import com.devbrackets.android.exomedia.core.exoplayer.WindowInfo;
 import com.devbrackets.android.exomedia.core.listener.MetadataListener;
 import com.devbrackets.android.exomedia.core.video.ClearableSurface;
 import com.devbrackets.android.exomedia.listener.OnBufferUpdateListener;
@@ -166,6 +167,11 @@ public class ExoVideoDelegate {
 
     public int getBufferedPercent() {
         return exoMediaPlayer.getBufferedPercentage();
+    }
+
+    @Nullable
+    public WindowInfo getWindowInfo() {
+        return exoMediaPlayer.getWindowInfo();
     }
 
     public boolean trackSelectionAvailable() {

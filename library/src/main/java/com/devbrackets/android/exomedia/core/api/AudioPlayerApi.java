@@ -21,10 +21,12 @@ import android.media.AudioManager;
 import android.net.Uri;
 import android.support.annotation.FloatRange;
 import android.support.annotation.IntRange;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
 import com.devbrackets.android.exomedia.ExoMedia;
 import com.devbrackets.android.exomedia.core.ListenerMux;
+import com.devbrackets.android.exomedia.core.exoplayer.WindowInfo;
 import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.drm.MediaDrmCallback;
 import com.google.android.exoplayer2.source.MediaSource;
@@ -91,6 +93,9 @@ public interface AudioPlayerApi {
     @IntRange(from = 0, to = 100)
     int getBufferedPercent();
 
+    @Nullable
+    WindowInfo getWindowInfo();
+
     int getAudioSessionId();
 
     /**
@@ -116,7 +121,7 @@ public interface AudioPlayerApi {
 
     boolean trackSelectionAvailable();
 
-    void setTrack(ExoMedia.RendererType type, int trackIndex);
+    void setTrack(@NonNull ExoMedia.RendererType type, int trackIndex);
 
     /**
      * Retrieves a list of available tracks to select from.  Typically {@link #trackSelectionAvailable()}
@@ -137,7 +142,7 @@ public interface AudioPlayerApi {
 
     void seekTo(@IntRange(from = 0) long milliseconds);
 
-    void setWakeMode(Context context, int mode);
+    void setWakeMode(@NonNull Context context, int mode);
 
     void setListenerMux(ListenerMux listenerMux);
 

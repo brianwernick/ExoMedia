@@ -193,12 +193,17 @@ public class VideoControlsLeanback extends VideoControls {
 
     @Override
     protected void updateButtonDrawables() {
-        super.updateButtonDrawables();
+        updateButtonDrawables(R.color.exomedia_default_controls_leanback_button_selector);
+    }
 
-        Drawable rewindDrawable = ResourceUtil.tintList(getContext(), R.drawable.exomedia_ic_rewind_white, R.color.exomedia_default_controls_button_selector);
+    @Override
+    protected void updateButtonDrawables(int tintList) {
+        super.updateButtonDrawables(tintList);
+
+        Drawable rewindDrawable = ResourceUtil.tintList(getContext(), R.drawable.exomedia_ic_rewind_white, tintList);
         rewindButton.setImageDrawable(rewindDrawable);
 
-        Drawable fastForwardDrawable = ResourceUtil.tintList(getContext(), R.drawable.exomedia_ic_fast_forward_white, R.color.exomedia_default_controls_button_selector);
+        Drawable fastForwardDrawable = ResourceUtil.tintList(getContext(), R.drawable.exomedia_ic_fast_forward_white, tintList);
         fastForwardButton.setImageDrawable(fastForwardDrawable);
     }
 

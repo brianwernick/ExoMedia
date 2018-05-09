@@ -70,9 +70,7 @@ import com.google.android.exoplayer2.text.Cue;
 import com.google.android.exoplayer2.text.TextOutput;
 import com.google.android.exoplayer2.trackselection.AdaptiveTrackSelection;
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
-import com.google.android.exoplayer2.trackselection.FixedTrackSelection;
 import com.google.android.exoplayer2.trackselection.MappingTrackSelector;
-import com.google.android.exoplayer2.trackselection.TrackSelection;
 import com.google.android.exoplayer2.upstream.DefaultBandwidthMeter;
 import com.google.android.exoplayer2.util.Util;
 import com.google.android.exoplayer2.video.VideoRendererEventListener;
@@ -277,7 +275,7 @@ public class ExoMediaPlayer extends Player.DefaultEventListener {
         RendererType[] types = new RendererType[] {RendererType.AUDIO, RendererType.VIDEO, RendererType.CLOSED_CAPTION, RendererType.METADATA};
         for (RendererType type : types) {
             int exoPlayerTrackIndex = getExoPlayerTrackIndex(type);
-            if (mappedTrackInfo.length > exoPlayerTrackIndex) {
+            if (mappedTrackInfo.getRendererCount() > exoPlayerTrackIndex) {
                 trackMap.put(type, mappedTrackInfo.getTrackGroups(exoPlayerTrackIndex));
             }
         }
@@ -295,7 +293,7 @@ public class ExoMediaPlayer extends Player.DefaultEventListener {
         }
 
         // Verifies the track selection has been overridden
-        MappingTrackSelector.SelectionOverride selectionOverride = trackSelector.getSelectionOverride(exoPlayerTrackIndex, trackGroupArray);
+        DefaultTrackSelector.SelectionOverride selectionOverride = trackSelector.getParameters().getSelectionOverride(exoPlayerTrackIndex, trackGroupArray);
         if (selectionOverride == null || selectionOverride.groupIndex != exoPlayerTrackIndex || selectionOverride.length <= 0) {
             return -1;
         }
@@ -312,18 +310,14 @@ public class ExoMediaPlayer extends Player.DefaultEventListener {
             return;
         }
 
-        // Creates the track selection override
-        int[] tracks = new int[] {index};
-        TrackSelection.Factory factory = new FixedTrackSelection.Factory();
-        MappingTrackSelector.SelectionOverride selectionOverride = new MappingTrackSelector.SelectionOverride(factory, exoPlayerTrackIndex, tracks);
-
         // Specifies the correct track to use
-        trackSelector.setSelectionOverride(exoPlayerTrackIndex, trackGroupArray, selectionOverride);
+        DefaultTrackSelector.SelectionOverride selectionOverride = new DefaultTrackSelector.SelectionOverride(exoPlayerTrackIndex, index);
+        trackSelector.setParameters(trackSelector.buildUponParameters().setSelectionOverride(exoPlayerTrackIndex, trackGroupArray, selectionOverride));
     }
 
     public void setRendererEnabled(@NonNull RendererType type, boolean enabled) {
         int exoPlayerTrackIndex = getExoPlayerTrackIndex(type);
-        trackSelector.setRendererDisabled(exoPlayerTrackIndex, !enabled);
+        trackSelector.setParameters(trackSelector.buildUponParameters().setRendererDisabled(exoPlayerTrackIndex, !enabled));
     }
 
     public void setVolume(@FloatRange(from = 0.0, to = 1.0) float volume) {
@@ -626,7 +620,9 @@ public class ExoMediaPlayer extends Player.DefaultEventListener {
         UUID uuid = C.WIDEVINE_UUID;
 
         try {
-            return new DefaultDrmSessionManager<>(uuid, FrameworkMediaDrm.newInstance(uuid), new DelegatedMediaDrmCallback(), null, mainHandler, capabilitiesListener);
+            DefaultDrmSessionManager<FrameworkMediaCrypto> sessionManager = new DefaultDrmSessionManager<>(uuid, FrameworkMediaDrm.newInstance(uuid), new DelegatedMediaDrmCallback(), null);
+            sessionManager.addListener(mainHandler, capabilitiesListener);
+            return sessionManager;
         } catch (Exception e) {
             Log.d(TAG, "Unable to create a DrmSessionManager due to an exception", e);
             return null;

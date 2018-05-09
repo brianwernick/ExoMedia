@@ -34,6 +34,6 @@ public class HlsMediaSourceBuilder extends MediaSourceBuilder {
         DataSource.Factory dataSourceFactory = buildDataSourceFactory(context, userAgent, transferListener);
 
         return new HlsMediaSource.Factory(dataSourceFactory)
-                .createMediaSource(uri, handler, null);
+                .createMediaSource(uri);
     }
 }

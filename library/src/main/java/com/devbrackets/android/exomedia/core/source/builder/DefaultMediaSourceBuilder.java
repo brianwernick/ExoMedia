@@ -36,6 +36,6 @@ public class DefaultMediaSourceBuilder extends MediaSourceBuilder {
 
         return new ExtractorMediaSource.Factory(dataSourceFactory)
                 .setExtractorsFactory(new DefaultExtractorsFactory())
-                .createMediaSource(uri, handler, null);
+                .createMediaSource(uri);
     }
 }

@@ -377,6 +377,47 @@ public class ExoMediaPlayer extends Player.DefaultEventListener {
     }
 
     public void seekTo(long positionMs) {
+        seekTo(positionMs, false);
+    }
+
+    /**
+     * TODO: Expose this
+     * Seeks to the specified position in the media currently loaded specified by <code>positionMs</code>.
+     * If <code>limitToCurrentWindow</code> is true then a seek won't be allowed to span across windows.
+     * This should only be different if the media in playback has multiple windows (e.g. in the case of using a
+     * <code>ConcatenatingMediaSource</code> with more than 1 source)
+     *
+     * @param positionMs The position to seek to in the media
+     * @param limitToCurrentWindow <code>true</code> to only seek in the current window
+     */
+    public void seekTo(long positionMs, boolean limitToCurrentWindow) {
+        if (limitToCurrentWindow) {
+            player.seekTo(positionMs);
+            stateStore.setMostRecentState(stateStore.isLastReportedPlayWhenReady(), StateStore.STATE_SEEKING);
+            return;
+        }
+
+        // We seek to the position in the timeline (may be across windows)
+        Timeline timeline = player.getCurrentTimeline();
+        int windowCount = timeline.getWindowCount();
+
+        long cumulativePositionMs = 0;
+        Timeline.Window window = new Timeline.Window();
+
+        for (int index = 0; index < windowCount; index++) {
+            timeline.getWindow(index, window);
+
+            long windowDurationMs = window.getDurationMs();
+            if (cumulativePositionMs < positionMs && positionMs <= (cumulativePositionMs + windowDurationMs)) {
+                player.seekTo(index, positionMs - cumulativePositionMs);
+                stateStore.setMostRecentState(stateStore.isLastReportedPlayWhenReady(), StateStore.STATE_SEEKING);
+                return;
+            }
+
+            cumulativePositionMs += windowDurationMs;
+        }
+
+        Log.e(TAG, "Unable to seek across windows, falling back to in-window seeking");
         player.seekTo(positionMs);
         stateStore.setMostRecentState(stateStore.isLastReportedPlayWhenReady(), StateStore.STATE_SEEKING);
     }
@@ -431,7 +472,39 @@ public class ExoMediaPlayer extends Player.DefaultEventListener {
     }
 
     public long getCurrentPosition() {
-        return player.getCurrentPosition();
+        return getCurrentPosition(false);
+    }
+
+    /**
+     * TODO: Expose this
+     * Returns the position in the media. If <code>limitToCurrentWindow</code> is <code>true</code> then the position
+     * in the current window will be returned, otherwise the total position across all windows will be returned.
+     * These should only be different if the media in playback has multiple windows (e.g. in the case of using a
+     * <code>ConcatenatingMediaSource</code> with more than 1 source)
+     *
+     * @param limitToCurrentWindow If <code>true</code> the position within the current window will be returned
+     * @return The current position in the media
+     */
+    public long getCurrentPosition(boolean limitToCurrentWindow) {
+        long positionInCurrentWindow = player.getCurrentPosition();
+        if (limitToCurrentWindow) {
+            return positionInCurrentWindow;
+        }
+
+        // TODO cache the total time at the start of each window (e.g. Map<WindowIndex, cumulativeStartTimeMs>)
+        // Adds the preceding window durations
+        Timeline timeline = player.getCurrentTimeline();
+        int maxWindowIndex = Math.min(timeline.getWindowCount() -1, player.getCurrentWindowIndex());
+
+        long cumulativePositionMs = 0;
+        Timeline.Window window = new Timeline.Window();
+
+        for (int index = 0; index < maxWindowIndex; index++) {
+            timeline.getWindow(index, window);
+            cumulativePositionMs += window.getDurationMs();
+        }
+
+        return cumulativePositionMs + positionInCurrentWindow;
     }
 
     public long getDuration() {
@@ -450,7 +523,7 @@ public class ExoMediaPlayer extends Player.DefaultEventListener {
         }
 
         int currentWindowIndex = player.getCurrentWindowIndex();
-        Timeline.Window currentWindow = timeline.getWindow(currentWindowIndex, new Timeline.Window());
+        Timeline.Window currentWindow = timeline.getWindow(currentWindowIndex, new Timeline.Window(), true);
 
         return new WindowInfo(
                 player.getPreviousWindowIndex(),

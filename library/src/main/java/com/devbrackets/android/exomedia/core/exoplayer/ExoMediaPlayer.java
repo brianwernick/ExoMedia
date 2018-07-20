@@ -236,6 +236,11 @@ public class ExoMediaPlayer extends Player.DefaultEventListener {
         return surface;
     }
 
+    @NonNull
+    public ExoPlayer getExoPlayer() {
+        return player;
+    }
+
     public void clearSurface() {
         if (surface != null) {
             surface.release();

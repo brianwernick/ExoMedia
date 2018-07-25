@@ -168,6 +168,11 @@ public class ExoSurfaceVideoView extends ResizingSurfaceView implements VideoVie
         delegate.setTrack(trackType, trackIndex);
     }
 
+    @Override
+    public void setTrack(@NonNull ExoMedia.RendererType type, int groupIndex, int trackIndex) {
+        delegate.setTrack(type, groupIndex, trackIndex);
+    }
+
     @Nullable
     @Override
     public Map<ExoMedia.RendererType, TrackGroupArray> getAvailableTracks() {

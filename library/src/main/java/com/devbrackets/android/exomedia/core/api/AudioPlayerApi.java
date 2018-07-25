@@ -121,7 +121,13 @@ public interface AudioPlayerApi {
 
     boolean trackSelectionAvailable();
 
+    /**
+     * @deprecated use {@link #setTrack(ExoMedia.RendererType, int, int)}
+     */
+    @Deprecated
     void setTrack(@NonNull ExoMedia.RendererType type, int trackIndex);
+
+    void setTrack(@NonNull ExoMedia.RendererType type, int groupIndex, int trackIndex);
 
     /**
      * Retrieves a list of available tracks to select from.  Typically {@link #trackSelectionAvailable()}

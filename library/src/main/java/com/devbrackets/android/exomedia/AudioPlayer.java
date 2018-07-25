@@ -357,9 +357,23 @@ public class AudioPlayer {
      *
      * @param trackType The type for the track to switch to the selected index
      * @param trackIndex The index for the track to switch to
+     * @deprecated Use {@link #setTrack(ExoMedia.RendererType, int, int)}
      */
+    @Deprecated
     public void setTrack(ExoMedia.RendererType trackType, int trackIndex) {
         audioPlayerImpl.setTrack(trackType, trackIndex);
+    }
+
+    /**
+     * Changes to the track with <code>trackIndex</code> for the specified
+     * <code>trackType</code>
+     *
+     * @param trackType The type for the track to switch to the selected index
+     * @param groupIndex The index for the group in the {@link TrackGroupArray} specified by the <code>trackType</code>
+     * @param trackIndex The index for the track to switch to
+     */
+    public void setTrack(ExoMedia.RendererType trackType, int groupIndex, int trackIndex) {
+        audioPlayerImpl.setTrack(trackType, groupIndex, trackIndex);
     }
 
     /**

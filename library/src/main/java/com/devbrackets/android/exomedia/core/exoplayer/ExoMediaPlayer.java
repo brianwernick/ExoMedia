@@ -65,6 +65,7 @@ import com.google.android.exoplayer2.drm.MediaDrmCallback;
 import com.google.android.exoplayer2.metadata.Metadata;
 import com.google.android.exoplayer2.metadata.MetadataOutput;
 import com.google.android.exoplayer2.source.MediaSource;
+import com.google.android.exoplayer2.source.TrackGroup;
 import com.google.android.exoplayer2.source.TrackGroupArray;
 import com.google.android.exoplayer2.text.Cue;
 import com.google.android.exoplayer2.text.TextOutput;
@@ -306,17 +307,31 @@ public class ExoMediaPlayer extends Player.DefaultEventListener {
         return selectionOverride.tracks[0];
     }
 
+    /**
+     * @deprecated Use {@link #setSelectedTrack(RendererType, int, int)}
+     */
+    @Deprecated
     public void setSelectedTrack(@NonNull RendererType type, int index) {
+        setSelectedTrack(type, 0, index);
+    }
+
+    public void setSelectedTrack(@NonNull RendererType type, int groupIndex, int trackIndex) {
         // Retrieves the available tracks
         int exoPlayerTrackIndex = getExoPlayerTrackIndex(type);
         MappingTrackSelector.MappedTrackInfo mappedTrackInfo = trackSelector.getCurrentMappedTrackInfo();
         TrackGroupArray trackGroupArray = mappedTrackInfo == null ? null : mappedTrackInfo.getTrackGroups(exoPlayerTrackIndex);
-        if (trackGroupArray == null || trackGroupArray.length == 0) {
+        if (trackGroupArray == null || trackGroupArray.length == 0 || trackGroupArray.length <= groupIndex) {
+            return;
+        }
+
+        // Finds the requested group
+        TrackGroup group = trackGroupArray.get(groupIndex);
+        if (group == null || group.length <= trackIndex) {
             return;
         }
 
         // Specifies the correct track to use
-        DefaultTrackSelector.SelectionOverride selectionOverride = new DefaultTrackSelector.SelectionOverride(exoPlayerTrackIndex, index);
+        DefaultTrackSelector.SelectionOverride selectionOverride = new DefaultTrackSelector.SelectionOverride(groupIndex, trackIndex);
         trackSelector.setParameters(trackSelector.buildUponParameters().setSelectionOverride(exoPlayerTrackIndex, trackGroupArray, selectionOverride));
     }
 

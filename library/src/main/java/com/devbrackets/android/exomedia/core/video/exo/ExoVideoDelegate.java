@@ -178,8 +178,16 @@ public class ExoVideoDelegate {
         return true;
     }
 
+    /**
+     * @deprecated use {@link #setTrack(ExoMedia.RendererType, int, int)}
+     */
+    @Deprecated
     public void setTrack(ExoMedia.RendererType trackType, int trackIndex) {
         exoMediaPlayer.setSelectedTrack(trackType, trackIndex);
+    }
+
+    public void setTrack(@NonNull ExoMedia.RendererType trackType, int groupIndex, int trackIndex) {
+        exoMediaPlayer.setSelectedTrack(trackType, groupIndex, trackIndex);
     }
 
     @Nullable

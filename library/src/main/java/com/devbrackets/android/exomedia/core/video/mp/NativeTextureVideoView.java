@@ -207,7 +207,12 @@ public class NativeTextureVideoView extends ResizingTextureView implements Nativ
 
     @Override
     public void setTrack(@NonNull ExoMedia.RendererType trackType, int trackIndex) {
-        //Purposefully left blank
+        // Purposefully left blank
+    }
+
+    @Override
+    public void setTrack(@NonNull ExoMedia.RendererType type, int groupIndex, int trackIndex) {
+        // Purposefully left blank
     }
 
     @Nullable

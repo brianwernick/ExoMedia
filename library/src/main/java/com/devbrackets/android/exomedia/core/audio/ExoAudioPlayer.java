@@ -234,6 +234,11 @@ public class ExoAudioPlayer implements AudioPlayerApi {
         exoMediaPlayer.setSelectedTrack(type, trackIndex);
     }
 
+    @Override
+    public void setTrack(@NonNull ExoMedia.RendererType type, int groupIndex, int trackIndex) {
+        exoMediaPlayer.setSelectedTrack(type, groupIndex, trackIndex);
+    }
+
     @Nullable
     @Override
     public Map<ExoMedia.RendererType, TrackGroupArray> getAvailableTracks() {

@@ -72,6 +72,7 @@ import com.google.android.exoplayer2.text.TextOutput;
 import com.google.android.exoplayer2.trackselection.AdaptiveTrackSelection;
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
 import com.google.android.exoplayer2.trackselection.MappingTrackSelector;
+import com.google.android.exoplayer2.upstream.BandwidthMeter;
 import com.google.android.exoplayer2.upstream.DefaultBandwidthMeter;
 import com.google.android.exoplayer2.util.Util;
 import com.google.android.exoplayer2.video.VideoRendererEventListener;
@@ -240,6 +241,11 @@ public class ExoMediaPlayer extends Player.DefaultEventListener {
     @NonNull
     public ExoPlayer getExoPlayer() {
         return player;
+    }
+
+    @NonNull
+    public BandwidthMeter getBandwidthMeter() {
+        return bandwidthMeter;
     }
 
     public void clearSurface() {

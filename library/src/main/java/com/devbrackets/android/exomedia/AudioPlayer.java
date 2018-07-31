@@ -37,6 +37,7 @@ import com.devbrackets.android.exomedia.listener.OnPreparedListener;
 import com.devbrackets.android.exomedia.listener.OnSeekCompletionListener;
 import com.devbrackets.android.exomedia.util.DeviceUtil;
 import com.google.android.exoplayer2.Player;
+import com.google.android.exoplayer2.analytics.AnalyticsListener;
 import com.google.android.exoplayer2.drm.MediaDrmCallback;
 import com.google.android.exoplayer2.source.MediaSource;
 import com.google.android.exoplayer2.source.TrackGroupArray;
@@ -439,6 +440,15 @@ public class AudioPlayer {
      */
     public void setMetadataListener(@Nullable MetadataListener listener) {
         listenerMux.setMetadataListener(listener);
+    }
+
+    /**
+     * Sets the listener to inform of Analytics updates
+     *
+     * @param listener The listener to inform
+     */
+    public void setAnalyticsListener(@Nullable AnalyticsListener listener) {
+        listenerMux.setAnalyticsListener(listener);
     }
 
     /**

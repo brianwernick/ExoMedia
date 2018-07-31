@@ -53,9 +53,12 @@ import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.PlayerMessage;
 import com.google.android.exoplayer2.Renderer;
 import com.google.android.exoplayer2.Timeline;
+import com.google.android.exoplayer2.analytics.AnalyticsCollector;
+import com.google.android.exoplayer2.analytics.AnalyticsListener;
 import com.google.android.exoplayer2.audio.AudioAttributes;
 import com.google.android.exoplayer2.audio.AudioRendererEventListener;
 import com.google.android.exoplayer2.decoder.DecoderCounters;
+import com.google.android.exoplayer2.drm.DefaultDrmSessionEventListener;
 import com.google.android.exoplayer2.drm.DefaultDrmSessionManager;
 import com.google.android.exoplayer2.drm.DrmSessionManager;
 import com.google.android.exoplayer2.drm.ExoMediaDrm;
@@ -74,6 +77,7 @@ import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
 import com.google.android.exoplayer2.trackselection.MappingTrackSelector;
 import com.google.android.exoplayer2.upstream.BandwidthMeter;
 import com.google.android.exoplayer2.upstream.DefaultBandwidthMeter;
+import com.google.android.exoplayer2.util.Clock;
 import com.google.android.exoplayer2.util.Util;
 import com.google.android.exoplayer2.video.VideoRendererEventListener;
 
@@ -142,6 +146,9 @@ public class ExoMediaPlayer extends Player.DefaultEventListener {
     @FloatRange(from = 0.0, to = 1.0)
     protected float requestedVolume = 1.0f;
 
+    @NonNull
+    private AnalyticsCollector analyticsCollector;
+
     public ExoMediaPlayer(@NonNull Context context) {
         this.context = context;
 
@@ -162,6 +169,8 @@ public class ExoMediaPlayer extends Player.DefaultEventListener {
         LoadControl loadControl = ExoMedia.Data.loadControl != null ? ExoMedia.Data.loadControl : new DefaultLoadControl();
         player = ExoPlayerFactory.newInstance(renderers.toArray(new Renderer[renderers.size()]), trackSelector, loadControl);
         player.addListener(this);
+        analyticsCollector = new AnalyticsCollector.Factory().createAnalyticsCollector(player, Clock.DEFAULT);
+        player.addListener(analyticsCollector);
     }
 
     @Override
@@ -193,6 +202,13 @@ public class ExoMediaPlayer extends Player.DefaultEventListener {
     }
 
     public void setMediaSource(@Nullable MediaSource source) {
+        if (this.mediaSource != null) {
+            this.mediaSource.removeEventListener(analyticsCollector);
+            analyticsCollector.resetForNewMediaSource();
+        }
+        if (source != null) {
+            source.addEventListener(mainHandler, analyticsCollector);
+        }
         this.mediaSource = source;
 
         prepared = false;
@@ -246,6 +262,30 @@ public class ExoMediaPlayer extends Player.DefaultEventListener {
     @NonNull
     public BandwidthMeter getBandwidthMeter() {
         return bandwidthMeter;
+    }
+
+    /** Returns the {@link AnalyticsCollector} used for collecting analytics events. */
+    @NonNull
+    public AnalyticsCollector getAnalyticsCollector() {
+        return analyticsCollector;
+    }
+
+    /**
+     * Adds an {@link AnalyticsListener} to receive analytics events.
+     *
+     * @param listener The listener to be added.
+     */
+    public void addAnalyticsListener(AnalyticsListener listener) {
+        analyticsCollector.addListener(listener);
+    }
+
+    /**
+     * Removes an {@link AnalyticsListener}.
+     *
+     * @param listener The listener to be removed.
+     */
+    public void removeAnalyticsListener(AnalyticsListener listener) {
+        analyticsCollector.removeListener(listener);
     }
 
     public void clearSurface() {
@@ -417,6 +457,7 @@ public class ExoMediaPlayer extends Player.DefaultEventListener {
      * @param limitToCurrentWindow <code>true</code> to only seek in the current window
      */
     public void seekTo(long positionMs, boolean limitToCurrentWindow) {
+        analyticsCollector.notifySeekStarted();
         if (limitToCurrentWindow) {
             player.seekTo(positionMs);
             stateStore.setMostRecentState(stateStore.isLastReportedPlayWhenReady(), StateStore.STATE_SEEKING);
@@ -471,6 +512,10 @@ public class ExoMediaPlayer extends Player.DefaultEventListener {
     public void release() {
         setBufferRepeaterStarted(false);
         listeners.clear();
+
+        if (mediaSource != null) {
+            mediaSource.removeEventListener(analyticsCollector);
+        }
 
         surface = null;
         player.release();
@@ -721,6 +766,8 @@ public class ExoMediaPlayer extends Player.DefaultEventListener {
         try {
             DefaultDrmSessionManager<FrameworkMediaCrypto> sessionManager = new DefaultDrmSessionManager<>(uuid, FrameworkMediaDrm.newInstance(uuid), new DelegatedMediaDrmCallback(), null);
             sessionManager.addListener(mainHandler, capabilitiesListener);
+            sessionManager.addListener(mainHandler, analyticsCollector);
+
             return sessionManager;
         } catch (Exception e) {
             Log.d(TAG, "Unable to create a DrmSessionManager due to an exception", e);
@@ -843,7 +890,7 @@ public class ExoMediaPlayer extends Player.DefaultEventListener {
         }
     }
 
-    private class CapabilitiesListener implements DefaultDrmSessionManager.EventListener {
+    private class CapabilitiesListener implements DefaultDrmSessionEventListener {
         @Override
         public void onDrmKeysLoaded() {
             // Purposefully left blank
@@ -875,27 +922,29 @@ public class ExoMediaPlayer extends Player.DefaultEventListener {
 
         @Override
         public void onAudioEnabled(DecoderCounters counters) {
-            // Purposefully left blank
+            analyticsCollector.onAudioEnabled(counters);
         }
 
         @Override
         public void onAudioDisabled(DecoderCounters counters) {
             audioSessionId = C.AUDIO_SESSION_ID_UNSET;
+            analyticsCollector.onAudioDisabled(counters);
         }
 
         @Override
         public void onAudioSessionId(int sessionId) {
             audioSessionId = sessionId;
+            analyticsCollector.onAudioSessionId(sessionId);
         }
 
         @Override
         public void onAudioDecoderInitialized(String decoderName, long initializedTimestampMs, long initializationDurationMs) {
-            // Purposefully left blank
+            analyticsCollector.onAudioDecoderInitialized(decoderName, initializedTimestampMs, initializationDurationMs);
         }
 
         @Override
         public void onAudioInputFormatChanged(Format format) {
-            // Purposefully left blank
+            analyticsCollector.onAudioInputFormatChanged(format);
         }
 
         @Override
@@ -903,31 +952,32 @@ public class ExoMediaPlayer extends Player.DefaultEventListener {
             if (internalErrorListener != null) {
                 internalErrorListener.onAudioSinkUnderrun(bufferSize, bufferSizeMs, elapsedSinceLastFeedMs);
             }
+            analyticsCollector.onAudioSinkUnderrun(bufferSize, bufferSizeMs, elapsedSinceLastFeedMs);
         }
 
         @Override
         public void onVideoEnabled(DecoderCounters counters) {
-            // Purposefully left blank
+            analyticsCollector.onVideoEnabled(counters);
         }
 
         @Override
         public void onVideoDisabled(DecoderCounters counters) {
-            // Purposefully left blank
+            analyticsCollector.onVideoDisabled(counters);
         }
 
         @Override
         public void onVideoDecoderInitialized(String decoderName, long initializedTimestampMs, long initializationDurationMs) {
-            // Purposefully left blank
+            analyticsCollector.onVideoDecoderInitialized(decoderName, initializedTimestampMs, initializationDurationMs);
         }
 
         @Override
         public void onVideoInputFormatChanged(Format format) {
-            // Purposefully left blank
+            analyticsCollector.onVideoInputFormatChanged(format);
         }
 
         @Override
         public void onDroppedFrames(int count, long elapsedMs) {
-            // Purposefully left blank
+            analyticsCollector.onDroppedFrames(count, elapsedMs);
         }
 
         @Override
@@ -935,11 +985,12 @@ public class ExoMediaPlayer extends Player.DefaultEventListener {
             for (ExoPlayerListener listener : listeners) {
                 listener.onVideoSizeChanged(width, height, unappliedRotationDegrees, pixelWidthHeightRatio);
             }
+            analyticsCollector.onVideoSizeChanged(width, height, unappliedRotationDegrees, pixelWidthHeightRatio);
         }
 
         @Override
         public void onRenderedFirstFrame(Surface surface) {
-            // Purposefully left blank
+            analyticsCollector.onRenderedFirstFrame(surface);
         }
 
         @Override
@@ -947,6 +998,7 @@ public class ExoMediaPlayer extends Player.DefaultEventListener {
             if (metadataListener != null) {
                 metadataListener.onMetadata(metadata);
             }
+            analyticsCollector.onMetadata(metadata);
         }
 
         @Override

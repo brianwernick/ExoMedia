@@ -58,6 +58,7 @@ import com.devbrackets.android.exomedia.listener.OnVideoSizeChangedListener;
 import com.devbrackets.android.exomedia.util.DeviceUtil;
 import com.devbrackets.android.exomedia.util.StopWatch;
 import com.google.android.exoplayer2.Player;
+import com.google.android.exoplayer2.analytics.AnalyticsListener;
 import com.google.android.exoplayer2.drm.MediaDrmCallback;
 import com.google.android.exoplayer2.source.MediaSource;
 import com.google.android.exoplayer2.source.TrackGroupArray;
@@ -781,6 +782,15 @@ public class VideoView extends RelativeLayout {
      */
     public void setId3MetadataListener(@Nullable MetadataListener listener) {
         listenerMux.setMetadataListener(listener);
+    }
+
+    /**
+     * Sets the listener to inform of Analytics updates
+     *
+     * @param listener The listener to inform
+     */
+    public void setAnalyticsListener(@Nullable AnalyticsListener listener) {
+        listenerMux.setAnalyticsListener(listener);
     }
 
     /**

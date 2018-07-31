@@ -11,6 +11,7 @@ import android.support.annotation.NonNull;
 import com.devbrackets.android.exomedia.AudioPlayer;
 import com.devbrackets.android.exomediademo.data.MediaItem;
 import com.devbrackets.android.playlistcore.manager.BasePlaylistManager;
+import com.google.android.exoplayer2.util.EventLogger;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -29,6 +30,7 @@ public class AudioApi extends BaseMediaApi {
 
         audioPlayer.setWakeMode(context, PowerManager.PARTIAL_WAKE_LOCK);
         audioPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+        audioPlayer.setAnalyticsListener(new EventLogger(null));
     }
 
     @Override

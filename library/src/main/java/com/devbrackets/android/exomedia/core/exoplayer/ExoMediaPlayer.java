@@ -159,7 +159,8 @@ public class ExoMediaPlayer extends Player.DefaultEventListener {
 
         ComponentListener componentListener = new ComponentListener();
         RendererProvider rendererProvider = new RendererProvider(context, mainHandler, componentListener, componentListener, componentListener, componentListener);
-        rendererProvider.setDrmSessionManager(generateDrmSessionManager());
+        DrmSessionManager<FrameworkMediaCrypto> drmSessionManager = generateDrmSessionManager();
+        rendererProvider.setDrmSessionManager(drmSessionManager);
 
         renderers = rendererProvider.generate();
 
@@ -171,6 +172,7 @@ public class ExoMediaPlayer extends Player.DefaultEventListener {
         player.addListener(this);
         analyticsCollector = new AnalyticsCollector.Factory().createAnalyticsCollector(player, Clock.DEFAULT);
         player.addListener(analyticsCollector);
+        setupDamSessionManagerAnalytics(drmSessionManager);
     }
 
     @Override
@@ -766,12 +768,17 @@ public class ExoMediaPlayer extends Player.DefaultEventListener {
         try {
             DefaultDrmSessionManager<FrameworkMediaCrypto> sessionManager = new DefaultDrmSessionManager<>(uuid, FrameworkMediaDrm.newInstance(uuid), new DelegatedMediaDrmCallback(), null);
             sessionManager.addListener(mainHandler, capabilitiesListener);
-            sessionManager.addListener(mainHandler, analyticsCollector);
 
             return sessionManager;
         } catch (Exception e) {
             Log.d(TAG, "Unable to create a DrmSessionManager due to an exception", e);
             return null;
+        }
+    }
+
+    protected void setupDamSessionManagerAnalytics(DrmSessionManager<FrameworkMediaCrypto> drmSessionManager) {
+        if (drmSessionManager instanceof DefaultDrmSessionManager) {
+            ((DefaultDrmSessionManager)drmSessionManager).addListener(mainHandler, analyticsCollector);
         }
     }
 

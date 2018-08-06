@@ -4,7 +4,7 @@ apply plugin: 'com.novoda.bintray-release'
 
 def versionMajor = 4
 def versionMinor = 2
-def versionPatch = 2
+def versionPatch = 3
 
 def libraryGroupId = 'com.devbrackets.android'
 def libraryBaseName = 'exomedia'

@@ -57,7 +57,7 @@ public class ListenerMux implements ExoPlayerListener, MediaPlayer.OnPreparedLis
         MediaPlayer.OnBufferingUpdateListener, MediaPlayer.OnSeekCompleteListener, OnBufferUpdateListener, MetadataListener, AnalyticsListener {
     //The amount of time the current position can be off the duration to call the onCompletion listener
     private static final long COMPLETED_DURATION_LEEWAY = 1000;
-    private final ExtractedListenerMux extractedListenerMux = new ExtractedListenerMux();
+    private final OptionalAnalyticsListener optionalAnalyticsListener = new OptionalAnalyticsListener();
 
     @NonNull
     private Handler delayedHandler = new Handler();
@@ -184,187 +184,187 @@ public class ListenerMux implements ExoPlayerListener, MediaPlayer.OnPreparedLis
 
     @Override
     public void onPlayerStateChanged(EventTime eventTime, boolean playWhenReady, int playbackState) {
-        extractedListenerMux.onPlayerStateChanged(eventTime, playWhenReady, playbackState);
+        optionalAnalyticsListener.onPlayerStateChanged(eventTime, playWhenReady, playbackState);
     }
 
     @Override
     public void onTimelineChanged(EventTime eventTime, int reason) {
-        extractedListenerMux.onTimelineChanged(eventTime, reason);
+        optionalAnalyticsListener.onTimelineChanged(eventTime, reason);
     }
 
     @Override
     public void onPositionDiscontinuity(EventTime eventTime, int reason) {
-        extractedListenerMux.onPositionDiscontinuity(eventTime, reason);
+        optionalAnalyticsListener.onPositionDiscontinuity(eventTime, reason);
     }
 
     @Override
     public void onSeekStarted(EventTime eventTime) {
-        extractedListenerMux.onSeekStarted(eventTime);
+        optionalAnalyticsListener.onSeekStarted(eventTime);
     }
 
     @Override
     public void onSeekProcessed(EventTime eventTime) {
-        extractedListenerMux.onSeekProcessed(eventTime);
+        optionalAnalyticsListener.onSeekProcessed(eventTime);
     }
 
     @Override
     public void onPlaybackParametersChanged(EventTime eventTime, PlaybackParameters playbackParameters) {
-        extractedListenerMux.onPlaybackParametersChanged(eventTime, playbackParameters);
+        optionalAnalyticsListener.onPlaybackParametersChanged(eventTime, playbackParameters);
     }
 
     @Override
     public void onRepeatModeChanged(EventTime eventTime, int repeatMode) {
-        extractedListenerMux.onRepeatModeChanged(eventTime, repeatMode);
+        optionalAnalyticsListener.onRepeatModeChanged(eventTime, repeatMode);
     }
 
     @Override
     public void onShuffleModeChanged(EventTime eventTime, boolean shuffleModeEnabled) {
-        extractedListenerMux.onShuffleModeChanged(eventTime, shuffleModeEnabled);
+        optionalAnalyticsListener.onShuffleModeChanged(eventTime, shuffleModeEnabled);
     }
 
     @Override
     public void onLoadingChanged(EventTime eventTime, boolean isLoading) {
-        extractedListenerMux.onLoadingChanged(eventTime, isLoading);
+        optionalAnalyticsListener.onLoadingChanged(eventTime, isLoading);
     }
 
     @Override
     public void onPlayerError(EventTime eventTime, ExoPlaybackException error) {
-        extractedListenerMux.onPlayerError(eventTime, error);
+        optionalAnalyticsListener.onPlayerError(eventTime, error);
     }
 
     @Override
     public void onTracksChanged(EventTime eventTime, TrackGroupArray trackGroups, TrackSelectionArray trackSelections) {
-        extractedListenerMux.onTracksChanged(eventTime, trackGroups, trackSelections);
+        optionalAnalyticsListener.onTracksChanged(eventTime, trackGroups, trackSelections);
     }
 
     @Override
     public void onLoadStarted(EventTime eventTime, MediaSourceEventListener.LoadEventInfo loadEventInfo, MediaSourceEventListener.MediaLoadData mediaLoadData) {
-        extractedListenerMux.onLoadStarted(eventTime, loadEventInfo, mediaLoadData);
+        optionalAnalyticsListener.onLoadStarted(eventTime, loadEventInfo, mediaLoadData);
     }
 
     @Override
     public void onLoadCompleted(EventTime eventTime, MediaSourceEventListener.LoadEventInfo loadEventInfo, MediaSourceEventListener.MediaLoadData mediaLoadData) {
-        extractedListenerMux.onLoadCompleted(eventTime, loadEventInfo, mediaLoadData);
+        optionalAnalyticsListener.onLoadCompleted(eventTime, loadEventInfo, mediaLoadData);
     }
 
     @Override
     public void onLoadCanceled(EventTime eventTime, MediaSourceEventListener.LoadEventInfo loadEventInfo, MediaSourceEventListener.MediaLoadData mediaLoadData) {
-        extractedListenerMux.onLoadCanceled(eventTime, loadEventInfo, mediaLoadData);
+        optionalAnalyticsListener.onLoadCanceled(eventTime, loadEventInfo, mediaLoadData);
     }
 
     @Override
     public void onLoadError(EventTime eventTime, MediaSourceEventListener.LoadEventInfo loadEventInfo, MediaSourceEventListener.MediaLoadData mediaLoadData, IOException error, boolean wasCanceled) {
-        extractedListenerMux.onLoadError(eventTime, loadEventInfo, mediaLoadData, error, wasCanceled);
+        optionalAnalyticsListener.onLoadError(eventTime, loadEventInfo, mediaLoadData, error, wasCanceled);
     }
 
     @Override
     public void onDownstreamFormatChanged(EventTime eventTime, MediaSourceEventListener.MediaLoadData mediaLoadData) {
-        extractedListenerMux.onDownstreamFormatChanged(eventTime, mediaLoadData);
+        optionalAnalyticsListener.onDownstreamFormatChanged(eventTime, mediaLoadData);
     }
 
     @Override
     public void onUpstreamDiscarded(EventTime eventTime, MediaSourceEventListener.MediaLoadData mediaLoadData) {
-        extractedListenerMux.onUpstreamDiscarded(eventTime, mediaLoadData);
+        optionalAnalyticsListener.onUpstreamDiscarded(eventTime, mediaLoadData);
     }
 
     @Override
     public void onMediaPeriodCreated(EventTime eventTime) {
-        extractedListenerMux.onMediaPeriodCreated(eventTime);
+        optionalAnalyticsListener.onMediaPeriodCreated(eventTime);
     }
 
     @Override
     public void onMediaPeriodReleased(EventTime eventTime) {
-        extractedListenerMux.onMediaPeriodReleased(eventTime);
+        optionalAnalyticsListener.onMediaPeriodReleased(eventTime);
     }
 
     @Override
     public void onReadingStarted(EventTime eventTime) {
-        extractedListenerMux.onReadingStarted(eventTime);
+        optionalAnalyticsListener.onReadingStarted(eventTime);
     }
 
     @Override
     public void onBandwidthEstimate(EventTime eventTime, int totalLoadTimeMs, long totalBytesLoaded, long bitrateEstimate) {
-        extractedListenerMux.onBandwidthEstimate(eventTime, totalLoadTimeMs, totalBytesLoaded, bitrateEstimate);
+        optionalAnalyticsListener.onBandwidthEstimate(eventTime, totalLoadTimeMs, totalBytesLoaded, bitrateEstimate);
     }
 
     @Override
     public void onViewportSizeChange(EventTime eventTime, int width, int height) {
-        extractedListenerMux.onViewportSizeChange(eventTime, width, height);
+        optionalAnalyticsListener.onViewportSizeChange(eventTime, width, height);
     }
 
     @Override
     public void onNetworkTypeChanged(EventTime eventTime, @Nullable NetworkInfo networkInfo) {
-        extractedListenerMux.onNetworkTypeChanged(eventTime, networkInfo);
+        optionalAnalyticsListener.onNetworkTypeChanged(eventTime, networkInfo);
     }
 
     @Override
     public void onMetadata(EventTime eventTime, Metadata metadata) {
-        extractedListenerMux.onMetadata(eventTime, metadata);
+        optionalAnalyticsListener.onMetadata(eventTime, metadata);
     }
 
     @Override
     public void onDecoderEnabled(EventTime eventTime, int trackType, DecoderCounters decoderCounters) {
-        extractedListenerMux.onDecoderEnabled(eventTime, trackType, decoderCounters);
+        optionalAnalyticsListener.onDecoderEnabled(eventTime, trackType, decoderCounters);
     }
 
     @Override
     public void onDecoderInitialized(EventTime eventTime, int trackType, String decoderName, long initializationDurationMs) {
-        extractedListenerMux.onDecoderInitialized(eventTime, trackType, decoderName, initializationDurationMs);
+        optionalAnalyticsListener.onDecoderInitialized(eventTime, trackType, decoderName, initializationDurationMs);
     }
 
     @Override
     public void onDecoderInputFormatChanged(EventTime eventTime, int trackType, Format format) {
-        extractedListenerMux.onDecoderInputFormatChanged(eventTime, trackType, format);
+        optionalAnalyticsListener.onDecoderInputFormatChanged(eventTime, trackType, format);
     }
 
     @Override
     public void onDecoderDisabled(EventTime eventTime, int trackType, DecoderCounters decoderCounters) {
-        extractedListenerMux.onDecoderDisabled(eventTime, trackType, decoderCounters);
+        optionalAnalyticsListener.onDecoderDisabled(eventTime, trackType, decoderCounters);
     }
 
     @Override
     public void onAudioSessionId(EventTime eventTime, int audioSessionId) {
-        extractedListenerMux.onAudioSessionId(eventTime, audioSessionId);
+        optionalAnalyticsListener.onAudioSessionId(eventTime, audioSessionId);
     }
 
     @Override
     public void onAudioUnderrun(EventTime eventTime, int bufferSize, long bufferSizeMs, long elapsedSinceLastFeedMs) {
-        extractedListenerMux.onAudioUnderrun(eventTime, bufferSize, bufferSizeMs, elapsedSinceLastFeedMs);
+        optionalAnalyticsListener.onAudioUnderrun(eventTime, bufferSize, bufferSizeMs, elapsedSinceLastFeedMs);
     }
 
     @Override
     public void onDroppedVideoFrames(EventTime eventTime, int droppedFrames, long elapsedMs) {
-        extractedListenerMux.onDroppedVideoFrames(eventTime, droppedFrames, elapsedMs);
+        optionalAnalyticsListener.onDroppedVideoFrames(eventTime, droppedFrames, elapsedMs);
     }
 
     @Override
     public void onVideoSizeChanged(EventTime eventTime, int width, int height, int unappliedRotationDegrees, float pixelWidthHeightRatio) {
-        extractedListenerMux.onVideoSizeChanged(eventTime, width, height, unappliedRotationDegrees, pixelWidthHeightRatio);
+        optionalAnalyticsListener.onVideoSizeChanged(eventTime, width, height, unappliedRotationDegrees, pixelWidthHeightRatio);
     }
 
     @Override
     public void onRenderedFirstFrame(EventTime eventTime, Surface surface) {
-        extractedListenerMux.onRenderedFirstFrame(eventTime, surface);
+        optionalAnalyticsListener.onRenderedFirstFrame(eventTime, surface);
     }
 
     @Override
     public void onDrmKeysLoaded(EventTime eventTime) {
-        extractedListenerMux.onDrmKeysLoaded(eventTime);
+        optionalAnalyticsListener.onDrmKeysLoaded(eventTime);
     }
 
     @Override
     public void onDrmSessionManagerError(EventTime eventTime, Exception error) {
-        extractedListenerMux.onDrmSessionManagerError(eventTime, error);
+        optionalAnalyticsListener.onDrmSessionManagerError(eventTime, error);
     }
 
     @Override
     public void onDrmKeysRestored(EventTime eventTime) {
-        extractedListenerMux.onDrmKeysRestored(eventTime);
+        optionalAnalyticsListener.onDrmKeysRestored(eventTime);
     }
 
     @Override
     public void onDrmKeysRemoved(EventTime eventTime) {
-        extractedListenerMux.onDrmKeysRemoved(eventTime);
+        optionalAnalyticsListener.onDrmKeysRemoved(eventTime);
     }
 
     /**
@@ -438,7 +438,7 @@ public class ListenerMux implements ExoPlayerListener, MediaPlayer.OnPreparedLis
      * @param listener The listener to inform
      */
     public void setAnalyticsListener(@Nullable AnalyticsListener listener) {
-        extractedListenerMux.setAnalyticsListener(listener);
+        optionalAnalyticsListener.setAnalyticsListener(listener);
     }
 
     /**

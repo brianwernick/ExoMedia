@@ -15,12 +15,12 @@ import com.google.android.exoplayer2.trackselection.TrackSelectionArray;
 
 import java.io.IOException;
 
-class ExtractedListenerMux {
+class OptionalAnalyticsListener {
     @Nullable
     private
     AnalyticsListener analyticsListener;
 
-    ExtractedListenerMux() {
+    OptionalAnalyticsListener() {
     }
 
     // Analytics

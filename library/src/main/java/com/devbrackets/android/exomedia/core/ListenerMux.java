@@ -57,7 +57,6 @@ public class ListenerMux implements ExoPlayerListener, MediaPlayer.OnPreparedLis
         MediaPlayer.OnBufferingUpdateListener, MediaPlayer.OnSeekCompleteListener, OnBufferUpdateListener, MetadataListener, AnalyticsListener {
     //The amount of time the current position can be off the duration to call the onCompletion listener
     private static final long COMPLETED_DURATION_LEEWAY = 1000;
-    private final OptionalAnalyticsListener optionalAnalyticsListener = new OptionalAnalyticsListener();
 
     @NonNull
     private Handler delayedHandler = new Handler();
@@ -76,6 +75,8 @@ public class ListenerMux implements ExoPlayerListener, MediaPlayer.OnPreparedLis
     private OnErrorListener errorListener;
     @Nullable
     private MetadataListener metadataListener;
+
+    private final OptionalAnalyticsListener optionalAnalyticsListener = new OptionalAnalyticsListener();
 
     @NonNull
     private WeakReference<ClearableSurface> clearableSurfaceRef = new WeakReference<>(null);

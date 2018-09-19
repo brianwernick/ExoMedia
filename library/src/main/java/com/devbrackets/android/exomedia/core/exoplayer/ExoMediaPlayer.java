@@ -266,7 +266,9 @@ public class ExoMediaPlayer extends Player.DefaultEventListener {
         return bandwidthMeter;
     }
 
-    /** Returns the {@link AnalyticsCollector} used for collecting analytics events. */
+    /**
+     * Returns the {@link AnalyticsCollector} used for collecting analytics events.
+     */
     @NonNull
     public AnalyticsCollector getAnalyticsCollector() {
         return analyticsCollector;
@@ -326,10 +328,10 @@ public class ExoMediaPlayer extends Player.DefaultEventListener {
         }
 
         // Maps the available tracks
-        RendererType[] types = new RendererType[] {RendererType.AUDIO, RendererType.VIDEO, RendererType.CLOSED_CAPTION, RendererType.METADATA};
+        RendererType[] types = new RendererType[]{RendererType.AUDIO, RendererType.VIDEO, RendererType.CLOSED_CAPTION, RendererType.METADATA};
         for (RendererType type : types) {
-            int exoPlayerTrackIndex = getExoPlayerTrackIndex(type);
-            if (mappedTrackInfo.getRendererCount() > exoPlayerTrackIndex) {
+            int exoPlayerTrackIndex = getExoPlayerTrackIndex(type, mappedTrackInfo);
+            if (exoPlayerTrackIndex != C.INDEX_UNSET) {
                 trackMap.put(type, mappedTrackInfo.getTrackGroups(exoPlayerTrackIndex));
             }
         }
@@ -339,9 +341,9 @@ public class ExoMediaPlayer extends Player.DefaultEventListener {
 
     public int getSelectedTrackIndex(@NonNull RendererType type) {
         // Retrieves the available tracks
-        int exoPlayerTrackIndex = getExoPlayerTrackIndex(type);
         MappingTrackSelector.MappedTrackInfo mappedTrackInfo = trackSelector.getCurrentMappedTrackInfo();
-        TrackGroupArray trackGroupArray = mappedTrackInfo == null ? null : mappedTrackInfo.getTrackGroups(exoPlayerTrackIndex);
+        int exoPlayerTrackIndex = getExoPlayerTrackIndex(type, mappedTrackInfo);
+        TrackGroupArray trackGroupArray = exoPlayerTrackIndex == C.INDEX_UNSET || mappedTrackInfo == null ? null : mappedTrackInfo.getTrackGroups(exoPlayerTrackIndex);
         if (trackGroupArray == null || trackGroupArray.length == 0) {
             return -1;
         }
@@ -365,9 +367,10 @@ public class ExoMediaPlayer extends Player.DefaultEventListener {
 
     public void setSelectedTrack(@NonNull RendererType type, int groupIndex, int trackIndex) {
         // Retrieves the available tracks
-        int exoPlayerTrackIndex = getExoPlayerTrackIndex(type);
         MappingTrackSelector.MappedTrackInfo mappedTrackInfo = trackSelector.getCurrentMappedTrackInfo();
-        TrackGroupArray trackGroupArray = mappedTrackInfo == null ? null : mappedTrackInfo.getTrackGroups(exoPlayerTrackIndex);
+        int exoPlayerTrackIndex = getExoPlayerTrackIndex(type, mappedTrackInfo);
+        TrackGroupArray trackGroupArray = exoPlayerTrackIndex == C.INDEX_UNSET || mappedTrackInfo == null ?
+                null : mappedTrackInfo.getTrackGroups(exoPlayerTrackIndex);
         if (trackGroupArray == null || trackGroupArray.length == 0 || trackGroupArray.length <= groupIndex) {
             return;
         }
@@ -384,7 +387,10 @@ public class ExoMediaPlayer extends Player.DefaultEventListener {
     }
 
     public void setRendererEnabled(@NonNull RendererType type, boolean enabled) {
-        int exoPlayerTrackIndex = getExoPlayerTrackIndex(type);
+        int exoPlayerTrackIndex = getExoPlayerTrackIndex(type, trackSelector.getCurrentMappedTrackInfo());
+        if (exoPlayerTrackIndex != C.INDEX_UNSET) {
+            throw new IllegalStateException("Renderer " + type + " is not available");
+        }
         trackSelector.setParameters(trackSelector.buildUponParameters().setRendererDisabled(exoPlayerTrackIndex, !enabled));
     }
 
@@ -455,7 +461,7 @@ public class ExoMediaPlayer extends Player.DefaultEventListener {
      * This should only be different if the media in playback has multiple windows (e.g. in the case of using a
      * <code>ConcatenatingMediaSource</code> with more than 1 source)
      *
-     * @param positionMs The position to seek to in the media
+     * @param positionMs           The position to seek to in the media
      * @param limitToCurrentWindow <code>true</code> to only seek in the current window
      */
     public void seekTo(long positionMs, boolean limitToCurrentWindow) {
@@ -567,7 +573,7 @@ public class ExoMediaPlayer extends Player.DefaultEventListener {
         // TODO cache the total time at the start of each window (e.g. Map<WindowIndex, cumulativeStartTimeMs>)
         // Adds the preceding window durations
         Timeline timeline = player.getCurrentTimeline();
-        int maxWindowIndex = Math.min(timeline.getWindowCount() -1, player.getCurrentWindowIndex());
+        int maxWindowIndex = Math.min(timeline.getWindowCount() - 1, player.getCurrentWindowIndex());
 
         long cumulativePositionMs = 0;
         Timeline.Window window = new Timeline.Window();
@@ -619,7 +625,7 @@ public class ExoMediaPlayer extends Player.DefaultEventListener {
      * By default, no attempt is made to keep the device awake during playback.
      *
      * @param context the Context to use
-     * @param mode the power/wake mode to set
+     * @param mode    the power/wake mode to set
      * @see android.os.PowerManager
      */
     public void setWakeMode(Context context, int mode) {
@@ -668,16 +674,34 @@ public class ExoMediaPlayer extends Player.DefaultEventListener {
         return C.TRACK_TYPE_UNKNOWN;
     }
 
-    protected int getExoPlayerTrackIndex(@NonNull RendererType type) {
-        switch (type) {
-            case AUDIO:
-            case VIDEO:
-            case CLOSED_CAPTION:
-            case METADATA:
-                return type.ordinal();
+    protected RendererType getExoMediaRendererType(int exoPlayerTrackType) {
+        switch (exoPlayerTrackType) {
+            case C.TRACK_TYPE_AUDIO:
+                return RendererType.AUDIO;
+            case C.TRACK_TYPE_VIDEO:
+                return RendererType.VIDEO;
+            case C.TRACK_TYPE_TEXT:
+                return RendererType.CLOSED_CAPTION;
+            case C.TRACK_TYPE_METADATA:
+                return RendererType.METADATA;
+            default:
+                return null;
         }
+    }
 
-        return C.INDEX_UNSET;
+    protected int getExoPlayerTrackIndex(@NonNull RendererType type, MappingTrackSelector.MappedTrackInfo mappedTrackInfo) {
+        int result = C.INDEX_UNSET;
+        if (mappedTrackInfo != null) {
+            for (int rendererIndex = 0; rendererIndex < mappedTrackInfo.getRendererCount(); rendererIndex++) {
+                int exoPlayerRendererType = mappedTrackInfo.getRendererType(rendererIndex);
+                TrackGroupArray trackGroups = mappedTrackInfo.getTrackGroups(rendererIndex);
+                if (type == getExoMediaRendererType(exoPlayerRendererType) && trackGroups.length > 0) {
+                    result = rendererIndex;
+                    break;
+                }
+            }
+        }
+        return result;
     }
 
     protected void sendMessage(int renderType, int messageType, Object message) {
@@ -778,7 +802,7 @@ public class ExoMediaPlayer extends Player.DefaultEventListener {
 
     protected void setupDamSessionManagerAnalytics(DrmSessionManager<FrameworkMediaCrypto> drmSessionManager) {
         if (drmSessionManager instanceof DefaultDrmSessionManager) {
-            ((DefaultDrmSessionManager)drmSessionManager).addListener(mainHandler, analyticsCollector);
+            ((DefaultDrmSessionManager) drmSessionManager).addListener(mainHandler, analyticsCollector);
         }
     }
 
@@ -801,7 +825,7 @@ public class ExoMediaPlayer extends Player.DefaultEventListener {
             // see events when that is the only change.  Additionally, on some devices we get states ordered as
             // [seeking, ready, buffering, ready] while on others we get [seeking, buffering, ready]
             boolean informSeekCompletion = stateStore.matchesHistory(new int[]{StateStore.STATE_SEEKING, Player.STATE_BUFFERING, Player.STATE_READY}, true);
-            informSeekCompletion |= stateStore.matchesHistory(new int[] {Player.STATE_BUFFERING, StateStore.STATE_SEEKING, Player.STATE_READY}, true);
+            informSeekCompletion |= stateStore.matchesHistory(new int[]{Player.STATE_BUFFERING, StateStore.STATE_SEEKING, Player.STATE_READY}, true);
             informSeekCompletion |= stateStore.matchesHistory(new int[]{StateStore.STATE_SEEKING, Player.STATE_READY, Player.STATE_BUFFERING, Player.STATE_READY}, true);
 
             for (ExoPlayerListener listener : listeners) {

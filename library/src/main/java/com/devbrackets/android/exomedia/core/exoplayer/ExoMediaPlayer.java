@@ -674,7 +674,7 @@ public class ExoMediaPlayer extends Player.DefaultEventListener {
             case VIDEO:
             case CLOSED_CAPTION:
             case METADATA:
-                return type.ordinal();
+                return type.ordinal() + 1;
         }
 
         return C.INDEX_UNSET;

@@ -916,8 +916,8 @@ public class ExoMediaPlayer extends Player.DefaultEventListener {
         }
 
         @Override
-        public byte[] executeKeyRequest(UUID uuid, ExoMediaDrm.KeyRequest request) throws Exception {
-            return drmCallback != null ? drmCallback.executeKeyRequest(uuid, request) : new byte[0];
+        public byte[] executeKeyRequest(UUID uuid, ExoMediaDrm.KeyRequest request, @Nullable String mediaProvidedLicenseServerUrl) throws Exception {
+            return drmCallback != null ? drmCallback.executeKeyRequest(uuid, request, mediaProvidedLicenseServerUrl) : new byte[0];
         }
     }
 

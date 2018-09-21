@@ -339,22 +339,30 @@ public class ExoMediaPlayer extends Player.DefaultEventListener {
         return trackMap;
     }
 
+    /**
+     * @deprecated Use {@link #getSelectedTrackIndex(RendererType, int)}
+     */
     public int getSelectedTrackIndex(@NonNull RendererType type) {
+        return getSelectedTrackIndex(type, 0);
+    }
+
+    public int getSelectedTrackIndex(@NonNull RendererType type, int groupIndex) {
         // Retrieves the available tracks
         MappingTrackSelector.MappedTrackInfo mappedTrackInfo = trackSelector.getCurrentMappedTrackInfo();
         int exoPlayerTrackIndex = getExoPlayerTrackIndex(type, mappedTrackInfo);
-        TrackGroupArray trackGroupArray = exoPlayerTrackIndex == C.INDEX_UNSET || mappedTrackInfo == null ? null : mappedTrackInfo.getTrackGroups(exoPlayerTrackIndex);
+        TrackGroupArray trackGroupArray = exoPlayerTrackIndex == C.INDEX_UNSET || mappedTrackInfo == null ?
+                null : mappedTrackInfo.getTrackGroups(exoPlayerTrackIndex);
         if (trackGroupArray == null || trackGroupArray.length == 0) {
             return -1;
         }
 
         // Verifies the track selection has been overridden
         DefaultTrackSelector.SelectionOverride selectionOverride = trackSelector.getParameters().getSelectionOverride(exoPlayerTrackIndex, trackGroupArray);
-        if (selectionOverride == null || selectionOverride.groupIndex != exoPlayerTrackIndex || selectionOverride.length <= 0) {
+        if (selectionOverride == null || selectionOverride.groupIndex != exoPlayerTrackIndex || selectionOverride.length <= groupIndex) {
             return -1;
         }
 
-        return selectionOverride.tracks[0];
+        return selectionOverride.tracks[groupIndex];
     }
 
     /**
@@ -389,9 +397,8 @@ public class ExoMediaPlayer extends Player.DefaultEventListener {
     public void setRendererEnabled(@NonNull RendererType type, boolean enabled) {
         int exoPlayerTrackIndex = getExoPlayerTrackIndex(type, trackSelector.getCurrentMappedTrackInfo());
         if (exoPlayerTrackIndex != C.INDEX_UNSET) {
-            throw new IllegalStateException("Renderer " + type + " is not available");
+            trackSelector.setParameters(trackSelector.buildUponParameters().setRendererDisabled(exoPlayerTrackIndex, !enabled));
         }
-        trackSelector.setParameters(trackSelector.buildUponParameters().setRendererDisabled(exoPlayerTrackIndex, !enabled));
     }
 
     public void setVolume(@FloatRange(from = 0.0, to = 1.0) float volume) {

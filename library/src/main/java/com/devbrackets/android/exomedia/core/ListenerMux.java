@@ -17,7 +17,6 @@
 package com.devbrackets.android.exomedia.core;
 
 import android.media.MediaPlayer;
-import android.net.NetworkInfo;
 import android.os.Handler;
 import android.support.annotation.IntRange;
 import android.support.annotation.NonNull;
@@ -39,6 +38,7 @@ import com.google.android.exoplayer2.Format;
 import com.google.android.exoplayer2.PlaybackParameters;
 import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.analytics.AnalyticsListener;
+import com.google.android.exoplayer2.audio.AudioAttributes;
 import com.google.android.exoplayer2.decoder.DecoderCounters;
 import com.google.android.exoplayer2.metadata.Metadata;
 import com.google.android.exoplayer2.source.MediaSourceEventListener;
@@ -332,16 +332,37 @@ public class ListenerMux implements ExoPlayerListener, MediaPlayer.OnPreparedLis
     }
 
     @Override
-    public void onViewportSizeChange(EventTime eventTime, int width, int height) {
+    public void onSurfaceSizeChanged(EventTime eventTime, int width, int height) {
         if (analyticsListener != null) {
-            analyticsListener.onViewportSizeChange(eventTime, width, height);
+            analyticsListener.onSurfaceSizeChanged(eventTime, width, height);
         }
     }
 
     @Override
-    public void onNetworkTypeChanged(EventTime eventTime, @Nullable NetworkInfo networkInfo) {
+    public void onVolumeChanged(EventTime eventTime, float volume) {
         if (analyticsListener != null) {
-            analyticsListener.onNetworkTypeChanged(eventTime, networkInfo);
+            analyticsListener.onVolumeChanged(eventTime, volume);
+        }
+    }
+
+    @Override
+    public void onDrmSessionAcquired(EventTime eventTime) {
+        if (analyticsListener != null) {
+            analyticsListener.onDrmSessionAcquired(eventTime);
+        }
+    }
+
+    @Override
+    public void onDrmSessionReleased(EventTime eventTime) {
+        if (analyticsListener != null) {
+            analyticsListener.onDrmSessionReleased(eventTime);
+        }
+    }
+
+    @Override
+    public void onAudioAttributesChanged(EventTime eventTime, AudioAttributes audioAttributes) {
+        if (analyticsListener != null) {
+            analyticsListener.onAudioAttributesChanged(eventTime, audioAttributes);
         }
     }
 

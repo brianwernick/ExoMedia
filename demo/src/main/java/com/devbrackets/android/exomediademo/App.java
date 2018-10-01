@@ -48,7 +48,7 @@ public class App extends Application {
 
             @NonNull
             @Override
-            public DataSource.Factory provide(@NonNull String userAgent, @Nullable TransferListener<? super DataSource> listener) {
+            public DataSource.Factory provide(@NonNull String userAgent, @Nullable TransferListener listener) {
                 if (instance == null) {
                     // Updates the network data source to use the OKHttp implementation
                     DataSource.Factory upstreamFactory = new OkHttpDataSourceFactory(new OkHttpClient(), userAgent, listener);

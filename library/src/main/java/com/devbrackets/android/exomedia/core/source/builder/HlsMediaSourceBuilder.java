@@ -30,7 +30,7 @@ import com.google.android.exoplayer2.upstream.TransferListener;
 public class HlsMediaSourceBuilder extends MediaSourceBuilder {
     @NonNull
     @Override
-    public MediaSource build(@NonNull Context context, @NonNull Uri uri, @NonNull String userAgent, @NonNull Handler handler, @Nullable TransferListener<? super DataSource> transferListener) {
+    public MediaSource build(@NonNull Context context, @NonNull Uri uri, @NonNull String userAgent, @NonNull Handler handler, @Nullable TransferListener transferListener) {
         DataSource.Factory dataSourceFactory = buildDataSourceFactory(context, userAgent, transferListener);
 
         return new HlsMediaSource.Factory(dataSourceFactory)

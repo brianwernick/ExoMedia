@@ -30,7 +30,6 @@ import com.devbrackets.android.exomedia.core.source.builder.DefaultMediaSourceBu
 import com.devbrackets.android.exomedia.core.source.builder.MediaSourceBuilder;
 import com.devbrackets.android.exomedia.util.MediaSourceUtil;
 import com.google.android.exoplayer2.source.MediaSource;
-import com.google.android.exoplayer2.upstream.DataSource;
 import com.google.android.exoplayer2.upstream.TransferListener;
 
 /**
@@ -46,7 +45,7 @@ public class MediaSourceProvider {
     protected String userAgent = String.format(USER_AGENT_FORMAT, BuildConfig.VERSION_NAME, BuildConfig.VERSION_CODE, Build.VERSION.RELEASE, Build.MODEL);
 
     @NonNull
-    public MediaSource generate(@NonNull Context context, @NonNull Handler handler, @NonNull Uri uri, @Nullable TransferListener<? super DataSource> transferListener ) {
+    public MediaSource generate(@NonNull Context context, @NonNull Handler handler, @NonNull Uri uri, @Nullable TransferListener transferListener ) {
         SourceTypeBuilder sourceTypeBuilder = findByProviders(uri);
 
         // If a registered builder wasn't found then use the default

@@ -32,10 +32,10 @@ import com.google.android.exoplayer2.upstream.TransferListener;
 public abstract class MediaSourceBuilder {
 
     @NonNull
-    public abstract MediaSource build(@NonNull Context context, @NonNull Uri uri, @NonNull String userAgent, @NonNull Handler handler, @Nullable TransferListener<? super DataSource> transferListener);
+    public abstract MediaSource build(@NonNull Context context, @NonNull Uri uri, @NonNull String userAgent, @NonNull Handler handler, @Nullable TransferListener transferListener);
 
     @NonNull
-    protected DataSource.Factory buildDataSourceFactory(@NonNull Context context, @NonNull String userAgent, @Nullable TransferListener<? super DataSource> listener) {
+    protected DataSource.Factory buildDataSourceFactory(@NonNull Context context, @NonNull String userAgent, @Nullable TransferListener listener) {
         ExoMedia.DataSourceFactoryProvider provider = ExoMedia.Data.dataSourceFactoryProvider;
         DataSource.Factory dataSourceFactory = provider != null ? provider.provide(userAgent, listener) : null;
 

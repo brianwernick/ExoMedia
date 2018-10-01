@@ -47,12 +47,12 @@ public class ExoMedia {
     @Deprecated
     public interface HttpDataSourceFactoryProvider {
         @NonNull
-        HttpDataSource.BaseFactory provide(@NonNull String userAgent, @Nullable TransferListener<? super DataSource> listener);
+        HttpDataSource.BaseFactory provide(@NonNull String userAgent, @Nullable TransferListener listener);
     }
 
     public interface DataSourceFactoryProvider {
         @NonNull
-        DataSource.Factory provide(@NonNull String userAgent, @Nullable TransferListener<? super DataSource> listener);
+        DataSource.Factory provide(@NonNull String userAgent, @Nullable TransferListener listener);
     }
 
     public enum RendererType {

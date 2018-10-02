@@ -681,6 +681,10 @@ public class VideoView extends RelativeLayout {
         videoViewImpl.setTrack(trackType, groupIndex, trackIndex);
     }
 
+    public int getSelectedTrackIndex(@NonNull ExoMedia.RendererType type, int groupIndex) {
+        return videoViewImpl.getSelectedTrackIndex(type, groupIndex);
+    }
+
     /**
      * Retrieves a list of available tracks to select from.  Typically {@link #trackSelectionAvailable()}
      * should be called before this.

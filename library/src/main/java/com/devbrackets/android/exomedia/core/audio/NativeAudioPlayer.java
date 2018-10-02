@@ -264,6 +264,11 @@ public class NativeAudioPlayer implements AudioPlayerApi {
         // Purposefully left blank
     }
 
+    @Override
+    public int getSelectedTrackIndex(@NonNull ExoMedia.RendererType type, int groupIndex) {
+        return -1;
+    }
+
     @Nullable
     @Override
     public Map<ExoMedia.RendererType, TrackGroupArray> getAvailableTracks() {

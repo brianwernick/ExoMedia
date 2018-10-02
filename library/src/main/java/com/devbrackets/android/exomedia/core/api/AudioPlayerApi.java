@@ -129,6 +129,8 @@ public interface AudioPlayerApi {
 
     void setTrack(@NonNull ExoMedia.RendererType type, int groupIndex, int trackIndex);
 
+    int getSelectedTrackIndex(@NonNull ExoMedia.RendererType type, int groupIndex);
+
     /**
      * Retrieves a list of available tracks to select from.  Typically {@link #trackSelectionAvailable()}
      * should be called before this.

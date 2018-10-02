@@ -190,6 +190,10 @@ public class ExoVideoDelegate {
         exoMediaPlayer.setSelectedTrack(trackType, groupIndex, trackIndex);
     }
 
+    public int getSelectedTrackIndex(@NonNull ExoMedia.RendererType type, int groupIndex) {
+        return exoMediaPlayer.getSelectedTrackIndex(type, groupIndex);
+    }
+
     @Nullable
     public Map<ExoMedia.RendererType, TrackGroupArray> getAvailableTracks() {
         return exoMediaPlayer.getAvailableTracks();

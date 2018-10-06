@@ -293,6 +293,7 @@ public class VideoControlsLeanback extends VideoControls {
      */
     protected void performSeek(long seekToTime) {
         if (seekListener == null || !seekListener.onSeekEnded(seekToTime)) {
+            show();
             internalListener.onSeekEnded(seekToTime);
         }
     }

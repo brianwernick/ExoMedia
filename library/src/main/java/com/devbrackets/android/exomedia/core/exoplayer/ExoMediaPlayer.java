@@ -82,6 +82,7 @@ import com.google.android.exoplayer2.util.Util;
 import com.google.android.exoplayer2.video.VideoRendererEventListener;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -330,9 +331,17 @@ public class ExoMediaPlayer extends Player.DefaultEventListener {
         // Maps the available tracks
         RendererType[] types = new RendererType[]{RendererType.AUDIO, RendererType.VIDEO, RendererType.CLOSED_CAPTION, RendererType.METADATA};
         for (RendererType type : types) {
-            int exoPlayerTrackIndex = getExoPlayerTrackIndex(type, mappedTrackInfo);
-            if (exoPlayerTrackIndex != C.INDEX_UNSET) {
-                trackMap.put(type, mappedTrackInfo.getTrackGroups(exoPlayerTrackIndex));
+            List<TrackGroup> trackGroups = new ArrayList<>();
+            // collect track groups from all the track renderers of the same type
+            for (Integer exoPlayerTrackIndex : getExoPlayerTracksInfo(type, 0, mappedTrackInfo).rendererTrackIndexes) {
+                TrackGroupArray trackGroupArray = mappedTrackInfo.getTrackGroups(exoPlayerTrackIndex);
+                for (int i = 0; i < trackGroupArray.length; i++) {
+                    trackGroups.add(trackGroupArray.get(i));
+                }
+            }
+            if (!trackGroups.isEmpty()) {
+                // construct fake track group array for track groups from all the renderers of the same type
+                trackMap.put(type, new TrackGroupArray(trackGroups.toArray(new TrackGroup[trackGroups.size()])));
             }
         }
 
@@ -349,20 +358,20 @@ public class ExoMediaPlayer extends Player.DefaultEventListener {
     public int getSelectedTrackIndex(@NonNull RendererType type, int groupIndex) {
         // Retrieves the available tracks
         MappingTrackSelector.MappedTrackInfo mappedTrackInfo = trackSelector.getCurrentMappedTrackInfo();
-        int exoPlayerTrackIndex = getExoPlayerTrackIndex(type, mappedTrackInfo);
-        TrackGroupArray trackGroupArray = exoPlayerTrackIndex == C.INDEX_UNSET || mappedTrackInfo == null ?
-                null : mappedTrackInfo.getTrackGroups(exoPlayerTrackIndex);
+        ExoPlayerRendererTracksInfo tracksInfo = getExoPlayerTracksInfo(type, groupIndex, mappedTrackInfo);
+        TrackGroupArray trackGroupArray = tracksInfo.rendererTrackIndex == C.INDEX_UNSET ?
+                null : mappedTrackInfo.getTrackGroups(tracksInfo.rendererTrackIndex);
         if (trackGroupArray == null || trackGroupArray.length == 0) {
             return -1;
         }
 
         // Verifies the track selection has been overridden
-        DefaultTrackSelector.SelectionOverride selectionOverride = trackSelector.getParameters().getSelectionOverride(exoPlayerTrackIndex, trackGroupArray);
-        if (selectionOverride == null || selectionOverride.groupIndex != exoPlayerTrackIndex || selectionOverride.length <= groupIndex) {
+        DefaultTrackSelector.SelectionOverride selectionOverride = trackSelector.getParameters().getSelectionOverride(tracksInfo.rendererTrackIndex, trackGroupArray);
+        if (selectionOverride == null || selectionOverride.groupIndex != tracksInfo.rendererTrackGroupIndex || selectionOverride.length <= groupIndex) {
             return -1;
         }
 
-        return selectionOverride.tracks[groupIndex];
+        return selectionOverride.tracks[tracksInfo.rendererTrackGroupIndex];
     }
 
     /**
@@ -376,28 +385,60 @@ public class ExoMediaPlayer extends Player.DefaultEventListener {
     public void setSelectedTrack(@NonNull RendererType type, int groupIndex, int trackIndex) {
         // Retrieves the available tracks
         MappingTrackSelector.MappedTrackInfo mappedTrackInfo = trackSelector.getCurrentMappedTrackInfo();
-        int exoPlayerTrackIndex = getExoPlayerTrackIndex(type, mappedTrackInfo);
-        TrackGroupArray trackGroupArray = exoPlayerTrackIndex == C.INDEX_UNSET || mappedTrackInfo == null ?
-                null : mappedTrackInfo.getTrackGroups(exoPlayerTrackIndex);
-        if (trackGroupArray == null || trackGroupArray.length == 0 || trackGroupArray.length <= groupIndex) {
+        ExoPlayerRendererTracksInfo tracksInfo = getExoPlayerTracksInfo(type, groupIndex, mappedTrackInfo);
+        TrackGroupArray trackGroupArray = tracksInfo.rendererTrackIndex == C.INDEX_UNSET || mappedTrackInfo == null ?
+                null : mappedTrackInfo.getTrackGroups(tracksInfo.rendererTrackIndex);
+        if (trackGroupArray == null || trackGroupArray.length == 0 || trackGroupArray.length <= tracksInfo.rendererTrackGroupIndex) {
             return;
         }
 
         // Finds the requested group
-        TrackGroup group = trackGroupArray.get(groupIndex);
+        TrackGroup group = trackGroupArray.get(tracksInfo.rendererTrackGroupIndex);
         if (group == null || group.length <= trackIndex) {
             return;
         }
 
-        // Specifies the correct track to use
-        DefaultTrackSelector.SelectionOverride selectionOverride = new DefaultTrackSelector.SelectionOverride(groupIndex, trackIndex);
-        trackSelector.setParameters(trackSelector.buildUponParameters().setSelectionOverride(exoPlayerTrackIndex, trackGroupArray, selectionOverride));
+        DefaultTrackSelector.ParametersBuilder parametersBuilder = trackSelector.buildUponParameters();
+        for (int rendererTrackIndex : tracksInfo.rendererTrackIndexes) {
+            parametersBuilder.clearSelectionOverrides(rendererTrackIndex);
+            if (tracksInfo.rendererTrackIndex == rendererTrackIndex) {
+                // Specifies the correct track to use
+                parametersBuilder.setSelectionOverride(rendererTrackIndex, trackGroupArray,
+                        new DefaultTrackSelector.SelectionOverride(tracksInfo.rendererTrackGroupIndex, trackIndex));
+                // make sure renderer is enabled
+                parametersBuilder.setRendererDisabled(rendererTrackIndex, false);
+            } else {
+                // disable other renderers of the same type to avoid playback errors
+                parametersBuilder.setRendererDisabled(rendererTrackIndex, true);
+            }
+        }
+        trackSelector.setParameters(parametersBuilder);
     }
 
     public void setRendererEnabled(@NonNull RendererType type, boolean enabled) {
-        int exoPlayerTrackIndex = getExoPlayerTrackIndex(type, trackSelector.getCurrentMappedTrackInfo());
-        if (exoPlayerTrackIndex != C.INDEX_UNSET) {
-            trackSelector.setParameters(trackSelector.buildUponParameters().setRendererDisabled(exoPlayerTrackIndex, !enabled));
+        MappingTrackSelector.MappedTrackInfo mappedTrackInfo = trackSelector.getCurrentMappedTrackInfo();
+        ExoPlayerRendererTracksInfo tracksInfo = getExoPlayerTracksInfo(type, 0, mappedTrackInfo);
+        if (!tracksInfo.rendererTrackIndexes.isEmpty()) {
+            boolean enabledSomething = false;
+            DefaultTrackSelector.ParametersBuilder parametersBuilder = trackSelector.buildUponParameters();
+            for (int rendererTrackIndex : tracksInfo.rendererTrackIndexes) {
+                if (enabled) {
+                    DefaultTrackSelector.SelectionOverride selectionOverride = trackSelector.getParameters().getSelectionOverride(rendererTrackIndex, mappedTrackInfo.getTrackGroups(rendererTrackIndex));
+                    // check whether the renderer has been selected before
+                    // other rednerers should be kept disabled to avoid playback errors
+                    if (selectionOverride != null) {
+                        parametersBuilder.setRendererDisabled(rendererTrackIndex, false);
+                        enabledSomething = true;
+                    }
+                } else {
+                    parametersBuilder.setRendererDisabled(rendererTrackIndex, true);
+                }
+            }
+            if (enabled && !enabledSomething) {
+                // if nothing has been enabled enable the first sequential renderer
+                parametersBuilder.setRendererDisabled(tracksInfo.rendererTrackIndexes.get(0), false);
+            }
+            trackSelector.setParameters(parametersBuilder);
         }
     }
 
@@ -696,19 +737,54 @@ public class ExoMediaPlayer extends Player.DefaultEventListener {
         }
     }
 
-    protected int getExoPlayerTrackIndex(@NonNull RendererType type, MappingTrackSelector.MappedTrackInfo mappedTrackInfo) {
-        int result = C.INDEX_UNSET;
+    protected ExoPlayerRendererTracksInfo getExoPlayerTracksInfo(@NonNull RendererType type, int groupIndex, MappingTrackSelector.MappedTrackInfo mappedTrackInfo) {
+        // holder for the all exo player renderer track indexes of the specified renderer type
+        List<Integer> exoPlayerRendererTrackIndexes = new ArrayList<>();
+        // the exoplayer renderer track index related to the specified group index
+        int exoPlayerRendererTrackIndex = C.INDEX_UNSET;
+        // the corrected exoplayer group index
+        int exoPlayerRendererTrackGroupIndex = C.INDEX_UNSET;
+        int skippedRenderersGroupsCount = 0;
         if (mappedTrackInfo != null) {
             for (int rendererIndex = 0; rendererIndex < mappedTrackInfo.getRendererCount(); rendererIndex++) {
                 int exoPlayerRendererType = mappedTrackInfo.getRendererType(rendererIndex);
-                TrackGroupArray trackGroups = mappedTrackInfo.getTrackGroups(rendererIndex);
-                if (type == getExoMediaRendererType(exoPlayerRendererType) && trackGroups.length > 0) {
-                    result = rendererIndex;
-                    break;
+                if (type == getExoMediaRendererType(exoPlayerRendererType)) {
+                    exoPlayerRendererTrackIndexes.add(rendererIndex);
+                    TrackGroupArray trackGroups = mappedTrackInfo.getTrackGroups(rendererIndex);
+                    if (skippedRenderersGroupsCount + trackGroups.length > groupIndex) {
+                        if (exoPlayerRendererTrackIndex == C.INDEX_UNSET) {
+                            // if the groupIndex belongs to the current exo player renderer
+                            exoPlayerRendererTrackIndex = rendererIndex;
+                            exoPlayerRendererTrackGroupIndex = groupIndex - skippedRenderersGroupsCount;
+                        }
+                    } else {
+                        skippedRenderersGroupsCount += trackGroups.length;
+                    }
                 }
             }
         }
-        return result;
+        return new ExoPlayerRendererTracksInfo(exoPlayerRendererTrackIndexes, exoPlayerRendererTrackIndex, exoPlayerRendererTrackGroupIndex);
+    }
+
+    class ExoPlayerRendererTracksInfo {
+        /**
+         * The exo player renderer track indexes
+         */
+        final List<Integer> rendererTrackIndexes;
+        /**
+         * The renderer track index related to the requested <code>groupIndex</code>
+         */
+        final int rendererTrackIndex;
+        /**
+         * The corrected exoplayer group index which may be used to obtain proper track group from the renderer
+         */
+        final int rendererTrackGroupIndex;
+
+        public ExoPlayerRendererTracksInfo(List<Integer> rendererTrackIndexes, int rendererTrackIndex, int rendererTrackGroupIndex) {
+            this.rendererTrackIndexes = Collections.unmodifiableList(rendererTrackIndexes);
+            this.rendererTrackIndex = rendererTrackIndex;
+            this.rendererTrackGroupIndex = rendererTrackGroupIndex;
+        }
     }
 
     protected void sendMessage(int renderType, int messageType, Object message) {

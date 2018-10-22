@@ -1,0 +1,87 @@
+/**
+ * Provides the functionality to upload to local maven repositories (for testing
+ * purposes) and to push to jcenter for official releases
+ */
+apply plugin: 'maven-publish'
+apply plugin: 'com.jfrog.bintray'
+
+task androidJavaDoc(type: Javadoc) {
+    source = android.sourceSets.main.java.srcDirs
+    classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
+    options.encoding "UTF-8"
+    options.charSet 'UTF-8'
+    options.author true
+    options.version true
+    failOnError false
+}
+
+task androidJavaDocJar(type: Jar, dependsOn: androidJavaDoc) {
+    classifier = 'javadoc'
+    from androidJavaDoc.destinationDir
+}
+
+task androidSourcesJar(type: Jar) {
+    classifier = 'sources'
+    from android.sourceSets.main.java.sourceFiles
+}
+
+/**
+ * Bintray Deploy
+ * `$ ./gradlew clean build bintrayUpload`
+ */
+publishing {
+    publications {
+        jcenter(MavenPublication) {
+            groupId project.getLibraryInfo().groupId
+            artifactId project.getLibraryInfo().artifactId
+            version project.getLibraryInfo().versionName
+
+            artifact bundleReleaseAar
+            artifact androidSourcesJar
+            artifact androidJavaDocJar
+
+            // The generated POM doesn't include dependencies when building Android artifacts, so we manually
+            // add the dependencies to the POM here
+            pom.withXml {
+                def dependenciesNode = asNode().appendNode('dependencies')
+
+                // Iterate over the implementation dependencies, adding a <dependency> node for each
+                configurations.implementation.allDependencies.each {
+                    if (it.name != 'unspecified') {
+                        def dependencyNode = dependenciesNode.appendNode('dependency')
+                        dependencyNode.appendNode('groupId', it.group)
+                        dependencyNode.appendNode('artifactId', it.name)
+                        dependencyNode.appendNode('version', it.version)
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+/**
+ * Configure the Bintray repository values
+ */
+bintray {
+    user = System.getenv('BINTRAY_USER')
+    key = System.getenv('BINTRAY_KEY')
+    publications = ['jcenter']
+
+    pkg {
+        userOrg = ''
+        repo = 'maven'
+        name = 'ExoMedia'
+        licenses = ['Apache-2.0']
+        desc = ''
+        vcsUrl = 'https://github.com/brianwernick/ExoMedia'
+        issueTrackerUrl = 'https://github.com/brianwernick/ExoMedia/issues'
+        websiteUrl = 'http://devbrackets.com/dev/libs/exomedia.html'
+        githubRepo = 'https://github.com/brianwernick/ExoMedia'
+
+        version {
+            name = project.getLibraryInfo().versionName
+            released = new Date()
+        }
+    }
+}

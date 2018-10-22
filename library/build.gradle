@@ -1,14 +1,23 @@
 apply plugin: 'com.android.library'
-apply plugin: 'maven'
-apply plugin: 'com.novoda.bintray-release'
 
-def versionMajor = 4
-def versionMinor = 2
-def versionPatch = 3
+/**
+ * Holds the information associated with the library needed for the
+ * bintray plugin to publish the artifact
+ */
+class LibraryInfo {
+    static Integer versionMajor = 4
+    static Integer versionMinor = 2
+    static Integer versionPatch = 3
 
-def libraryGroupId = 'com.devbrackets.android'
-def libraryBaseName = 'exomedia'
-def libraryVersion = "${versionMajor}.${versionMinor}.${versionPatch}"
+    static String artifactId = 'exomedia'
+    static String groupId = 'com.devbrackets.android'
+    static String versionName = "${versionMajor}.${versionMinor}.${versionPatch}"
+    static Integer versionCode = versionMajor * 10_000 + versionMinor * 1_000 + versionPatch * 100
+}
+
+static def getLibraryInfo() {
+    return new LibraryInfo()
+}
 
 dependencies {
     implementation "com.android.support:support-media-compat:$rootProject.ext.supportLibVersion"
@@ -28,8 +37,8 @@ android {
         minSdkVersion 14
         targetSdkVersion 28
 
-        versionCode versionMajor * 10000 + versionMinor * 1000 + versionPatch * 100
-        versionName "${versionMajor}.${versionMinor}.${versionPatch}"
+        versionCode getLibraryInfo().versionCode
+        versionName getLibraryInfo().versionName
 
         vectorDrawables.useSupportLibrary = true
     }
@@ -44,29 +53,4 @@ android {
     }
 }
 
-// ======== MAVEN DEPLOY to local cache or nexus repo (to make accessible to local projects) (command: ./gradlew clean aRel uploadArchives) ========
-uploadArchives {
-    repositories {
-        // deploy to local
-        mavenDeployer {
-            repository (url: "file://${System.env.HOME}/.m2/repository/")
-            pom.groupId = libraryGroupId
-            pom.artifactId = libraryBaseName
-            pom.version = libraryVersion //Normally I would append "-SNAPSHOT" but newer gradle/maven can't always find them
-            pom.packaging = 'aar'
-            uniqueVersion = false // don't put in a timestamp on the filename (other project will not be able to depend on it)
-        }
-    }
-}
-
-// ======= BINTRAY DEPLOY (command: $ ./gradlew clean build bintrayUpload -PbintrayUser=BINTRAY_USERNAME -PbintrayKey=BINTRAY_KEY -PdryRun=false) ====
-publish {
-    userOrg = ""
-    groupId = libraryGroupId
-    artifactId = libraryBaseName
-    uploadName = 'ExoMedia'
-    publishVersion = libraryVersion
-    desc = ""
-    autoPublish = false
-    dryRun = false
-}
+apply from: 'gradle/publish.gradle'

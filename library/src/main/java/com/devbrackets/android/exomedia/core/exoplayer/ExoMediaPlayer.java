@@ -367,11 +367,11 @@ public class ExoMediaPlayer extends Player.DefaultEventListener {
 
         // Verifies the track selection has been overridden
         DefaultTrackSelector.SelectionOverride selectionOverride = trackSelector.getParameters().getSelectionOverride(tracksInfo.rendererTrackIndex, trackGroupArray);
-        if (selectionOverride == null || selectionOverride.groupIndex != tracksInfo.rendererTrackGroupIndex || selectionOverride.length <= groupIndex) {
+        if (selectionOverride == null || selectionOverride.groupIndex != tracksInfo.rendererTrackGroupIndex || selectionOverride.length <= 0) {
             return -1;
         }
 
-        return selectionOverride.tracks[tracksInfo.rendererTrackGroupIndex];
+        return selectionOverride.tracks[0]; // In the current implementation only one track can be selected at a time so get the first one.
     }
 
     /**
@@ -415,6 +415,25 @@ public class ExoMediaPlayer extends Player.DefaultEventListener {
         trackSelector.setParameters(parametersBuilder);
     }
 
+    /**
+     * Clear all selected tracks for the specified renderer and re-enable all renderers so the player can select the default track.
+     *
+     * @param type The renderer type
+     */
+    public void clearSelectedTracks(@NonNull RendererType type) {
+        // Retrieves the available tracks
+        MappingTrackSelector.MappedTrackInfo mappedTrackInfo = trackSelector.getCurrentMappedTrackInfo();
+        ExoPlayerRendererTracksInfo tracksInfo = getExoPlayerTracksInfo(type, 0, mappedTrackInfo);
+        DefaultTrackSelector.ParametersBuilder parametersBuilder = trackSelector.buildUponParameters();
+
+        for (int rendererTrackIndex : tracksInfo.rendererTrackIndexes) {
+            // Reset all renderers re-enabling so the player can select the streams default track.
+            parametersBuilder.setRendererDisabled(rendererTrackIndex, false)
+                    .clearSelectionOverrides(rendererTrackIndex);
+        }
+        trackSelector.setParameters(parametersBuilder);
+    }
+
     public void setRendererEnabled(@NonNull RendererType type, boolean enabled) {
         MappingTrackSelector.MappedTrackInfo mappedTrackInfo = trackSelector.getCurrentMappedTrackInfo();
         ExoPlayerRendererTracksInfo tracksInfo = getExoPlayerTracksInfo(type, 0, mappedTrackInfo);
@@ -425,7 +444,7 @@ public class ExoMediaPlayer extends Player.DefaultEventListener {
                 if (enabled) {
                     DefaultTrackSelector.SelectionOverride selectionOverride = trackSelector.getParameters().getSelectionOverride(rendererTrackIndex, mappedTrackInfo.getTrackGroups(rendererTrackIndex));
                     // check whether the renderer has been selected before
-                    // other rednerers should be kept disabled to avoid playback errors
+                    // other renderers should be kept disabled to avoid playback errors
                     if (selectionOverride != null) {
                         parametersBuilder.setRendererDisabled(rendererTrackIndex, false);
                         enabledSomething = true;
@@ -440,6 +459,23 @@ public class ExoMediaPlayer extends Player.DefaultEventListener {
             }
             trackSelector.setParameters(parametersBuilder);
         }
+    }
+
+    /**
+     * Return true if at least one renderer for the given type is enabled
+     * @param type The renderer type
+     * @return true if at least one renderer for the given type is enabled
+     */
+    public boolean isRendererEnabled(@NonNull RendererType type) {
+        MappingTrackSelector.MappedTrackInfo mappedTrackInfo = trackSelector.getCurrentMappedTrackInfo();
+        ExoPlayerRendererTracksInfo tracksInfo = getExoPlayerTracksInfo(type, 0, mappedTrackInfo);
+        DefaultTrackSelector.Parameters parameters = trackSelector.getParameters();
+        for (Integer rendererTrackIndex : tracksInfo.rendererTrackIndexes) {
+            if (!parameters.getRendererDisabled(rendererTrackIndex)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public void setVolume(@FloatRange(from = 0.0, to = 1.0) float volume) {

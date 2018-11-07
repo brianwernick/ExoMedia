@@ -45,6 +45,7 @@ import com.devbrackets.android.exomedia.core.ListenerMux;
 import com.devbrackets.android.exomedia.core.api.VideoViewApi;
 import com.devbrackets.android.exomedia.core.exoplayer.ExoMediaPlayer;
 import com.devbrackets.android.exomedia.core.exoplayer.WindowInfo;
+import com.devbrackets.android.exomedia.core.listener.CaptionListener;
 import com.devbrackets.android.exomedia.core.listener.MetadataListener;
 import com.devbrackets.android.exomedia.core.video.exo.ExoTextureVideoView;
 import com.devbrackets.android.exomedia.core.video.mp.NativeTextureVideoView;
@@ -638,6 +639,16 @@ public class VideoView extends RelativeLayout {
     }
 
     /**
+     * Sets the caption listener for this MediaPlayer
+     * Only the exoplayer implementation supports captions.
+     *
+     * @param listener The caption listener
+     */
+    public void setCaptionListener(@Nullable CaptionListener listener) {
+        videoViewImpl.setCaptionListener(listener);
+    }
+
+    /**
      * Retrieves the current speed the media is playing at.
      *
      * @return The current playback speed
@@ -686,6 +697,14 @@ public class VideoView extends RelativeLayout {
     }
 
     /**
+     * Clear all selected tracks for the specified renderer.
+     * @param type The renderer type
+     */
+    public void clearSelectedTracks(@NonNull ExoMedia.RendererType type) {
+        videoViewImpl.clearSelectedTracks(type);
+    }
+
+    /**
      * Retrieves a list of available tracks to select from.  Typically {@link #trackSelectionAvailable()}
      * should be called before this.
      *
@@ -705,6 +724,15 @@ public class VideoView extends RelativeLayout {
      */
     public void setRendererEnabled(@NonNull ExoMedia.RendererType type, boolean enabled) {
         videoViewImpl.setRendererEnabled(type, enabled);
+    }
+
+    /**
+     * Return true if at least one renderer for the given type is enabled
+     * @param type The renderer type
+     * @return true if at least one renderer for the given type is enabled
+     */
+    public boolean isRendererEnabled(@NonNull ExoMedia.RendererType type) {
+        return videoViewImpl.isRendererEnabled(type);
     }
 
     /**

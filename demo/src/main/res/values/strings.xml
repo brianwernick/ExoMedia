@@ -5,4 +5,6 @@
 
     <string name="title_audio_selection_activity">Audio selection</string>
     <string name="title_video_selection_activity">Video selection</string>
+    <string name="disable">Disable</string>
+    <string name="auto">Auto</string>
 </resources>

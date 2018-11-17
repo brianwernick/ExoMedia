@@ -1,7 +1,22 @@
+buildscript {
+    ext.kotlinVersion = '1.2.71'
+    repositories {
+        google()
+        jcenter()
+    }
+    dependencies {
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
+    }
+}
+
 apply plugin: 'com.android.application'
+apply plugin: 'kotlin-android'
+
 
 dependencies {
     implementation project(':library')
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlinVersion"
+
     implementation "com.android.support:appcompat-v7:$rootProject.ext.supportLibVersion"
     implementation "com.android.support:support-media-compat:$rootProject.ext.supportLibVersion"
     implementation "com.google.android.exoplayer:extension-okhttp:$rootProject.ext.exoPlayerVersion"

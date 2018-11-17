@@ -28,6 +28,7 @@ import com.devbrackets.android.exomedia.ExoMedia;
 import com.devbrackets.android.exomedia.core.ListenerMux;
 import com.devbrackets.android.exomedia.core.exoplayer.ExoMediaPlayer;
 import com.devbrackets.android.exomedia.core.exoplayer.WindowInfo;
+import com.devbrackets.android.exomedia.core.listener.CaptionListener;
 import com.devbrackets.android.exomedia.core.listener.MetadataListener;
 import com.devbrackets.android.exomedia.core.video.ClearableSurface;
 import com.devbrackets.android.exomedia.listener.OnBufferUpdateListener;
@@ -178,6 +179,10 @@ public class ExoVideoDelegate {
         return true;
     }
 
+    public void setCaptionListener(@Nullable CaptionListener listener) {
+        exoMediaPlayer.setCaptionListener(listener);
+    }
+
     /**
      * @deprecated use {@link #setTrack(ExoMedia.RendererType, int, int)}
      */
@@ -194,6 +199,14 @@ public class ExoVideoDelegate {
         return exoMediaPlayer.getSelectedTrackIndex(type, groupIndex);
     }
 
+    /**
+     * Clear all selected tracks for the specified renderer.
+     * @param type The renderer type
+     */
+    public void clearSelectedTracks(@NonNull ExoMedia.RendererType type) {
+        exoMediaPlayer.clearSelectedTracks(type);
+    }
+
     @Nullable
     public Map<ExoMedia.RendererType, TrackGroupArray> getAvailableTracks() {
         return exoMediaPlayer.getAvailableTracks();
@@ -201,6 +214,15 @@ public class ExoVideoDelegate {
 
     public void setRendererEnabled(@NonNull ExoMedia.RendererType type, boolean enabled) {
         exoMediaPlayer.setRendererEnabled(type, enabled);
+    }
+
+    /**
+     * Return true if at least one renderer for the given type is enabled
+     * @param type The renderer type
+     * @return true if at least one renderer for the given type is enabled
+     */
+    public boolean isRendererEnabled(@NonNull ExoMedia.RendererType type) {
+        return exoMediaPlayer.isRendererEnabled(type);
     }
 
     public boolean setPlaybackSpeed(float speed) {

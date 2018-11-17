@@ -31,6 +31,7 @@ import com.devbrackets.android.exomedia.ExoMedia;
 import com.devbrackets.android.exomedia.core.ListenerMux;
 import com.devbrackets.android.exomedia.core.api.VideoViewApi;
 import com.devbrackets.android.exomedia.core.exoplayer.WindowInfo;
+import com.devbrackets.android.exomedia.core.listener.CaptionListener;
 import com.devbrackets.android.exomedia.core.video.ResizingSurfaceView;
 import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.drm.MediaDrmCallback;
@@ -159,6 +160,11 @@ public class ExoSurfaceVideoView extends ResizingSurfaceView implements VideoVie
     }
 
     @Override
+    public void setCaptionListener(@Nullable CaptionListener listener) {
+        delegate.setCaptionListener(listener);
+    }
+
+    @Override
     public boolean trackSelectionAvailable() {
         return delegate.trackSelectionAvailable();
     }
@@ -179,6 +185,12 @@ public class ExoSurfaceVideoView extends ResizingSurfaceView implements VideoVie
         return delegate.getSelectedTrackIndex(type, groupIndex);
     }
 
+    @Override
+    public void clearSelectedTracks(@NonNull ExoMedia.RendererType type) {
+        delegate.clearSelectedTracks(type);
+
+    }
+
     @Nullable
     @Override
     public Map<ExoMedia.RendererType, TrackGroupArray> getAvailableTracks() {
@@ -188,6 +200,11 @@ public class ExoSurfaceVideoView extends ResizingSurfaceView implements VideoVie
     @Override
     public void setRendererEnabled(@NonNull ExoMedia.RendererType type, boolean enabled) {
         delegate.setRendererEnabled(type, enabled);
+    }
+
+    @Override
+    public boolean isRendererEnabled(@NonNull ExoMedia.RendererType type) {
+        return delegate.isRendererEnabled(type);
     }
 
     @Override

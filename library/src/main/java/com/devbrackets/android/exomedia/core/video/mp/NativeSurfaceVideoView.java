@@ -33,6 +33,7 @@ import com.devbrackets.android.exomedia.ExoMedia;
 import com.devbrackets.android.exomedia.core.ListenerMux;
 import com.devbrackets.android.exomedia.core.api.VideoViewApi;
 import com.devbrackets.android.exomedia.core.exoplayer.WindowInfo;
+import com.devbrackets.android.exomedia.core.listener.CaptionListener;
 import com.devbrackets.android.exomedia.core.video.ResizingSurfaceView;
 import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.drm.MediaDrmCallback;
@@ -196,6 +197,11 @@ public class NativeSurfaceVideoView extends ResizingSurfaceView implements Nativ
     }
 
     @Override
+    public void setCaptionListener(@Nullable CaptionListener listener) {
+        // Purposefully left blank
+    }
+
+    @Override
     public boolean trackSelectionAvailable() {
         return false;
     }
@@ -215,6 +221,11 @@ public class NativeSurfaceVideoView extends ResizingSurfaceView implements Nativ
         return -1;
     }
 
+    @Override
+    public void clearSelectedTracks(@NonNull ExoMedia.RendererType type) {
+        // Purposefully left blank
+    }
+
     @Nullable
     @Override
     public Map<ExoMedia.RendererType, TrackGroupArray> getAvailableTracks() {
@@ -224,6 +235,11 @@ public class NativeSurfaceVideoView extends ResizingSurfaceView implements Nativ
     @Override
     public void setRendererEnabled(@NonNull ExoMedia.RendererType type, boolean enabled) {
         // Purposefully left blank
+    }
+
+    @Override
+    public boolean isRendererEnabled(@NonNull ExoMedia.RendererType type) {
+        return false;
     }
 
     @Override

@@ -26,6 +26,7 @@ import android.view.View;
 import com.devbrackets.android.exomedia.ExoMedia;
 import com.devbrackets.android.exomedia.core.ListenerMux;
 import com.devbrackets.android.exomedia.core.exoplayer.WindowInfo;
+import com.devbrackets.android.exomedia.core.listener.CaptionListener;
 import com.devbrackets.android.exomedia.core.video.scale.ScaleType;
 import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.drm.MediaDrmCallback;
@@ -118,6 +119,8 @@ public interface VideoViewApi {
 
     float getPlaybackSpeed();
 
+    void setCaptionListener(@Nullable CaptionListener listener);
+
     boolean trackSelectionAvailable();
 
     /**
@@ -129,6 +132,12 @@ public interface VideoViewApi {
     void setTrack(@NonNull ExoMedia.RendererType type, int groupIndex, int trackIndex);
 
     int getSelectedTrackIndex(@NonNull ExoMedia.RendererType type, int groupIndex);
+
+    /**
+     * Clear all selected tracks for the specified renderer.
+     * @param type The renderer type
+     */
+    void clearSelectedTracks(@NonNull ExoMedia.RendererType type);
 
     /**
      * Retrieves a list of available tracks to select from.  Typically {@link #trackSelectionAvailable()}
@@ -147,6 +156,13 @@ public interface VideoViewApi {
      * @param enabled <code>true</code> if the track should be enabled.
      */
     void setRendererEnabled(@NonNull ExoMedia.RendererType type, boolean enabled);
+
+    /**
+     * Return true if at least one renderer for the given type is enabled
+     * @param type The renderer type
+     * @return true if at least one renderer for the given type is enabled
+     */
+    boolean isRendererEnabled(@NonNull ExoMedia.RendererType type);
 
     void setScaleType(@NonNull ScaleType scaleType);
 

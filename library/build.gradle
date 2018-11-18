@@ -6,8 +6,8 @@ apply plugin: 'com.android.library'
  */
 class LibraryInfo {
     static Integer versionMajor = 4
-    static Integer versionMinor = 2
-    static Integer versionPatch = 3
+    static Integer versionMinor = 3
+    static Integer versionPatch = 0
 
     static String artifactId = 'exomedia'
     static String groupId = 'com.devbrackets.android'

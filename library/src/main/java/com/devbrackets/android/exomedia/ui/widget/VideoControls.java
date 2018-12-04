@@ -171,7 +171,7 @@ public abstract class VideoControls extends RelativeLayout implements VideoContr
      */
     protected void updateCurrentTime(long position) {
         if ((currentTimeTextView.getVisibility() == VISIBLE) &&
-                (position - lastUpdatedPosition >= 1000)) {
+                (position - lastUpdatedPosition >= 1000 || lastUpdatedPosition == 0)) {
             lastUpdatedPosition = position;
 
             currentTimeTextView.setText(TimeFormatUtil.formatMs(position));

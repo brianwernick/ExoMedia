@@ -104,27 +104,6 @@ public abstract class VideoControls extends RelativeLayout implements VideoContr
 
     private long lastUpdatedPosition;
 
-    public VideoControls(Context context) {
-        super(context);
-        setup(context);
-    }
-
-    public VideoControls(Context context, AttributeSet attrs) {
-        super(context, attrs);
-        setup(context);
-    }
-
-    public VideoControls(Context context, AttributeSet attrs, int defStyleAttr) {
-        super(context, attrs, defStyleAttr);
-        setup(context);
-    }
-
-    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
-    public VideoControls(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
-        super(context, attrs, defStyleAttr, defStyleRes);
-        setup(context);
-    }
-
     /**
      * Sets the current video position, updating the seek bar
      * and the current time field
@@ -137,8 +116,8 @@ public abstract class VideoControls extends RelativeLayout implements VideoContr
      * Performs the progress update on the current time field,
      * and the seek bar
      *
-     * @param position      The position in milliseconds
-     * @param duration      The duration of the video in milliseconds
+     * @param position The position in milliseconds
+     * @param duration The duration of the video in milliseconds
      * @param bufferPercent The integer percent that is buffered [0, 100] inclusive
      */
     public abstract void updateProgress(@IntRange(from = 0) long position, @IntRange(from = 0) long duration, @IntRange(from = 0, to = 100) int bufferPercent);
@@ -165,6 +144,27 @@ public abstract class VideoControls extends RelativeLayout implements VideoContr
      */
     protected abstract void updateTextContainerVisibility();
 
+    public VideoControls(Context context) {
+        super(context);
+        setup(context);
+    }
+
+    public VideoControls(Context context, AttributeSet attrs) {
+        super(context, attrs);
+        setup(context);
+    }
+
+    public VideoControls(Context context, AttributeSet attrs, int defStyleAttr) {
+        super(context, attrs, defStyleAttr);
+        setup(context);
+    }
+
+    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+    public VideoControls(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
+        super(context, attrs, defStyleAttr, defStyleRes);
+        setup(context);
+    }
+
     /***
      * Updates the current timestamp
      *
@@ -173,8 +173,7 @@ public abstract class VideoControls extends RelativeLayout implements VideoContr
     protected void updateCurrentTime(long position) {
         // optimization :
         // update the timestamp text per second regarding the 'reset' or 'seek' operations.
-        if ((currentTimeTextView.getVisibility() == VISIBLE) &&
-                (Math.abs(position - lastUpdatedPosition) >= 1000 || lastUpdatedPosition == 0)) {
+        if (Math.abs(position - lastUpdatedPosition) >= 1000 || lastUpdatedPosition == 0) {
             lastUpdatedPosition = position;
 
             currentTimeTextView.setText(TimeFormatUtil.formatMs(position));
@@ -311,7 +310,7 @@ public abstract class VideoControls extends RelativeLayout implements VideoContr
     /**
      * Sets the drawables to use for the PlayPause button
      *
-     * @param playDrawable  The drawable to represent play
+     * @param playDrawable The drawable to represent play
      * @param pauseDrawable The drawable to represent pause
      */
     public void setPlayPauseDrawables(Drawable playDrawable, Drawable pauseDrawable) {

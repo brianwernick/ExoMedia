@@ -167,11 +167,14 @@ public abstract class VideoControls extends RelativeLayout implements VideoContr
 
     /***
      * Updates the current timestamp
+     *
      * @param position The position in milliseconds
      */
     protected void updateCurrentTime(long position) {
+        // optimization :
+        // update the timestamp text per second regarding the 'reset' or 'seek' operations.
         if ((currentTimeTextView.getVisibility() == VISIBLE) &&
-                (position - lastUpdatedPosition >= 1000 || lastUpdatedPosition == 0)) {
+                (Math.abs(position - lastUpdatedPosition) >= 1000 || lastUpdatedPosition == 0)) {
             lastUpdatedPosition = position;
 
             currentTimeTextView.setText(TimeFormatUtil.formatMs(position));

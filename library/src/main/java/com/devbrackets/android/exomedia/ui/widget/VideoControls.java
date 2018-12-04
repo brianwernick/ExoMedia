@@ -41,6 +41,7 @@ import com.devbrackets.android.exomedia.listener.VideoControlsSeekListener;
 import com.devbrackets.android.exomedia.listener.VideoControlsVisibilityListener;
 import com.devbrackets.android.exomedia.util.Repeater;
 import com.devbrackets.android.exomedia.util.ResourceUtil;
+import com.devbrackets.android.exomedia.util.TimeFormatUtil;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -101,44 +102,7 @@ public abstract class VideoControls extends RelativeLayout implements VideoContr
     protected boolean canViewHide = true;
     protected boolean hideEmptyTextContainer = true;
 
-    /**
-     * Sets the current video position, updating the seek bar
-     * and the current time field
-     *
-     * @param position The position in milliseconds
-     */
-    public abstract void setPosition(@IntRange(from = 0) long position);
-
-    /**
-     * Performs the progress update on the current time field,
-     * and the seek bar
-     *
-     * @param position The position in milliseconds
-     * @param duration The duration of the video in milliseconds
-     * @param bufferPercent The integer percent that is buffered [0, 100] inclusive
-     */
-    public abstract void updateProgress(@IntRange(from = 0) long position, @IntRange(from = 0) long duration, @IntRange(from = 0, to = 100) int bufferPercent);
-
-    /**
-     * Used to retrieve the layout resource identifier to inflate
-     *
-     * @return The layout resource identifier to inflate
-     */
-    @LayoutRes
-    protected abstract int getLayoutResource();
-
-    /**
-     * Performs the control visibility animation for showing or hiding
-     * this view
-     * @param toVisible True if the view should be visible at the end of the animation
-     */
-    protected abstract void animateVisibility(boolean toVisible);
-
-    /**
-     * Update the current visibility of the text block independent of
-     * the controls visibility
-     */
-    protected abstract void updateTextContainerVisibility();
+    private long lastUpdatedPosition;
 
     public VideoControls(Context context) {
         super(context);
@@ -159,6 +123,59 @@ public abstract class VideoControls extends RelativeLayout implements VideoContr
     public VideoControls(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
         super(context, attrs, defStyleAttr, defStyleRes);
         setup(context);
+    }
+
+    /**
+     * Sets the current video position, updating the seek bar
+     * and the current time field
+     *
+     * @param position The position in milliseconds
+     */
+    public abstract void setPosition(@IntRange(from = 0) long position);
+
+    /**
+     * Performs the progress update on the current time field,
+     * and the seek bar
+     *
+     * @param position      The position in milliseconds
+     * @param duration      The duration of the video in milliseconds
+     * @param bufferPercent The integer percent that is buffered [0, 100] inclusive
+     */
+    public abstract void updateProgress(@IntRange(from = 0) long position, @IntRange(from = 0) long duration, @IntRange(from = 0, to = 100) int bufferPercent);
+
+    /**
+     * Used to retrieve the layout resource identifier to inflate
+     *
+     * @return The layout resource identifier to inflate
+     */
+    @LayoutRes
+    protected abstract int getLayoutResource();
+
+    /**
+     * Performs the control visibility animation for showing or hiding
+     * this view
+     *
+     * @param toVisible True if the view should be visible at the end of the animation
+     */
+    protected abstract void animateVisibility(boolean toVisible);
+
+    /**
+     * Update the current visibility of the text block independent of
+     * the controls visibility
+     */
+    protected abstract void updateTextContainerVisibility();
+
+    /***
+     * Updates the current timestamp
+     * @param position The position in milliseconds
+     */
+    protected void updateCurrentTime(long position) {
+        if ((currentTimeTextView.getVisibility() == VISIBLE) &&
+                (position - lastUpdatedPosition >= 1000)) {
+            lastUpdatedPosition = position;
+
+            currentTimeTextView.setText(TimeFormatUtil.formatMs(position));
+        }
     }
 
     @Override
@@ -203,7 +220,6 @@ public abstract class VideoControls extends RelativeLayout implements VideoContr
      * state, etc.  This should only be called once, during the setup process
      *
      * @param VideoView The Parent view to these controls
-     *
      * @deprecated Use {@link #onAttachedToView(VideoView)} and {@link #onDetachedFromView(VideoView)}
      */
     @Deprecated
@@ -292,7 +308,7 @@ public abstract class VideoControls extends RelativeLayout implements VideoContr
     /**
      * Sets the drawables to use for the PlayPause button
      *
-     * @param playDrawable The drawable to represent play
+     * @param playDrawable  The drawable to represent play
      * @param pauseDrawable The drawable to represent pause
      */
     public void setPlayPauseDrawables(Drawable playDrawable, Drawable pauseDrawable) {
@@ -675,6 +691,7 @@ public abstract class VideoControls extends RelativeLayout implements VideoContr
 
     /**
      * Determines if the <code>textContainer</code> doesn't have any text associated with it
+     *
      * @return True if there is no text contained in the views in the <code>textContainer</code>
      */
     @SuppressWarnings("RedundantIfStatement")

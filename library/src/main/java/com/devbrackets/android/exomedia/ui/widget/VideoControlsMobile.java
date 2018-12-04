@@ -86,7 +86,8 @@ public class VideoControlsMobile extends VideoControls {
         if (!userInteracting) {
             seekBar.setSecondaryProgress((int) (seekBar.getMax() * ((float)bufferPercent / 100)));
             seekBar.setProgress((int) position);
-            currentTimeTextView.setText(TimeFormatUtil.formatMs(position));
+
+            updateCurrentTime(position);
         }
     }
 

@@ -6,21 +6,20 @@
     android:background="@android:color/black">
 
     <com.devbrackets.android.exomedia.ui.widget.VideoView
-        android:id="@+id/video_play_activity_video_view"
+        android:id="@+id/videoView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         app:useDefaultControls="true"/>
+
     <com.devbrackets.android.exomediademo.ui.subtitle.AspectRatioFrameLayout
-        android:id="@+id/video_player_activity_subtitle_frame_layout"
+        android:id="@+id/subtitleFrameLayout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_centerInParent="true"
-        >
+        android:layout_centerInParent="true">
 
         <com.devbrackets.android.exomediademo.ui.subtitle.SubtitleView
             android:id="@+id/subtitleView"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            />
+            android:layout_height="match_parent"/>
     </com.devbrackets.android.exomediademo.ui.subtitle.AspectRatioFrameLayout>
 </RelativeLayout>

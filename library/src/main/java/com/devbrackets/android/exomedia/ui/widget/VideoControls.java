@@ -41,6 +41,7 @@ import com.devbrackets.android.exomedia.listener.VideoControlsSeekListener;
 import com.devbrackets.android.exomedia.listener.VideoControlsVisibilityListener;
 import com.devbrackets.android.exomedia.util.Repeater;
 import com.devbrackets.android.exomedia.util.ResourceUtil;
+import com.devbrackets.android.exomedia.util.TimeFormatUtil;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -101,6 +102,8 @@ public abstract class VideoControls extends RelativeLayout implements VideoContr
     protected boolean canViewHide = true;
     protected boolean hideEmptyTextContainer = true;
 
+    private long lastUpdatedPosition;
+
     /**
      * Sets the current video position, updating the seek bar
      * and the current time field
@@ -130,6 +133,7 @@ public abstract class VideoControls extends RelativeLayout implements VideoContr
     /**
      * Performs the control visibility animation for showing or hiding
      * this view
+     *
      * @param toVisible True if the view should be visible at the end of the animation
      */
     protected abstract void animateVisibility(boolean toVisible);
@@ -159,6 +163,21 @@ public abstract class VideoControls extends RelativeLayout implements VideoContr
     public VideoControls(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
         super(context, attrs, defStyleAttr, defStyleRes);
         setup(context);
+    }
+
+    /***
+     * Updates the current timestamp
+     *
+     * @param position The position in milliseconds
+     */
+    protected void updateCurrentTime(long position) {
+        // optimization :
+        // update the timestamp text per second regarding the 'reset' or 'seek' operations.
+        if (Math.abs(position - lastUpdatedPosition) >= 1000 || lastUpdatedPosition == 0) {
+            lastUpdatedPosition = position;
+
+            currentTimeTextView.setText(TimeFormatUtil.formatMs(position));
+        }
     }
 
     @Override
@@ -203,7 +222,6 @@ public abstract class VideoControls extends RelativeLayout implements VideoContr
      * state, etc.  This should only be called once, during the setup process
      *
      * @param VideoView The Parent view to these controls
-     *
      * @deprecated Use {@link #onAttachedToView(VideoView)} and {@link #onDetachedFromView(VideoView)}
      */
     @Deprecated
@@ -675,6 +693,7 @@ public abstract class VideoControls extends RelativeLayout implements VideoContr
 
     /**
      * Determines if the <code>textContainer</code> doesn't have any text associated with it
+     *
      * @return True if there is no text contained in the views in the <code>textContainer</code>
      */
     @SuppressWarnings("RedundantIfStatement")

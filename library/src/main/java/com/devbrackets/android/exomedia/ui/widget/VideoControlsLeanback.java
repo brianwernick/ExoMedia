@@ -109,7 +109,8 @@ public class VideoControlsLeanback extends VideoControls {
     public void updateProgress(@IntRange(from = 0) long position, @IntRange(from = 0) long duration, @IntRange(from = 0, to = 100) int bufferPercent) {
         progressBar.setSecondaryProgress((int) (progressBar.getMax() * ((float)bufferPercent / 100)));
         progressBar.setProgress((int) position);
-        currentTimeTextView.setText(TimeFormatUtil.formatMs(position));
+
+        updateCurrentTime(position);
     }
 
     @Override

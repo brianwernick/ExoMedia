@@ -16,12 +16,12 @@ task androidJavaDoc(type: Javadoc) {
 }
 
 task androidJavaDocJar(type: Jar, dependsOn: androidJavaDoc) {
-    classifier = 'javadoc'
+    archiveClassifier.set('javadoc')
     from androidJavaDoc.destinationDir
 }
 
 task androidSourcesJar(type: Jar) {
-    classifier = 'sources'
+    archiveClassifier.set('sources')
     from android.sourceSets.main.java.srcDirs
 }
 

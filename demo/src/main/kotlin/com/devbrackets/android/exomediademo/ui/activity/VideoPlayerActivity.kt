@@ -7,6 +7,7 @@ import android.support.v7.widget.PopupMenu
 import android.util.Log
 import android.view.MenuItem
 import com.devbrackets.android.exomedia.ExoMedia
+import com.devbrackets.android.exomedia.listener.OnVideoSizeChangedListener
 import com.devbrackets.android.exomedia.listener.VideoControlsSeekListener
 import com.devbrackets.android.exomedia.ui.widget.VideoControls
 import com.devbrackets.android.exomediademo.App
@@ -65,7 +66,7 @@ open class VideoPlayerActivity : Activity(), VideoControlsSeekListener {
     private fun init() {
         setupPlaylistManager()
 
-        videoView.setHandleAudioFocus(false)
+        videoView.handleAudioFocus = false
         videoView.setAnalyticsListener(EventLogger(null))
 
         setupClosedCaptions()
@@ -82,22 +83,24 @@ open class VideoPlayerActivity : Activity(), VideoControlsSeekListener {
             setOnClickListener { showCaptionsMenu() }
         }
 
-        (videoView.videoControlsCore as? VideoControls)?.let {
-            it.setSeekListener(this)
+        (videoView.videoControls as? VideoControls)?.let {
+            it.seekListener = this
             if (videoView.trackSelectionAvailable()) {
                 it.addExtraView(captionsButton)
             }
         }
 
-        videoView.setOnVideoSizedChangedListener { intrinsicWidth, intrinsicHeight, pixelWidthHeightRatio ->
-            val videoAspectRatio: Float = if (intrinsicWidth == 0 || intrinsicHeight == 0) {
-                1f
-            } else {
-                intrinsicWidth * pixelWidthHeightRatio / intrinsicHeight
-            }
+        videoView.setOnVideoSizedChangedListener(object : OnVideoSizeChangedListener{
+            override fun onVideoSizeChanged(intrinsicWidth: Int, intrinsicHeight: Int, pixelWidthHeightRatio: Float) {
+                val videoAspectRatio: Float = if (intrinsicWidth == 0 || intrinsicHeight == 0) {
+                    1f
+                } else {
+                    intrinsicWidth * pixelWidthHeightRatio / intrinsicHeight
+                }
 
-            subtitleFrameLayout.setAspectRatio(videoAspectRatio)
-        }
+                subtitleFrameLayout.setAspectRatio(videoAspectRatio)
+            }
+        })
 
         videoView.setCaptionListener(subtitleView)
     }
@@ -176,9 +179,8 @@ open class VideoPlayerActivity : Activity(), VideoControlsSeekListener {
 
     private fun onTrackSelected(menuItem: MenuItem): Boolean {
         menuItem.isChecked = true
-        val itemId = menuItem.itemId
 
-        when (itemId) {
+        when (val itemId = menuItem.itemId) {
             CC_DEFAULT -> videoView.clearSelectedTracks(ExoMedia.RendererType.CLOSED_CAPTION)
             CC_DISABLED -> videoView.setRendererEnabled(ExoMedia.RendererType.CLOSED_CAPTION, false)
             else -> {

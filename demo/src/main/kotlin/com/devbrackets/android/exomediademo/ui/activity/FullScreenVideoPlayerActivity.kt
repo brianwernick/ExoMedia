@@ -40,7 +40,7 @@ class FullScreenVideoPlayerActivity : VideoPlayerActivity() {
         super.onCreate(savedInstanceState)
         initUiFlags()
 
-        videoView.videoControls?.setVisibilityListener(ControlsVisibilityListener())
+        (videoView.videoControls as? VideoControls)?.visibilityListener = ControlsVisibilityListener()
     }
 
     public override fun onDestroy() {

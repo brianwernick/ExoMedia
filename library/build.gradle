@@ -1,12 +1,17 @@
 apply plugin: 'com.android.library'
+apply plugin: 'kotlin-android'
+
+afterEvaluate {
+    apply from: 'gradle/publish.gradle'
+}
 
 /**
  * Holds the information associated with the library needed for the
  * bintray plugin to publish the artifact
  */
 class LibraryInfo {
-    static Integer versionMajor = 4
-    static Integer versionMinor = 3
+    static Integer versionMajor = 5
+    static Integer versionMinor = 0
     static Integer versionPatch = 0
 
     static String artifactId = 'exomedia'
@@ -20,6 +25,8 @@ static def getLibraryInfo() {
 }
 
 dependencies {
+    api "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlinVersion"
+
     implementation "com.android.support:support-media-compat:$rootProject.ext.supportLibVersion"
     implementation "com.android.support:appcompat-v7:$rootProject.ext.supportLibVersion"
 
@@ -52,5 +59,3 @@ android {
         abortOnError false
     }
 }
-
-apply from: 'gradle/publish.gradle'

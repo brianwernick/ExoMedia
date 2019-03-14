@@ -365,7 +365,9 @@ public class VideoView extends RelativeLayout {
 
     /**
      * This function is a no-op. Audiofocus is handled automatically
-     * with ExoPlayers's AudioFocusManager.
+     * with ExoPlayers's AudioFocusManager in ExoMediaPlayer
+     * @see com.google.android.exoplayer2.audio.AudioFocusManager
+     * @see com.devbrackets.android.exomedia.core.exoplayer.ExoMediaPlayer
      */
     @Deprecated
     public void setHandleAudioFocus(boolean handleAudioFocus) {
@@ -420,23 +422,23 @@ public class VideoView extends RelativeLayout {
      * If a video is currently in playback, it will be paused
      */
     public void pause() {
-        pause(false);
-    }
-
-    /**
-     * Pauses the current video in playback, only abandoning the audio focus if
-     * <code>transientFocusLoss</code> is <code>false</code>. Calling {@link #pause()} should
-     * be used in most cases unless the audio focus is being handled manually
-     *
-     * @param transientFocusLoss <code>true</code> if the pause is temporary and the audio focus should be retained
-     */
-    public void pause(boolean transientFocusLoss) {
         videoViewImpl.pause();
         setKeepScreenOn(false);
 
         if (videoControls != null) {
             videoControls.updatePlaybackState(false);
         }
+    }
+
+    /**
+     * Call pause() instead. Audiofocus is handled automatically
+     * with ExoPlayers's AudioFocusManager in ExoMediaPlayer
+     * @see com.google.android.exoplayer2.audio.AudioFocusManager
+     * @see com.devbrackets.android.exomedia.core.exoplayer.ExoMediaPlayer
+     */
+    @Deprecated
+    public void pause(boolean transientFocusLoss) {
+        pause();
     }
 
     /**

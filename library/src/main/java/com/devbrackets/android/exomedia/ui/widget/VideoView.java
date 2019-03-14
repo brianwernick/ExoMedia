@@ -368,7 +368,7 @@ public class VideoView extends RelativeLayout {
      * with ExoPlayers's AudioFocusManager.
      */
     @Deprecated
-    void setHandleAudioFocus(boolean handleAudioFocus) {
+    public void setHandleAudioFocus(boolean handleAudioFocus) {
     }
 
     /**

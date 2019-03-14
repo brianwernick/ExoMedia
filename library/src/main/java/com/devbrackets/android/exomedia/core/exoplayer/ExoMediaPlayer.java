@@ -56,6 +56,7 @@ import com.google.android.exoplayer2.Timeline;
 import com.google.android.exoplayer2.analytics.AnalyticsCollector;
 import com.google.android.exoplayer2.analytics.AnalyticsListener;
 import com.google.android.exoplayer2.audio.AudioAttributes;
+import com.google.android.exoplayer2.audio.AudioFocusManager;
 import com.google.android.exoplayer2.audio.AudioRendererEventListener;
 import com.google.android.exoplayer2.decoder.DecoderCounters;
 import com.google.android.exoplayer2.drm.DefaultDrmSessionEventListener;
@@ -150,6 +151,9 @@ public class ExoMediaPlayer extends Player.DefaultEventListener {
     @NonNull
     private AnalyticsCollector analyticsCollector;
 
+    @NonNull
+    private final AudioFocusManager audioFocusManager;
+
     public ExoMediaPlayer(@NonNull Context context) {
         this.context = context;
 
@@ -174,6 +178,7 @@ public class ExoMediaPlayer extends Player.DefaultEventListener {
         analyticsCollector = new AnalyticsCollector.Factory().createAnalyticsCollector(player, Clock.DEFAULT);
         player.addListener(analyticsCollector);
         setupDamSessionManagerAnalytics(drmSessionManager);
+        audioFocusManager = new AudioFocusManager(context, componentListener);
     }
 
     @Override
@@ -480,12 +485,21 @@ public class ExoMediaPlayer extends Player.DefaultEventListener {
 
     public void setVolume(@FloatRange(from = 0.0, to = 1.0) float volume) {
         requestedVolume = volume;
-        sendMessage(C.TRACK_TYPE_AUDIO, C.MSG_SET_VOLUME, requestedVolume);
+        sendVolumeToRenderers();
     }
 
     @FloatRange(from = 0.0, to = 1.0)
     public float getVolume() {
         return requestedVolume;
+    }
+
+    private void sendVolumeToRenderers() {
+        float scaledVolume = requestedVolume * audioFocusManager.getVolumeMultiplier();
+        for (Renderer renderer : renderers) {
+            if (renderer.getTrackType() == C.TRACK_TYPE_AUDIO) {
+                player.createMessage(renderer).setType(C.MSG_SET_VOLUME).setPayload(scaledVolume).send();
+            }
+        }
     }
 
     public void setAudioStreamType(int streamType) {
@@ -500,6 +514,11 @@ public class ExoMediaPlayer extends Player.DefaultEventListener {
                 .build();
 
         sendMessage(C.TRACK_TYPE_AUDIO, C.MSG_SET_AUDIO_ATTRIBUTES, audioAttributes);
+        @AudioFocusManager.PlayerCommand
+        int playerCommand =
+                audioFocusManager.setAudioAttributes(
+                        /*handleAudioFocus ? */audioAttributes/* : null*/, getPlayWhenReady(), getPlaybackState());
+        updatePlayWhenReady(getPlayWhenReady(), playerCommand);
     }
 
     public void forcePrepare() {
@@ -516,6 +535,9 @@ public class ExoMediaPlayer extends Player.DefaultEventListener {
         }
 
         stateStore.reset();
+        @AudioFocusManager.PlayerCommand
+        int playerCommand = audioFocusManager.handlePrepare(getPlayWhenReady());
+        updatePlayWhenReady(getPlayWhenReady(), playerCommand);
         player.prepare(mediaSource);
         prepared = true;
 
@@ -530,7 +552,16 @@ public class ExoMediaPlayer extends Player.DefaultEventListener {
     }
 
     public void setPlayWhenReady(boolean playWhenReady) {
-        player.setPlayWhenReady(playWhenReady);
+        @AudioFocusManager.PlayerCommand
+        int playerCommand = audioFocusManager.handleSetPlayWhenReady(playWhenReady, getPlaybackState());
+        updatePlayWhenReady(playWhenReady, playerCommand);
+    }
+
+    private void updatePlayWhenReady(
+            boolean playWhenReady, @AudioFocusManager.PlayerCommand int playerCommand) {
+        player.setPlayWhenReady(
+                playWhenReady && playerCommand != AudioFocusManager.PLAYER_COMMAND_DO_NOT_PLAY/*,
+                playerCommand != AudioFocusManager.PLAYER_COMMAND_PLAY_WHEN_READY*/);
         stayAwake(playWhenReady);
     }
 
@@ -1068,7 +1099,8 @@ public class ExoMediaPlayer extends Player.DefaultEventListener {
             VideoRendererEventListener,
             AudioRendererEventListener,
             TextOutput,
-            MetadataOutput {
+            MetadataOutput,
+            AudioFocusManager.PlayerControl {
 
         @Override
         public void onAudioEnabled(DecoderCounters counters) {
@@ -1156,6 +1188,16 @@ public class ExoMediaPlayer extends Player.DefaultEventListener {
             if (captionListener != null) {
                 captionListener.onCues(cues);
             }
+        }
+
+        @Override
+        public void setVolumeMultiplier(float volumeMultiplier) {
+            sendVolumeToRenderers();
+        }
+
+        @Override
+        public void executePlayerCommand(int playerCommand) {
+            updatePlayWhenReady(getPlayWhenReady(), playerCommand);
         }
     }
 }

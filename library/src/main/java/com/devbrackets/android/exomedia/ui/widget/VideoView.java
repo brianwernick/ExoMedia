@@ -21,7 +21,6 @@ import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
-import android.media.AudioManager;
 import android.net.Uri;
 import android.os.Build;
 import android.support.annotation.DrawableRes;
@@ -86,8 +85,6 @@ public class VideoView extends RelativeLayout {
     protected Uri videoUri;
     protected VideoViewApi videoViewImpl;
     protected DeviceUtil deviceUtil = new DeviceUtil();
-
-    protected AudioManager audioManager;
 
     protected long positionOffset = 0;
     protected long overriddenDuration = -1;
@@ -849,9 +846,6 @@ public class VideoView extends RelativeLayout {
         if (isInEditMode()) {
             return;
         }
-
-        audioManager = (AudioManager) context.getApplicationContext().getSystemService(Context.AUDIO_SERVICE);
-
         AttributeContainer attributeContainer = new AttributeContainer(context, attrs);
         initView(context, attributeContainer);
         postInit(attributeContainer);

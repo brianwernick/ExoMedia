@@ -377,10 +377,8 @@ public class VideoView extends RelativeLayout {
      * @param handleAudioFocus {@code true} to handle audio focus
      */
     public void setHandleAudioFocus(boolean handleAudioFocus) {
-        if(audioFocusHelper != null) {
-            audioFocusHelper.abandonFocus();
-        }
         if(Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN) {
+            audioFocusHelper.abandonFocus();
             this.handleAudioFocus = handleAudioFocus;
         }
     }

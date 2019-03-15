@@ -88,8 +88,7 @@ public class VideoView extends RelativeLayout {
     protected DeviceUtil deviceUtil = new DeviceUtil();
 
     protected AudioManager audioManager;
-    @NonNull
-    protected AudioFocusHelper audioFocusHelper = new AudioFocusHelper();
+    protected AudioFocusHelper audioFocusHelper;
 
     protected long positionOffset = 0;
     protected long overriddenDuration = -1;
@@ -102,7 +101,7 @@ public class VideoView extends RelativeLayout {
     protected ListenerMux listenerMux;
 
     protected boolean releaseOnDetachFromWindow = true;
-    protected boolean handleAudioFocus = true;
+    protected boolean handleAudioFocus = Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN;
 
     public VideoView(Context context) {
         super(context);
@@ -370,15 +369,20 @@ public class VideoView extends RelativeLayout {
     }
 
     /**
-     * Enables or Disables automatic handling of audio focus. By default this is enabled
-     * however in instances where a service handles playback of both audio and video it
+     * Enables or Disables automatic handling of audio focus. By default this is enabled on devices
+     * with API prior to JellyBean. On modern devices ExoPlayer's AudioFocusManager is used instead.
+     * In instances where a service handles playback of both audio and video it
      * is recommended to disable this and manually handle it in the service for consistency
      *
      * @param handleAudioFocus {@code true} to handle audio focus
      */
     public void setHandleAudioFocus(boolean handleAudioFocus) {
-        audioFocusHelper.abandonFocus();
-        this.handleAudioFocus = handleAudioFocus;
+        if(audioFocusHelper != null) {
+            audioFocusHelper.abandonFocus();
+        }
+        if(Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN) {
+            this.handleAudioFocus = handleAudioFocus;
+        }
     }
 
     /**
@@ -418,7 +422,7 @@ public class VideoView extends RelativeLayout {
      * prepared (see {@link #setOnPreparedListener(OnPreparedListener)})
      */
     public void start() {
-        if (!audioFocusHelper.requestFocus()) {
+        if (audioFocusHelper != null && !audioFocusHelper.requestFocus()) {
             return;
         }
 
@@ -438,14 +442,15 @@ public class VideoView extends RelativeLayout {
     }
 
     /**
-     * Pauses the current video in playback, only abandoning the audio focus if
+     * Pauses the current video in playback.
+     * On devices with API prior to JellyBean only abandoning the audio focus if
      * <code>transientFocusLoss</code> is <code>false</code>. Calling {@link #pause()} should
      * be used in most cases unless the audio focus is being handled manually
      *
      * @param transientFocusLoss <code>true</code> if the pause is temporary and the audio focus should be retained
      */
     public void pause(boolean transientFocusLoss) {
-        if (!transientFocusLoss) {
+        if (audioFocusHelper != null && !transientFocusLoss) {
             audioFocusHelper.abandonFocus();
         }
 
@@ -488,7 +493,9 @@ public class VideoView extends RelativeLayout {
      * If a video is currently in playback then the playback will be suspended
      */
     public void suspend() {
-        audioFocusHelper.abandonFocus();
+        if(audioFocusHelper != null) {
+            audioFocusHelper.abandonFocus();
+        }
         videoViewImpl.suspend();
         setKeepScreenOn(false);
 
@@ -866,7 +873,11 @@ public class VideoView extends RelativeLayout {
             return;
         }
 
-        audioManager = (AudioManager) context.getApplicationContext().getSystemService(Context.AUDIO_SERVICE);
+        if(Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN) {
+            audioManager = (AudioManager) context.getApplicationContext().getSystemService(Context.AUDIO_SERVICE);
+            audioFocusHelper = new AudioFocusHelper();
+        }
+
 
         AttributeContainer attributeContainer = new AttributeContainer(context, attrs);
         initView(context, attributeContainer);
@@ -969,7 +980,9 @@ public class VideoView extends RelativeLayout {
      * @param clearSurface <code>true</code> if the surface should be cleared
      */
     protected void stopPlayback(boolean clearSurface) {
-        audioFocusHelper.abandonFocus();
+        if(audioFocusHelper != null) {
+            audioFocusHelper.abandonFocus();
+        }
         videoViewImpl.stopPlayback(clearSurface);
         setKeepScreenOn(false);
 

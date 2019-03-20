@@ -21,6 +21,8 @@ import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
+import android.media.AudioAttributes;
+import android.media.AudioFocusRequest;
 import android.media.AudioManager;
 import android.net.Uri;
 import android.os.Build;
@@ -983,6 +985,10 @@ public class VideoView extends RelativeLayout {
      * when enabled.
      */
     protected class AudioFocusHelper implements AudioManager.OnAudioFocusChangeListener {
+
+        @TargetApi(Build.VERSION_CODES.O)
+        protected AudioFocusRequest lastFocusRequest;
+
         protected boolean startRequested = false;
         protected boolean pausedForLoss = false;
         protected int currentFocus = 0;
@@ -1032,8 +1038,16 @@ public class VideoView extends RelativeLayout {
             if (audioManager == null) {
                 return false;
             }
-
-            int status = audioManager.requestAudioFocus(this, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN);
+            int status;
+            if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                AudioFocusRequest.Builder afBuilder = new AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN);
+                AudioAttributes.Builder aaBuilder = new AudioAttributes.Builder()
+                        .setUsage(AudioAttributes.USAGE_MEDIA).setContentType(AudioAttributes.CONTENT_TYPE_MUSIC);
+                lastFocusRequest = afBuilder.setAudioAttributes(aaBuilder.build()).build();
+                status = audioManager.requestAudioFocus(lastFocusRequest);
+            } else {
+                status = audioManager.requestAudioFocus(this, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN);
+            }
             if (AudioManager.AUDIOFOCUS_REQUEST_GRANTED == status) {
                 currentFocus = AudioManager.AUDIOFOCUS_GAIN;
                 return true;
@@ -1058,7 +1072,21 @@ public class VideoView extends RelativeLayout {
             }
 
             startRequested = false;
-            int status = audioManager.abandonAudioFocus(this);
+            int status;
+            if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                if(lastFocusRequest != null) {
+                    status = audioManager.abandonAudioFocusRequest(lastFocusRequest);
+                    if(AudioManager.AUDIOFOCUS_REQUEST_GRANTED == status) {
+                        // reset lastFocusRequest on success, there is no reason to try again
+                        lastFocusRequest = null;
+                    }
+                } else {
+                    // no focus was requested, return success
+                    status = audioManager.AUDIOFOCUS_REQUEST_GRANTED;
+                }
+            } else {
+                status = audioManager.abandonAudioFocus(this);
+            }
             return AudioManager.AUDIOFOCUS_REQUEST_GRANTED == status;
         }
     }

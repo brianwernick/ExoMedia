@@ -20,44 +20,18 @@ import android.app.UiModeManager
 import android.content.Context
 import android.content.res.Configuration
 import android.os.Build
-import java.util.*
 
 /**
  * A Utility class to help determine characteristics about the device
  */
 class DeviceUtil {
-    companion object {
-        protected val NON_COMPATIBLE_DEVICES: MutableList<Device>
 
-        init {
-            NON_COMPATIBLE_DEVICES = LinkedList()
-            NON_COMPATIBLE_DEVICES.add(Device("Amazon"))
-        }
-    }
+    private val NON_COMPATIBLE_DEVICES = listOf(Device("Amazon"))
 
     fun supportsExoPlayer(context: Context): Boolean {
-        return if (!isNotCompatible(NON_COMPATIBLE_DEVICES)) {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN && !isNotCompatible()) {
             true
-        } else Build.MANUFACTURER.equals("Amazon", ignoreCase = true) && (isDeviceTV(context) || Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
-    }
-
-    /**
-     * Determines if the current device is not compatible based on the list of devices
-     * that don't correctly support the ExoPlayer
-     *
-     * @param nonCompatibleDevices The list of devices that aren't compatible
-     * @return True if the current device is not compatible
-     */
-    fun isNotCompatible(nonCompatibleDevices: List<Device>): Boolean {
-        for (device in nonCompatibleDevices) {
-            if (Build.MANUFACTURER.equals(device.manufacturer, ignoreCase = true)) {
-                return device.model?.let {
-                    Build.DEVICE.equals(it, ignoreCase = true)
-                } ?: true
-            }
-        }
-
-        return false
+        } else context.isAmazonTvOrAmazonWithLollipopSdkOrNewerDevice()
     }
 
     /**
@@ -72,11 +46,31 @@ class DeviceUtil {
             val uiManager = context.getSystemService(Context.UI_MODE_SERVICE) as UiModeManager
             return uiManager.currentModeType == Configuration.UI_MODE_TYPE_TELEVISION
         }
-
         return false
     }
 
-    data class Device(
+    /**
+     * Determines if the current device is not compatible based on the list of devices
+     * that don't correctly support the ExoPlayer
+     *
+     * @return True if the current device is not compatible
+     */
+    private fun isNotCompatible(): Boolean {
+        for (device in NON_COMPATIBLE_DEVICES) {
+            if (Build.MANUFACTURER.equals(device.manufacturer, ignoreCase = true)) {
+                return device.model?.let {
+                    Build.DEVICE.equals(it, ignoreCase = true)
+                } ?: true
+            }
+        }
+        return false
+    }
+
+    private fun Context.isAmazonTvOrAmazonWithLollipopSdkOrNewerDevice() =
+            Build.MANUFACTURER.equals("Amazon", ignoreCase = true) &&
+                    (isDeviceTV(this) || Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
+
+    private data class Device(
             val manufacturer: String,
             val model: String? = null
     )

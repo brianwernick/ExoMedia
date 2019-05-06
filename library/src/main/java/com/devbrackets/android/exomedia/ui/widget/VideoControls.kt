@@ -38,7 +38,7 @@ import com.devbrackets.android.exomedia.listener.VideoControlsSeekListener
 import com.devbrackets.android.exomedia.listener.VideoControlsVisibilityListener
 import com.devbrackets.android.exomedia.util.Repeater
 import com.devbrackets.android.exomedia.util.ResourceUtil
-import com.devbrackets.android.exomedia.util.TimeFormatUtil
+import com.devbrackets.android.exomedia.util.millisToFormattedTimeString
 import java.util.*
 
 /**
@@ -197,7 +197,7 @@ abstract class VideoControls : RelativeLayout, VideoControlsCore {
         if (Math.abs(position - lastUpdatedPosition) >= 1000 || lastUpdatedPosition == 0L) {
             lastUpdatedPosition = position
 
-            currentTimeTextView.text = TimeFormatUtil.formatMs(position)
+            currentTimeTextView.text = position.millisToFormattedTimeString()
         }
     }
 

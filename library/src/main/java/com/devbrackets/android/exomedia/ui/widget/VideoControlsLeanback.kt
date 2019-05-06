@@ -30,11 +30,10 @@ import android.view.animation.TranslateAnimation
 import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.ProgressBar
-
 import com.devbrackets.android.exomedia.R
 import com.devbrackets.android.exomedia.ui.animation.BottomViewHideShowAnimation
 import com.devbrackets.android.exomedia.util.ResourceUtil
-import com.devbrackets.android.exomedia.util.TimeFormatUtil
+import com.devbrackets.android.exomedia.util.millisToFormattedTimeString
 
 /**
  * Provides playback controls for the [VideoView] on TV devices.
@@ -88,13 +87,13 @@ class VideoControlsLeanback : VideoControls {
     }
 
     override fun setPosition(position: Long) {
-        currentTimeTextView.text = TimeFormatUtil.formatMs(position)
+        currentTimeTextView.text = position.millisToFormattedTimeString()
         progressBar.progress = position.toInt()
     }
 
     override fun setDuration(duration: Long) {
         if (duration != progressBar.max.toLong()) {
-            endTimeTextView.text = TimeFormatUtil.formatMs(duration)
+            endTimeTextView.text = duration.millisToFormattedTimeString()
             progressBar.max = duration.toInt()
         }
     }

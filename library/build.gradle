@@ -38,6 +38,7 @@ dependencies {
 
     testImplementation 'junit:junit:4.12'
     testImplementation "com.google.truth:truth:0.44"
+    testImplementation "org.robolectric:robolectric:4.2.1"
 }
 
 android {

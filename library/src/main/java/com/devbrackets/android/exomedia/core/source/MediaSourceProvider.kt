@@ -21,12 +21,11 @@ import android.content.Context
 import android.net.Uri
 import android.os.Build
 import android.os.Handler
-
 import com.devbrackets.android.exomedia.BuildConfig
 import com.devbrackets.android.exomedia.ExoMedia
 import com.devbrackets.android.exomedia.core.source.builder.DefaultMediaSourceBuilder
 import com.devbrackets.android.exomedia.core.source.builder.MediaSourceBuilder
-import com.devbrackets.android.exomedia.util.MediaSourceUtil
+import com.devbrackets.android.exomedia.util.getExtension
 import com.google.android.exoplayer2.source.MediaSource
 import com.google.android.exoplayer2.upstream.TransferListener
 
@@ -63,7 +62,7 @@ open class MediaSourceProvider {
         }
 
         protected fun findByExtension(uri: Uri): SourceTypeBuilder? {
-            val extension = MediaSourceUtil.getExtension(uri)?.takeIf { it.isNotEmpty() }
+            val extension = uri.getExtension()?.takeIf { it.isNotEmpty() }
                     ?: return null
             return ExoMedia.Data.sourceTypeBuilders.firstOrNull { it.extension.equals(extension, ignoreCase = true) }
         }

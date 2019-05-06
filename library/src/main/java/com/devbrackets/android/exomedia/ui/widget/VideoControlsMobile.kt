@@ -27,7 +27,7 @@ import android.widget.SeekBar
 import com.devbrackets.android.exomedia.R
 import com.devbrackets.android.exomedia.ui.animation.BottomViewHideShowAnimation
 import com.devbrackets.android.exomedia.ui.animation.TopViewHideShowAnimation
-import com.devbrackets.android.exomedia.util.TimeFormatUtil
+import com.devbrackets.android.exomedia.util.millisToFormattedTimeString
 import java.util.*
 
 /**
@@ -67,13 +67,13 @@ class VideoControlsMobile : VideoControls {
     constructor(context: Context, attrs: AttributeSet, defStyleAttr: Int, defStyleRes: Int) : super(context, attrs, defStyleAttr, defStyleRes)
 
     override fun setPosition(@IntRange(from = 0) position: Long) {
-        currentTimeTextView.text = TimeFormatUtil.formatMs(position)
+        currentTimeTextView.text = position.millisToFormattedTimeString()
         seekBar.progress = position.toInt()
     }
 
     override fun setDuration(@IntRange(from = 0) duration: Long) {
         if (duration != seekBar.max.toLong()) {
-            endTimeTextView.text = TimeFormatUtil.formatMs(duration)
+            endTimeTextView.text = duration.millisToFormattedTimeString()
             seekBar.max = duration.toInt()
         }
     }
@@ -198,7 +198,7 @@ class VideoControlsMobile : VideoControls {
             }
 
             seekToTime = progress.toLong()
-            currentTimeTextView.text = TimeFormatUtil.formatMs(seekToTime)
+            currentTimeTextView.text = seekToTime.millisToFormattedTimeString()
         }
 
         override fun onStartTrackingTouch(seekBar: SeekBar) {

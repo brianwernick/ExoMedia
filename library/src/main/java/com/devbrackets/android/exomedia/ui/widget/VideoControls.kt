@@ -37,8 +37,8 @@ import com.devbrackets.android.exomedia.listener.VideoControlsButtonListener
 import com.devbrackets.android.exomedia.listener.VideoControlsSeekListener
 import com.devbrackets.android.exomedia.listener.VideoControlsVisibilityListener
 import com.devbrackets.android.exomedia.util.Repeater
-import com.devbrackets.android.exomedia.util.ResourceUtil
 import com.devbrackets.android.exomedia.util.millisToFormattedTimeString
+import com.devbrackets.android.exomedia.util.tintListCompat
 import java.util.*
 
 /**
@@ -543,14 +543,14 @@ abstract class VideoControls : RelativeLayout, VideoControlsCore {
     }
 
     protected open fun updateButtonDrawables(@ColorRes tintList: Int) {
-        playDrawable = ResourceUtil.tintList(context, R.drawable.exomedia_ic_play_arrow_white, tintList)
-        pauseDrawable = ResourceUtil.tintList(context, R.drawable.exomedia_ic_pause_white, tintList)
+        playDrawable = context.tintListCompat(R.drawable.exomedia_ic_play_arrow_white, tintList)
+        pauseDrawable = context.tintListCompat(R.drawable.exomedia_ic_pause_white, tintList)
         playPauseButton.setImageDrawable(playDrawable)
 
-        val previousDrawable = ResourceUtil.tintList(context, R.drawable.exomedia_ic_skip_previous_white, tintList)
+        val previousDrawable = context.tintListCompat(R.drawable.exomedia_ic_skip_previous_white, tintList)
         previousButton.setImageDrawable(previousDrawable)
 
-        val nextDrawable = ResourceUtil.tintList(context, R.drawable.exomedia_ic_skip_next_white, tintList)
+        val nextDrawable = context.tintListCompat(R.drawable.exomedia_ic_skip_next_white, tintList)
         nextButton.setImageDrawable(nextDrawable)
     }
 

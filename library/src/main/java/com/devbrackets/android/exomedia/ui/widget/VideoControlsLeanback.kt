@@ -32,8 +32,8 @@ import android.widget.ImageView
 import android.widget.ProgressBar
 import com.devbrackets.android.exomedia.R
 import com.devbrackets.android.exomedia.ui.animation.BottomViewHideShowAnimation
-import com.devbrackets.android.exomedia.util.ResourceUtil
 import com.devbrackets.android.exomedia.util.millisToFormattedTimeString
+import com.devbrackets.android.exomedia.util.tintListCompat
 
 /**
  * Provides playback controls for the [VideoView] on TV devices.
@@ -155,10 +155,10 @@ class VideoControlsLeanback : VideoControls {
     override fun updateButtonDrawables(tintList: Int) {
         super.updateButtonDrawables(tintList)
 
-        val rewindDrawable = ResourceUtil.tintList(context, R.drawable.exomedia_ic_rewind_white, tintList)
+        val rewindDrawable = context.tintListCompat(R.drawable.exomedia_ic_rewind_white, tintList)
         rewindButton?.setImageDrawable(rewindDrawable)
 
-        val fastForwardDrawable = ResourceUtil.tintList(context, R.drawable.exomedia_ic_fast_forward_white, tintList)
+        val fastForwardDrawable = context.tintListCompat(R.drawable.exomedia_ic_fast_forward_white, tintList)
         fastForwardButton?.setImageDrawable(fastForwardDrawable)
     }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 - 2018 ExoMedia Contributors
+ * Copyright (C) 2015 - 2019 ExoMedia Contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,7 +43,7 @@ class Repeater {
     var repeaterDelay = DEFAULT_REPEAT_DELAY
 
     protected var delayedHandler: Handler? = null
-    protected var handlerThread: HandlerThread? = null
+    protected val handlerThread by lazy { HandlerThread(HANDLER_THREAD_NAME) }
     protected var useHandlerThread = false
 
     var repeatListener: (() -> Unit)? = null
@@ -78,9 +78,8 @@ class Repeater {
             isRunning = true
 
             if (useHandlerThread) {
-                handlerThread = HandlerThread(HANDLER_THREAD_NAME)
-                handlerThread!!.start()
-                delayedHandler = Handler(handlerThread!!.looper)
+                handlerThread.start()
+                delayedHandler = Handler(handlerThread.looper)
             }
 
             pollRunnable.performPoll()
@@ -91,7 +90,7 @@ class Repeater {
      * Stops the repeater
      */
     fun stop() {
-        handlerThread?.quit()
+        handlerThread.quit()
         isRunning = false
     }
 

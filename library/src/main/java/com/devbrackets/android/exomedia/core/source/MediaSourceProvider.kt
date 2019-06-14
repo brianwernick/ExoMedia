@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 - 2018 ExoMedia Contributors
+ * Copyright (C) 2017 - 2019 ExoMedia Contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,7 +34,7 @@ import com.google.android.exoplayer2.upstream.TransferListener
  * Provides the functionality to determine which [MediaSource] should be used
  * to play a particular URL.
  */
-class MediaSourceProvider {
+open class MediaSourceProvider {
 
     @SuppressLint("DefaultLocale")
     protected var userAgent = String.format(USER_AGENT_FORMAT, BuildConfig.VERSION_NAME, BuildConfig.VERSION_CODE, Build.VERSION.RELEASE, Build.MODEL)

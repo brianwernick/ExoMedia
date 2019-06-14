@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 - 2018 ExoMedia Contributors
+ * Copyright (C) 2016 - 2019 ExoMedia Contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,15 +16,12 @@
 
 package com.devbrackets.android.exomedia.core.video.exo
 
-import android.annotation.TargetApi
 import android.content.Context
 import android.net.Uri
-import android.os.Build
 import android.support.annotation.FloatRange
 import android.support.annotation.IntRange
 import android.util.AttributeSet
 import android.view.SurfaceHolder
-
 import com.devbrackets.android.exomedia.ExoMedia
 import com.devbrackets.android.exomedia.core.ListenerMux
 import com.devbrackets.android.exomedia.core.api.VideoViewApi
@@ -40,7 +37,6 @@ import com.google.android.exoplayer2.source.TrackGroupArray
  * A [VideoViewApi] implementation that uses the ExoPlayer
  * as the backing media player.
  */
-@TargetApi(Build.VERSION_CODES.JELLY_BEAN)
 class ExoSurfaceVideoView : ResizingSurfaceView, VideoViewApi {
     protected val delegate = ExoVideoDelegate(context, this)
 

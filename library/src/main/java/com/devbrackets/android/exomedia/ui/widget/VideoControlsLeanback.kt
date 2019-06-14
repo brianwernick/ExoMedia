@@ -274,8 +274,8 @@ class VideoControlsLeanback : VideoControls {
         playPauseButton.setOnKeyListener(remoteKeyListener)
         previousButton.setOnKeyListener(remoteKeyListener)
         nextButton.setOnKeyListener(remoteKeyListener)
-        rewindButton!!.setOnKeyListener(remoteKeyListener)
-        fastForwardButton!!.setOnKeyListener(remoteKeyListener)
+        rewindButton?.setOnKeyListener(remoteKeyListener)
+        fastForwardButton?.setOnKeyListener(remoteKeyListener)
     }
 
     /**
@@ -470,35 +470,31 @@ class VideoControlsLeanback : VideoControls {
 
     protected inner class LeanbackInternalListener : VideoControls.InternalListener() {
         override fun onFastForwardClicked(): Boolean {
-            if (videoView == null) {
-                return false
-            }
+            return videoView?.let {
+                var newPosition = it.currentPosition + FAST_FORWARD_REWIND_AMOUNT
+                if (newPosition > progressBar.max) {
+                    newPosition = progressBar.max.toLong()
+                }
 
-            var newPosition = videoView!!.currentPosition + FAST_FORWARD_REWIND_AMOUNT
-            if (newPosition > progressBar.max) {
-                newPosition = progressBar.max.toLong()
-            }
-
-            performSeek(newPosition)
-            return true
+                performSeek(newPosition)
+                true
+            } ?: false
         }
 
         override fun onRewindClicked(): Boolean {
-            if (videoView == null) {
-                return false
-            }
+            return videoView?.let {
+                var newPosition = it.currentPosition - FAST_FORWARD_REWIND_AMOUNT
+                if (newPosition < 0) {
+                    newPosition = 0
+                }
 
-            var newPosition = videoView!!.currentPosition - FAST_FORWARD_REWIND_AMOUNT
-            if (newPosition < 0) {
-                newPosition = 0
-            }
-
-            performSeek(newPosition)
-            return true
+                performSeek(newPosition)
+                true
+            } ?: false
         }
     }
 
     companion object {
-        protected val FAST_FORWARD_REWIND_AMOUNT = 10000 //10 seconds
+        protected val FAST_FORWARD_REWIND_AMOUNT = 10_000 //10 seconds
     }
 }

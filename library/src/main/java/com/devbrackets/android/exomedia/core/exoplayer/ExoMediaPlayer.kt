@@ -205,8 +205,8 @@ class ExoMediaPlayer(private val context: Context) : Player.DefaultEventListener
         adaptiveTrackSelectionFactory = AdaptiveTrackSelection.Factory(bandwidthMeter)
         trackSelector = DefaultTrackSelector(adaptiveTrackSelectionFactory)
 
-        val loadControl = if (ExoMedia.Data.loadControl != null) ExoMedia.Data.loadControl else DefaultLoadControl()
-        exoPlayer = ExoPlayerFactory.newInstance(renderers.toTypedArray(), trackSelector, loadControl!!)
+        val loadControl = ExoMedia.Data.loadControl ?: DefaultLoadControl()
+        exoPlayer = ExoPlayerFactory.newInstance(context, renderers.toTypedArray(), trackSelector, loadControl)
         exoPlayer.addListener(this)
         analyticsCollector = AnalyticsCollector.Factory().createAnalyticsCollector(exoPlayer, Clock.DEFAULT)
         exoPlayer.addListener(analyticsCollector)
@@ -240,10 +240,11 @@ class ExoMediaPlayer(private val context: Context) : Player.DefaultEventListener
     }
 
     fun setMediaSource(source: MediaSource?) {
-        if (this.mediaSource != null) {
-            this.mediaSource!!.removeEventListener(analyticsCollector)
+        mediaSource?.let {
+            it.removeEventListener(analyticsCollector)
             analyticsCollector.resetForNewMediaSource()
         }
+
         source?.addEventListener(mainHandler, analyticsCollector)
         this.mediaSource = source
 
@@ -312,18 +313,10 @@ class ExoMediaPlayer(private val context: Context) : Player.DefaultEventListener
     }
 
     fun clearSurface() {
-        if (surface != null) {
-            surface!!.release()
-        }
+        surface?.release()
 
         surface = null
         sendMessage(C.TRACK_TYPE_VIDEO, C.MSG_SET_SURFACE, null, false)
-    }
-
-
-    @Deprecated("use {@link #clearSurface()} as this is no longer blocking")
-    fun blockingClearSurface() {
-        clearSurface()
     }
 
     @JvmOverloads
@@ -469,7 +462,7 @@ class ExoMediaPlayer(private val context: Context) : Player.DefaultEventListener
             return
         }
 
-        if (!renderers.isEmpty()) {
+        if (renderers.isNotEmpty()) {
             exoPlayer.stop()
         }
 
@@ -555,9 +548,7 @@ class ExoMediaPlayer(private val context: Context) : Player.DefaultEventListener
         setBufferRepeaterStarted(false)
         listeners.clear()
 
-        if (mediaSource != null) {
-            mediaSource!!.removeEventListener(analyticsCollector)
-        }
+        mediaSource?.removeEventListener(analyticsCollector)
 
         surface = null
         exoPlayer.release()
@@ -565,8 +556,7 @@ class ExoMediaPlayer(private val context: Context) : Player.DefaultEventListener
     }
 
     fun setPlaybackSpeed(speed: Float): Boolean {
-        val params = PlaybackParameters(speed, 1.0f)
-        exoPlayer.setPlaybackParameters(params)
+        exoPlayer.playbackParameters = PlaybackParameters(speed, 1.0f)
 
         return true
     }
@@ -617,10 +607,10 @@ class ExoMediaPlayer(private val context: Context) : Player.DefaultEventListener
      */
     fun setWakeMode(context: Context, mode: Int) {
         var wasHeld = false
-        if (wakeLock != null) {
-            if (wakeLock!!.isHeld) {
+        wakeLock?.let { lock ->
+            if (lock.isHeld) {
                 wasHeld = true
-                wakeLock!!.release()
+                lock.release()
             }
 
             wakeLock = null
@@ -629,11 +619,8 @@ class ExoMediaPlayer(private val context: Context) : Player.DefaultEventListener
         //Acquires the wakelock if we have permissions to
         if (context.packageManager.checkPermission(Manifest.permission.WAKE_LOCK, context.packageName) == PackageManager.PERMISSION_GRANTED) {
             val pm = context.getSystemService(Context.POWER_SERVICE) as PowerManager
-            if (pm != null) {
-                wakeLock = pm.newWakeLock(mode or PowerManager.ON_AFTER_RELEASE, ExoMediaPlayer::class.java.name)
-                wakeLock!!.setReferenceCounted(false)
-            } else {
-                Log.e(TAG, "Unable to acquire WAKE_LOCK due to a null power manager")
+            wakeLock = pm.newWakeLock(mode or PowerManager.ON_AFTER_RELEASE, ExoMediaPlayer::class.java.name).apply {
+                setReferenceCounted(false)
             }
         } else {
             Log.w(TAG, "Unable to acquire WAKE_LOCK due to missing manifest permission")
@@ -647,23 +634,21 @@ class ExoMediaPlayer(private val context: Context) : Player.DefaultEventListener
     }
 
     protected fun getExoPlayerTrackType(type: RendererType): Int {
-        when (type) {
-            ExoMedia.RendererType.AUDIO -> return C.TRACK_TYPE_AUDIO
-            ExoMedia.RendererType.VIDEO -> return C.TRACK_TYPE_VIDEO
-            ExoMedia.RendererType.CLOSED_CAPTION -> return C.TRACK_TYPE_TEXT
-            ExoMedia.RendererType.METADATA -> return C.TRACK_TYPE_METADATA
+        return when (type) {
+            ExoMedia.RendererType.AUDIO -> C.TRACK_TYPE_AUDIO
+            ExoMedia.RendererType.VIDEO -> C.TRACK_TYPE_VIDEO
+            ExoMedia.RendererType.CLOSED_CAPTION -> C.TRACK_TYPE_TEXT
+            ExoMedia.RendererType.METADATA -> C.TRACK_TYPE_METADATA
         }
-
-        return C.TRACK_TYPE_UNKNOWN
     }
 
     protected fun getExoMediaRendererType(exoPlayerTrackType: Int): RendererType? {
-        when (exoPlayerTrackType) {
-            C.TRACK_TYPE_AUDIO -> return RendererType.AUDIO
-            C.TRACK_TYPE_VIDEO -> return RendererType.VIDEO
-            C.TRACK_TYPE_TEXT -> return RendererType.CLOSED_CAPTION
-            C.TRACK_TYPE_METADATA -> return RendererType.METADATA
-            else -> return null
+        return when (exoPlayerTrackType) {
+            C.TRACK_TYPE_AUDIO -> RendererType.AUDIO
+            C.TRACK_TYPE_VIDEO -> RendererType.VIDEO
+            C.TRACK_TYPE_TEXT -> RendererType.CLOSED_CAPTION
+            C.TRACK_TYPE_METADATA -> RendererType.METADATA
+            else -> null
         }
     }
 
@@ -772,14 +757,12 @@ class ExoMediaPlayer(private val context: Context) : Player.DefaultEventListener
      * @param awake True if the wakelock should be acquired
      */
     protected fun stayAwake(awake: Boolean) {
-        if (wakeLock == null) {
-            return
-        }
-
-        if (awake && !wakeLock!!.isHeld) {
-            wakeLock!!.acquire(WAKE_LOCK_TIMEOUT.toLong())
-        } else if (!awake && wakeLock!!.isHeld) {
-            wakeLock!!.release()
+        wakeLock?.let { lock ->
+            if (awake && !lock.isHeld) {
+                lock.acquire(WAKE_LOCK_TIMEOUT.toLong())
+            } else if (!awake && lock.isHeld) {
+                lock.release()
+            }
         }
     }
 
@@ -914,12 +897,12 @@ class ExoMediaPlayer(private val context: Context) : Player.DefaultEventListener
     private inner class DelegatedMediaDrmCallback : MediaDrmCallback {
         @Throws(Exception::class)
         override fun executeProvisionRequest(uuid: UUID, request: ExoMediaDrm.ProvisionRequest): ByteArray {
-            return if (drmCallback != null) drmCallback!!.executeProvisionRequest(uuid, request) else ByteArray(0)
+            return drmCallback?.executeProvisionRequest(uuid, request) ?: ByteArray(0)
         }
 
         @Throws(Exception::class)
         override fun executeKeyRequest(uuid: UUID, request: ExoMediaDrm.KeyRequest): ByteArray {
-            return if (drmCallback != null) drmCallback!!.executeKeyRequest(uuid, request) else ByteArray(0)
+            return drmCallback?.executeKeyRequest(uuid, request) ?: ByteArray(0)
         }
     }
 
@@ -937,9 +920,7 @@ class ExoMediaPlayer(private val context: Context) : Player.DefaultEventListener
         }
 
         override fun onDrmSessionManagerError(e: Exception) {
-            if (internalErrorListener != null) {
-                internalErrorListener!!.onDrmSessionManagerError(e)
-            }
+            internalErrorListener?.onDrmSessionManagerError(e)
         }
     }
 
@@ -968,9 +949,7 @@ class ExoMediaPlayer(private val context: Context) : Player.DefaultEventListener
         }
 
         override fun onAudioSinkUnderrun(bufferSize: Int, bufferSizeMs: Long, elapsedSinceLastFeedMs: Long) {
-            if (internalErrorListener != null) {
-                internalErrorListener!!.onAudioSinkUnderrun(bufferSize, bufferSizeMs, elapsedSinceLastFeedMs)
-            }
+            internalErrorListener?.onAudioSinkUnderrun(bufferSize, bufferSizeMs, elapsedSinceLastFeedMs)
             analyticsCollector.onAudioSinkUnderrun(bufferSize, bufferSizeMs, elapsedSinceLastFeedMs)
         }
 
@@ -1006,16 +985,12 @@ class ExoMediaPlayer(private val context: Context) : Player.DefaultEventListener
         }
 
         override fun onMetadata(metadata: Metadata) {
-            if (metadataListener != null) {
-                metadataListener!!.onMetadata(metadata)
-            }
+            metadataListener?.onMetadata(metadata)
             analyticsCollector.onMetadata(metadata)
         }
 
         override fun onCues(cues: List<Cue>) {
-            if (captionListener != null) {
-                captionListener!!.onCues(cues)
-            }
+            captionListener?.onCues(cues)
         }
     }
 

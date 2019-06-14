@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 - 2018 ExoMedia Contributors
+ * Copyright (C) 2016 - 2019 ExoMedia Contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,10 +39,7 @@ enum class ScaleType {
          * @return The [ScaleType] associated with the `ordinal`
          */
         fun fromOrdinal(ordinal: Int): ScaleType {
-            return if (ordinal < 0 || ordinal > NONE.ordinal) {
-                ScaleType.NONE
-            } else ScaleType.values()[ordinal]
-
+            return values().getOrElse(ordinal) { NONE }
         }
     }
 }

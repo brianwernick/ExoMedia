@@ -20,6 +20,6 @@ allprojects {
 }
 
 ext {
-    exoPlayerVersion = "2.9.6"
+    exoPlayerVersion = "2.10.1"
     supportLibVersion = "28.0.0"
 }

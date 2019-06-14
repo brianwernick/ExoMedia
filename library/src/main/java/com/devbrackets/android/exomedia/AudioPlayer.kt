@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 - 2018 ExoMedia Contributors
+ * Copyright (C) 2016 - 2019 ExoMedia Contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,28 +17,17 @@
 package com.devbrackets.android.exomedia
 
 import android.content.Context
-import android.media.AudioManager
 import android.net.Uri
-import android.support.annotation.FloatRange
-
 import com.devbrackets.android.exomedia.core.ListenerMux
 import com.devbrackets.android.exomedia.core.api.AudioPlayerApi
 import com.devbrackets.android.exomedia.core.audio.ExoAudioPlayer
 import com.devbrackets.android.exomedia.core.audio.NativeAudioPlayer
 import com.devbrackets.android.exomedia.core.exoplayer.ExoMediaPlayer
-import com.devbrackets.android.exomedia.core.exoplayer.WindowInfo
 import com.devbrackets.android.exomedia.core.listener.MetadataListener
-import com.devbrackets.android.exomedia.listener.OnBufferUpdateListener
-import com.devbrackets.android.exomedia.listener.OnCompletionListener
-import com.devbrackets.android.exomedia.listener.OnErrorListener
-import com.devbrackets.android.exomedia.listener.OnPreparedListener
-import com.devbrackets.android.exomedia.listener.OnSeekCompletionListener
+import com.devbrackets.android.exomedia.listener.*
 import com.devbrackets.android.exomedia.util.DeviceUtil
-import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.analytics.AnalyticsListener
-import com.google.android.exoplayer2.drm.MediaDrmCallback
 import com.google.android.exoplayer2.source.MediaSource
-import com.google.android.exoplayer2.source.TrackGroupArray
 
 /**
  * An AudioPlayer that uses the ExoPlayer as the backing architecture.  If the current device
@@ -49,7 +38,7 @@ import com.google.android.exoplayer2.source.TrackGroupArray
  * To help with quick conversions from the Android MediaPlayer this class follows the APIs
  * the Android MediaPlayer provides.
  */
-class AudioPlayer(protected val audioPlayerImpl: AudioPlayerApi) : AudioPlayerApi by audioPlayerImpl {
+open class AudioPlayer(protected val audioPlayerImpl: AudioPlayerApi) : AudioPlayerApi by audioPlayerImpl {
     protected val listenerMux = ListenerMux(MuxNotifier())
 
     protected var overriddenDuration: Long = -1
@@ -89,9 +78,11 @@ class AudioPlayer(protected val audioPlayerImpl: AudioPlayerApi) : AudioPlayerAp
      *
      * @param uri The Uri representing the path to the audio item
      */
-    override fun setDataSource(uri: Uri?) {
-        audioPlayerImpl.setDataSource(uri)
-        overrideDuration(-1)
+    fun setDataSource(uri: Uri?) {
+        // NOTE: this method is needed to simplify Java integration, @JvmOverloads can't be
+        // used on an Interface nor can it be used below due to the default values needing to
+        // be specified in the interface and not at the call site
+       setDataSource(uri, null)
     }
 
     /**
@@ -105,7 +96,6 @@ class AudioPlayer(protected val audioPlayerImpl: AudioPlayerApi) : AudioPlayerAp
         audioPlayerImpl.setDataSource(uri, mediaSource)
         overrideDuration(-1)
     }
-
 
     /**
      * Stops the current audio playback and resets the repeatListener states
@@ -202,9 +192,7 @@ class AudioPlayer(protected val audioPlayerImpl: AudioPlayerApi) : AudioPlayerAp
 
     private inner class MuxNotifier : ListenerMux.Notifier() {
         override fun shouldNotifyCompletion(endLeeway: Long): Boolean {
-            val position = currentPosition
-            val duration = duration
-            return position > 0 && duration > 0 && position + endLeeway >= duration
+            return currentPosition > 0 && duration > 0 && currentPosition + endLeeway >= duration
         }
 
         override fun onExoPlayerError(exoMediaPlayer: ExoMediaPlayer, e: Exception?) {

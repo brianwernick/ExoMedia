@@ -21,7 +21,6 @@ import android.annotation.TargetApi
 import android.content.Context
 import android.content.res.Configuration
 import android.graphics.Point
-import android.graphics.SurfaceTexture
 import android.os.Build
 import android.support.annotation.IntRange
 import android.util.AttributeSet
@@ -29,17 +28,12 @@ import android.util.Log
 import android.view.TextureView
 import android.view.View
 import android.view.ViewTreeObserver
-
 import com.devbrackets.android.exomedia.core.video.scale.MatrixManager
 import com.devbrackets.android.exomedia.core.video.scale.ScaleType
-
 import java.util.concurrent.locks.ReentrantLock
-
 import javax.microedition.khronos.egl.EGL10
 import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.egl.EGLContext
-import javax.microedition.khronos.egl.EGLDisplay
-import javax.microedition.khronos.egl.EGLSurface
 
 /**
  * A TextureView that reSizes itself according to the requested layout type
@@ -208,9 +202,7 @@ open class ResizingTextureView : TextureView, ClearableSurface {
             return false
         }
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH_MR1) {
-            surfaceTexture?.setDefaultBufferSize(width, height) ?: return false
-        }
+        surfaceTexture?.setDefaultBufferSize(width, height) ?: return false
 
         return true
     }
@@ -316,12 +308,7 @@ open class ResizingTextureView : TextureView, ClearableSurface {
             // Updates the scale to make sure one is applied
             scaleType = matrixManager.currentScaleType
 
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-                viewTreeObserver.removeOnGlobalLayoutListener(this)
-            } else {
-
-                viewTreeObserver.removeGlobalOnLayoutListener(this)
-            }
+            viewTreeObserver.removeOnGlobalLayoutListener(this)
         }
     }
 

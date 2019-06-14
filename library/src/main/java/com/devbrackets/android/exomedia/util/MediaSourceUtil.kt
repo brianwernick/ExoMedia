@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 - 2018 ExoMedia Contributors
+ * Copyright (C) 2016 - 2019 ExoMedia Contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,13 +27,13 @@ import android.net.Uri
 object MediaSourceUtil {
 
     fun getExtension(uri: Uri): String? {
-        var path: String? = uri.lastPathSegment ?: return null
+        var path: String = uri.lastPathSegment ?: return null
 
-        var periodIndex = path!!.lastIndexOf('.')
+        var periodIndex = path.lastIndexOf('.')
         if (periodIndex == -1 && uri.pathSegments.size > 1) {
             //Checks the second to last segment to handle manifest urls (e.g. "TearsOfSteelTeaser.ism/manifest")
             path = uri.pathSegments[uri.pathSegments.size - 2]
-            periodIndex = path!!.lastIndexOf('.')
+            periodIndex = path.lastIndexOf('.')
         }
 
         //If there is no period, prepend one to the last segment in case it is the extension without a period

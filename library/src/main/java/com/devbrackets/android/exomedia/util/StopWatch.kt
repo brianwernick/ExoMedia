@@ -46,7 +46,7 @@ class StopWatch {
     var tickDelay = DEFAULT_TICK_DELAY
 
     protected var delayedHandler: Handler? = null
-    protected var handlerThread: HandlerThread? = null
+    protected val handlerThread by lazy { HandlerThread(HANDLER_THREAD_NAME) }
     protected var useHandlerThread = false
 
     var tickListener: ((currentTime: Long) -> Unit)? = null
@@ -106,9 +106,8 @@ class StopWatch {
         tickRunnable.lastTickTimestamp = startTime
 
         if (useHandlerThread) {
-            handlerThread = HandlerThread(HANDLER_THREAD_NAME)
-            handlerThread!!.start()
-            delayedHandler = Handler(handlerThread!!.looper)
+            handlerThread.start()
+            delayedHandler = Handler(handlerThread.looper)
         }
 
         tickRunnable.performTick()
@@ -123,7 +122,7 @@ class StopWatch {
         }
 
         delayedHandler?.removeCallbacksAndMessages(null)
-        handlerThread?.quit()
+        handlerThread.quit()
 
         storedTime += currentTime
         isRunning = false

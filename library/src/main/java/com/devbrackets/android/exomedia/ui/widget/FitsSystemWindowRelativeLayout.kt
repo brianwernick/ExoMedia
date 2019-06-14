@@ -87,10 +87,7 @@ class FitsSystemWindowRelativeLayout : RelativeLayout {
      * below the system bars (NavigationBar and Status/SystemBar) instead of behind them.
      */
     private fun setup() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
-            fitsSystemWindows = true
-        }
-
+        fitsSystemWindows = true
         updatePadding(Rect())
     }
 

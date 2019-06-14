@@ -67,17 +67,14 @@ open class RendererProvider(
 
         // Adds any registered classes
         val classNames = ExoMedia.Data.registeredRendererClasses[ExoMedia.RendererType.AUDIO]
-        if (classNames != null) {
-            for (className in classNames) {
-                try {
-                    val clazz = Class.forName(className)
-                    val constructor = clazz.getConstructor(Handler::class.java, AudioRendererEventListener::class.java)
-                    val renderer = constructor.newInstance(handler, audioRendererEventListener) as Renderer
-                    renderers.add(renderer)
-                } catch (e: Exception) {
-                    // Purposefully left blank
-                }
-
+        classNames?.forEach { className ->
+            try {
+                val clazz = Class.forName(className)
+                val constructor = clazz.getConstructor(Handler::class.java, AudioRendererEventListener::class.java)
+                val renderer = constructor.newInstance(handler, audioRendererEventListener) as Renderer
+                renderers.add(renderer)
+            } catch (e: Exception) {
+                // Purposefully left blank
             }
         }
 
@@ -91,17 +88,14 @@ open class RendererProvider(
 
         // Adds any registered classes
         val classNames = ExoMedia.Data.registeredRendererClasses[ExoMedia.RendererType.VIDEO]
-        if (classNames != null) {
-            for (className in classNames) {
-                try {
-                    val clazz = Class.forName(className)
-                    val constructor = clazz.getConstructor(Boolean::class.javaPrimitiveType, Long::class.javaPrimitiveType, Handler::class.java, VideoRendererEventListener::class.java, Int::class.javaPrimitiveType)
-                    val renderer = constructor.newInstance(true, videoJoiningTimeMs, handler, videoRendererEventListener, droppedFrameNotificationAmount) as Renderer
-                    renderers.add(renderer)
-                } catch (e: Exception) {
-                    // Purposefully left blank
-                }
-
+        classNames?.forEach { className ->
+            try {
+                val clazz = Class.forName(className)
+                val constructor = clazz.getConstructor(Boolean::class.javaPrimitiveType, Long::class.javaPrimitiveType, Handler::class.java, VideoRendererEventListener::class.java, Int::class.javaPrimitiveType)
+                val renderer = constructor.newInstance(true, videoJoiningTimeMs, handler, videoRendererEventListener, droppedFrameNotificationAmount) as Renderer
+                renderers.add(renderer)
+            } catch (e: Exception) {
+                // Purposefully left blank
             }
         }
 

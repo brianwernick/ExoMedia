@@ -53,62 +53,24 @@ class MediaSourceProvider {
         protected val USER_AGENT_FORMAT = "ExoMedia %s (%d) / Android %s / %s"
 
         protected fun findByProviders(uri: Uri): SourceTypeBuilder? {
-            // Uri Scheme (e.g. rtsp)
-            var sourceTypeBuilder = findByScheme(uri)
-            if (sourceTypeBuilder != null) {
-                return sourceTypeBuilder
-            }
-
-            // Extension
-            sourceTypeBuilder = findByExtension(uri)
-            if (sourceTypeBuilder != null) {
-                return sourceTypeBuilder
-            }
-
-            // Regex
-            sourceTypeBuilder = findByLooseComparison(uri)
-            return sourceTypeBuilder
-
+            return findByScheme(uri) /* Uri Scheme (e.g. rtsp) */ ?: findByExtension(uri)
+            ?: findByLooseComparison(uri)
         }
 
         protected fun findByScheme(uri: Uri): SourceTypeBuilder? {
-            val scheme = uri.scheme
-            if (scheme == null || scheme.isEmpty()) {
-                return null
-            }
-
-            for (builder in ExoMedia.Data.sourceTypeBuilders) {
-                if (builder.uriScheme != null && builder.uriScheme.equals(scheme, ignoreCase = true)) {
-                    return builder
-                }
-            }
-
-            return null
+            val scheme = uri.scheme?.takeIf { it.isNotEmpty() } ?: return null
+            return ExoMedia.Data.sourceTypeBuilders.firstOrNull { it.uriScheme.equals(scheme, ignoreCase = true) }
         }
 
         protected fun findByExtension(uri: Uri): SourceTypeBuilder? {
-            val extension = MediaSourceUtil.getExtension(uri)
-            if (extension == null || extension.isEmpty()) {
-                return null
-            }
-
-            for (builder in ExoMedia.Data.sourceTypeBuilders) {
-                if (builder.extension != null && builder.extension.equals(extension, ignoreCase = true)) {
-                    return builder
-                }
-            }
-
-            return null
+            val extension = MediaSourceUtil.getExtension(uri)?.takeIf { it.isNotEmpty() }
+                    ?: return null
+            return ExoMedia.Data.sourceTypeBuilders.firstOrNull { it.extension.equals(extension, ignoreCase = true) }
         }
 
         protected fun findByLooseComparison(uri: Uri): SourceTypeBuilder? {
-            for (builder in ExoMedia.Data.sourceTypeBuilders) {
-                if (builder.looseComparisonRegex != null && uri.toString().matches(builder.looseComparisonRegex.toRegex())) {
-                    return builder
-                }
-            }
-
-            return null
+            val uriString = uri.toString()
+            return ExoMedia.Data.sourceTypeBuilders.firstOrNull { it.looseComparisonRegex?.toRegex()?.matches(uriString) == true }
         }
     }
 }

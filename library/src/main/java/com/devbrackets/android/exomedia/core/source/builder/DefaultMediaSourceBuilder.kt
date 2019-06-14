@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 - 2018 ExoMedia Contributors
+ * Copyright (C) 2017 - 2019 ExoMedia Contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,16 +20,15 @@ import android.content.Context
 import android.net.Uri
 import android.os.Handler
 import com.google.android.exoplayer2.extractor.DefaultExtractorsFactory
-import com.google.android.exoplayer2.source.ExtractorMediaSource
 import com.google.android.exoplayer2.source.MediaSource
+import com.google.android.exoplayer2.source.ProgressiveMediaSource
 import com.google.android.exoplayer2.upstream.TransferListener
 
 class DefaultMediaSourceBuilder : MediaSourceBuilder() {
     override fun build(context: Context, uri: Uri, userAgent: String, handler: Handler, transferListener: TransferListener?): MediaSource {
         val dataSourceFactory = buildDataSourceFactory(context, userAgent, transferListener)
 
-        return ExtractorMediaSource.Factory(dataSourceFactory)
-                .setExtractorsFactory(DefaultExtractorsFactory())
+        return ProgressiveMediaSource.Factory(dataSourceFactory, DefaultExtractorsFactory())
                 .createMediaSource(uri)
     }
 }

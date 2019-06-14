@@ -16,17 +16,14 @@
 
 package com.devbrackets.android.exomedia.core.video.exo
 
-import android.annotation.TargetApi
 import android.content.Context
 import android.graphics.SurfaceTexture
 import android.net.Uri
-import android.os.Build
 import android.support.annotation.FloatRange
 import android.support.annotation.IntRange
 import android.util.AttributeSet
 import android.view.Surface
 import android.view.TextureView
-
 import com.devbrackets.android.exomedia.ExoMedia
 import com.devbrackets.android.exomedia.core.ListenerMux
 import com.devbrackets.android.exomedia.core.api.VideoViewApi
@@ -42,7 +39,6 @@ import com.google.android.exoplayer2.source.TrackGroupArray
  * A [VideoViewApi] implementation that uses the ExoPlayer
  * as the backing media player.
  */
-@TargetApi(Build.VERSION_CODES.JELLY_BEAN)
 class ExoTextureVideoView : ResizingTextureView, VideoViewApi {
     protected val delegate = ExoVideoDelegate(context, this)
 

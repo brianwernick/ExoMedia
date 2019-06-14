@@ -96,10 +96,6 @@ class NativeAudioPlayer(protected val context: Context) : AudioPlayerApi {
         mediaPlayer.setOnBufferingUpdateListener(internalListeners)
     }
 
-    override fun setDataSource(uri: Uri?) {
-        setDataSource(uri, null)
-    }
-
     override fun setDataSource(uri: Uri?, mediaSource: MediaSource?) {
         try {
             requestedSeek = 0

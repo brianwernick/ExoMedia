@@ -33,8 +33,7 @@ abstract class MediaSourceBuilder {
 
     fun buildDataSourceFactory(context: Context, userAgent: String, listener: TransferListener?): DataSource.Factory {
         val provider = ExoMedia.Data.dataSourceFactoryProvider
-        val dataSourceFactory: DataSource.Factory = provider?.provide(userAgent, listener)
-                ?: DefaultHttpDataSourceFactory(userAgent, listener)
+        val dataSourceFactory = provider?.provide(userAgent, listener) ?: DefaultHttpDataSourceFactory(userAgent, listener)
         return DefaultDataSourceFactory(context, listener, dataSourceFactory)
     }
 }

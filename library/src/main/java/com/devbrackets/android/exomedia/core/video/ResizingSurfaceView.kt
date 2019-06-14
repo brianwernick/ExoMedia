@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 - 2018 ExoMedia Contributors,
+ * Copyright (C) 2016 - 2019 ExoMedia Contributors,
  * Copyright (C) 2014 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -307,13 +307,7 @@ open class ResizingSurfaceView : SurfaceView, ClearableSurface {
         override fun onGlobalLayout() {
             // Updates the scale to make sure one is applied
             scaleType = matrixManager.currentScaleType
-
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-                viewTreeObserver.removeOnGlobalLayoutListener(this)
-            } else {
-
-                viewTreeObserver.removeGlobalOnLayoutListener(this)
-            }
+            viewTreeObserver.removeOnGlobalLayoutListener(this)
         }
     }
 

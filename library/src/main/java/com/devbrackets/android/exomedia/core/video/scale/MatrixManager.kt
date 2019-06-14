@@ -23,7 +23,11 @@ import android.view.View
 
 import java.lang.ref.WeakReference
 
-class MatrixManager {
+open class MatrixManager {
+    companion object {
+        private val TAG = "MatrixManager"
+        protected val QUARTER_ROTATION = 90
+    }
 
     protected var intrinsicVideoSize = Point(0, 0)
     @IntRange(from = 0, to = 359)
@@ -212,25 +216,18 @@ class MatrixManager {
      * ready to apply those modifications.
      */
     protected fun applyRequestedModifications() {
-        val view = requestedModificationView.get()
-
-        if (view != null) {
-            if (requestedRotation != null) {
-                rotate(view, requestedRotation!!)
+        requestedModificationView.get()?.let { view ->
+            requestedRotation?.let {
+                rotate(view, it)
                 requestedRotation = null
             }
 
-            if (requestedScaleType != null) {
-                scale(view, requestedScaleType!!)
+            requestedScaleType?.let {
+                scale(view, it)
                 requestedScaleType = null
             }
         }
 
         requestedModificationView = WeakReference<View>(null)
-    }
-
-    companion object {
-        private val TAG = "MatrixManager"
-        protected val QUARTER_ROTATION = 90
     }
 }

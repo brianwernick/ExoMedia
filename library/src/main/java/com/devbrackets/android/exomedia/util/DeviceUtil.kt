@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 - 2018 ExoMedia Contributors
+ * Copyright (C) 2015 - 2019 ExoMedia Contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,7 +36,7 @@ class DeviceUtil {
     }
 
     fun supportsExoPlayer(context: Context): Boolean {
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN && !isNotCompatible(NON_COMPATIBLE_DEVICES)) {
+        return if (!isNotCompatible(NON_COMPATIBLE_DEVICES)) {
             true
         } else Build.MANUFACTURER.equals("Amazon", ignoreCase = true) && (isDeviceTV(context) || Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
     }

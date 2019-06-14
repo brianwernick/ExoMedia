@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 - 2018 ExoMedia Contributors
+ * Copyright (C) 2016 - 2019 ExoMedia Contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -121,16 +121,7 @@ interface AudioPlayerApi {
      * @param uri The Uri representing the path to the audio item
      * @param mediaSource The MediaSource to use for audio playback
      */
-    fun setDataSource(uri: Uri?)
-
-    /**
-     * Sets the source path for the audio item.  This path can be a web address (e.g. http://) or
-     * an absolute local path (e.g. file://)
-     *
-     * @param uri The Uri representing the path to the audio item
-     * @param mediaSource The MediaSource to use for audio playback
-     */
-    fun setDataSource(uri: Uri?, mediaSource: MediaSource?)
+    fun setDataSource(uri: Uri? = null, mediaSource: MediaSource? = null)
 
     /**
      * Sets the [MediaDrmCallback] to use when handling DRM for media.

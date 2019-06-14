@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015-2018 ExoMedia Contributors
+ * Copyright (C) 2015-2019 ExoMedia Contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,7 +45,21 @@ import java.lang.ref.WeakReference
  * Android VideoView, and the Android MediaPlayer to output to the correct
  * error listeners.
  */
-class ListenerMux(private val muxNotifier: Notifier) : ExoPlayerListener, MediaPlayer.OnPreparedListener, MediaPlayer.OnCompletionListener, MediaPlayer.OnErrorListener, MediaPlayer.OnBufferingUpdateListener, MediaPlayer.OnSeekCompleteListener, OnBufferUpdateListener, MetadataListener, AnalyticsListener {
+class ListenerMux(private val muxNotifier: Notifier) :
+        ExoPlayerListener,
+        MediaPlayer.OnPreparedListener,
+        MediaPlayer.OnCompletionListener,
+        MediaPlayer.OnErrorListener,
+        MediaPlayer.OnBufferingUpdateListener,
+        MediaPlayer.OnSeekCompleteListener,
+        OnBufferUpdateListener,
+        MetadataListener,
+        AnalyticsListener {
+
+    companion object {
+        //The amount of time the current position can be off the duration to call the onCompletion repeatListener
+        private const val COMPLETED_DURATION_LEEWAY: Long = 1000
+    }
 
     private val delayedHandler = Handler()
 
@@ -458,8 +472,6 @@ class ListenerMux(private val muxNotifier: Notifier) : ExoPlayerListener, MediaP
         abstract fun onMediaPlaybackEnded()
     }
 
-    companion object {
-        //The amount of time the current position can be off the duration to call the onCompletion repeatListener
-        private val COMPLETED_DURATION_LEEWAY: Long = 1000
-    }
+    protected class NoOpAnalyticsListener: AnalyticsListener
+
 }

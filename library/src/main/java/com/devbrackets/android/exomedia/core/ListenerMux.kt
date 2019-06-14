@@ -96,29 +96,34 @@ class ListenerMux(private val muxNotifier: Notifier) : ExoPlayerListener, MediaP
     }
 
     override fun onStateChanged(playWhenReady: Boolean, playbackState: Int) {
-        if (playbackState == Player.STATE_ENDED) {
-            muxNotifier.onMediaPlaybackEnded()
-
-            if (!notifiedCompleted) {
-                notifyCompletionListener()
+        when (playbackState) {
+            Player.STATE_READY -> {
+                if (!isPrepared) {
+                    notifyPreparedListener()
+                }
+                if (playWhenReady) {
+                    //Updates the previewImage
+                    muxNotifier.onPreviewImageStateChanged(false)
+                }
             }
-        } else if (playbackState == Player.STATE_READY && !isPrepared) {
-            notifyPreparedListener()
-        }
+            Player.STATE_IDLE -> {
+                if (clearRequested) {
+                    //Clears the textureView when requested
+                    clearRequested = false
+                    val clearableSurface = clearableSurfaceRef.get()
 
-        //Updates the previewImage
-        if (playbackState == Player.STATE_READY && playWhenReady) {
-            muxNotifier.onPreviewImageStateChanged(false)
-        }
+                    if (clearableSurface != null) {
+                        clearableSurface.clearSurface()
+                        clearableSurfaceRef = WeakReference<ClearableSurface>(null)
+                    }
+                }
+            }
+            Player.STATE_ENDED -> {
+                muxNotifier.onMediaPlaybackEnded()
 
-        //Clears the textureView when requested
-        if (playbackState == Player.STATE_IDLE && clearRequested) {
-            clearRequested = false
-            val clearableSurface = clearableSurfaceRef.get()
-
-            if (clearableSurface != null) {
-                clearableSurface.clearSurface()
-                clearableSurfaceRef = WeakReference<ClearableSurface>(null)
+                if (!notifiedCompleted) {
+                    notifyCompletionListener()
+                }
             }
         }
     }

@@ -53,21 +53,15 @@ class NativeAudioPlayer(protected val context: Context) : AudioPlayerApi {
 
     protected var requestedSeek: Long = 0
     override var bufferedPercent = 0
-        protected set(value) {
-            field = value
-        }
+        protected set
 
     @FloatRange(from = 0.0, to = 1.0)
     override var volumeLeft = 1.0f
-        protected set(value) {
-            field = value
-        }
+        protected set
 
     @FloatRange(from = 0.0, to = 1.0)
     override var volumeRight = 1.0f
-        protected set(value) {
-            field = value
-        }
+        protected set
 
     override val isPlaying: Boolean
         get() = mediaPlayer.isPlaying

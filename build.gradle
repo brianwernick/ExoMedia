@@ -1,11 +1,14 @@
 buildscript {
+    ext.kotlinVersion = '1.3.31'
     repositories {
         jcenter()
         google()
     }
+
     dependencies {
-        classpath 'com.android.tools.build:gradle:3.3.2'
+        classpath 'com.android.tools.build:gradle:3.4.1'
         classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.8.4'
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
     }
 }
 
@@ -17,6 +20,6 @@ allprojects {
 }
 
 ext {
-    exoPlayerVersion = "2.9.6"
+    exoPlayerVersion = "2.10.1"
     supportLibVersion = "28.0.0"
 }

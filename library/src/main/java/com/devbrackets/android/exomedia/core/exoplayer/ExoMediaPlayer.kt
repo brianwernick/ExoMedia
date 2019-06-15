@@ -24,9 +24,9 @@ import android.net.Uri
 import android.os.Build
 import android.os.Handler
 import android.os.PowerManager
-import android.support.annotation.FloatRange
-import android.support.annotation.Size
-import android.support.v4.util.ArrayMap
+import androidx.annotation.FloatRange
+import androidx.annotation.Size
+import androidx.collection.ArrayMap
 import android.util.Log
 import android.view.Surface
 import com.devbrackets.android.exomedia.ExoMedia
@@ -116,7 +116,7 @@ class ExoMediaPlayer(private val context: Context) : Player.DefaultEventListener
             if (playbackState == Player.STATE_IDLE) {
                 return null
             }
-            val trackMap = ArrayMap<RendererType, TrackGroupArray>()
+            val trackMap = androidx.collection.ArrayMap<RendererType, TrackGroupArray>()
             val mappedTrackInfo = trackSelector.currentMappedTrackInfo ?: return trackMap
             val types = arrayOf(RendererType.AUDIO, RendererType.VIDEO, RendererType.CLOSED_CAPTION, RendererType.METADATA)
             for (type in types) {

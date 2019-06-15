@@ -17,8 +17,8 @@
 package com.devbrackets.android.exomedia.ui.animation
 
 import android.content.Context
-import android.support.v4.view.animation.FastOutLinearInInterpolator
-import android.support.v4.view.animation.LinearOutSlowInInterpolator
+import androidx.interpolator.view.animation.FastOutLinearInInterpolator
+import androidx.interpolator.view.animation.LinearOutSlowInInterpolator
 import android.util.DisplayMetrics
 import android.view.View
 import android.view.WindowManager

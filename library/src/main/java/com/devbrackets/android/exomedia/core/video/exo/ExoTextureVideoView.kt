@@ -19,8 +19,8 @@ package com.devbrackets.android.exomedia.core.video.exo
 import android.content.Context
 import android.graphics.SurfaceTexture
 import android.net.Uri
-import android.support.annotation.FloatRange
-import android.support.annotation.IntRange
+import androidx.annotation.FloatRange
+import androidx.annotation.IntRange
 import android.util.AttributeSet
 import android.view.Surface
 import android.view.TextureView

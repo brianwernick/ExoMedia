@@ -16,7 +16,7 @@
 
 package com.devbrackets.android.exomedia.ui.widget
 
-import android.support.annotation.IntRange
+import androidx.annotation.IntRange
 
 /**
  * An Interface that represents the core VideoControl functionality that

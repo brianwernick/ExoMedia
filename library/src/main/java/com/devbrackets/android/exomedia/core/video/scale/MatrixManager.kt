@@ -17,7 +17,7 @@
 package com.devbrackets.android.exomedia.core.video.scale
 
 import android.graphics.Point
-import android.support.annotation.IntRange
+import androidx.annotation.IntRange
 import android.util.Log
 import android.view.View
 

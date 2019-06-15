@@ -20,7 +20,7 @@ import android.annotation.TargetApi
 import android.content.Context
 import android.graphics.drawable.Drawable
 import android.os.Build
-import android.support.annotation.IntRange
+import androidx.annotation.IntRange
 import android.util.AttributeSet
 import android.view.KeyEvent
 import android.view.View

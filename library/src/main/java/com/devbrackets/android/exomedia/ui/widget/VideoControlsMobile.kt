@@ -19,7 +19,7 @@ package com.devbrackets.android.exomedia.ui.widget
 import android.annotation.TargetApi
 import android.content.Context
 import android.os.Build
-import android.support.annotation.IntRange
+import androidx.annotation.IntRange
 import android.util.AttributeSet
 import android.view.View
 import android.widget.LinearLayout

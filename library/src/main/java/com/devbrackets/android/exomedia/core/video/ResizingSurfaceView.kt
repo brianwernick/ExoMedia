@@ -22,7 +22,7 @@ import android.content.Context
 import android.content.res.Configuration
 import android.graphics.Point
 import android.os.Build
-import android.support.annotation.IntRange
+import androidx.annotation.IntRange
 import android.util.AttributeSet
 import android.util.Log
 import android.view.SurfaceView

@@ -4,8 +4,8 @@ import android.content.Context
 import android.media.AudioManager
 import android.net.Uri
 import android.os.PowerManager
-import android.support.annotation.FloatRange
-import android.support.annotation.IntRange
+import androidx.annotation.FloatRange
+import androidx.annotation.IntRange
 
 import com.devbrackets.android.exomedia.AudioPlayer
 import com.devbrackets.android.exomediademo.data.MediaItem

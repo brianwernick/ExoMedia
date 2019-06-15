@@ -2,8 +2,8 @@ package com.devbrackets.android.exomediademo.ui.activity
 
 import android.app.Activity
 import android.os.Bundle
-import android.support.v7.widget.AppCompatImageButton
-import android.support.v7.widget.PopupMenu
+import androidx.appcompat.widget.AppCompatImageButton
+import androidx.appcompat.widget.PopupMenu
 import android.util.Log
 import android.view.MenuItem
 import com.devbrackets.android.exomedia.ExoMedia

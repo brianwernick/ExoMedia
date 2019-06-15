@@ -27,8 +27,8 @@ static def getLibraryInfo() {
 dependencies {
     api "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlinVersion"
 
-    implementation "com.android.support:support-media-compat:$rootProject.ext.supportLibVersion"
-    implementation "com.android.support:appcompat-v7:$rootProject.ext.supportLibVersion"
+    implementation 'androidx.media:media:1.0.1'
+    implementation 'androidx.appcompat:appcompat:1.0.2'
 
     // ExoPlayer
     api "com.google.android.exoplayer:exoplayer-core:$rootProject.ext.exoPlayerVersion"

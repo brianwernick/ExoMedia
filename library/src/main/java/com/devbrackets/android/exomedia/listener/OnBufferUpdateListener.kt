@@ -16,7 +16,7 @@
 
 package com.devbrackets.android.exomedia.listener
 
-import android.support.annotation.IntRange
+import androidx.annotation.IntRange
 
 /**
  * Interface definition of a callback to be invoked indicating buffering

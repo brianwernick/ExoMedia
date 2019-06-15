@@ -18,7 +18,7 @@ package com.devbrackets.android.exomedia.core
 
 import android.media.MediaPlayer
 import android.os.Handler
-import android.support.annotation.IntRange
+import androidx.annotation.IntRange
 import android.view.Surface
 import com.devbrackets.android.exomedia.core.exception.NativeMediaPlaybackException
 import com.devbrackets.android.exomedia.core.exoplayer.ExoMediaPlayer

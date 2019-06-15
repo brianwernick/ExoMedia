@@ -17,8 +17,8 @@
 package com.devbrackets.android.exomedia.core.api
 
 import android.net.Uri
-import android.support.annotation.FloatRange
-import android.support.annotation.IntRange
+import androidx.annotation.FloatRange
+import androidx.annotation.IntRange
 import android.view.View
 
 import com.devbrackets.android.exomedia.ExoMedia

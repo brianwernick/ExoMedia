@@ -22,7 +22,7 @@ import android.graphics.SurfaceTexture
 import android.media.MediaPlayer
 import android.net.Uri
 import android.os.Build
-import android.support.annotation.FloatRange
+import androidx.annotation.FloatRange
 import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.Surface

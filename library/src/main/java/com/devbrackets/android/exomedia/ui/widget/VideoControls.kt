@@ -21,9 +21,9 @@ import android.content.Context
 import android.graphics.drawable.Drawable
 import android.os.Build
 import android.os.Handler
-import android.support.annotation.ColorRes
-import android.support.annotation.IntRange
-import android.support.annotation.LayoutRes
+import androidx.annotation.ColorRes
+import androidx.annotation.IntRange
+import androidx.annotation.LayoutRes
 import android.util.AttributeSet
 import android.util.SparseBooleanArray
 import android.view.View

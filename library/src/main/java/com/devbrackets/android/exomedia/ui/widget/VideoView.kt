@@ -27,10 +27,10 @@ import android.media.AudioFocusRequest
 import android.media.AudioManager
 import android.net.Uri
 import android.os.Build
-import android.support.annotation.DrawableRes
-import android.support.annotation.FloatRange
-import android.support.annotation.IntRange
-import android.support.annotation.LayoutRes
+import androidx.annotation.DrawableRes
+import androidx.annotation.FloatRange
+import androidx.annotation.IntRange
+import androidx.annotation.LayoutRes
 import android.util.AttributeSet
 import android.view.*
 import android.widget.ImageView

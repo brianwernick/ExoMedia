@@ -19,7 +19,7 @@ package com.devbrackets.android.exomedia.util
 
 import android.os.Handler
 import android.os.HandlerThread
-import android.support.annotation.FloatRange
+import androidx.annotation.FloatRange
 
 /**
  * A simple stopwatch to keep a correct and updated record of the running duration

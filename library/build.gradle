@@ -35,6 +35,10 @@ dependencies {
     api "com.google.android.exoplayer:exoplayer-dash:$rootProject.ext.exoPlayerVersion"
     api "com.google.android.exoplayer:exoplayer-hls:$rootProject.ext.exoPlayerVersion"
     api "com.google.android.exoplayer:exoplayer-smoothstreaming:$rootProject.ext.exoPlayerVersion"
+
+    testImplementation 'junit:junit:4.12'
+    testImplementation "com.google.truth:truth:0.44"
+    testImplementation "org.robolectric:robolectric:4.2.1"
 }
 
 android {
@@ -57,5 +61,11 @@ android {
 
     lintOptions {
         abortOnError false
+    }
+
+    testOptions {
+        unitTests {
+            includeAndroidResources = true
+        }
     }
 }

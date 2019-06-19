@@ -29,7 +29,7 @@ class DeviceUtil {
     private val NON_COMPATIBLE_DEVICES = listOf(Device("Amazon"))
 
     fun supportsExoPlayer(context: Context): Boolean {
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN && !isNotCompatible()) {
+        return if (!isNotCompatible()) {
             true
         } else context.isAmazonTvOrAmazonWithLollipopSdkOrNewerDevice()
     }

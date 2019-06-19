@@ -27,14 +27,14 @@ import android.media.AudioFocusRequest
 import android.media.AudioManager
 import android.net.Uri
 import android.os.Build
-import androidx.annotation.DrawableRes
-import androidx.annotation.FloatRange
-import androidx.annotation.IntRange
-import androidx.annotation.LayoutRes
 import android.util.AttributeSet
 import android.view.*
 import android.widget.ImageView
 import android.widget.RelativeLayout
+import androidx.annotation.DrawableRes
+import androidx.annotation.FloatRange
+import androidx.annotation.IntRange
+import androidx.annotation.LayoutRes
 import com.devbrackets.android.exomedia.ExoMedia
 import com.devbrackets.android.exomedia.R
 import com.devbrackets.android.exomedia.core.ListenerMux
@@ -49,6 +49,7 @@ import com.devbrackets.android.exomedia.core.video.scale.ScaleType
 import com.devbrackets.android.exomedia.listener.*
 import com.devbrackets.android.exomedia.util.DeviceUtil
 import com.devbrackets.android.exomedia.util.StopWatch
+import com.devbrackets.android.exomedia.util.isDeviceTV
 import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.analytics.AnalyticsListener
 import com.google.android.exoplayer2.drm.MediaDrmCallback
@@ -758,7 +759,7 @@ open class VideoView : RelativeLayout {
      */
     protected fun postInit(attributeContainer: AttributeContainer) {
         if (attributeContainer.useDefaultControls) {
-            videoControls = if (deviceUtil.isDeviceTV(context)) VideoControlsLeanback(context) else VideoControlsMobile(context)
+            videoControls = if (context.isDeviceTV()) VideoControlsLeanback(context) else VideoControlsMobile(context)
         }
 
         attributeContainer.scaleType?.let {

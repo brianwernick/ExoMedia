@@ -16,9 +16,7 @@
 
 package com.devbrackets.android.exomedia.util
 
-import android.app.UiModeManager
 import android.content.Context
-import android.content.res.Configuration
 import android.os.Build
 
 /**
@@ -32,21 +30,6 @@ class DeviceUtil {
         return if (!isNotCompatible()) {
             true
         } else context.isAmazonTvOrAmazonWithLollipopSdkOrNewerDevice()
-    }
-
-    /**
-     * Determines if the current device is a TV.
-     *
-     * @param context The context to use for determining the device information
-     * @return True if the current device is a TV
-     */
-    fun isDeviceTV(context: Context): Boolean {
-        //Since Android TV is only API 21+ that is the only time we will compare configurations
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            val uiManager = context.getSystemService(Context.UI_MODE_SERVICE) as UiModeManager
-            return uiManager.currentModeType == Configuration.UI_MODE_TYPE_TELEVISION
-        }
-        return false
     }
 
     /**
@@ -68,7 +51,7 @@ class DeviceUtil {
 
     private fun Context.isAmazonTvOrAmazonWithLollipopSdkOrNewerDevice() =
             Build.MANUFACTURER.equals("Amazon", ignoreCase = true) &&
-                    (isDeviceTV(this) || Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
+                    (isDeviceTV() || Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
 
     private data class Device(
             val manufacturer: String,

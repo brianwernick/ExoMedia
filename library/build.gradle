@@ -27,8 +27,8 @@ static def getLibraryInfo() {
 dependencies {
     api "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlinVersion"
 
-    implementation 'androidx.media:media:1.0.1'
-    implementation 'androidx.appcompat:appcompat:1.0.2'
+    implementation 'androidx.media:media:1.1.0'
+    implementation 'androidx.appcompat:appcompat:1.1.0'
 
     // ExoPlayer
     api "com.google.android.exoplayer:exoplayer-core:$rootProject.ext.exoPlayerVersion"
@@ -42,11 +42,11 @@ dependencies {
 }
 
 android {
-    compileSdkVersion 28
+    compileSdkVersion 29
 
     defaultConfig {
         minSdkVersion 16
-        targetSdkVersion 28
+        targetSdkVersion 29
 
         versionCode getLibraryInfo().versionCode
         versionName getLibraryInfo().versionName

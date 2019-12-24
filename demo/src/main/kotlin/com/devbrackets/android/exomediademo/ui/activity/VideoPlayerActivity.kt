@@ -43,14 +43,17 @@ open class VideoPlayerActivity : Activity(), VideoControlsSeekListener {
 
     override fun onStop() {
         super.onStop()
-        playlistManager.removeVideoApi(videoApi)
-        playlistManager.invokeStop()
+        if (videoApi.isPlaying) {
+            playlistManager.invokePausePlay()
+        }
     }
 
     override fun onDestroy() {
         super.onDestroy()
+        playlistManager.removeVideoApi(videoApi)
         playlistManager.invokeStop()
     }
+
 
     override fun onSeekStarted(): Boolean {
         playlistManager.invokeSeekStarted()

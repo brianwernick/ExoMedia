@@ -3,6 +3,8 @@ package com.devbrackets.android.exomediademo
 import android.app.Application
 import com.devbrackets.android.exomedia.ExoMedia
 import com.devbrackets.android.exomediademo.manager.PlaylistManager
+import com.google.android.exoplayer2.database.DatabaseProvider
+import com.google.android.exoplayer2.database.ExoDatabaseProvider
 import com.google.android.exoplayer2.ext.okhttp.OkHttpDataSourceFactory
 import com.google.android.exoplayer2.upstream.DataSource
 import com.google.android.exoplayer2.upstream.TransferListener
@@ -16,6 +18,7 @@ import java.io.File
 
 class App : Application() {
     val playlistManager: PlaylistManager by lazy { PlaylistManager(this) }
+    private lateinit var databaseProvider: DatabaseProvider
 
     override fun onCreate() {
         super.onCreate()
@@ -25,6 +28,7 @@ class App : Application() {
     }
 
     private fun configureExoMedia() {
+        databaseProvider = ExoDatabaseProvider(this)
         // Registers the media sources to use the OkHttp client instead of the standard Apache one
         // Note: the OkHttpDataSourceFactory can be found in the ExoPlayer extension library `extension-okhttp`
         ExoMedia.setDataSourceFactoryProvider(object : ExoMedia.DataSourceFactoryProvider {
@@ -36,7 +40,7 @@ class App : Application() {
                     val upstreamFactory = OkHttpDataSourceFactory(OkHttpClient(), userAgent, listener)
 
                     // Adds a cache around the upstreamFactory
-                    val cache = SimpleCache(File(cacheDir, "ExoMediaCache"), LeastRecentlyUsedCacheEvictor((50 * 1024 * 1024).toLong()))
+                    val cache = SimpleCache(File(cacheDir, "ExoMediaCache"), LeastRecentlyUsedCacheEvictor((50 * 1024 * 1024).toLong()), databaseProvider)
                     instance = CacheDataSourceFactory(cache, upstreamFactory, CacheDataSource.FLAG_IGNORE_CACHE_ON_ERROR)
                 }
 

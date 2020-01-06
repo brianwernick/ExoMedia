@@ -25,6 +25,7 @@ import android.support.annotation.Nullable;
 import com.google.android.exoplayer2.extractor.DefaultExtractorsFactory;
 import com.google.android.exoplayer2.source.ExtractorMediaSource;
 import com.google.android.exoplayer2.source.MediaSource;
+import com.google.android.exoplayer2.source.ProgressiveMediaSource;
 import com.google.android.exoplayer2.upstream.DataSource;
 import com.google.android.exoplayer2.upstream.TransferListener;
 
@@ -34,8 +35,7 @@ public class DefaultMediaSourceBuilder extends MediaSourceBuilder {
     public MediaSource build(@NonNull Context context, @NonNull Uri uri, @NonNull String userAgent, @NonNull Handler handler, @Nullable TransferListener transferListener) {
         DataSource.Factory dataSourceFactory = buildDataSourceFactory(context, userAgent, transferListener);
 
-        return new ExtractorMediaSource.Factory(dataSourceFactory)
-                .setExtractorsFactory(new DefaultExtractorsFactory())
+        return new ProgressiveMediaSource.Factory(dataSourceFactory, new DefaultExtractorsFactory())
                 .createMediaSource(uri);
     }
 }

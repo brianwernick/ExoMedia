@@ -126,7 +126,7 @@ public class RendererProvider {
     protected List<Renderer> buildVideoRenderers() {
         List<Renderer> renderers = new ArrayList<>();
 
-        renderers.add(new MediaCodecVideoRenderer(context, MediaCodecSelector.DEFAULT, videoJoiningTimeMs, drmSessionManager, false, handler, videoRendererEventListener, droppedFrameNotificationAmount));
+        renderers.add(new MediaCodecVideoRenderer(context, MediaCodecSelector.DEFAULT, videoJoiningTimeMs, false, handler, videoRendererEventListener, droppedFrameNotificationAmount));
 
         // Adds any registered classes
         List<String> classNames = ExoMedia.Data.registeredRendererClasses.get(ExoMedia.RendererType.VIDEO);

@@ -45,7 +45,6 @@ import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.DefaultLoadControl;
 import com.google.android.exoplayer2.ExoPlaybackException;
 import com.google.android.exoplayer2.ExoPlayer;
-import com.google.android.exoplayer2.ExoPlayerFactory;
 import com.google.android.exoplayer2.Format;
 import com.google.android.exoplayer2.LoadControl;
 import com.google.android.exoplayer2.PlaybackParameters;
@@ -63,7 +62,6 @@ import com.google.android.exoplayer2.drm.DefaultDrmSessionManager;
 import com.google.android.exoplayer2.drm.DrmSessionManager;
 import com.google.android.exoplayer2.drm.ExoMediaDrm;
 import com.google.android.exoplayer2.drm.FrameworkMediaCrypto;
-import com.google.android.exoplayer2.drm.FrameworkMediaDrm;
 import com.google.android.exoplayer2.drm.MediaDrmCallback;
 import com.google.android.exoplayer2.metadata.Metadata;
 import com.google.android.exoplayer2.metadata.MetadataOutput;
@@ -90,7 +88,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 @SuppressWarnings({"unused", "WeakerAccess"})
-public class ExoMediaPlayer extends Player.DefaultEventListener {
+public class ExoMediaPlayer implements Player.EventListener {
     private static final String TAG = "ExoMediaPlayer";
     private static final int BUFFER_REPEAT_DELAY = 1_000;
     private static final int WAKE_LOCK_TIMEOUT = 1_000;
@@ -126,7 +124,7 @@ public class ExoMediaPlayer extends Player.DefaultEventListener {
     @NonNull
     private List<Renderer> renderers;
     @NonNull
-    private DefaultBandwidthMeter bandwidthMeter = new DefaultBandwidthMeter();
+    private DefaultBandwidthMeter bandwidthMeter;
 
     @Nullable
     private CaptionListener captionListener;
@@ -165,8 +163,9 @@ public class ExoMediaPlayer extends Player.DefaultEventListener {
 
         renderers = rendererProvider.generate();
 
-        adaptiveTrackSelectionFactory = new AdaptiveTrackSelection.Factory(bandwidthMeter);
-        trackSelector = new DefaultTrackSelector(adaptiveTrackSelectionFactory);
+        adaptiveTrackSelectionFactory = new AdaptiveTrackSelection.Factory();
+        trackSelector = new DefaultTrackSelector(context, adaptiveTrackSelectionFactory);
+        bandwidthMeter = new DefaultBandwidthMeter.Builder(context).build();
 
         LoadControl loadControl = ExoMedia.Data.loadControl != null ? ExoMedia.Data.loadControl : new DefaultLoadControl();
         player = new ExoPlayer.Builder(context, renderers.toArray(new Renderer[renderers.size()]))
@@ -691,7 +690,7 @@ public class ExoMediaPlayer extends Player.DefaultEventListener {
         }
 
         int currentWindowIndex = player.getCurrentWindowIndex();
-        Timeline.Window currentWindow = timeline.getWindow(currentWindowIndex, new Timeline.Window(), true);
+        Timeline.Window currentWindow = timeline.getWindow(currentWindowIndex, new Timeline.Window());
 
         return new WindowInfo(
                 player.getPreviousWindowIndex(),
@@ -910,11 +909,8 @@ public class ExoMediaPlayer extends Player.DefaultEventListener {
             return null;
         }
 
-        // Widevine will capture the majority of use cases however playready is supported on all AndroidTV devices
-        UUID uuid = C.WIDEVINE_UUID;
-
         try {
-            DefaultDrmSessionManager<FrameworkMediaCrypto> sessionManager = new DefaultDrmSessionManager<>(uuid, FrameworkMediaDrm.newInstance(uuid), new DelegatedMediaDrmCallback(), null);
+            DefaultDrmSessionManager sessionManager = new DefaultDrmSessionManager.Builder().build(new DelegatedMediaDrmCallback());
             sessionManager.addListener(mainHandler, capabilitiesListener);
 
             return sessionManager;

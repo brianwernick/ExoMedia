@@ -90,7 +90,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 @SuppressWarnings({"unused", "WeakerAccess"})
-public class ExoMediaPlayer extends Player.DefaultEventListener {
+public class ExoMediaPlayer implements Player.EventListener {
     private static final String TAG = "ExoMediaPlayer";
     private static final int BUFFER_REPEAT_DELAY = 1_000;
     private static final int WAKE_LOCK_TIMEOUT = 1_000;
@@ -126,7 +126,7 @@ public class ExoMediaPlayer extends Player.DefaultEventListener {
     @NonNull
     private List<Renderer> renderers;
     @NonNull
-    private DefaultBandwidthMeter bandwidthMeter = new DefaultBandwidthMeter();
+    private DefaultBandwidthMeter bandwidthMeter;
 
     @Nullable
     private CaptionListener captionListener;
@@ -165,8 +165,9 @@ public class ExoMediaPlayer extends Player.DefaultEventListener {
 
         renderers = rendererProvider.generate();
 
-        adaptiveTrackSelectionFactory = new AdaptiveTrackSelection.Factory(bandwidthMeter);
+        adaptiveTrackSelectionFactory = new AdaptiveTrackSelection.Factory();
         trackSelector = new DefaultTrackSelector(adaptiveTrackSelectionFactory);
+        bandwidthMeter = new DefaultBandwidthMeter.Builder(context).build();
 
         LoadControl loadControl = ExoMedia.Data.loadControl != null ? ExoMedia.Data.loadControl : new DefaultLoadControl();
         player = ExoPlayerFactory.newInstance(context, renderers.toArray(new Renderer[renderers.size()]), trackSelector, loadControl);

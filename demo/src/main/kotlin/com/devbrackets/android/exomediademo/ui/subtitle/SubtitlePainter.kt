@@ -171,7 +171,7 @@ internal class SubtitlePainter(context: Context) {
             else
                 style.windowColor
         }
-        if (areCharSequencesEqual(this.cueText, cue.text)
+        if (areCharSequencesEqual(this.cueText, cue.text ?: "")
             && Util.areEqual(this.cueTextAlignment, cue.textAlignment)
             && this.cueBitmap == cue.bitmap
             && this.cueLine == cue.line

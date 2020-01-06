@@ -169,9 +169,14 @@ public class ExoMediaPlayer extends Player.DefaultEventListener {
         trackSelector = new DefaultTrackSelector(adaptiveTrackSelectionFactory);
 
         LoadControl loadControl = ExoMedia.Data.loadControl != null ? ExoMedia.Data.loadControl : new DefaultLoadControl();
-        player = ExoPlayerFactory.newInstance(renderers.toArray(new Renderer[renderers.size()]), trackSelector, loadControl);
+        player = new ExoPlayer.Builder(context, renderers.toArray(new Renderer[renderers.size()]))
+                .setTrackSelector(trackSelector)
+                .setLoadControl(loadControl)
+                .setBandwidthMeter(bandwidthMeter)
+                .build();
         player.addListener(this);
-        analyticsCollector = new AnalyticsCollector.Factory().createAnalyticsCollector(player, Clock.DEFAULT);
+        analyticsCollector = new AnalyticsCollector(Clock.DEFAULT);
+        analyticsCollector.setPlayer(player);
         player.addListener(analyticsCollector);
         setupDamSessionManagerAnalytics(drmSessionManager);
     }

@@ -170,7 +170,7 @@ public class ExoMediaPlayer implements Player.EventListener {
         bandwidthMeter = new DefaultBandwidthMeter.Builder(context).build();
 
         LoadControl loadControl = ExoMedia.Data.loadControl != null ? ExoMedia.Data.loadControl : new DefaultLoadControl();
-        player = ExoPlayerFactory.newInstance(context, renderers.toArray(new Renderer[renderers.size()]), trackSelector, loadControl);
+        player = ExoPlayerFactory.newInstance(context, renderers.toArray(new Renderer[renderers.size()]), trackSelector, loadControl, bandwidthMeter, Util.getLooper());
         player.addListener(this);
         analyticsCollector = new AnalyticsCollector.Factory().createAnalyticsCollector(player, Clock.DEFAULT);
         player.addListener(analyticsCollector);

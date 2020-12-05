@@ -27,8 +27,8 @@ static def getLibraryInfo() {
 dependencies {
     api "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlinVersion"
 
-    implementation 'androidx.media:media:1.1.0'
-    implementation 'androidx.appcompat:appcompat:1.1.0'
+    implementation 'androidx.media:media:1.2.0'
+    implementation 'androidx.appcompat:appcompat:1.2.0'
 
     // ExoPlayer
     api "com.google.android.exoplayer:exoplayer-core:$rootProject.ext.exoPlayerVersion"
@@ -36,22 +36,25 @@ dependencies {
     api "com.google.android.exoplayer:exoplayer-hls:$rootProject.ext.exoPlayerVersion"
     api "com.google.android.exoplayer:exoplayer-smoothstreaming:$rootProject.ext.exoPlayerVersion"
 
-    testImplementation 'junit:junit:4.12'
+    testImplementation 'junit:junit:4.13.1'
     testImplementation "com.google.truth:truth:0.44"
-    testImplementation "org.robolectric:robolectric:4.2.1"
+    testImplementation "org.robolectric:robolectric:4.4"
 }
 
 android {
-    compileSdkVersion 29
+    compileSdkVersion 30
 
     defaultConfig {
         minSdkVersion 21
-        targetSdkVersion 29
+        targetSdkVersion 30
 
         versionCode getLibraryInfo().versionCode
         versionName getLibraryInfo().versionName
 
         vectorDrawables.useSupportLibrary = true
+
+        buildConfigField "String", "EXO_MEDIA_VERSION_NAME", "\"${versionName}\""
+        buildConfigField "int", "EXO_MEDIA_VERSION_CODE", "${versionCode}"
     }
 
 

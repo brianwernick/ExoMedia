@@ -16,11 +16,8 @@
 
 package com.devbrackets.android.exomedia.core.listener
 
-import com.devbrackets.android.exomedia.core.exoplayer.ExoMediaPlayer
-
 /**
  * A repeatListener for internal errors.
- *
  *
  * These errors are not visible to the user, and hence this repeatListener is provided for
  * informational purposes only. Note however that an internal error may cause a fatal
@@ -28,7 +25,7 @@ import com.devbrackets.android.exomedia.core.exoplayer.ExoMediaPlayer
  * will be invoked.
  */
 interface InternalErrorListener {
-    fun onAudioSinkUnderrun(bufferSize: Int, bufferSizeMs: Long, elapsedSinceLastFeedMs: Long)
+    fun onAudioUnderrun(bufferSize: Int, bufferSizeMs: Long, elapsedSinceLastFeedMs: Long)
 
     fun onDrmSessionManagerError(e: Exception)
 }

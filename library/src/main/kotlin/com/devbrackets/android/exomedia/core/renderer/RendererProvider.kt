@@ -23,8 +23,6 @@ import com.google.android.exoplayer2.Renderer
 import com.google.android.exoplayer2.audio.AudioCapabilities
 import com.google.android.exoplayer2.audio.AudioRendererEventListener
 import com.google.android.exoplayer2.audio.MediaCodecAudioRenderer
-import com.google.android.exoplayer2.drm.DrmSessionManager
-import com.google.android.exoplayer2.drm.FrameworkMediaCrypto
 import com.google.android.exoplayer2.mediacodec.MediaCodecSelector
 import com.google.android.exoplayer2.metadata.MetadataDecoderFactory
 import com.google.android.exoplayer2.metadata.MetadataOutput
@@ -39,74 +37,73 @@ import java.util.*
  * Provides all the necessary [com.google.android.exoplayer2.Renderer]s
  */
 open class RendererProvider(
-        protected var context: Context,
-        protected var handler: Handler,
-        protected var captionListener: TextOutput,
-        protected var metadataListener: MetadataOutput,
-        protected var audioRendererEventListener: AudioRendererEventListener,
-        protected var videoRendererEventListener: VideoRendererEventListener) {
+    protected var context: Context,
+    protected var handler: Handler,
+    protected var captionListener: TextOutput,
+    protected var metadataListener: MetadataOutput,
+    protected var audioRendererEventListener: AudioRendererEventListener,
+    protected var videoRendererEventListener: VideoRendererEventListener
+) {
 
-    var drmSessionManager: DrmSessionManager<FrameworkMediaCrypto>? = null
-    var droppedFrameNotificationAmount: Int = 50
-    var videoJoiningTimeMs: Int = 5000
+  var droppedFrameNotificationAmount: Int = 50
+  var videoJoiningTimeMs: Int = 5_000
 
-    fun generate(): List<Renderer> {
-        val renderers = ArrayList<Renderer>()
+  fun generate(): List<Renderer> {
+    val renderers = ArrayList<Renderer>()
 
-        renderers.addAll(buildAudioRenderers())
-        renderers.addAll(buildVideoRenderers())
-        renderers.addAll(buildCaptionRenderers())
-        renderers.addAll(buildMetadataRenderers())
+    renderers.addAll(buildAudioRenderers())
+    renderers.addAll(buildVideoRenderers())
+    renderers.addAll(buildCaptionRenderers())
+    renderers.addAll(buildMetadataRenderers())
 
-        return renderers
+    return renderers
+  }
+
+  protected fun buildAudioRenderers(): List<Renderer> {
+    val renderers = mutableListOf<Renderer>()
+    renderers.add(MediaCodecAudioRenderer(context, MediaCodecSelector.DEFAULT, handler, audioRendererEventListener, AudioCapabilities.getCapabilities(context)))
+
+    // Adds any registered classes
+    val classNames = ExoMedia.Data.registeredRendererClasses[ExoMedia.RendererType.AUDIO]
+    classNames?.forEach { className ->
+      try {
+        val clazz = Class.forName(className)
+        val constructor = clazz.getConstructor(Handler::class.java, AudioRendererEventListener::class.java)
+        val renderer = constructor.newInstance(handler, audioRendererEventListener) as Renderer
+        renderers.add(renderer)
+      } catch (e: Exception) {
+        // Purposefully left blank
+      }
     }
 
-    protected fun buildAudioRenderers(): List<Renderer> {
-        val renderers = ArrayList<Renderer>()
-        renderers.add(MediaCodecAudioRenderer(context, MediaCodecSelector.DEFAULT, drmSessionManager, true, handler, audioRendererEventListener, AudioCapabilities.getCapabilities(context)))
+    return renderers
+  }
 
-        // Adds any registered classes
-        val classNames = ExoMedia.Data.registeredRendererClasses[ExoMedia.RendererType.AUDIO]
-        classNames?.forEach { className ->
-            try {
-                val clazz = Class.forName(className)
-                val constructor = clazz.getConstructor(Handler::class.java, AudioRendererEventListener::class.java)
-                val renderer = constructor.newInstance(handler, audioRendererEventListener) as Renderer
-                renderers.add(renderer)
-            } catch (e: Exception) {
-                // Purposefully left blank
-            }
-        }
+  protected fun buildVideoRenderers(): List<Renderer> {
+    val renderers = mutableListOf<Renderer>()
+    renderers.add(MediaCodecVideoRenderer(context, MediaCodecSelector.DEFAULT, videoJoiningTimeMs.toLong(), handler, videoRendererEventListener, droppedFrameNotificationAmount))
 
-        return renderers
+    // Adds any registered classes
+    val classNames = ExoMedia.Data.registeredRendererClasses[ExoMedia.RendererType.VIDEO]
+    classNames?.forEach { className ->
+      try {
+        val clazz = Class.forName(className)
+        val constructor = clazz.getConstructor(Boolean::class.javaPrimitiveType, Long::class.javaPrimitiveType, Handler::class.java, VideoRendererEventListener::class.java, Int::class.javaPrimitiveType)
+        val renderer = constructor.newInstance(true, videoJoiningTimeMs, handler, videoRendererEventListener, droppedFrameNotificationAmount) as Renderer
+        renderers.add(renderer)
+      } catch (e: Exception) {
+        // Purposefully left blank
+      }
     }
 
-    protected fun buildVideoRenderers(): List<Renderer> {
-        val renderers = ArrayList<Renderer>()
+    return renderers
+  }
 
-        renderers.add(MediaCodecVideoRenderer(context, MediaCodecSelector.DEFAULT, videoJoiningTimeMs.toLong(), drmSessionManager, false, handler, videoRendererEventListener, droppedFrameNotificationAmount))
+  protected fun buildCaptionRenderers(): List<Renderer> {
+    return listOf(TextRenderer(captionListener, handler.looper))
+  }
 
-        // Adds any registered classes
-        val classNames = ExoMedia.Data.registeredRendererClasses[ExoMedia.RendererType.VIDEO]
-        classNames?.forEach { className ->
-            try {
-                val clazz = Class.forName(className)
-                val constructor = clazz.getConstructor(Boolean::class.javaPrimitiveType, Long::class.javaPrimitiveType, Handler::class.java, VideoRendererEventListener::class.java, Int::class.javaPrimitiveType)
-                val renderer = constructor.newInstance(true, videoJoiningTimeMs, handler, videoRendererEventListener, droppedFrameNotificationAmount) as Renderer
-                renderers.add(renderer)
-            } catch (e: Exception) {
-                // Purposefully left blank
-            }
-        }
-
-        return renderers
-    }
-
-    protected fun buildCaptionRenderers(): List<Renderer> {
-        return listOf(TextRenderer(captionListener, handler.looper))
-    }
-
-    protected fun buildMetadataRenderers(): List<Renderer> {
-        return listOf(MetadataRenderer(metadataListener, handler.looper, MetadataDecoderFactory.DEFAULT))
-    }
+  protected fun buildMetadataRenderers(): List<Renderer> {
+    return listOf(MetadataRenderer(metadataListener, handler.looper, MetadataDecoderFactory.DEFAULT))
+  }
 }

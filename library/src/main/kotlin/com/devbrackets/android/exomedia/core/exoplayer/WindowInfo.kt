@@ -19,8 +19,8 @@ package com.devbrackets.android.exomedia.core.exoplayer
 import com.google.android.exoplayer2.Timeline
 
 data class WindowInfo(
-        val previousWindowIndex: Int,
-        val currentWindowIndex: Int,
-        val nextWindowIndex: Int,
-        val currentWindow: Timeline.Window
+    val previousWindowIndex: Int,
+    val currentWindowIndex: Int,
+    val nextWindowIndex: Int,
+    val currentWindow: Timeline.Window
 )

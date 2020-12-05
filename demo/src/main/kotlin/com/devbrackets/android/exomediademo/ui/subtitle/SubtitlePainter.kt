@@ -482,7 +482,7 @@ internal class SubtitlePainter(context: Context) {
          * latter only checks the text of each sequence, and does not check for equality of styling that
          * may be embedded within the [CharSequence]s.
          */
-        private fun areCharSequencesEqual(first: CharSequence?, second: CharSequence): Boolean {
+        private fun areCharSequencesEqual(first: CharSequence?, second: CharSequence?): Boolean {
             // Some CharSequence implementations don't perform a cheap referential equality check in their
             // equals methods, so we perform one explicitly here.
             @Suppress("SuspiciousEqualsCombination")

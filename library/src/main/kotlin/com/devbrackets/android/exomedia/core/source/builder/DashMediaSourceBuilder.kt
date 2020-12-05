@@ -19,17 +19,21 @@ package com.devbrackets.android.exomedia.core.source.builder
 import android.content.Context
 import android.net.Uri
 import android.os.Handler
+import com.google.android.exoplayer2.MediaItem
+import com.google.android.exoplayer2.drm.DrmSessionManager
 import com.google.android.exoplayer2.source.MediaSource
 import com.google.android.exoplayer2.source.dash.DashMediaSource
 import com.google.android.exoplayer2.source.dash.DefaultDashChunkSource
 import com.google.android.exoplayer2.upstream.TransferListener
 
 class DashMediaSourceBuilder : MediaSourceBuilder() {
-    override fun build(context: Context, uri: Uri, userAgent: String, handler: Handler, transferListener: TransferListener?): MediaSource {
-        val dataSourceFactory = buildDataSourceFactory(context, userAgent, null)
-        val meteredDataSourceFactory = buildDataSourceFactory(context, userAgent, transferListener)
+  override fun build(context: Context, uri: Uri, userAgent: String, handler: Handler, transferListener: TransferListener?, drmSessionManager: DrmSessionManager?): MediaSource {
+    val dataSourceFactory = buildDataSourceFactory(context, userAgent, null)
+    val meteredDataSourceFactory = buildDataSourceFactory(context, userAgent, transferListener)
+    val mediaItem = MediaItem.Builder().setUri(uri).build()
 
-        return DashMediaSource.Factory(DefaultDashChunkSource.Factory(meteredDataSourceFactory), dataSourceFactory)
-                .createMediaSource(uri)
-    }
+    return DashMediaSource.Factory(DefaultDashChunkSource.Factory(meteredDataSourceFactory), dataSourceFactory)
+        .setDrmSessionManager(drmSessionManager)
+        .createMediaSource(mediaItem)
+  }
 }

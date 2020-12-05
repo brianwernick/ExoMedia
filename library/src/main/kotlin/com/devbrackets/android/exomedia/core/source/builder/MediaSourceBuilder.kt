@@ -21,15 +21,18 @@ import android.net.Uri
 import android.os.Handler
 
 import com.devbrackets.android.exomedia.ExoMedia
+import com.google.android.exoplayer2.drm.DefaultDrmSessionManager
+import com.google.android.exoplayer2.drm.DrmSessionManager
 import com.google.android.exoplayer2.source.MediaSource
 import com.google.android.exoplayer2.upstream.DataSource
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
 import com.google.android.exoplayer2.upstream.DefaultHttpDataSourceFactory
 import com.google.android.exoplayer2.upstream.TransferListener
 
+// TODO: There's two providers here (not builders), we should also update them to take
+// objects that describe the args so that additions aren't breaking changes
 abstract class MediaSourceBuilder {
-
-    abstract fun build(context: Context, uri: Uri, userAgent: String, handler: Handler, transferListener: TransferListener?): MediaSource
+    abstract fun build(context: Context, uri: Uri, userAgent: String, handler: Handler, transferListener: TransferListener?, drmSessionManager: DrmSessionManager?): MediaSource
 
     fun buildDataSourceFactory(context: Context, userAgent: String, listener: TransferListener?): DataSource.Factory {
         val provider = ExoMedia.Data.dataSourceFactoryProvider

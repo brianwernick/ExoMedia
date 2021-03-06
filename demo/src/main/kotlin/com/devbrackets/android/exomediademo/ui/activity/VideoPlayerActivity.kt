@@ -9,7 +9,7 @@ import android.view.MenuItem
 import com.devbrackets.android.exomedia.ExoMedia
 import com.devbrackets.android.exomedia.listener.OnVideoSizeChangedListener
 import com.devbrackets.android.exomedia.listener.VideoControlsSeekListener
-import com.devbrackets.android.exomedia.ui.widget.VideoControls
+import com.devbrackets.android.exomedia.ui.widget.DefaultVideoControls
 import com.devbrackets.android.exomediademo.App
 import com.devbrackets.android.exomediademo.R
 import com.devbrackets.android.exomediademo.data.MediaItem
@@ -86,7 +86,7 @@ open class VideoPlayerActivity : Activity(), VideoControlsSeekListener {
             setOnClickListener { showCaptionsMenu() }
         }
 
-        (videoView.videoControls as? VideoControls)?.let {
+        (videoView.videoControls as? DefaultVideoControls)?.let {
             it.seekListener = this
             if (videoView.trackSelectionAvailable()) {
                 it.addExtraView(captionsButton)

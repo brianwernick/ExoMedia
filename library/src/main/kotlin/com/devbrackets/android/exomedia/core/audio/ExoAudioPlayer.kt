@@ -26,6 +26,7 @@ import com.devbrackets.android.exomedia.core.api.AudioPlayerApi
 import com.devbrackets.android.exomedia.core.exoplayer.ExoMediaPlayer
 import com.devbrackets.android.exomedia.core.exoplayer.WindowInfo
 import com.devbrackets.android.exomedia.core.listener.MetadataListener
+import com.devbrackets.android.exomedia.core.video.mp.NativeVideoDelegate
 import com.devbrackets.android.exomedia.listener.OnBufferUpdateListener
 import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.drm.DrmSessionManager
@@ -95,17 +96,19 @@ open class ExoAudioPlayer(protected val context: Context) : AudioPlayerApi {
     _listenerMux?.setNotifiedPrepared(false)
     exoMediaPlayer.seekTo(0)
 
-    when {
-      mediaSource != null -> {
-        exoMediaPlayer.setMediaSource(mediaSource)
-        _listenerMux?.setNotifiedCompleted(false)
-      }
-      uri != null -> {
-        exoMediaPlayer.setUri(uri)
-        _listenerMux?.setNotifiedCompleted(false)
-      }
-      else -> exoMediaPlayer.setMediaSource(null)
+    mediaSource?.let {
+      exoMediaPlayer.setMediaSource(it)
+      _listenerMux?.setNotifiedCompleted(false)
+      return
     }
+
+    uri?.let {
+      exoMediaPlayer.setUri(it)
+      _listenerMux?.setNotifiedCompleted(false)
+      return
+    }
+
+    exoMediaPlayer.setMediaSource(null)
   }
 
   override fun prepareAsync() {

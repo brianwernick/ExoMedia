@@ -49,14 +49,12 @@ open class RendererProvider(
   var videoJoiningTimeMs: Int = 5_000
 
   fun generate(): List<Renderer> {
-    val renderers = ArrayList<Renderer>()
-
-    renderers.addAll(buildAudioRenderers())
-    renderers.addAll(buildVideoRenderers())
-    renderers.addAll(buildCaptionRenderers())
-    renderers.addAll(buildMetadataRenderers())
-
-    return renderers
+    return mutableListOf<Renderer>().apply {
+      addAll(buildAudioRenderers())
+      addAll(buildVideoRenderers())
+      addAll(buildCaptionRenderers())
+      addAll(buildMetadataRenderers())
+    }
   }
 
   protected fun buildAudioRenderers(): List<Renderer> {

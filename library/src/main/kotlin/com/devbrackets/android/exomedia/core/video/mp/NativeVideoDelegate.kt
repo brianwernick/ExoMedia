@@ -18,7 +18,7 @@ package com.devbrackets.android.exomedia.core.video.mp
 
 import android.content.ContentValues.TAG
 import android.content.Context
-import android.media.AudioManager
+import android.media.AudioAttributes
 import android.media.MediaPlayer
 import android.media.PlaybackParams
 import android.net.Uri
@@ -307,7 +307,7 @@ class NativeVideoDelegate(protected var context: Context, protected var callback
       setOnBufferingUpdateListener(internalListeners)
       setOnVideoSizeChangedListener(internalListeners)
 
-      setAudioStreamType(AudioManager.STREAM_MUSIC)
+      setAudioAttributes(AudioAttributes.Builder().setContentType(AudioAttributes.CONTENT_TYPE_MUSIC).build())
       setScreenOnWhilePlaying(true)
     }
   }

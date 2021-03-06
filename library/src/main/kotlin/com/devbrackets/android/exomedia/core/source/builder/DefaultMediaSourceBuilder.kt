@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 - 2019 ExoMedia Contributors
+ * Copyright (C) 2017 - 2021 ExoMedia Contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,23 +16,18 @@
 
 package com.devbrackets.android.exomedia.core.source.builder
 
-import android.content.Context
-import android.net.Uri
-import android.os.Handler
 import com.google.android.exoplayer2.MediaItem
-import com.google.android.exoplayer2.drm.DrmSessionManager
 import com.google.android.exoplayer2.extractor.DefaultExtractorsFactory
 import com.google.android.exoplayer2.source.MediaSource
 import com.google.android.exoplayer2.source.ProgressiveMediaSource
-import com.google.android.exoplayer2.upstream.TransferListener
 
 class DefaultMediaSourceBuilder : MediaSourceBuilder() {
-  override fun build(context: Context, uri: Uri, userAgent: String, handler: Handler, transferListener: TransferListener?, drmSessionManager: DrmSessionManager?): MediaSource {
-    val dataSourceFactory = buildDataSourceFactory(context, userAgent, transferListener)
-    val mediaItem = MediaItem.Builder().setUri(uri).build()
+  override fun build(attributes: MediaSourceAttributes): MediaSource {
+    val dataSourceFactory = buildDataSourceFactory(attributes.context, attributes.userAgent, attributes.transferListener)
+    val mediaItem = MediaItem.Builder().setUri(attributes.uri).build()
 
     return ProgressiveMediaSource.Factory(dataSourceFactory, DefaultExtractorsFactory())
-        .setDrmSessionManager(drmSessionManager)
+        .setDrmSessionManager(attributes.drmSessionManager)
         .createMediaSource(mediaItem)
   }
 }

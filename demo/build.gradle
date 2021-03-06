@@ -7,7 +7,7 @@ dependencies {
     implementation project(':library')
 
     implementation 'androidx.appcompat:appcompat:1.2.0'
-    implementation 'androidx.media:media:1.2.0'
+    implementation 'androidx.media:media:1.2.1'
     implementation "com.google.android.exoplayer:extension-okhttp:$rootProject.ext.exoPlayerVersion"
 
     // UI

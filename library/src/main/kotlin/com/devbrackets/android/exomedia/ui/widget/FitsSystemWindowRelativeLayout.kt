@@ -16,11 +16,9 @@
 
 package com.devbrackets.android.exomedia.ui.widget
 
-import android.annotation.TargetApi
 import android.content.Context
 import android.content.res.Configuration
 import android.graphics.Rect
-import android.os.Build
 import android.util.AttributeSet
 import android.view.WindowInsets
 import android.widget.RelativeLayout
@@ -31,88 +29,75 @@ import android.widget.RelativeLayout
  * one view with fitsSystemWindows=true at a time.
  */
 class FitsSystemWindowRelativeLayout : RelativeLayout {
-    private val originalPadding: Rect by lazy { Rect(paddingLeft, paddingTop, paddingRight, paddingBottom) }
+  private val originalPadding: Rect by lazy { Rect(paddingLeft, paddingTop, paddingRight, paddingBottom) }
 
-    constructor(context: Context) : super(context) {
-        setup()
+  constructor(context: Context) : super(context)
+  constructor(context: Context, attrs: AttributeSet) : super(context, attrs)
+  constructor(context: Context, attrs: AttributeSet, defStyleAttr: Int) : super(context, attrs, defStyleAttr)
+  constructor(context: Context, attrs: AttributeSet, defStyleAttr: Int, defStyleRes: Int) : super(context, attrs, defStyleAttr, defStyleRes)
+
+  init {
+    setup()
+  }
+
+  private fun setup() {
+    fitsSystemWindows = true
+    updatePadding(Rect())
+  }
+
+  /**
+   * Makes sure the padding is correct for the orientation
+   */
+  override fun onConfigurationChanged(newConfig: Configuration) {
+    super.onConfigurationChanged(newConfig)
+
+    //If the system navigation bar can move, then clear out the previous insets before
+    // fitSystemWindows(...) or onApplyWindowInsets(...) is called
+    //This fixes the issue https://github.com/brianwernick/ExoMedia/issues/33
+    if (navBarCanMove()) {
+      setup()
     }
+  }
 
-    constructor(context: Context, attrs: AttributeSet) : super(context, attrs) {
-        setup()
-    }
+  override fun fitSystemWindows(insets: Rect): Boolean {
+    updatePadding(insets)
+    return false
+  }
 
-    constructor(context: Context, attrs: AttributeSet, defStyleAttr: Int) : super(context, attrs, defStyleAttr) {
-        setup()
-    }
+  override fun onApplyWindowInsets(insets: WindowInsets): WindowInsets {
+    val windowInsets = Rect(
+        insets.systemWindowInsetLeft,
+        insets.systemWindowInsetTop,
+        insets.systemWindowInsetRight,
+        insets.systemWindowInsetBottom
+    )
 
-    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
-    constructor(context: Context, attrs: AttributeSet, defStyleAttr: Int, defStyleRes: Int) : super(context, attrs, defStyleAttr, defStyleRes) {
-        setup()
-    }
+    fitSystemWindows(windowInsets)
+    return insets
+  }
 
-    /**
-     * Makes sure the padding is correct for the orientation
-     */
-    override fun onConfigurationChanged(newConfig: Configuration) {
-        super.onConfigurationChanged(newConfig)
+  /**
+   * Updates the layouts padding by using the original padding and adding
+   * the values found in the insets.
+   *
+   * @param insets The Rect containing the additional insets to use for padding
+   */
+  private fun updatePadding(insets: Rect) {
+    setPadding(
+        originalPadding.left + insets.left,
+        originalPadding.top + insets.top,
+        originalPadding.right + insets.right,
+        originalPadding.bottom + insets.bottom
+    )
+  }
 
-        //If the system navigation bar can move, then clear out the previous insets before
-        // fitSystemWindows(...) or onApplyWindowInsets(...) is called
-        //This fixes the issue https://github.com/brianwernick/ExoMedia/issues/33
-        if (navBarCanMove()) {
-            setup()
-        }
-    }
-
-    override fun fitSystemWindows(insets: Rect): Boolean {
-        updatePadding(insets)
-        return false
-    }
-
-    @TargetApi(Build.VERSION_CODES.KITKAT_WATCH)
-    override fun onApplyWindowInsets(insets: WindowInsets): WindowInsets {
-        val windowInsets = Rect(
-                insets.systemWindowInsetLeft,
-                insets.systemWindowInsetTop,
-                insets.systemWindowInsetRight,
-                insets.systemWindowInsetBottom
-        )
-
-        fitSystemWindows(windowInsets)
-        return insets
-    }
-
-    /**
-     * Updates the views padding so that any children views are correctly shown next to, and
-     * below the system bars (NavigationBar and Status/SystemBar) instead of behind them.
-     */
-    private fun setup() {
-        fitsSystemWindows = true
-        updatePadding(Rect())
-    }
-
-    /**
-     * Updates the layouts padding by using the original padding and adding
-     * the values found in the insets.
-     *
-     * @param insets The Rect containing the additional insets to use for padding
-     */
-    private fun updatePadding(insets: Rect) {
-        setPadding(
-                originalPadding.left + insets.left,
-                originalPadding.top + insets.top,
-                originalPadding.right + insets.right,
-                originalPadding.bottom + insets.bottom
-        )
-    }
-
-    /**
-     * Determines if the Navigation controller bar can move.  This will typically only be
-     * true for phones.
-     *
-     * @return True if the system navigation buttons can move sides
-     */
-    private fun navBarCanMove(): Boolean {
-        return this.resources.configuration.smallestScreenWidthDp <= 600
-    }
+  /**
+   * Determines if the Navigation controller bar can move.  This will typically only be
+   * true for phones.
+   *
+   * @return True if the system navigation buttons can move sides
+   */
+  private fun navBarCanMove(): Boolean {
+    return this.resources.configuration.smallestScreenWidthDp <= 600
+  }
 }

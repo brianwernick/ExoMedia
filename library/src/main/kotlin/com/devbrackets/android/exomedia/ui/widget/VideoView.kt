@@ -131,7 +131,7 @@ open class VideoView : RelativeLayout {
    * null
    * @return The video controls being used by this view or null
    */
-  var videoControls: VideoControlsCore? = null
+  var videoControls: VideoControls? = null
     set(value) {
       if (field != value) {
         field?.onDetachedFromView(this)
@@ -322,7 +322,7 @@ open class VideoView : RelativeLayout {
   }
 
   /**
-   * Requests the [VideoControls] to become visible.  This should only be called after
+   * Requests the [DefaultVideoControls] to become visible.  This should only be called after
    * [.setControls].
    */
   fun showControls() {
@@ -1025,7 +1025,7 @@ open class VideoView : RelativeLayout {
    */
   (context: Context, attrs: AttributeSet?) {
     /**
-     * Specifies if the [VideoControls] should be added to the view.  These
+     * Specifies if the [DefaultVideoControls] should be added to the view.  These
      * can be added through source code with [.setControls]
      */
     var useDefaultControls = false
@@ -1094,7 +1094,7 @@ open class VideoView : RelativeLayout {
         return
       }
 
-      obtainStyledAttributes(attributeSet, styles)?.let {
+      obtainStyledAttributes(attributeSet, styles).let {
         block(it)
         it.recycle()
       }

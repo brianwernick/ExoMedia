@@ -21,8 +21,8 @@ package com.devbrackets.android.exomedia.listener
  * the completion of a seek operation.
  */
 interface OnSeekCompletionListener {
-    /**
-     * Called to indicate the completion of a seek operation.
-     */
-    fun onSeekComplete()
+  /**
+   * Called to indicate the completion of a seek operation.
+   */
+  fun onSeekComplete()
 }

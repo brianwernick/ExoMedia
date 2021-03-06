@@ -12,9 +12,9 @@ import android.os.Build
  * @return True if the current device is a TV
  */
 fun Context.isDeviceTV(): Boolean {
-    //Since Android TV is only API 21+ that is the only time we will compare configurations
-    return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-        val uiManager = getSystemService(Context.UI_MODE_SERVICE) as UiModeManager
-        uiManager.currentModeType == Configuration.UI_MODE_TYPE_TELEVISION
-    } else false
+  //Since Android TV is only API 21+ that is the only time we will compare configurations
+  return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+    val uiManager = getSystemService(Context.UI_MODE_SERVICE) as UiModeManager
+    uiManager.currentModeType == Configuration.UI_MODE_TYPE_TELEVISION
+  } else false
 }

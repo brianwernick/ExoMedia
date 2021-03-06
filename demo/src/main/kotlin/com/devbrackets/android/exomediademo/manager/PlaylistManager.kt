@@ -2,7 +2,7 @@ package com.devbrackets.android.exomediademo.manager
 
 import android.app.Application
 import com.devbrackets.android.exomedia.listener.VideoControlsButtonListener
-import com.devbrackets.android.exomedia.ui.widget.VideoControls
+import com.devbrackets.android.exomedia.ui.widget.DefaultVideoControls
 import com.devbrackets.android.exomediademo.data.MediaItem
 import com.devbrackets.android.exomediademo.playlist.VideoApi
 import com.devbrackets.android.exomediademo.service.MediaService
@@ -17,7 +17,7 @@ class PlaylistManager(application: Application) : ListPlaylistManager<MediaItem>
     /**
      * Note: You can call [.getMediaPlayers] and add it manually in the activity,
      * however we have this helper method to allow registration of the media controls
-     * repeatListener provided by ExoMedia's [com.devbrackets.android.exomedia.ui.widget.VideoControls]
+     * repeatListener provided by ExoMedia's [com.devbrackets.android.exomedia.ui.widget.DefaultVideoControls]
      */
     fun addVideoApi(videoApi: VideoApi) {
         mediaPlayers.add(videoApi)
@@ -30,7 +30,7 @@ class PlaylistManager(application: Application) : ListPlaylistManager<MediaItem>
      * however we have this helper method to remove the registered repeatListener from [.addVideoApi]
      */
     fun removeVideoApi(videoApi: VideoApi) {
-        (videoApi.videoView.videoControls as? VideoControls)?.setButtonListener(null)
+        (videoApi.videoView.videoControls as? DefaultVideoControls)?.setButtonListener(null)
 
         unRegisterPlaylistListener(videoApi)
         mediaPlayers.remove(videoApi)
@@ -43,7 +43,7 @@ class PlaylistManager(application: Application) : ListPlaylistManager<MediaItem>
      * @param videoApi The VideoApi to link
      */
     private fun updateVideoControls(videoApi: VideoApi) {
-        (videoApi.videoView.videoControls as? VideoControls)?.let {
+        (videoApi.videoView.videoControls as? DefaultVideoControls)?.let {
             it.setPreviousButtonRemoved(false)
             it.setNextButtonRemoved(false)
             it.setButtonListener(ControlsListener())

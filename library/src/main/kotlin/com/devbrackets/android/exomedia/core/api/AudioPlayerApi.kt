@@ -197,7 +197,7 @@ interface AudioPlayerApi {
    * Changes to the track with `trackIndex` for the specified
    * `trackType`
    *
-   * @param trackType The type for the track to switch to the selected index
+   * @param type The type for the track to switch to the selected index
    * @param groupIndex The index for the group in the [TrackGroupArray] specified by the `trackType`
    * @param trackIndex The index for the track to switch to
    */
@@ -208,8 +208,8 @@ interface AudioPlayerApi {
   /**
    * Sets the volume level for the audio playback.
    *
-   * @param leftVolume The volume range [0.0 - 1.0]
-   * @param rightVolume The volume range [0.0 - 1.0]
+   * @param left The volume range [0.0 - 1.0]
+   * @param right The volume range [0.0 - 1.0]
    */
   fun setVolume(@FloatRange(from = 0.0, to = 1.0) left: Float, @FloatRange(from = 0.0, to = 1.0) right: Float)
 
@@ -218,7 +218,7 @@ interface AudioPlayerApi {
    * This method should only be called after the AudioPlayer is
    * prepared. (see [.setOnPreparedListener]
    *
-   * @param milliSeconds The time to move the playback to
+   * @param milliseconds The time to move the playback to
    */
   fun seekTo(@IntRange(from = 0) milliseconds: Long)
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 - 2018 ExoMedia Contributors
+ * Copyright (C) 2017 - 2021 ExoMedia Contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import android.net.Uri
 import android.os.Handler
 
 import com.devbrackets.android.exomedia.ExoMedia
+import com.devbrackets.android.exomedia.core.source.MediaSourceProvider
 import com.google.android.exoplayer2.drm.DefaultDrmSessionManager
 import com.google.android.exoplayer2.drm.DrmSessionManager
 import com.google.android.exoplayer2.source.MediaSource
@@ -29,10 +30,17 @@ import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
 import com.google.android.exoplayer2.upstream.DefaultHttpDataSourceFactory
 import com.google.android.exoplayer2.upstream.TransferListener
 
-// TODO: There's two providers here (not builders), we should also update them to take
-// objects that describe the args so that additions aren't breaking changes
 abstract class MediaSourceBuilder {
-    abstract fun build(context: Context, uri: Uri, userAgent: String, handler: Handler, transferListener: TransferListener?, drmSessionManager: DrmSessionManager?): MediaSource
+    data class MediaSourceAttributes(
+        val context: Context,
+        val uri: Uri,
+        val handler: Handler,
+        val transferListener: TransferListener? = null,
+        val drmSessionManager: DrmSessionManager? = null,
+        val userAgent: String = MediaSourceProvider.defaultUserAgent
+    )
+
+    abstract fun build(attributes: MediaSourceAttributes): MediaSource
 
     fun buildDataSourceFactory(context: Context, userAgent: String, listener: TransferListener?): DataSource.Factory {
         val provider = ExoMedia.Data.dataSourceFactoryProvider

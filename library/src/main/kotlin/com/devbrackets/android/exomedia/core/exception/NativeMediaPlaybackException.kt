@@ -23,6 +23,6 @@ import android.media.MediaPlayer
  * had an error during or while attempting playback
  */
 class NativeMediaPlaybackException(
-        val what: Int,
-        val extra: Int
+    val what: Int,
+    val extra: Int
 ) : Exception(MediaPlayer::class.java.name + " has had the error " + what + " with extras " + extra)

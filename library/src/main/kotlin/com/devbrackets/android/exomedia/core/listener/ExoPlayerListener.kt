@@ -24,9 +24,9 @@ import com.devbrackets.android.exomedia.listener.OnSeekCompletionListener
  * A repeatListener for core [ExoMediaPlayer] events
  */
 interface ExoPlayerListener : OnSeekCompletionListener {
-    fun onStateChanged(playWhenReady: Boolean, playbackState: Int)
+  fun onStateChanged(playWhenReady: Boolean, playbackState: Int)
 
-    fun onError(exoMediaPlayer: ExoMediaPlayer, e: Exception?)
+  fun onError(exoMediaPlayer: ExoMediaPlayer, e: Exception?)
 
-    fun onVideoSizeChanged(width: Int, height: Int, unAppliedRotationDegrees: Int, pixelWidthHeightRatio: Float)
+  fun onVideoSizeChanged(width: Int, height: Int, unAppliedRotationDegrees: Int, pixelWidthHeightRatio: Float)
 }

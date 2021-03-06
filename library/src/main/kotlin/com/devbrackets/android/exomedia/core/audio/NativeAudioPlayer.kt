@@ -46,7 +46,11 @@ import com.google.android.exoplayer2.source.TrackGroupArray
  * setting up the MediaPlayer (when in IDLE state)
  */
 class NativeAudioPlayer(protected val context: Context) : AudioPlayerApi {
-  protected val mediaPlayer: MediaPlayer
+  companion object {
+    private const val TAG = "NativeMediaPlayer"
+  }
+
+  protected val mediaPlayer: MediaPlayer = MediaPlayer()
   protected var internalListeners = InternalListeners()
 
   protected var _listenerMux: ListenerMux? = null
@@ -96,7 +100,6 @@ class NativeAudioPlayer(protected val context: Context) : AudioPlayerApi {
     set(_) {}
 
   init {
-    mediaPlayer = MediaPlayer()
     mediaPlayer.setOnBufferingUpdateListener(internalListeners)
   }
 
@@ -229,7 +232,4 @@ class NativeAudioPlayer(protected val context: Context) : AudioPlayerApi {
     }
   }
 
-  companion object {
-    private val TAG = "NativeMediaPlayer"
-  }
 }

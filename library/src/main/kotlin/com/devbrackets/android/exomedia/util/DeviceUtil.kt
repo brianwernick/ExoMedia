@@ -24,37 +24,37 @@ import android.os.Build
  */
 class DeviceUtil {
 
-    private val NON_COMPATIBLE_DEVICES = listOf(Device("Amazon"))
+  private val NON_COMPATIBLE_DEVICES = listOf(Device("Amazon"))
 
-    fun supportsExoPlayer(context: Context): Boolean {
-        return if (!isNotCompatible()) {
-            true
-        } else context.isAmazonTvOrAmazonWithLollipopSdkOrNewerDevice()
+  fun supportsExoPlayer(context: Context): Boolean {
+    return if (!isNotCompatible()) {
+      true
+    } else context.isAmazonTvOrAmazonWithLollipopSdkOrNewerDevice()
+  }
+
+  /**
+   * Determines if the current device is not compatible based on the list of devices
+   * that don't correctly support the ExoPlayer
+   *
+   * @return True if the current device is not compatible
+   */
+  private fun isNotCompatible(): Boolean {
+    for (device in NON_COMPATIBLE_DEVICES) {
+      if (Build.MANUFACTURER.equals(device.manufacturer, ignoreCase = true)) {
+        return device.model?.let {
+          Build.DEVICE.equals(it, ignoreCase = true)
+        } ?: true
+      }
     }
+    return false
+  }
 
-    /**
-     * Determines if the current device is not compatible based on the list of devices
-     * that don't correctly support the ExoPlayer
-     *
-     * @return True if the current device is not compatible
-     */
-    private fun isNotCompatible(): Boolean {
-        for (device in NON_COMPATIBLE_DEVICES) {
-            if (Build.MANUFACTURER.equals(device.manufacturer, ignoreCase = true)) {
-                return device.model?.let {
-                    Build.DEVICE.equals(it, ignoreCase = true)
-                } ?: true
-            }
-        }
-        return false
-    }
+  private fun Context.isAmazonTvOrAmazonWithLollipopSdkOrNewerDevice() =
+      Build.MANUFACTURER.equals("Amazon", ignoreCase = true) &&
+          (isDeviceTV() || Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
 
-    private fun Context.isAmazonTvOrAmazonWithLollipopSdkOrNewerDevice() =
-            Build.MANUFACTURER.equals("Amazon", ignoreCase = true) &&
-                    (isDeviceTV() || Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
-
-    private data class Device(
-            val manufacturer: String,
-            val model: String? = null
-    )
+  private data class Device(
+      val manufacturer: String,
+      val model: String? = null
+  )
 }

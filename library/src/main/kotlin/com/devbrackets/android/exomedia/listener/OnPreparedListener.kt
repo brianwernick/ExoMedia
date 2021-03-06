@@ -21,8 +21,8 @@ package com.devbrackets.android.exomedia.listener
  * source is ready for playback.
  */
 interface OnPreparedListener {
-    /**
-     * Called when the media file is ready for playback.
-     */
-    fun onPrepared()
+  /**
+   * Called when the media file is ready for playback.
+   */
+  fun onPrepared()
 }

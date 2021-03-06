@@ -25,7 +25,7 @@ package com.devbrackets.android.exomedia.core.listener
  * will be invoked.
  */
 interface InternalErrorListener {
-    fun onAudioUnderrun(bufferSize: Int, bufferSizeMs: Long, elapsedSinceLastFeedMs: Long)
+  fun onAudioUnderrun(bufferSize: Int, bufferSizeMs: Long, elapsedSinceLastFeedMs: Long)
 
-    fun onDrmSessionManagerError(e: Exception)
+  fun onDrmSessionManagerError(e: Exception)
 }

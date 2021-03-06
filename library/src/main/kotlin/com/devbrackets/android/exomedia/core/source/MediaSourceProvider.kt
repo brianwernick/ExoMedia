@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 - 2019 ExoMedia Contributors
+ * Copyright (C) 2017 - 2021 ExoMedia Contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,21 +36,29 @@ import com.google.android.exoplayer2.upstream.TransferListener
  */
 open class MediaSourceProvider {
 
-  @SuppressLint("DefaultLocale")
-  protected var userAgent = String.format(USER_AGENT_FORMAT, BuildConfig.EXO_MEDIA_VERSION_NAME, BuildConfig.EXO_MEDIA_VERSION_CODE, Build.VERSION.RELEASE, Build.MODEL)
-
+  @Deprecated("Deprecated in 5.0.0", replaceWith = ReplaceWith("generate(MediaSourceBuilder.MediaSourceAttributes(context, uri, handler, transferListener, drmSessionManager))"))
   fun generate(context: Context, handler: Handler, uri: Uri, transferListener: TransferListener?, drmSessionManager: DrmSessionManager?): MediaSource {
-    val sourceTypeBuilder = findByProviders(uri)
+    return generate(MediaSourceBuilder.MediaSourceAttributes(context, uri, handler, transferListener, drmSessionManager))
+  }
+
+  /**
+   * Generates a [MediaSource] for the provided attributes,
+   */
+  fun generate(attributes: MediaSourceBuilder.MediaSourceAttributes): MediaSource {
+    val sourceTypeBuilder = findByProviders(attributes.uri)
 
     // If a registered builder wasn't found then use the default
     val builder = sourceTypeBuilder?.builder ?: DefaultMediaSourceBuilder()
-    return builder.build(context, uri, userAgent, handler, transferListener, drmSessionManager)
+    return builder.build(attributes)
   }
 
   class SourceTypeBuilder(val builder: MediaSourceBuilder, val uriScheme: String?, val extension: String?, val looseComparisonRegex: String?)
 
   companion object {
     protected const val USER_AGENT_FORMAT = "ExoMedia %s (%d) / Android %s / %s"
+
+    @SuppressLint("DefaultLocale")
+    val defaultUserAgent = String.format(USER_AGENT_FORMAT, BuildConfig.EXO_MEDIA_VERSION_NAME, BuildConfig.EXO_MEDIA_VERSION_CODE, Build.VERSION.RELEASE, Build.MODEL)
 
     protected fun findByProviders(uri: Uri): SourceTypeBuilder? {
       return findByScheme(uri) /* Uri Scheme (e.g. rtsp) */

@@ -25,7 +25,6 @@ import android.os.Handler
 import android.os.Looper
 import android.os.PowerManager
 import androidx.annotation.FloatRange
-import androidx.annotation.Size
 import android.util.Log
 import android.view.Surface
 import com.devbrackets.android.exomedia.ExoMedia
@@ -35,12 +34,14 @@ import com.devbrackets.android.exomedia.core.listener.ExoPlayerListener
 import com.devbrackets.android.exomedia.core.listener.InternalErrorListener
 import com.devbrackets.android.exomedia.core.listener.MetadataListener
 import com.devbrackets.android.exomedia.core.renderer.RendererProvider
+import com.devbrackets.android.exomedia.core.source.builder.MediaSourceBuilder
 import com.devbrackets.android.exomedia.listener.OnBufferUpdateListener
 import com.devbrackets.android.exomedia.util.Repeater
 import com.google.android.exoplayer2.*
 import com.google.android.exoplayer2.analytics.AnalyticsCollector
 import com.google.android.exoplayer2.analytics.AnalyticsListener
 import com.google.android.exoplayer2.audio.AudioAttributes
+import com.google.android.exoplayer2.audio.AudioListener
 import com.google.android.exoplayer2.audio.AudioRendererEventListener
 import com.google.android.exoplayer2.decoder.DecoderCounters
 import com.google.android.exoplayer2.drm.*
@@ -65,6 +66,7 @@ import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.math.min
 
+// TODO : add ability to specify the userAgent (last parameter for MediaSourceAttributes) - Issue #705
 class ExoMediaPlayer(private val context: Context) : Player.EventListener {
   companion object {
     private const val TAG = "ExoMediaPlayer"
@@ -109,18 +111,18 @@ class ExoMediaPlayer(private val context: Context) : Player.EventListener {
 
   /**
    * Retrieves a list of available tracks
+   * Maps the available tracks
+   * collect track groups from all the track renderers of the same type
+   * construct fake track group array for track groups from all the renderers of the same type
    *
    * @return A list of available tracks associated with each type
    */
-  // Retrieves the available tracks
-  // Maps the available tracks
-  // collect track groups from all the track renderers of the same type
-  // construct fake track group array for track groups from all the renderers of the same type
   val availableTracks: Map<RendererType, TrackGroupArray>?
     get() {
       if (playbackState == Player.STATE_IDLE) {
         return null
       }
+
       val trackMap = androidx.collection.ArrayMap<RendererType, TrackGroupArray>()
       val mappedTrackInfo = trackSelector.currentMappedTrackInfo ?: return trackMap
       val types = arrayOf(RendererType.AUDIO, RendererType.VIDEO, RendererType.CLOSED_CAPTION, RendererType.METADATA)
@@ -132,6 +134,7 @@ class ExoMediaPlayer(private val context: Context) : Player.EventListener {
             trackGroups.add(trackGroupArray.get(i))
           }
         }
+
         if (trackGroups.isNotEmpty()) {
           trackMap[type] = TrackGroupArray(*trackGroups.toTypedArray())
         }
@@ -225,7 +228,10 @@ class ExoMediaPlayer(private val context: Context) : Player.EventListener {
   }
 
   fun setUri(uri: Uri?) {
-    val mediaSource = uri?.let { ExoMedia.Data.mediaSourceProvider.generate(context, mainHandler, it, bandwidthMeter, drmSessionManager) }
+    val mediaSource = uri?.let {
+      ExoMedia.Data.mediaSourceProvider.generate(MediaSourceBuilder.MediaSourceAttributes(context, it, mainHandler, bandwidthMeter, drmSessionManager))
+    }
+
     setMediaSource(mediaSource)
   }
 
@@ -242,16 +248,12 @@ class ExoMediaPlayer(private val context: Context) : Player.EventListener {
     prepare()
   }
 
-  fun addListener(listener: ExoPlayerListener?) {
-    if (listener != null) {
-      listeners.add(listener)
-    }
+  fun addListener(listener: ExoPlayerListener) {
+    listeners.add(listener)
   }
 
-  fun removeListener(listener: ExoPlayerListener?) {
-    if (listener != null) {
-      listeners.remove(listener)
-    }
+  fun removeListener(listener: ExoPlayerListener) {
+    listeners.remove(listener)
   }
 
   fun setBufferUpdateListener(listener: OnBufferUpdateListener?) {
@@ -304,8 +306,8 @@ class ExoMediaPlayer(private val context: Context) : Player.EventListener {
 
   fun clearSurface() {
     surface?.release()
-
     surface = null
+
     sendMessage(C.TRACK_TYPE_VIDEO, Renderer.MSG_SET_SURFACE, null, false)
   }
 
@@ -314,55 +316,62 @@ class ExoMediaPlayer(private val context: Context) : Player.EventListener {
     // Retrieves the available tracks
     val mappedTrackInfo = trackSelector.currentMappedTrackInfo
     val tracksInfo = getExoPlayerTracksInfo(type, groupIndex, mappedTrackInfo)
-    val trackGroupArray = if (tracksInfo.rendererTrackIndex == C.INDEX_UNSET)
-      null
-    else
-      mappedTrackInfo!!.getTrackGroups(tracksInfo.rendererTrackIndex)
-    if (trackGroupArray == null || trackGroupArray.length == 0) {
+    if (tracksInfo.rendererTrackIndex == C.INDEX_UNSET) {
+      return -1
+    }
+
+    val trackGroupArray = mappedTrackInfo!!.getTrackGroups(tracksInfo.rendererTrackIndex)
+    if (trackGroupArray.length == 0) {
       return -1
     }
 
     // Verifies the track selection has been overridden
     val selectionOverride = trackSelector.parameters.getSelectionOverride(tracksInfo.rendererTrackIndex, trackGroupArray)
-    return if (selectionOverride == null || selectionOverride.groupIndex != tracksInfo.rendererTrackGroupIndex || selectionOverride.length <= 0) {
-      -1
-    } else selectionOverride.tracks[0]
+    if (selectionOverride == null || selectionOverride.groupIndex != tracksInfo.rendererTrackGroupIndex || selectionOverride.length <= 0) {
+      return -1
+    }
 
     // In the current implementation only one track can be selected at a time so get the first one.
+    return selectionOverride.tracks[0]
   }
 
   fun setSelectedTrack(type: RendererType, groupIndex: Int, trackIndex: Int) {
     // Retrieves the available tracks
     val mappedTrackInfo = trackSelector.currentMappedTrackInfo
     val tracksInfo = getExoPlayerTracksInfo(type, groupIndex, mappedTrackInfo)
-    val trackGroupArray = if (tracksInfo.rendererTrackIndex == C.INDEX_UNSET || mappedTrackInfo == null)
-      null
-    else
-      mappedTrackInfo.getTrackGroups(tracksInfo.rendererTrackIndex)
-    if (trackGroupArray == null || trackGroupArray.length == 0 || trackGroupArray.length <= tracksInfo.rendererTrackGroupIndex) {
+    if (tracksInfo.rendererTrackIndex == C.INDEX_UNSET || mappedTrackInfo == null) {
+      return
+    }
+
+    val trackGroupArray = mappedTrackInfo.getTrackGroups(tracksInfo.rendererTrackIndex)
+    if (trackGroupArray.length == 0 || trackGroupArray.length <= tracksInfo.rendererTrackGroupIndex) {
       return
     }
 
     // Finds the requested group
     val group = trackGroupArray.get(tracksInfo.rendererTrackGroupIndex)
-    if (group == null || group.length <= trackIndex) {
+    if (group.length <= trackIndex) {
       return
     }
 
     val parametersBuilder = trackSelector.buildUponParameters()
     for (rendererTrackIndex in tracksInfo.rendererTrackIndexes) {
       parametersBuilder.clearSelectionOverrides(rendererTrackIndex)
-      if (tracksInfo.rendererTrackIndex == rendererTrackIndex) {
-        // Specifies the correct track to use
-        parametersBuilder.setSelectionOverride(rendererTrackIndex, trackGroupArray,
-            DefaultTrackSelector.SelectionOverride(tracksInfo.rendererTrackGroupIndex, trackIndex))
-        // make sure renderer is enabled
-        parametersBuilder.setRendererDisabled(rendererTrackIndex, false)
-      } else {
-        // disable other renderers of the same type to avoid playback errors
+
+      // Disable renderers of the same type to prevent playback errors
+      if (tracksInfo.rendererTrackIndex != rendererTrackIndex) {
         parametersBuilder.setRendererDisabled(rendererTrackIndex, true)
+        continue
       }
+
+      // Specifies the correct track to use
+      parametersBuilder.setSelectionOverride(rendererTrackIndex, trackGroupArray,
+          DefaultTrackSelector.SelectionOverride(tracksInfo.rendererTrackGroupIndex, trackIndex))
+
+      // make sure renderer is enabled
+      parametersBuilder.setRendererDisabled(rendererTrackIndex, false)
     }
+
     trackSelector.setParameters(parametersBuilder)
   }
 
@@ -382,34 +391,41 @@ class ExoMediaPlayer(private val context: Context) : Player.EventListener {
       parametersBuilder.setRendererDisabled(rendererTrackIndex, false)
           .clearSelectionOverrides(rendererTrackIndex)
     }
+
     trackSelector.setParameters(parametersBuilder)
   }
 
   fun setRendererEnabled(type: RendererType, enabled: Boolean) {
     val mappedTrackInfo = trackSelector.currentMappedTrackInfo
     val tracksInfo = getExoPlayerTracksInfo(type, 0, mappedTrackInfo)
-    if (tracksInfo.rendererTrackIndexes.isNotEmpty()) {
-      var enabledSomething = false
-      val parametersBuilder = trackSelector.buildUponParameters()
-      for (rendererTrackIndex in tracksInfo.rendererTrackIndexes) {
-        if (enabled) {
-          val selectionOverride = trackSelector.parameters.getSelectionOverride(rendererTrackIndex, mappedTrackInfo!!.getTrackGroups(rendererTrackIndex))
-          // check whether the renderer has been selected before
-          // other renderers should be kept disabled to avoid playback errors
-          if (selectionOverride != null) {
-            parametersBuilder.setRendererDisabled(rendererTrackIndex, false)
-            enabledSomething = true
-          }
-        } else {
-          parametersBuilder.setRendererDisabled(rendererTrackIndex, true)
-        }
-      }
-      if (enabled && !enabledSomething) {
-        // if nothing has been enabled enable the first sequential renderer
-        parametersBuilder.setRendererDisabled(tracksInfo.rendererTrackIndexes[0], false)
-      }
-      trackSelector.setParameters(parametersBuilder)
+    if (tracksInfo.rendererTrackIndexes.isEmpty()) {
+      return
     }
+
+    var enabledSomething = false
+    val parametersBuilder = trackSelector.buildUponParameters()
+
+    for (rendererTrackIndex in tracksInfo.rendererTrackIndexes) {
+      if (!enabled) {
+        parametersBuilder.setRendererDisabled(rendererTrackIndex, true)
+        continue
+      }
+
+      val selectionOverride = trackSelector.parameters.getSelectionOverride(rendererTrackIndex, mappedTrackInfo!!.getTrackGroups(rendererTrackIndex))
+      // check whether the renderer has been selected before
+      // other renderers should be kept disabled to avoid playback errors
+      if (selectionOverride != null) {
+        parametersBuilder.setRendererDisabled(rendererTrackIndex, false)
+        enabledSomething = true
+      }
+    }
+
+    if (enabled && !enabledSomething) {
+      // if nothing has been enabled enable the first sequential renderer
+      parametersBuilder.setRendererDisabled(tracksInfo.rendererTrackIndexes[0], false)
+    }
+
+    trackSelector.setParameters(parametersBuilder)
   }
 
   /**
@@ -421,19 +437,14 @@ class ExoMediaPlayer(private val context: Context) : Player.EventListener {
     val mappedTrackInfo = trackSelector.currentMappedTrackInfo
     val tracksInfo = getExoPlayerTracksInfo(type, 0, mappedTrackInfo)
     val parameters = trackSelector.parameters
-    for (rendererTrackIndex in tracksInfo.rendererTrackIndexes) {
-      if (!parameters.getRendererDisabled(rendererTrackIndex)) {
-        return true
-      }
+
+    return tracksInfo.rendererTrackIndexes.any {
+      !parameters.getRendererDisabled(it)
     }
-    return false
   }
 
   fun setAudioStreamType(streamType: Int) {
-    @C.AudioUsage
     val usage = Util.getAudioUsageForStreamType(streamType)
-
-    @C.AudioContentType
     val contentType = Util.getAudioContentTypeForStreamType(streamType)
 
     val audioAttributes = AudioAttributes.Builder()
@@ -646,31 +657,39 @@ class ExoMediaPlayer(private val context: Context) : Player.EventListener {
   }
 
   protected fun getExoPlayerTracksInfo(type: RendererType, groupIndex: Int, mappedTrackInfo: MappingTrackSelector.MappedTrackInfo?): ExoPlayerRendererTracksInfo {
+    if (mappedTrackInfo == null) {
+      return ExoPlayerRendererTracksInfo(emptyList(), C.INDEX_UNSET, C.INDEX_UNSET)
+    }
+
     // holder for the all exo player renderer track indexes of the specified renderer type
     val exoPlayerRendererTrackIndexes = ArrayList<Int>()
-    // the exoplayer renderer track index related to the specified group index
     var exoPlayerRendererTrackIndex = C.INDEX_UNSET
+
     // the corrected exoplayer group index
     var exoPlayerRendererTrackGroupIndex = C.INDEX_UNSET
     var skippedRenderersGroupsCount = 0
-    if (mappedTrackInfo != null) {
-      for (rendererIndex in 0 until mappedTrackInfo.rendererCount) {
-        val exoPlayerRendererType = mappedTrackInfo.getRendererType(rendererIndex)
-        if (type == getExoMediaRendererType(exoPlayerRendererType)) {
-          exoPlayerRendererTrackIndexes.add(rendererIndex)
-          val trackGroups = mappedTrackInfo.getTrackGroups(rendererIndex)
-          if (skippedRenderersGroupsCount + trackGroups.length > groupIndex) {
-            if (exoPlayerRendererTrackIndex == C.INDEX_UNSET) {
-              // if the groupIndex belongs to the current exo player renderer
-              exoPlayerRendererTrackIndex = rendererIndex
-              exoPlayerRendererTrackGroupIndex = groupIndex - skippedRenderersGroupsCount
-            }
-          } else {
-            skippedRenderersGroupsCount += trackGroups.length
-          }
-        }
+
+
+    for (rendererIndex in 0 until mappedTrackInfo.rendererCount) {
+      val exoPlayerRendererType = mappedTrackInfo.getRendererType(rendererIndex)
+      if (type != getExoMediaRendererType(exoPlayerRendererType)) {
+        continue
+      }
+
+      exoPlayerRendererTrackIndexes.add(rendererIndex)
+      val trackGroups = mappedTrackInfo.getTrackGroups(rendererIndex)
+      if (skippedRenderersGroupsCount + trackGroups.length <= groupIndex) {
+        skippedRenderersGroupsCount += trackGroups.length
+        continue
+      }
+
+      // if the groupIndex belongs to the current exo player renderer
+      if (exoPlayerRendererTrackIndex == C.INDEX_UNSET) {
+        exoPlayerRendererTrackIndex = rendererIndex
+        exoPlayerRendererTrackGroupIndex = groupIndex - skippedRenderersGroupsCount
       }
     }
+
     return ExoPlayerRendererTracksInfo(exoPlayerRendererTrackIndexes, exoPlayerRendererTrackIndex, exoPlayerRendererTrackGroupIndex)
   }
 
@@ -687,11 +706,8 @@ class ExoMediaPlayer(private val context: Context) : Player.EventListener {
     /**
      * The exo player renderer track indexes
      */
-    val rendererTrackIndexes: List<Int>
+    val rendererTrackIndexes: List<Int> = Collections.unmodifiableList(rendererTrackIndexes)
 
-    init {
-      this.rendererTrackIndexes = Collections.unmodifiableList(rendererTrackIndexes)
-    }
   }
 
   @JvmOverloads
@@ -701,7 +717,7 @@ class ExoMediaPlayer(private val context: Context) : Player.EventListener {
     }
 
     val messages = ArrayList<PlayerMessage>()
-    for (renderer in renderers) {
+    renderers.forEach { renderer ->
       if (renderer.trackType == renderType) {
         messages.add(exoPlayer.createMessage(renderer).setType(messageType).setPayload(message))
       }
@@ -710,8 +726,8 @@ class ExoMediaPlayer(private val context: Context) : Player.EventListener {
     if (blocking) {
       blockingSendMessages(messages)
     } else {
-      for (playerMessage in messages) {
-        playerMessage.send()
+      messages.forEach {
+        it.send()
       }
     }
   }
@@ -723,7 +739,7 @@ class ExoMediaPlayer(private val context: Context) : Player.EventListener {
    */
   protected fun blockingSendMessages(messages: List<PlayerMessage>) {
     var wasInterrupted = false
-    for (message in messages) {
+    messages.forEach { message ->
       var blockMessage = true
       while (blockMessage) {
         try {
@@ -764,29 +780,26 @@ class ExoMediaPlayer(private val context: Context) : Player.EventListener {
     val playbackState = playbackState
 
     val newState = stateStore.getState(playWhenReady, playbackState)
-    if (newState != stateStore.mostRecentState) {
-      stateStore.setMostRecentState(playWhenReady, playbackState)
+    if (newState == stateStore.mostRecentState) {
+      return
+    }
 
-      //Makes sure the buffering notifications are sent
-      if (newState == Player.STATE_READY) {
-        setBufferRepeaterStarted(true)
-      } else if (newState == Player.STATE_IDLE || newState == Player.STATE_ENDED) {
-        setBufferRepeaterStarted(false)
-      }
+    stateStore.setMostRecentState(playWhenReady, playbackState)
 
-      //Because the playWhenReady isn't a state in itself, rather a flag to a state we will ignore informing of
-      // see events when that is the only change.  Additionally, on some devices we get states ordered as
-      // [seeking, ready, buffering, ready] while on others we get [seeking, buffering, ready]
-      var informSeekCompletion = stateStore.matchesHistory(intArrayOf(StateStore.STATE_SEEKING, Player.STATE_BUFFERING, Player.STATE_READY), true)
-      informSeekCompletion = informSeekCompletion or stateStore.matchesHistory(intArrayOf(Player.STATE_BUFFERING, StateStore.STATE_SEEKING, Player.STATE_READY), true)
-      informSeekCompletion = informSeekCompletion or stateStore.matchesHistory(intArrayOf(StateStore.STATE_SEEKING, Player.STATE_READY, Player.STATE_BUFFERING, Player.STATE_READY), true)
+    //Makes sure the buffering notifications are sent
+    if (newState == Player.STATE_READY) {
+      setBufferRepeaterStarted(true)
+    } else if (newState == Player.STATE_IDLE || newState == Player.STATE_ENDED) {
+      setBufferRepeaterStarted(false)
+    }
 
-      for (listener in listeners) {
-        listener.onStateChanged(playWhenReady, playbackState)
+    val informSeekCompletion = stateStore.seekCompleted()
 
-        if (informSeekCompletion) {
-          listener.onSeekComplete()
-        }
+    listeners.forEach { listener ->
+      listener.onStateChanged(playWhenReady, playbackState)
+
+      if (informSeekCompletion) {
+        listener.onSeekComplete()
       }
     }
   }
@@ -799,66 +812,26 @@ class ExoMediaPlayer(private val context: Context) : Player.EventListener {
     }
   }
 
-  private class StateStore {
-    companion object {
-      const val FLAG_PLAY_WHEN_READY = -0x10000000
-      const val STATE_SEEKING = 100
-    }
-
-    //We keep the last few states because that is all we need currently
-    private val prevStates = intArrayOf(Player.STATE_IDLE, Player.STATE_IDLE, Player.STATE_IDLE, Player.STATE_IDLE)
-
-    val mostRecentState: Int
-      get() = prevStates[3]
-
-    val isLastReportedPlayWhenReady: Boolean
-      get() = prevStates[3] and FLAG_PLAY_WHEN_READY != 0
-
-    fun reset() {
-      for (i in prevStates.indices) {
-        prevStates[i] = Player.STATE_IDLE
-      }
-    }
-
-    fun setMostRecentState(playWhenReady: Boolean, state: Int) {
-      val newState = getState(playWhenReady, state)
-      if (prevStates[3] == newState) {
-        return
-      }
-
-      prevStates[0] = prevStates[1]
-      prevStates[1] = prevStates[2]
-      prevStates[2] = prevStates[3]
-      prevStates[3] = state
-    }
-
-    fun getState(playWhenReady: Boolean, state: Int): Int {
-      return state or if (playWhenReady) FLAG_PLAY_WHEN_READY else 0
-    }
-
-    fun matchesHistory(@Size(min = 1, max = 4) states: IntArray, ignorePlayWhenReady: Boolean): Boolean {
-      var flag = true
-      val andFlag = if (ignorePlayWhenReady) FLAG_PLAY_WHEN_READY.inv() else 0x0.inv()
-      val startIndex = prevStates.size - states.size
-
-      for (i in startIndex until prevStates.size) {
-        flag = flag and (prevStates[i] and andFlag == states[i - startIndex] and andFlag)
-      }
-
-      return flag
-    }
-  }
-
-  private inner class ComponentListener(delegate: AnalyticsCollector): VideoRendererEventListener, AudioRendererEventListener, TextOutput, MetadataOutput, DrmSessionEventListener by delegate {
+  private inner class ComponentListener(delegate: AnalyticsCollector) :
+      VideoRendererEventListener,
+      AudioRendererEventListener,
+      AudioListener,
+      TextOutput,
+      MetadataOutput,
+      DrmSessionEventListener by delegate {
 
     override fun onAudioDisabled(counters: DecoderCounters) {
       audioSessionId = C.AUDIO_SESSION_ID_UNSET
       analyticsCollector.onAudioDisabled(counters)
     }
 
-    override fun onAudioSessionId(sessionId: Int) {
-      audioSessionId = sessionId
-      analyticsCollector.onAudioSessionId(sessionId)
+    override fun onSkipSilenceEnabledChanged(skipSilenceEnabled: Boolean) {
+      analyticsCollector.onSkipSilenceEnabledChanged(skipSilenceEnabled)
+    }
+
+    override fun onAudioSessionIdChanged(audioSessionId: Int) {
+      this@ExoMediaPlayer.audioSessionId = audioSessionId
+      analyticsCollector.onAudioSessionIdChanged(audioSessionId)
     }
 
     override fun onAudioUnderrun(bufferSize: Int, bufferSizeMs: Long, elapsedSinceLastFeedMs: Long) {

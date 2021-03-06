@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 - 2019 ExoMedia Contributors
+ * Copyright (C) 2016 - 2021 ExoMedia Contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,11 +24,13 @@ import android.view.Surface
 
 import com.devbrackets.android.exomedia.ExoMedia
 import com.devbrackets.android.exomedia.core.ListenerMux
+import com.devbrackets.android.exomedia.core.api.VideoViewApi
 import com.devbrackets.android.exomedia.core.exoplayer.ExoMediaPlayer
 import com.devbrackets.android.exomedia.core.exoplayer.WindowInfo
 import com.devbrackets.android.exomedia.core.listener.CaptionListener
 import com.devbrackets.android.exomedia.core.listener.MetadataListener
 import com.devbrackets.android.exomedia.core.video.ClearableSurface
+import com.devbrackets.android.exomedia.core.video.mp.NativeVideoDelegate
 import com.devbrackets.android.exomedia.listener.OnBufferUpdateListener
 import com.google.android.exoplayer2.drm.DrmSessionManager
 import com.google.android.exoplayer2.drm.MediaDrmCallback
@@ -36,8 +38,11 @@ import com.google.android.exoplayer2.metadata.Metadata
 import com.google.android.exoplayer2.source.MediaSource
 import com.google.android.exoplayer2.source.TrackGroupArray
 
-class ExoVideoDelegate(context: Context, protected var clearableSurface: ClearableSurface) {
-  protected var exoMediaPlayer: ExoMediaPlayer
+class ExoVideoDelegate(
+    context: Context,
+    var clearableSurface: ClearableSurface
+) {
+  var exoMediaPlayer: ExoMediaPlayer
 
   var listenerMux: ListenerMux? = null
     set(value) {
@@ -105,17 +110,19 @@ class ExoVideoDelegate(context: Context, protected var clearableSurface: Clearab
     listenerMux?.setNotifiedPrepared(false)
     exoMediaPlayer.seekTo(0)
 
-    when {
-      mediaSource != null -> {
-        exoMediaPlayer.setMediaSource(mediaSource)
-        listenerMux?.setNotifiedCompleted(false)
-      }
-      uri != null -> {
-        exoMediaPlayer.setUri(uri)
-        listenerMux?.setNotifiedCompleted(false)
-      }
-      else -> exoMediaPlayer.setMediaSource(null)
+    mediaSource?.let {
+      exoMediaPlayer.setMediaSource(it)
+      listenerMux?.setNotifiedCompleted(false)
+      return
     }
+
+    uri?.let {
+      exoMediaPlayer.setUri(it)
+      listenerMux?.setNotifiedCompleted(false)
+      return
+    }
+
+    exoMediaPlayer.setMediaSource(null)
   }
 
   fun restart(): Boolean {
@@ -177,8 +184,8 @@ class ExoVideoDelegate(context: Context, protected var clearableSurface: Clearab
     exoMediaPlayer.setCaptionListener(listener)
   }
 
-  fun setTrack(trackType: ExoMedia.RendererType, groupIndex: Int, trackIndex: Int) {
-    exoMediaPlayer.setSelectedTrack(trackType, groupIndex, trackIndex)
+  fun setTrack(type: ExoMedia.RendererType, groupIndex: Int, trackIndex: Int) {
+    exoMediaPlayer.setSelectedTrack(type, groupIndex, trackIndex)
   }
 
   fun getSelectedTrackIndex(type: ExoMedia.RendererType, groupIndex: Int): Int {
@@ -231,11 +238,11 @@ class ExoVideoDelegate(context: Context, protected var clearableSurface: Clearab
 
   protected inner class InternalListeners : MetadataListener, OnBufferUpdateListener {
     override fun onMetadata(metadata: Metadata) {
-      listenerMux!!.onMetadata(metadata)
+      listenerMux?.onMetadata(metadata)
     }
 
     override fun onBufferingUpdate(@IntRange(from = 0, to = 100) percent: Int) {
-      listenerMux!!.onBufferingUpdate(percent)
+      listenerMux?.onBufferingUpdate(percent)
     }
   }
 }

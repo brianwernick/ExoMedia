@@ -3,7 +3,7 @@ package com.devbrackets.android.exomediademo.playlist
 import android.net.Uri
 import androidx.annotation.FloatRange
 import androidx.annotation.IntRange
-import com.devbrackets.android.exomedia.ui.widget.VideoControls
+import com.devbrackets.android.exomedia.ui.widget.DefaultVideoControls
 import com.devbrackets.android.exomedia.ui.widget.VideoView
 import com.devbrackets.android.exomediademo.data.MediaItem
 import com.devbrackets.android.playlistcore.data.PlaybackState
@@ -78,7 +78,7 @@ class VideoApi(var videoView: VideoView) : BaseMediaApi(), PlaylistListener<Medi
      * by the ExoMedia VideoView up-to-date with the current playback state
      */
     override fun onPlaylistItemChanged(currentItem: MediaItem?, hasNext: Boolean, hasPrevious: Boolean): Boolean {
-        (videoView.videoControls as? VideoControls)?.let { controls ->
+        (videoView.videoControls as? DefaultVideoControls)?.let { controls ->
             // Updates the VideoControls display text
             controls.setTitle(currentItem?.title ?: "")
             controls.setSubTitle(currentItem?.album ?: "")

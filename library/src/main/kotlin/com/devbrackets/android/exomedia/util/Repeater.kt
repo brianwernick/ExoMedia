@@ -25,86 +25,86 @@ import android.os.HandlerThread
  * amount of elapsed time use the [StopWatch] instead.
  */
 class Repeater {
-    companion object {
-        protected const val HANDLER_THREAD_NAME = "ExoMedia_Repeater_HandlerThread"
-        protected const val DEFAULT_REPEAT_DELAY = 33 // ~30 fps
+  companion object {
+    protected const val HANDLER_THREAD_NAME = "ExoMedia_Repeater_HandlerThread"
+    protected const val DEFAULT_REPEAT_DELAY = 33 // ~30 fps
+  }
+
+  /**
+   * 'true' if the repeater is currently running
+   */
+  @Volatile
+  var isRunning = false
+    protected set
+
+  /**
+   * The time in milliseconds between method calls (default: [DEFAULT_REPEAT_DELAY])
+   */
+  var repeaterDelay = DEFAULT_REPEAT_DELAY
+
+  protected var delayedHandler: Handler? = null
+  protected val handlerThread by lazy { HandlerThread(HANDLER_THREAD_NAME) }
+  protected var useHandlerThread = false
+
+  var repeatListener: (() -> Unit)? = null
+  protected var pollRunnable = PollRunnable()
+
+
+  /**
+   * @param processOnStartingThread True if the repeating process should be handled on the same thread that created the Repeater
+   */
+  @JvmOverloads
+  constructor(processOnStartingThread: Boolean = true) {
+    if (processOnStartingThread) {
+      delayedHandler = Handler()
+      return
     }
 
-    /**
-     * 'true' if the repeater is currently running
-     */
-    @Volatile
-    var isRunning = false
-        protected set
+    useHandlerThread = true
+  }
 
-    /**
-     * The time in milliseconds between method calls (default: [DEFAULT_REPEAT_DELAY])
-     */
-    var repeaterDelay = DEFAULT_REPEAT_DELAY
+  /**
+   * @param handler The Handler to use for the repeating process
+   */
+  constructor(handler: Handler) {
+    delayedHandler = handler
+  }
 
-    protected var delayedHandler: Handler? = null
-    protected val handlerThread by lazy { HandlerThread(HANDLER_THREAD_NAME) }
-    protected var useHandlerThread = false
+  /**
+   * Starts the repeater
+   */
+  fun start() {
+    if (!isRunning) {
+      isRunning = true
 
-    var repeatListener: (() -> Unit)? = null
-    protected var pollRunnable = PollRunnable()
+      if (useHandlerThread) {
+        handlerThread.start()
+        delayedHandler = Handler(handlerThread.looper)
+      }
 
+      pollRunnable.performPoll()
+    }
+  }
 
-    /**
-     * @param processOnStartingThread True if the repeating process should be handled on the same thread that created the Repeater
-     */
-    @JvmOverloads
-    constructor(processOnStartingThread: Boolean = true) {
-        if (processOnStartingThread) {
-            delayedHandler = Handler()
-            return
-        }
+  /**
+   * Stops the repeater
+   */
+  fun stop() {
+    handlerThread.quit()
+    isRunning = false
+  }
 
-        useHandlerThread = true
+  protected inner class PollRunnable : Runnable {
+    override fun run() {
+      repeatListener?.invoke()
+
+      if (isRunning) {
+        performPoll()
+      }
     }
 
-    /**
-     * @param handler The Handler to use for the repeating process
-     */
-    constructor(handler: Handler) {
-        delayedHandler = handler
+    fun performPoll() {
+      delayedHandler?.postDelayed(pollRunnable, repeaterDelay.toLong())
     }
-
-    /**
-     * Starts the repeater
-     */
-    fun start() {
-        if (!isRunning) {
-            isRunning = true
-
-            if (useHandlerThread) {
-                handlerThread.start()
-                delayedHandler = Handler(handlerThread.looper)
-            }
-
-            pollRunnable.performPoll()
-        }
-    }
-
-    /**
-     * Stops the repeater
-     */
-    fun stop() {
-        handlerThread.quit()
-        isRunning = false
-    }
-
-    protected inner class PollRunnable : Runnable {
-        override fun run() {
-            repeatListener?.invoke()
-
-            if (isRunning) {
-                performPoll()
-            }
-        }
-
-        fun performPoll() {
-            delayedHandler?.postDelayed(pollRunnable, repeaterDelay.toLong())
-        }
-    }
+  }
 }

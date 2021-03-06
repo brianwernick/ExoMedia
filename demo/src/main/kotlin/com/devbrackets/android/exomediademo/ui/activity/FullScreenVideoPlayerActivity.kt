@@ -4,7 +4,7 @@ import android.os.Bundle
 import android.view.View
 
 import com.devbrackets.android.exomedia.listener.VideoControlsVisibilityListener
-import com.devbrackets.android.exomedia.ui.widget.VideoControls
+import com.devbrackets.android.exomedia.ui.widget.DefaultVideoControls
 import com.devbrackets.android.exomedia.ui.widget.VideoView
 import kotlinx.android.synthetic.main.video_player_activity.*
 
@@ -40,7 +40,7 @@ class FullScreenVideoPlayerActivity : VideoPlayerActivity() {
         super.onCreate(savedInstanceState)
         initUiFlags()
 
-        (videoView.videoControls as? VideoControls)?.visibilityListener = ControlsVisibilityListener()
+        (videoView.videoControls as? DefaultVideoControls)?.visibilityListener = ControlsVisibilityListener()
     }
 
     public override fun onDestroy() {
@@ -99,7 +99,7 @@ class FullScreenVideoPlayerActivity : VideoPlayerActivity() {
     }
 
     /**
-     * A Listener for the [VideoControls]
+     * A Listener for the [DefaultVideoControls]
      * so that we can re-enter fullscreen mode when the controls are hidden.
      */
     private inner class ControlsVisibilityListener : VideoControlsVisibilityListener {

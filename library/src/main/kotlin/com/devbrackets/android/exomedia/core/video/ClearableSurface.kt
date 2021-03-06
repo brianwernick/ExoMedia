@@ -23,5 +23,5 @@ package com.devbrackets.android.exomedia.core.video
  * have their surfaces cleared.
  */
 interface ClearableSurface {
-    fun clearSurface()
+  fun clearSurface()
 }

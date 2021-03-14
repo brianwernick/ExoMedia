@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 - 2019 ExoMedia Contributors
+ * Copyright (C) 2016 - 2021 ExoMedia Contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,21 +16,17 @@
 
 package com.devbrackets.android.exomedia.core.audio
 
-import android.content.Context
 import android.net.Uri
-import androidx.annotation.FloatRange
 import androidx.annotation.IntRange
-import com.devbrackets.android.exomedia.ExoMedia
 import com.devbrackets.android.exomedia.core.ListenerMux
-import com.devbrackets.android.exomedia.core.api.AudioPlayerApi
-import com.devbrackets.android.exomedia.core.exoplayer.ExoMediaPlayer
-import com.devbrackets.android.exomedia.core.exoplayer.WindowInfo
+import com.devbrackets.android.exomedia.nmp.ExoMediaPlayerImpl
+import com.devbrackets.android.exomedia.nmp.manager.window.WindowInfo
 import com.devbrackets.android.exomedia.core.listener.MetadataListener
-import com.devbrackets.android.exomedia.core.video.mp.NativeVideoDelegate
+import com.devbrackets.android.exomedia.core.renderer.RendererType
 import com.devbrackets.android.exomedia.listener.OnBufferUpdateListener
+import com.devbrackets.android.exomedia.nmp.config.PlayerConfig
 import com.google.android.exoplayer2.Player
-import com.google.android.exoplayer2.drm.DrmSessionManager
-import com.google.android.exoplayer2.drm.MediaDrmCallback
+import com.google.android.exoplayer2.drm.DrmSessionManagerProvider
 import com.google.android.exoplayer2.metadata.Metadata
 import com.google.android.exoplayer2.source.MediaSource
 import com.google.android.exoplayer2.source.TrackGroupArray
@@ -39,8 +35,8 @@ import com.google.android.exoplayer2.source.TrackGroupArray
  * A [AudioPlayerApi] implementation that uses the ExoPlayer
  * as the backing media player.
  */
-open class ExoAudioPlayer(protected val context: Context) : AudioPlayerApi {
-  protected val exoMediaPlayer: ExoMediaPlayer = ExoMediaPlayer(context)
+open class ExoAudioPlayer(protected val config: PlayerConfig) : AudioPlayerApi {
+  protected val corePlayer: ExoMediaPlayerImpl = ExoMediaPlayerImpl(config)
 
   protected var _listenerMux: ListenerMux? = null
 
@@ -48,99 +44,92 @@ open class ExoAudioPlayer(protected val context: Context) : AudioPlayerApi {
 
   protected var playRequested = false
 
-  override val volumeLeft: Float
-    get() = exoMediaPlayer.volume
-
-  override val volumeRight: Float
-    get() = exoMediaPlayer.volume
+  override var volume: Float
+    get() = corePlayer.volume
+    set(value) {
+      corePlayer.volume = value
+    }
 
   override val isPlaying: Boolean
-    get() = exoMediaPlayer.playWhenReady
+    get() = corePlayer.playWhenReady
 
   override val duration: Long
     get() = if (!_listenerMux!!.isPrepared) {
       0
-    } else exoMediaPlayer.duration
+    } else corePlayer.duration
 
   override val currentPosition: Long
     get() = if (!_listenerMux!!.isPrepared) {
       0
-    } else exoMediaPlayer.currentPosition
+    } else corePlayer.currentPosition
 
   override val bufferedPercent: Int
-    get() = exoMediaPlayer.bufferedPercentage
+    get() = corePlayer.bufferedPercent
 
   override val windowInfo: WindowInfo?
-    get() = exoMediaPlayer.windowInfo
+    get() = corePlayer.windowInfo
 
   override val audioSessionId: Int
-    get() = exoMediaPlayer.audioSessionId
+    get() = corePlayer.audioSessionId
 
   override val playbackSpeed: Float
-    get() = exoMediaPlayer.playbackSpeed
+    get() = corePlayer.playbackSpeed
 
-  override val availableTracks: Map<ExoMedia.RendererType, TrackGroupArray>?
-    get() = exoMediaPlayer.availableTracks
+  override val availableTracks: Map<RendererType, TrackGroupArray>?
+    get() = corePlayer.availableTracks
 
-  override var drmSessionManager: DrmSessionManager?
-    get() = exoMediaPlayer.drmSessionManager
-    set(value) { exoMediaPlayer.drmSessionManager = value }
+  override var drmSessionManagerProvider: DrmSessionManagerProvider?
+    get() = corePlayer.drmSessionManagerProvider
+    set(value) { corePlayer.drmSessionManagerProvider = value }
 
   init {
-    exoMediaPlayer.setMetadataListener(internalListeners)
-    exoMediaPlayer.setBufferUpdateListener(internalListeners)
+    corePlayer.setMetadataListener(internalListeners)
+    corePlayer.setBufferUpdateListener(internalListeners)
   }
 
-  override fun setDataSource(uri: Uri?, mediaSource: MediaSource?) {
+  override fun setMedia(uri: Uri?, mediaSource: MediaSource?) {
     //Makes sure the listeners get the onPrepared callback
     _listenerMux?.setNotifiedPrepared(false)
-    exoMediaPlayer.seekTo(0)
+    corePlayer.seekTo(0)
 
     mediaSource?.let {
-      exoMediaPlayer.setMediaSource(it)
+      corePlayer.setMediaSource(it)
       _listenerMux?.setNotifiedCompleted(false)
+      corePlayer.prepare()
       return
     }
 
     uri?.let {
-      exoMediaPlayer.setUri(it)
+      corePlayer.setMediaUri(it)
       _listenerMux?.setNotifiedCompleted(false)
+      corePlayer.prepare()
       return
     }
 
-    exoMediaPlayer.setMediaSource(null)
-  }
-
-  override fun prepareAsync() {
-    exoMediaPlayer.prepare()
+    corePlayer.setMediaSource(null)
   }
 
   override fun reset() {
     //Purposefully left blank
   }
 
-  override fun setVolume(@FloatRange(from = 0.0, to = 1.0) left: Float, @FloatRange(from = 0.0, to = 1.0) right: Float) {
-    //Averages the volume since the ExoPlayer only takes a single channel
-    exoMediaPlayer.volume = (left + right) / 2
-  }
-
   override fun seekTo(@IntRange(from = 0) milliseconds: Long) {
-    exoMediaPlayer.seekTo(milliseconds)
+    corePlayer.seekTo(milliseconds)
   }
 
   override fun start() {
-    exoMediaPlayer.playWhenReady = true
+    corePlayer.playWhenReady = true
     _listenerMux?.setNotifiedCompleted(false)
     playRequested = true
   }
 
   override fun pause() {
-    exoMediaPlayer.playWhenReady = false
+    corePlayer.playWhenReady = false
     playRequested = false
   }
 
-  override fun stopPlayback() {
-    exoMediaPlayer.stop()
+  override fun stop() {
+    corePlayer.stop()
     playRequested = false
   }
 
@@ -150,7 +139,7 @@ open class ExoAudioPlayer(protected val context: Context) : AudioPlayerApi {
    * @return `true` if the media was successfully restarted, otherwise `false`
    */
   override fun restart(): Boolean {
-    if (!exoMediaPlayer.restart()) {
+    if (!corePlayer.restart()) {
       return false
     }
 
@@ -161,42 +150,55 @@ open class ExoAudioPlayer(protected val context: Context) : AudioPlayerApi {
   }
 
   override fun release() {
-    exoMediaPlayer.release()
+    corePlayer.release()
   }
 
   override fun setPlaybackSpeed(speed: Float): Boolean {
-    return exoMediaPlayer.setPlaybackSpeed(speed)
+    corePlayer.playbackSpeed = speed
+    return true
   }
 
   override fun setAudioStreamType(streamType: Int) {
-    exoMediaPlayer.setAudioStreamType(streamType)
+    corePlayer.setAudioStreamType(streamType)
   }
 
-  override fun setWakeMode(context: Context, mode: Int) {
-    exoMediaPlayer.setWakeMode(context, mode)
+  override fun setWakeLevel(levelAndFlags: Int) {
+    corePlayer.setWakeLevel(levelAndFlags)
   }
 
   override fun trackSelectionAvailable(): Boolean {
     return true
   }
 
-  override fun setTrack(type: ExoMedia.RendererType, groupIndex: Int, trackIndex: Int) {
-    exoMediaPlayer.setSelectedTrack(type, groupIndex, trackIndex)
+  override fun setSelectedTrack(type: RendererType, groupIndex: Int, trackIndex: Int) {
+    corePlayer.setSelectedTrack(type, groupIndex, trackIndex)
   }
 
-  override fun getSelectedTrackIndex(type: ExoMedia.RendererType, groupIndex: Int): Int {
-    return exoMediaPlayer.getSelectedTrackIndex(type, groupIndex)
+  override fun getSelectedTrackIndex(type: RendererType, groupIndex: Int): Int {
+    return corePlayer.getSelectedTrackIndex(type, groupIndex)
+  }
+
+  override fun clearSelectedTracks(type: RendererType) {
+    corePlayer.clearSelectedTracks(type)
+  }
+
+  override fun setRendererEnabled(type: RendererType, enabled: Boolean) {
+    corePlayer.setRendererEnabled(type, enabled)
+  }
+
+  override fun isRendererEnabled(type: RendererType): Boolean {
+    return corePlayer.isRendererEnabled(type)
   }
 
   override fun setListenerMux(listenerMux: ListenerMux) {
     this._listenerMux?.let { oldListenerMux ->
-      exoMediaPlayer.removeListener(oldListenerMux)
-      exoMediaPlayer.removeAnalyticsListener(oldListenerMux)
+      corePlayer.removeListener(oldListenerMux)
+      corePlayer.removeAnalyticsListener(oldListenerMux)
     }
 
     this._listenerMux = listenerMux
-    exoMediaPlayer.addListener(listenerMux)
-    exoMediaPlayer.addAnalyticsListener(listenerMux)
+    corePlayer.addListener(listenerMux)
+    corePlayer.addAnalyticsListener(listenerMux)
   }
 
   override fun onMediaPrepared() {
@@ -204,7 +206,7 @@ open class ExoAudioPlayer(protected val context: Context) : AudioPlayerApi {
   }
 
   override fun setRepeatMode(@Player.RepeatMode repeatMode: Int) {
-    exoMediaPlayer.setRepeatMode(repeatMode)
+    corePlayer.setRepeatMode(repeatMode)
   }
 
   protected inner class InternalListeners : MetadataListener, OnBufferUpdateListener {

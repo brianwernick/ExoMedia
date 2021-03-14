@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 - 2019 ExoMedia Contributors,
+ * Copyright (C) 2015 - 2021 ExoMedia Contributors,
  * Copyright (C) 2014 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,16 +17,16 @@
 
 package com.devbrackets.android.exomedia.core.listener
 
-import com.devbrackets.android.exomedia.core.exoplayer.ExoMediaPlayer
 import com.devbrackets.android.exomedia.listener.OnSeekCompletionListener
+import com.devbrackets.android.exomedia.nmp.ExoMediaPlayer
 
 /**
- * A repeatListener for core [ExoMediaPlayer] events
+ * A listener for core [ExoMediaPlayer] events
  */
 interface ExoPlayerListener : OnSeekCompletionListener {
   fun onStateChanged(playWhenReady: Boolean, playbackState: Int)
 
-  fun onError(exoMediaPlayer: ExoMediaPlayer, e: Exception?)
+  fun onError(player: ExoMediaPlayer, e: Exception?)
 
   fun onVideoSizeChanged(width: Int, height: Int, unAppliedRotationDegrees: Int, pixelWidthHeightRatio: Float)
 }

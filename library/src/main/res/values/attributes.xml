@@ -3,9 +3,8 @@
     <declare-styleable name="VideoView">
         <attr name="useDefaultControls" format="boolean"/>
         <attr name="useTextureViewBacking" format="boolean"/>
-        <attr name="videoViewApiImpl" format="reference"/>
-        <attr name="videoViewApiImplLegacy" format="reference"/>
         <attr name="measureBasedOnAspectRatio" format="boolean"/>
+        <attr name="playerConfigProvider" format="string" />
         <attr name="videoScale" format="enum">
             <enum name="center" value="0"/>
             <enum name="centerCrop" value="1"/>

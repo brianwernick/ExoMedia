@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 - 2019 ExoMedia Contributors
+ * Copyright (C) 2016 - 2021 ExoMedia Contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,8 @@
 
 package com.devbrackets.android.exomedia.ui.widget
 
-import android.annotation.SuppressLint
 import android.annotation.TargetApi
 import android.content.Context
-import android.content.res.TypedArray
 import android.graphics.Bitmap
 import android.graphics.drawable.Drawable
 import android.media.AudioAttributes
@@ -32,29 +30,34 @@ import android.view.*
 import android.widget.ImageView
 import android.widget.RelativeLayout
 import androidx.annotation.DrawableRes
-import androidx.annotation.FloatRange
 import androidx.annotation.IntRange
-import androidx.annotation.LayoutRes
-import com.devbrackets.android.exomedia.ExoMedia
 import com.devbrackets.android.exomedia.R
 import com.devbrackets.android.exomedia.core.ListenerMux
-import com.devbrackets.android.exomedia.core.api.VideoViewApi
-import com.devbrackets.android.exomedia.core.exoplayer.ExoMediaPlayer
-import com.devbrackets.android.exomedia.core.exoplayer.WindowInfo
+import com.devbrackets.android.exomedia.core.video.VideoPlayerApi
+import com.devbrackets.android.exomedia.nmp.manager.window.WindowInfo
 import com.devbrackets.android.exomedia.core.listener.CaptionListener
 import com.devbrackets.android.exomedia.core.listener.MetadataListener
-import com.devbrackets.android.exomedia.core.video.exo.ExoTextureVideoView
-import com.devbrackets.android.exomedia.core.video.mp.NativeTextureVideoView
+import com.devbrackets.android.exomedia.core.renderer.RendererType
+import com.devbrackets.android.exomedia.core.video.ExoVideoPlayer
 import com.devbrackets.android.exomedia.core.video.scale.ScaleType
+import com.devbrackets.android.exomedia.core.video.surface.VideoSurface
 import com.devbrackets.android.exomedia.listener.*
-import com.devbrackets.android.exomedia.util.DeviceUtil
+import com.devbrackets.android.exomedia.nmp.ExoMediaPlayer
+import com.devbrackets.android.exomedia.nmp.config.PlayerConfig
+import com.devbrackets.android.exomedia.ui.widget.attr.VideoViewAttributeParser
+import com.devbrackets.android.exomedia.ui.widget.attr.VideoViewAttributes
+import com.devbrackets.android.exomedia.ui.widget.controls.VideoControls
+import com.devbrackets.android.exomedia.ui.widget.controls.VideoControlsLeanback
+import com.devbrackets.android.exomedia.ui.widget.controls.VideoControlsMobile
 import com.devbrackets.android.exomedia.util.StopWatch
 import com.devbrackets.android.exomedia.util.isDeviceTV
 import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.analytics.AnalyticsListener
 import com.google.android.exoplayer2.drm.DrmSessionManager
+import com.google.android.exoplayer2.drm.DrmSessionManagerProvider
 import com.google.android.exoplayer2.source.MediaSource
 import com.google.android.exoplayer2.source.TrackGroupArray
+import java.lang.IllegalArgumentException
 
 /**
  * This is a support VideoView that will use the standard VideoView on devices below
@@ -65,6 +68,9 @@ import com.google.android.exoplayer2.source.TrackGroupArray
  *
  * To an external user this view should have the same APIs used with the standard VideoView
  * to help with quick implementations.
+ *
+ * TODO why doesn't this extend VideoPlayerApi?
+ * TODO: standardize naming of exposed methods with the AudioPlayer (e.g. setMediaUri instead of setVideoUri)
  */
 open class VideoView : RelativeLayout {
 
@@ -74,7 +80,9 @@ open class VideoView : RelativeLayout {
    * @return the preview ImageView
    */
   val previewImageView: ImageView? by lazy { findViewById(R.id.exomedia_video_preview_image) }
-  protected val videoViewImpl: VideoViewApi by lazy { findViewById<View>(R.id.exomedia_video_view) as VideoViewApi }
+  protected val surface: View by lazy { findViewById(R.id.exomedia_surface_view) }
+
+  protected val videoPlayer: VideoPlayerApi by lazy { getApiImplementation() }
 
   /**
    * Retrieves the current Video URI.  If this hasn't been set with [.setVideoURI]
@@ -84,7 +92,6 @@ open class VideoView : RelativeLayout {
    */
   var videoUri: Uri? = null
     protected set
-  protected var deviceUtil = DeviceUtil()
 
   protected var audioManager: AudioManager? = null
   protected var audioFocusHelper = AudioFocusHelper()
@@ -98,10 +105,12 @@ open class VideoView : RelativeLayout {
 
   protected var overridePosition = false
   protected var matchOverridePositionSpeed = true
+
   protected var overriddenPositionStopWatch = StopWatch()
 
   protected var muxNotifier = MuxNotifier()
   protected val listenerMux: ListenerMux by lazy { ListenerMux(muxNotifier) }
+  protected lateinit var playerConfig: PlayerConfig
 
   /**
    * ***WARNING:*** Use of this method may cause memory leaks.
@@ -150,9 +159,9 @@ open class VideoView : RelativeLayout {
    * @return The volume for the media
    */
   var volume: Float
-    get() = videoViewImpl.volume
+    get() = videoPlayer.volume
     set(value) {
-      videoViewImpl.volume = value
+      videoPlayer.volume = value
     }
 
   /**
@@ -161,7 +170,7 @@ open class VideoView : RelativeLayout {
    * @return True if a video is playing
    */
   val isPlaying: Boolean
-    get() = videoViewImpl.isPlaying
+    get() = videoPlayer.isPlaying
 
   /**
    * Retrieves the duration of the current audio item.  This should only be called after
@@ -173,7 +182,7 @@ open class VideoView : RelativeLayout {
   val duration: Long
     get() = if (overriddenDuration >= 0) {
       overriddenDuration
-    } else videoViewImpl.duration
+    } else videoPlayer.duration
 
   /**
    * Retrieves the current position of the audio playback.  If an audio item is not currently
@@ -185,7 +194,7 @@ open class VideoView : RelativeLayout {
   val currentPosition: Long
     get() = if (overridePosition) {
       positionOffset + overriddenPositionStopWatch.time
-    } else positionOffset + videoViewImpl.currentPosition
+    } else positionOffset + videoPlayer.currentPosition
 
   /**
    * Retrieves the current buffer percent of the video.  If a video is not currently
@@ -195,7 +204,7 @@ open class VideoView : RelativeLayout {
    * @return The integer percent that is buffered [0, 100] inclusive
    */
   val bufferPercentage: Int
-    get() = videoViewImpl.bufferedPercent
+    get() = videoPlayer.bufferedPercent
 
   /**
    * Retrieves the information associated with the current [com.google.android.exoplayer2.Timeline.Window]
@@ -205,7 +214,7 @@ open class VideoView : RelativeLayout {
    * @return The current Window information or null
    */
   val windowInfo: WindowInfo?
-    get() = videoViewImpl.windowInfo
+    get() = videoPlayer.windowInfo
 
   /**
    * Retrieves the current speed the media is playing at.
@@ -213,7 +222,7 @@ open class VideoView : RelativeLayout {
    * @return The current playback speed
    */
   val playbackSpeed: Float
-    get() = videoViewImpl.playbackSpeed
+    get() = videoPlayer.playbackSpeed
 
   /**
    * Retrieves a list of available tracks to select from.  Typically [.trackSelectionAvailable]
@@ -221,14 +230,13 @@ open class VideoView : RelativeLayout {
    *
    * @return A list of available tracks associated with each track type
    */
-  val availableTracks: Map<ExoMedia.RendererType, TrackGroupArray>?
-    get() = videoViewImpl.availableTracks
+  val availableTracks: Map<RendererType, TrackGroupArray>?
+    get() = videoPlayer.availableTracks
 
   /**
    * Returns a [Bitmap] representation of the current contents of the
    * view. If the surface isn't ready or we cannot access it for some reason then
    * `null` will be returned instead.
-   *
    *
    * **NOTE:** Only the `TextureView` implementations support getting the bitmap
    * meaning that if the backing implementation is a `SurfaceView` then the result
@@ -237,7 +245,7 @@ open class VideoView : RelativeLayout {
    * @return A [Bitmap] representation of the view or `null`
    */
   val bitmap: Bitmap?
-    get() = (videoViewImpl as? TextureView)?.bitmap
+    get() = (videoPlayer as? TextureView)?.bitmap
 
   constructor(context: Context) : super(context) {
     setup(context, null)
@@ -265,8 +273,8 @@ open class VideoView : RelativeLayout {
     }
   }
 
-  override fun setOnTouchListener(listener: View.OnTouchListener?) {
-    videoViewImpl.setOnTouchListener(listener)
+  override fun setOnTouchListener(listener: OnTouchListener?) {
+    surface.setOnTouchListener(listener)
     super.setOnTouchListener(listener)
   }
 
@@ -282,7 +290,7 @@ open class VideoView : RelativeLayout {
     stopPlayback()
     overriddenPositionStopWatch.stop()
 
-    videoViewImpl.release()
+    videoPlayer.release()
   }
 
   /**
@@ -323,7 +331,7 @@ open class VideoView : RelativeLayout {
 
   /**
    * Requests the [DefaultVideoControls] to become visible.  This should only be called after
-   * [.setControls].
+   * [setControls].
    */
   fun showControls() {
     videoControls?.show()
@@ -340,7 +348,7 @@ open class VideoView : RelativeLayout {
    */
   fun setVideoURI(uri: Uri?) {
     videoUri = uri
-    videoViewImpl.setVideoUri(uri)
+    videoPlayer.setMedia(uri)
     videoControls?.showLoading(true)
   }
 
@@ -352,7 +360,7 @@ open class VideoView : RelativeLayout {
    */
   fun setVideoURI(uri: Uri?, mediaSource: MediaSource?) {
     videoUri = uri
-    videoViewImpl.setVideoUri(uri, mediaSource)
+    videoPlayer.setMedia(uri, mediaSource)
     videoControls?.showLoading(true)
   }
 
@@ -373,21 +381,10 @@ open class VideoView : RelativeLayout {
    * NOTE: This will only configure DRM for the ExoPlayer implementation and not
    * the native (MediaPlayer) backed implementation.
    *
-   * @param drmSessionManager The session manager to handle the DRM authorization
+   * @param drmSessionManagerProvider The session manager provider to handle the DRM authorization
    */
-  fun setDrmSessionManager(drmSessionManager: DrmSessionManager?) {
-    videoViewImpl.drmSessionManager = drmSessionManager
-  }
-
-  /**
-   * Sets the volume level for devices that support
-   * the ExoPlayer (JellyBean or greater).
-   *
-   * @param volume The volume range [0.0 - 1.0]
-   * @return True if the volume was set
-   */
-  fun setVolume(@FloatRange(from = 0.0, to = 1.0) volume: Float): Boolean {
-    return videoViewImpl.setVolume(volume)
+  fun setDrmSessionManagerProvider(drmSessionManagerProvider: DrmSessionManagerProvider?) {
+    videoPlayer.drmSessionManagerProvider = drmSessionManagerProvider
   }
 
   /**
@@ -406,7 +403,7 @@ open class VideoView : RelativeLayout {
    */
   fun seekTo(milliSeconds: Long) {
     videoControls?.showLoading(false)
-    videoViewImpl.seekTo(milliSeconds)
+    videoPlayer.seekTo(milliSeconds)
   }
 
   /**
@@ -419,7 +416,7 @@ open class VideoView : RelativeLayout {
       return
     }
 
-    videoViewImpl.start()
+    videoPlayer.start()
     keepScreenOn = true
 
     videoControls?.updatePlaybackState(true)
@@ -427,7 +424,7 @@ open class VideoView : RelativeLayout {
 
   /**
    * Pauses the current video in playback, only abandoning the audio focus if
-   * `transientFocusLoss` is `false`. Calling [.pause] should
+   * `transientFocusLoss` is `false`. Calling [pause] should
    * be used in most cases unless the audio focus is being handled manually
    *
    * @param transientFocusLoss `true` if the pause is temporary and the audio focus should be retained
@@ -438,7 +435,7 @@ open class VideoView : RelativeLayout {
       audioFocusHelper.abandonFocus()
     }
 
-    videoViewImpl.pause()
+    videoPlayer.pause()
     keepScreenOn = false
 
     videoControls?.updatePlaybackState(false)
@@ -461,7 +458,7 @@ open class VideoView : RelativeLayout {
       return false
     }
 
-    if (videoViewImpl.restart()) {
+    if (videoPlayer.restart()) {
       videoControls?.showLoading(true)
       return true
     } else {
@@ -471,10 +468,12 @@ open class VideoView : RelativeLayout {
 
   /**
    * If a video is currently in playback then the playback will be suspended
+   * TODO: rename to release? Internally we call release on the videoPlayer which
+   *       means we won't be able to start playback again with this instance
    */
   fun suspend() {
     audioFocusHelper.abandonFocus()
-    videoViewImpl.suspend()
+    videoPlayer.release()
     keepScreenOn = false
 
     videoControls?.updatePlaybackState(false)
@@ -540,7 +539,7 @@ open class VideoView : RelativeLayout {
    * @param repeatMode The repeat mode to use
    */
   fun setRepeatMode(@Player.RepeatMode repeatMode: Int) {
-    videoViewImpl.setRepeatMode(repeatMode)
+    videoPlayer.setRepeatMode(repeatMode)
   }
 
   /**
@@ -550,7 +549,7 @@ open class VideoView : RelativeLayout {
    * @return True if the speed was set
    */
   fun setPlaybackSpeed(speed: Float): Boolean {
-    val wasSet = videoViewImpl.setPlaybackSpeed(speed)
+    val wasSet = videoPlayer.setPlaybackSpeed(speed)
     if (wasSet && matchOverridePositionSpeed) {
       overriddenPositionStopWatch.speedMultiplier = speed
     }
@@ -565,7 +564,7 @@ open class VideoView : RelativeLayout {
    * @param listener The caption repeatListener
    */
   fun setCaptionListener(listener: CaptionListener?) {
-    videoViewImpl.setCaptionListener(listener)
+    videoPlayer.setCaptionListener(listener)
   }
 
   /**
@@ -575,7 +574,7 @@ open class VideoView : RelativeLayout {
    * @return True if tracks can be manually specified
    */
   fun trackSelectionAvailable(): Boolean {
-    return videoViewImpl.trackSelectionAvailable()
+    return videoPlayer.trackSelectionAvailable()
   }
 
   /**
@@ -586,20 +585,20 @@ open class VideoView : RelativeLayout {
    * @param groupIndex The index for the group in the [TrackGroupArray] specified by the `trackType`
    * @param trackIndex The index for the track to switch to
    */
-  fun setTrack(trackType: ExoMedia.RendererType, groupIndex: Int, trackIndex: Int) {
-    videoViewImpl.setTrack(trackType, groupIndex, trackIndex)
+  fun setTrack(trackType: RendererType, groupIndex: Int, trackIndex: Int) {
+    videoPlayer.setSelectedTrack(trackType, groupIndex, trackIndex)
   }
 
-  fun getSelectedTrackIndex(type: ExoMedia.RendererType, groupIndex: Int): Int {
-    return videoViewImpl.getSelectedTrackIndex(type, groupIndex)
+  fun getSelectedTrackIndex(type: RendererType, groupIndex: Int): Int {
+    return videoPlayer.getSelectedTrackIndex(type, groupIndex)
   }
 
   /**
    * Clear all selected tracks for the specified renderer.
    * @param type The renderer type
    */
-  fun clearSelectedTracks(type: ExoMedia.RendererType) {
-    videoViewImpl.clearSelectedTracks(type)
+  fun clearSelectedTracks(type: RendererType) {
+    videoPlayer.clearSelectedTracks(type)
   }
 
   /**
@@ -609,8 +608,8 @@ open class VideoView : RelativeLayout {
    * @param type The [com.devbrackets.android.exomedia.ExoMedia.RendererType] to enable or disable the track for
    * @param enabled `true` if the track should be enabled.
    */
-  fun setRendererEnabled(type: ExoMedia.RendererType, enabled: Boolean) {
-    videoViewImpl.setRendererEnabled(type, enabled)
+  fun setRendererEnabled(type: RendererType, enabled: Boolean) {
+    videoPlayer.setRendererEnabled(type, enabled)
   }
 
   /**
@@ -618,8 +617,8 @@ open class VideoView : RelativeLayout {
    * @param type The renderer type
    * @return true if at least one renderer for the given type is enabled
    */
-  fun isRendererEnabled(type: ExoMedia.RendererType): Boolean {
-    return videoViewImpl.isRendererEnabled(type)
+  fun isRendererEnabled(type: RendererType): Boolean {
+    return videoPlayer.isRendererEnabled(type)
   }
 
   /**
@@ -628,16 +627,16 @@ open class VideoView : RelativeLayout {
    * @param scaleType how to scale the videos
    */
   fun setScaleType(scaleType: ScaleType) {
-    videoViewImpl.scaleType = scaleType
+    (surface as VideoSurface).scaleType = scaleType
   }
 
   /**
-   * Measures the underlying [VideoViewApi] using the video's aspect ratio if `true`
+   * Measures the underlying [VideoPlayerApi] using the video's aspect ratio if `true`
    *
    * @param measureBasedOnAspectRatioEnabled whether to measure using the video's aspect ratio or not
    */
   fun setMeasureBasedOnAspectRatioEnabled(measureBasedOnAspectRatioEnabled: Boolean) {
-    videoViewImpl.setMeasureBasedOnAspectRatioEnabled(measureBasedOnAspectRatioEnabled)
+    (surface as VideoSurface).setMeasureBasedOnAspectRatioEnabled(measureBasedOnAspectRatioEnabled)
   }
 
   /**
@@ -646,7 +645,7 @@ open class VideoView : RelativeLayout {
    * @param rotation The rotation to apply to the video
    */
   fun setVideoRotation(@IntRange(from = 0, to = 359) rotation: Int) {
-    videoViewImpl.setVideoRotation(rotation, true)
+    (surface as VideoSurface).setVideoRotation(rotation, true)
   }
 
   /**
@@ -733,11 +732,12 @@ open class VideoView : RelativeLayout {
       return
     }
 
+    val attributes = VideoViewAttributeParser().parse(context, attrs)
     audioManager = context.applicationContext.getSystemService(Context.AUDIO_SERVICE) as AudioManager
+    playerConfig = attributes.playerConfigProvider.getConfig(context)
 
-    val attributeContainer = AttributeContainer(context, attrs)
-    initView(context, attributeContainer)
-    postInit(attributeContainer)
+    initView(context, attributes)
+    postInit(attributes)
   }
 
   /**
@@ -746,73 +746,54 @@ open class VideoView : RelativeLayout {
    * references.
    *
    * @param context The context for the initialization
-   * @param attributeContainer The attributes associated with this instance
+   * @param attributes The attributes associated with this instance
    */
-  protected fun initView(context: Context, attributeContainer: AttributeContainer) {
-    inflateVideoView(context, attributeContainer)
+  protected fun initView(context: Context, attributes: VideoViewAttributes) {
+    View.inflate(context, R.layout.exomedia_video_view_layout, this)
 
-    videoViewImpl.setListenerMux(listenerMux)
+    // Inflates the correct surface
+    findViewById<ViewStub>(R.id.video_view_surface_stub).apply {
+      layoutResource = if (attributes.useTextureViewBacking) R.layout.exomedia_resizing_texture_view else R.layout.exomedia_resizing_surface_view
+      inflate()
+    }
+
+    videoPlayer.setListenerMux(listenerMux)
   }
 
   /**
    * Handles any setup that needs to be performed after [.initView]
    * is performed.
    *
-   * @param attributeContainer The attributes associated with this instance
+   * @param attributes The attributes associated with this instance
    */
-  protected fun postInit(attributeContainer: AttributeContainer) {
-    if (attributeContainer.useDefaultControls) {
+  protected fun postInit(attributes: VideoViewAttributes) {
+    if (attributes.useDefaultControls) {
       videoControls = if (context.isDeviceTV()) VideoControlsLeanback(context) else VideoControlsMobile(context)
     }
 
-    attributeContainer.scaleType?.let {
+    attributes.scaleType?.let {
       setScaleType(it)
     }
 
-    attributeContainer.measureBasedOnAspectRatio?.let {
+    attributes.measureBasedOnAspectRatio?.let {
       setMeasureBasedOnAspectRatioEnabled(it)
     }
   }
 
   /**
-   * Inflates the video view layout, replacing the [ViewStub] with the
-   * correct backing implementation.
-   *
-   * @param context The context to use for inflating the correct video view
-   * @param attributeContainer The attributes for retrieving custom backing implementations.
+   * Retrieves the API implementation to use to play media
    */
-  protected fun inflateVideoView(context: Context, attributeContainer: AttributeContainer) {
-    View.inflate(context, R.layout.exomedia_video_view_layout, this)
-    val videoViewStub = findViewById<ViewStub>(R.id.video_view_api_impl_stub)
+  fun getApiImplementation(): VideoPlayerApi {
+    if (surface !is VideoSurface) {
+      throw IllegalArgumentException("Provided surface must extend ClearableSurface")
+    }
 
-    videoViewStub.layoutResource = getVideoViewApiImplementation(context, attributeContainer)
-    videoViewStub.inflate()
-  }
-
-  /**
-   * Retrieves the layout resource to use for the backing video view implementation.  By
-   * default this uses the Android [android.widget.VideoView] on legacy devices with
-   * APIs below Jellybean (16) or that don't pass the Compatibility Test Suite [CTS] via
-   * [NativeTextureVideoView], and an ExoPlayer backed video view on the remaining devices via
-   * [ExoTextureVideoView].
-   *
-   *
-   * In the rare cases that the default implementations need to be extended, or replaced, the
-   * user can override the value with the attributes `videoViewApiImplLegacy`
-   * and `videoViewApiImpl`.
-   *
-   *
-   * **NOTE:** overriding the default implementations may cause inconsistencies and isn't
-   * recommended.
-   *
-   * @param context The Context to use when retrieving the backing video view implementation
-   * @param attributeContainer The attributes to use for finding overridden video view implementations
-   * @return The layout resource for the backing implementation on the current device
-   */
-  @LayoutRes
-  protected fun getVideoViewApiImplementation(context: Context, attributeContainer: AttributeContainer): Int {
-    val useLegacy = !deviceUtil.supportsExoPlayer(context)
-    return if (useLegacy) attributeContainer.apiImplLegacyResourceId else attributeContainer.apiImplResourceId
+    val videoSurface = surface as VideoSurface
+    return if (playerConfig.fallbackManager.useFallback()) {
+      playerConfig.fallbackManager.getFallbackVideoPlayer(context, videoSurface)
+    } else {
+      ExoVideoPlayer(playerConfig, videoSurface)
+    }
   }
 
   /**
@@ -833,7 +814,7 @@ open class VideoView : RelativeLayout {
    */
   protected fun stopPlayback(clearSurface: Boolean) {
     audioFocusHelper.abandonFocus()
-    videoViewImpl.stopPlayback(clearSurface)
+    videoPlayer.stop(clearSurface)
     keepScreenOn = false
 
     videoControls?.updatePlaybackState(false)
@@ -956,7 +937,6 @@ open class VideoView : RelativeLayout {
 
     override fun onExoPlayerError(exoMediaPlayer: ExoMediaPlayer, e: Exception?) {
       stopPlayback()
-
       exoMediaPlayer.forcePrepare()
     }
 
@@ -971,8 +951,8 @@ open class VideoView : RelativeLayout {
 
     override fun onVideoSizeChanged(width: Int, height: Int, unAppliedRotationDegrees: Int, pixelWidthHeightRatio: Float) {
       //NOTE: Android 5.0+ will always have an unAppliedRotationDegrees of 0 (ExoPlayer already handles it)
-      videoViewImpl.setVideoRotation(unAppliedRotationDegrees, false)
-      videoViewImpl.onVideoSizeChanged(width, height, pixelWidthHeightRatio)
+      (surface as VideoSurface).setVideoRotation(unAppliedRotationDegrees, false)
+      (surface as VideoSurface).onVideoSizeChanged(width, height, pixelWidthHeightRatio)
 
       videoSizeChangedListener?.onVideoSizeChanged(width, height, pixelWidthHeightRatio)
     }
@@ -989,6 +969,7 @@ open class VideoView : RelativeLayout {
 
   /**
    * Monitors the view click events to show and hide the video controls if they have been specified.
+   * TODO: this should probably be located in the controls
    */
   protected inner class TouchListener(context: Context) : GestureDetector.SimpleOnGestureListener(), View.OnTouchListener {
     protected val gestureDetector by lazy {
@@ -1012,92 +993,4 @@ open class VideoView : RelativeLayout {
     }
   }
 
-  /**
-   * A simple class that will retrieve the attributes and provide a simplified
-   * interaction than passing around the [AttributeSet]
-   */
-  protected inner class AttributeContainer
-  /**
-   * Reads the attributes associated with this view, setting any values found
-   *
-   * @param context The context to retrieve the styled attributes with
-   * @param attrs The [AttributeSet] to retrieve the values from
-   */
-  (context: Context, attrs: AttributeSet?) {
-    /**
-     * Specifies if the [DefaultVideoControls] should be added to the view.  These
-     * can be added through source code with [.setControls]
-     */
-    var useDefaultControls = false
-
-    /**
-     * Specifies if the [VideoViewApi] implementations should use the [android.view.TextureView]
-     * implementations.  If this is false then the implementations will be based on
-     * the [android.view.SurfaceView]
-     */
-    var useTextureViewBacking = false
-
-    /**
-     * The resource id that points to a custom implementation for the `ExoPlayer`
-     * backed [VideoViewApi]
-     */
-    var apiImplResourceId = R.layout.exomedia_default_exo_texture_video_view
-
-    /**
-     * The resource id that points to a custom implementation for the Android [android.media.MediaPlayer]
-     * backed [VideoViewApi].  This will only be used on devices that do not support the
-     * `ExoPlayer` (see [DeviceUtil.supportsExoPlayer] for details)
-     */
-    var apiImplLegacyResourceId = R.layout.exomedia_default_native_texture_video_view
-
-    /**
-     * Specifies the scale that the [VideoView] should use. If this is `null`
-     * then the default value from the [com.devbrackets.android.exomedia.core.video.scale.MatrixManager]
-     * will be used.
-     */
-    var scaleType: ScaleType? = null
-
-    /**
-     * Specifies if the [VideoView] should be measured based on the aspect ratio. Because
-     * the default value is different between the [com.devbrackets.android.exomedia.core.video.ResizingSurfaceView]
-     * and [com.devbrackets.android.exomedia.core.video.ResizingTextureView] this will be `null`
-     * when not specified.
-     */
-    var measureBasedOnAspectRatio: Boolean? = null
-
-    init {
-      context.withStyledAttributes(attrs, R.styleable.VideoView) { typedArray ->
-        useDefaultControls = typedArray.getBoolean(R.styleable.VideoView_useDefaultControls, useDefaultControls)
-        useTextureViewBacking = typedArray.getBoolean(R.styleable.VideoView_useTextureViewBacking, useTextureViewBacking)
-
-        if (typedArray.hasValue(R.styleable.VideoView_videoScale)) {
-          scaleType = ScaleType.fromOrdinal(typedArray.getInt(R.styleable.VideoView_videoScale, -1))
-        }
-
-        if (typedArray.hasValue(R.styleable.VideoView_measureBasedOnAspectRatio)) {
-          measureBasedOnAspectRatio = typedArray.getBoolean(R.styleable.VideoView_measureBasedOnAspectRatio, false)
-        }
-
-        //Resets the default implementations based on useTextureViewBacking
-        apiImplResourceId = if (useTextureViewBacking) R.layout.exomedia_default_exo_texture_video_view else R.layout.exomedia_default_exo_surface_video_view
-        apiImplLegacyResourceId = if (useTextureViewBacking) R.layout.exomedia_default_native_texture_video_view else R.layout.exomedia_default_native_surface_video_view
-
-        apiImplResourceId = typedArray.getResourceId(R.styleable.VideoView_videoViewApiImpl, apiImplResourceId)
-        apiImplLegacyResourceId = typedArray.getResourceId(R.styleable.VideoView_videoViewApiImplLegacy, apiImplLegacyResourceId)
-
-      }
-    }
-
-    @SuppressLint("Recycle")
-    private fun Context.withStyledAttributes(attributeSet: AttributeSet?, styles: IntArray, block: (TypedArray) -> Unit) {
-      if (attributeSet == null) {
-        return
-      }
-
-      obtainStyledAttributes(attributeSet, styles).let {
-        block(it)
-        it.recycle()
-      }
-    }
-  }
 }

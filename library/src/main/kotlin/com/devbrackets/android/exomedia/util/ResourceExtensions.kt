@@ -22,38 +22,8 @@ import android.graphics.drawable.Drawable
 import android.os.Build
 import androidx.annotation.*
 import androidx.core.graphics.drawable.DrawableCompat
-import android.util.TypedValue
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.content.res.ResourcesCompat
-
-/**
- * Retrieves the drawable specified with the `drawableRes` using the
- * `colorRes` to correctly tintCompat it before returning the Drawable
- * object.
- *
- * @param drawableRes The resource id for the drawable to retrieve
- * @param colorRes The resource id for the color to use for tinting
- * @return The tinted drawable
- */
-fun Context.tintCompat(@DrawableRes drawableRes: Int, @ColorRes colorRes: Int): Drawable {
-  val drawable = ResourcesCompat.getDrawable(resources, drawableRes, theme)!!.mutate()
-  return tintCompat(drawable, colorRes)
-}
-
-/**
- * Retrieves the drawable specified with the `drawable` using the
- * `colorRes` to correctly tintCompat it before returning the Drawable
- * object.
- *
- * @param drawable The Drawable to tintCompat
- * @param colorRes The resource id for the color to use for tinting
- * @return The tinted drawable
- */
-fun Context.tintCompat(drawable: Drawable, @ColorRes colorRes: Int): Drawable =
-    DrawableCompat
-        .wrap(drawable)
-        .also { DrawableCompat.setTint(it, getColorCompat(colorRes)) }
-
 
 /**
  * Retrieves the drawable specified with the `drawableRes` using the
@@ -82,38 +52,6 @@ fun Context.tintListCompat(drawable: Drawable, @ColorRes tintListRes: Int): Draw
     DrawableCompat
         .wrap(drawable)
         .also { DrawableCompat.setTintList(it, getColorStateListCompat(tintListRes)) }
-
-/**
- * Resolves the reference to an attribute, returning the root resource id.
- *
- * @param attr The attribute to resolve
- * @return The resource id pointing to the de-referenced attribute
- */
-@AnyRes
-fun Context.getResolvedResourceId(@AttrRes attr: Int): Int {
-  val typedValue = TypedValue()
-  theme.resolveAttribute(attr, typedValue, true)
-
-  return when (typedValue.type) {
-    TypedValue.TYPE_REFERENCE -> typedValue.data
-    else -> typedValue.resourceId
-  }
-}
-
-/**
- * Retrieves the color specified with the `colorRes`.  This
- * is a helper method to deal with the API differences for retrieving colors.
- *
- * @param colorRes The id for the color to retrieve
- * @return The color associated with `colorRes`
- */
-@ColorInt
-@Suppress("DEPRECATION")
-fun Context.getColorCompat(@ColorRes colorRes: Int): Int {
-  return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-    resources.getColor(colorRes, theme)
-  } else resources.getColor(colorRes)
-}
 
 /**
  * Retrieves the ColorStateList specified with the `colorRes`.  This

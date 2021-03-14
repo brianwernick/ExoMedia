@@ -1,8 +1,8 @@
 package com.devbrackets.android.exomediademo.manager
 
 import android.app.Application
-import com.devbrackets.android.exomedia.listener.VideoControlsButtonListener
-import com.devbrackets.android.exomedia.ui.widget.DefaultVideoControls
+import com.devbrackets.android.exomedia.ui.listener.VideoControlsButtonListener
+import com.devbrackets.android.exomedia.ui.widget.controls.DefaultVideoControls
 import com.devbrackets.android.exomediademo.data.MediaItem
 import com.devbrackets.android.exomediademo.playlist.VideoApi
 import com.devbrackets.android.exomediademo.service.MediaService

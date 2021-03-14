@@ -20,12 +20,13 @@ import android.media.MediaPlayer
 import android.os.Handler
 import androidx.annotation.IntRange
 import android.view.Surface
-import com.devbrackets.android.exomedia.core.exception.NativeMediaPlaybackException
-import com.devbrackets.android.exomedia.core.exoplayer.ExoMediaPlayer
+import com.devbrackets.android.exomedia.fallback.exception.NativeMediaPlaybackException
+import com.devbrackets.android.exomedia.nmp.ExoMediaPlayerImpl
 import com.devbrackets.android.exomedia.core.listener.ExoPlayerListener
 import com.devbrackets.android.exomedia.core.listener.MetadataListener
-import com.devbrackets.android.exomedia.core.video.ClearableSurface
+import com.devbrackets.android.exomedia.core.video.surface.VideoSurface
 import com.devbrackets.android.exomedia.listener.*
+import com.devbrackets.android.exomedia.nmp.ExoMediaPlayer
 import com.google.android.exoplayer2.*
 import com.google.android.exoplayer2.analytics.AnalyticsListener
 import com.google.android.exoplayer2.audio.AudioAttributes
@@ -39,7 +40,7 @@ import java.io.IOException
 import java.lang.ref.WeakReference
 
 /**
- * An internal Listener that implements the listeners for the [ExoMediaPlayer],
+ * An internal Listener that implements the listeners for the [ExoMediaPlayerImpl],
  * Android VideoView, and the Android MediaPlayer to output to the correct
  * error listeners.
  */
@@ -69,7 +70,7 @@ class ListenerMux(private val muxNotifier: Notifier) :
   private var metadataListener: MetadataListener? = null
   private var analyticsListener: AnalyticsListener? = null
 
-  private var clearableSurfaceRef = WeakReference<ClearableSurface>(null)
+  private var videoSurfaceRef = WeakReference<VideoSurface>(null)
 
   /**
    * Retrieves if the player was prepared
@@ -101,9 +102,9 @@ class ListenerMux(private val muxNotifier: Notifier) :
     notifyPreparedListener()
   }
 
-  override fun onError(exoMediaPlayer: ExoMediaPlayer, e: Exception?) {
+  override fun onError(player: ExoMediaPlayer, e: Exception?) {
     muxNotifier.onMediaPlaybackEnded()
-    muxNotifier.onExoPlayerError(exoMediaPlayer, e)
+    muxNotifier.onExoPlayerError(player, e)
     notifyErrorListener(e)
   }
 
@@ -122,11 +123,9 @@ class ListenerMux(private val muxNotifier: Notifier) :
             if (clearRequested) {
                 //Clears the textureView when requested
                 clearRequested = false
-                val clearableSurface = clearableSurfaceRef.get()
-
-                if (clearableSurface != null) {
-                    clearableSurface.clearSurface()
-                    clearableSurfaceRef = WeakReference<ClearableSurface>(null)
+                videoSurfaceRef.get()?.let {
+                  it.clearSurface()
+                  videoSurfaceRef.clear()
                 }
             }
         }
@@ -381,9 +380,9 @@ class ListenerMux(private val muxNotifier: Notifier) :
    *
    * @param clearableSurface The [ClearableSurface] to clear when the playback reaches an appropriate state
    */
-  fun clearSurfaceWhenReady(clearableSurface: ClearableSurface?) {
+  fun clearSurfaceWhenReady(videoSurface: VideoSurface?) {
     clearRequested = true
-    clearableSurfaceRef = WeakReference<ClearableSurface>(clearableSurface)
+    videoSurfaceRef = WeakReference(videoSurface)
   }
 
   /**

@@ -64,6 +64,7 @@ class FitsSystemWindowRelativeLayout : RelativeLayout {
     return false
   }
 
+  //TODO update to use systembars
   override fun onApplyWindowInsets(insets: WindowInsets): WindowInsets {
     val windowInsets = Rect(
         insets.systemWindowInsetLeft,

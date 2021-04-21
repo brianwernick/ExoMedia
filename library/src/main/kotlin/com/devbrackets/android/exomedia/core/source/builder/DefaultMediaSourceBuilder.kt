@@ -23,11 +23,11 @@ import com.google.android.exoplayer2.source.ProgressiveMediaSource
 
 class DefaultMediaSourceBuilder : MediaSourceBuilder() {
   override fun build(attributes: MediaSourceAttributes): MediaSource {
-    val dataSourceFactory = buildDataSourceFactory(attributes.context, attributes.userAgent, attributes.transferListener)
+    val dataSourceFactory = buildDataSourceFactory(attributes)
     val mediaItem = MediaItem.Builder().setUri(attributes.uri).build()
 
     return ProgressiveMediaSource.Factory(dataSourceFactory, DefaultExtractorsFactory())
-        .setDrmSessionManager(attributes.drmSessionManager)
+        .setDrmSessionManagerProvider(attributes.drmSessionManagerProvider)
         .createMediaSource(mediaItem)
   }
 }

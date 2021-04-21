@@ -19,13 +19,13 @@ package com.devbrackets.android.exomedia
 import android.content.Context
 import android.net.Uri
 import com.devbrackets.android.exomedia.core.ListenerMux
-import com.devbrackets.android.exomedia.core.api.AudioPlayerApi
+import com.devbrackets.android.exomedia.core.audio.AudioPlayerApi
 import com.devbrackets.android.exomedia.core.audio.ExoAudioPlayer
-import com.devbrackets.android.exomedia.core.audio.NativeAudioPlayer
-import com.devbrackets.android.exomedia.core.exoplayer.ExoMediaPlayer
 import com.devbrackets.android.exomedia.core.listener.MetadataListener
 import com.devbrackets.android.exomedia.listener.*
-import com.devbrackets.android.exomedia.util.DeviceUtil
+import com.devbrackets.android.exomedia.nmp.ExoMediaPlayer
+import com.devbrackets.android.exomedia.nmp.config.PlayerConfig
+import com.devbrackets.android.exomedia.nmp.config.PlayerConfigBuilder
 import com.google.android.exoplayer2.analytics.AnalyticsListener
 import com.google.android.exoplayer2.source.MediaSource
 
@@ -39,12 +39,22 @@ import com.google.android.exoplayer2.source.MediaSource
  * the Android MediaPlayer provides.
  */
 open class AudioPlayer(protected val audioPlayerImpl: AudioPlayerApi) : AudioPlayerApi by audioPlayerImpl {
+  companion object {
+    fun getPlayerImplementation(config: PlayerConfig): AudioPlayerApi {
+      return if(config.fallbackManager.useFallback()) {
+        config.fallbackManager.getFallbackAudioPlayer(config.context)
+      } else {
+        ExoAudioPlayer(config)
+      }
+    }
+  }
+
   protected val listenerMux = ListenerMux(MuxNotifier())
 
   protected var overriddenDuration: Long = -1
 
-  @JvmOverloads
-  constructor(context: Context, deviceUtil: DeviceUtil = DeviceUtil()) : this(if (deviceUtil.supportsExoPlayer(context)) ExoAudioPlayer(context) else NativeAudioPlayer(context))
+  constructor(context: Context): this(PlayerConfigBuilder(context).build())
+  constructor(config: PlayerConfig) : this(getPlayerImplementation(config))
 
   init {
     audioPlayerImpl.setListenerMux(listenerMux)
@@ -72,28 +82,8 @@ open class AudioPlayer(protected val audioPlayerImpl: AudioPlayerApi) : AudioPla
   val bufferPercentage: Int
     get() = audioPlayerImpl.bufferedPercent
 
-  /**
-   * Sets the source path for the audio item.  This path can be a web address (e.g. http://) or
-   * an absolute local path (e.g. file://)
-   *
-   * @param uri The Uri representing the path to the audio item
-   */
-  fun setDataSource(uri: Uri?) {
-    // NOTE: this method is needed to simplify Java integration, @JvmOverloads can't be
-    // used on an Interface nor can it be used below due to the default values needing to
-    // be specified in the interface and not at the call site
-    setDataSource(uri, null)
-  }
-
-  /**
-   * Sets the source path for the audio item.  This path can be a web address (e.g. http://) or
-   * an absolute local path (e.g. file://)
-   *
-   * @param uri The Uri representing the path to the audio item
-   * @param mediaSource The MediaSource to use for audio playback
-   */
-  override fun setDataSource(uri: Uri?, mediaSource: MediaSource?) {
-    audioPlayerImpl.setDataSource(uri, mediaSource)
+  override fun setMedia(uri: Uri?, mediaSource: MediaSource?) {
+    audioPlayerImpl.setMedia(uri, mediaSource)
     overrideDuration(-1)
   }
 
@@ -102,8 +92,8 @@ open class AudioPlayer(protected val audioPlayerImpl: AudioPlayerApi) : AudioPla
    * so that we receive the callbacks for events like onPrepared
    */
   override fun reset() {
-    stopPlayback()
-    setDataSource(null, null)
+    stop()
+    setMedia(null, null)
 
     audioPlayerImpl.reset()
   }
@@ -196,8 +186,7 @@ open class AudioPlayer(protected val audioPlayerImpl: AudioPlayerApi) : AudioPla
     }
 
     override fun onExoPlayerError(exoMediaPlayer: ExoMediaPlayer, e: Exception?) {
-      stopPlayback()
-
+      stop()
       exoMediaPlayer.forcePrepare()
     }
 

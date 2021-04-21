@@ -3,8 +3,8 @@ package com.devbrackets.android.exomediademo.ui.activity
 import android.os.Bundle
 import android.view.View
 
-import com.devbrackets.android.exomedia.listener.VideoControlsVisibilityListener
-import com.devbrackets.android.exomedia.ui.widget.DefaultVideoControls
+import com.devbrackets.android.exomedia.ui.listener.VideoControlsVisibilityListener
+import com.devbrackets.android.exomedia.ui.widget.controls.DefaultVideoControls
 import com.devbrackets.android.exomedia.ui.widget.VideoView
 import kotlinx.android.synthetic.main.video_player_activity.*
 

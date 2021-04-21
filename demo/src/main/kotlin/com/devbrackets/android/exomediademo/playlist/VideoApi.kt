@@ -3,7 +3,7 @@ package com.devbrackets.android.exomediademo.playlist
 import android.net.Uri
 import androidx.annotation.FloatRange
 import androidx.annotation.IntRange
-import com.devbrackets.android.exomedia.ui.widget.DefaultVideoControls
+import com.devbrackets.android.exomedia.ui.widget.controls.DefaultVideoControls
 import com.devbrackets.android.exomedia.ui.widget.VideoView
 import com.devbrackets.android.exomediademo.data.MediaItem
 import com.devbrackets.android.playlistcore.data.PlaybackState

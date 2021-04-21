@@ -22,11 +22,11 @@ import com.google.android.exoplayer2.source.hls.HlsMediaSource
 
 class HlsMediaSourceBuilder : MediaSourceBuilder() {
   override fun build(attributes: MediaSourceAttributes): MediaSource {
-    val dataSourceFactory = buildDataSourceFactory(attributes.context, attributes.userAgent, attributes.transferListener)
+    val dataSourceFactory = buildDataSourceFactory(attributes)
     val mediaItem = MediaItem.Builder().setUri(attributes.uri).build()
 
     return HlsMediaSource.Factory(dataSourceFactory)
-        .setDrmSessionManager(attributes.drmSessionManager)
+        .setDrmSessionManagerProvider(attributes.drmSessionManagerProvider)
         .createMediaSource(mediaItem)
   }
 }

@@ -24,6 +24,8 @@ import androidx.annotation.FloatRange
 /**
  * A simple stopwatch to keep a correct and updated record of the running duration
  * of processes.
+ *
+ * TODO: can we replace this with fixedRateTimer?
  */
 class StopWatch {
   companion object {

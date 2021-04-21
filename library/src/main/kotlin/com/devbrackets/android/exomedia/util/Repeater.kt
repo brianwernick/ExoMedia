@@ -23,6 +23,8 @@ import android.os.HandlerThread
  * A method repeater to easily perform update functions on a timed basis.
  * **NOTE:** the duration between repeats may not be exact.  If you require an exact
  * amount of elapsed time use the [StopWatch] instead.
+ *
+ * TODO: Replace with FixedRateTimer?
  */
 class Repeater {
   companion object {

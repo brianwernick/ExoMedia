@@ -6,10 +6,10 @@ import androidx.appcompat.widget.AppCompatImageButton
 import androidx.appcompat.widget.PopupMenu
 import android.util.Log
 import android.view.MenuItem
-import com.devbrackets.android.exomedia.ExoMedia
+import com.devbrackets.android.exomedia.core.renderer.RendererType
 import com.devbrackets.android.exomedia.listener.OnVideoSizeChangedListener
-import com.devbrackets.android.exomedia.listener.VideoControlsSeekListener
-import com.devbrackets.android.exomedia.ui.widget.DefaultVideoControls
+import com.devbrackets.android.exomedia.ui.listener.VideoControlsSeekListener
+import com.devbrackets.android.exomedia.ui.widget.controls.DefaultVideoControls
 import com.devbrackets.android.exomediademo.App
 import com.devbrackets.android.exomediademo.R
 import com.devbrackets.android.exomediademo.data.MediaItem
@@ -122,7 +122,7 @@ open class VideoPlayerActivity : Activity(), VideoControlsSeekListener {
 
     private fun showCaptionsMenu() {
         val availableTracks = videoView.availableTracks ?: return
-        val trackGroupArray = availableTracks[ExoMedia.RendererType.CLOSED_CAPTION]
+        val trackGroupArray = availableTracks[RendererType.CLOSED_CAPTION]
         if (trackGroupArray == null || trackGroupArray.isEmpty) {
             return
         }
@@ -141,7 +141,7 @@ open class VideoPlayerActivity : Activity(), VideoControlsSeekListener {
 
         var selected = false
         for (groupIndex in 0 until trackGroupArray.length) {
-            val selectedIndex = videoView.getSelectedTrackIndex(ExoMedia.RendererType.CLOSED_CAPTION, groupIndex)
+            val selectedIndex = videoView.getSelectedTrackIndex(RendererType.CLOSED_CAPTION, groupIndex)
             Log.d("Captions", "Selected Caption Track: $groupIndex | $selectedIndex")
             val trackGroup = trackGroupArray.get(groupIndex)
             for (index in 0 until trackGroup.length) {
@@ -165,7 +165,7 @@ open class VideoPlayerActivity : Activity(), VideoControlsSeekListener {
         }
 
         if (!selected) {
-            if (videoView.isRendererEnabled(ExoMedia.RendererType.CLOSED_CAPTION)) {
+            if (videoView.isRendererEnabled(RendererType.CLOSED_CAPTION)) {
                 defaultItem.isChecked = true
             } else {
                 disabledItem.isChecked = true
@@ -181,12 +181,12 @@ open class VideoPlayerActivity : Activity(), VideoControlsSeekListener {
         menuItem.isChecked = true
 
         when (val itemId = menuItem.itemId) {
-            CC_DEFAULT -> videoView.clearSelectedTracks(ExoMedia.RendererType.CLOSED_CAPTION)
-            CC_DISABLED -> videoView.setRendererEnabled(ExoMedia.RendererType.CLOSED_CAPTION, false)
+            CC_DEFAULT -> videoView.clearSelectedTracks(RendererType.CLOSED_CAPTION)
+            CC_DISABLED -> videoView.setRendererEnabled(RendererType.CLOSED_CAPTION, false)
             else -> {
                 val trackIndex = itemId % CC_GROUP_INDEX_MOD
                 val groupIndex = itemId / CC_GROUP_INDEX_MOD
-                videoView.setTrack(ExoMedia.RendererType.CLOSED_CAPTION, groupIndex, trackIndex)
+                videoView.setTrack(RendererType.CLOSED_CAPTION, groupIndex, trackIndex)
             }
         }
 

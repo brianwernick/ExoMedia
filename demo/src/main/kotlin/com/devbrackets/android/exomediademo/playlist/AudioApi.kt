@@ -37,7 +37,7 @@ class AudioApi(context: Context) : BaseMediaApi() {
         audioPlayer.setOnSeekCompletionListener(this)
         audioPlayer.setOnBufferUpdateListener(this)
 
-        audioPlayer.setWakeMode(context, PowerManager.PARTIAL_WAKE_LOCK)
+        audioPlayer.setWakeLevel(PowerManager.PARTIAL_WAKE_LOCK)
         audioPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC)
         audioPlayer.setAnalyticsListener(EventLogger(null))
     }
@@ -51,7 +51,7 @@ class AudioApi(context: Context) : BaseMediaApi() {
     }
 
     override fun stop() {
-        audioPlayer.stopPlayback()
+        audioPlayer.stop()
     }
 
     override fun reset() {
@@ -63,7 +63,7 @@ class AudioApi(context: Context) : BaseMediaApi() {
     }
 
     override fun setVolume(@FloatRange(from = 0.0, to = 1.0) left: Float, @FloatRange(from = 0.0, to = 1.0) right: Float) {
-        audioPlayer.setVolume(left, right)
+        audioPlayer.volume = (left + right) / 2
     }
 
     override fun seekTo(@IntRange(from = 0L) milliseconds: Long) {
@@ -78,8 +78,7 @@ class AudioApi(context: Context) : BaseMediaApi() {
         try {
             prepared = false
             bufferPercent = 0
-            audioPlayer.setDataSource(Uri.parse(if (item.downloaded) item.downloadedMediaUri else item.mediaUrl))
-            audioPlayer.prepareAsync()
+            audioPlayer.setMedia(Uri.parse(if (item.downloaded) item.downloadedMediaUri else item.mediaUrl))
         } catch (e: Exception) {
             //Purposefully left blank
         }

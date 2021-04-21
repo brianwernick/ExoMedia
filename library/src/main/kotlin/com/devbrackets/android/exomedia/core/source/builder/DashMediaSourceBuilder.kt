@@ -23,12 +23,16 @@ import com.google.android.exoplayer2.source.dash.DefaultDashChunkSource
 
 class DashMediaSourceBuilder : MediaSourceBuilder() {
   override fun build(attributes: MediaSourceAttributes): MediaSource {
-    val dataSourceFactory = buildDataSourceFactory(attributes.context, attributes.userAgent, null)
-    val meteredDataSourceFactory = buildDataSourceFactory(attributes.context, attributes.userAgent, attributes.transferListener)
+    val factoryAttributes = attributes.copy(
+        transferListener = null
+    )
+
+    val dataSourceFactory = buildDataSourceFactory(factoryAttributes)
+    val meteredDataSourceFactory = buildDataSourceFactory(attributes)
     val mediaItem = MediaItem.Builder().setUri(attributes.uri).build()
 
     return DashMediaSource.Factory(DefaultDashChunkSource.Factory(meteredDataSourceFactory), dataSourceFactory)
-        .setDrmSessionManager(attributes.drmSessionManager)
+        .setDrmSessionManagerProvider(attributes.drmSessionManagerProvider)
         .createMediaSource(mediaItem)
   }
 }

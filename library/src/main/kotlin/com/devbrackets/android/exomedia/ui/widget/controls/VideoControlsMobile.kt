@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 - 2019 ExoMedia Contributors
+ * Copyright (C) 2015 - 2021 ExoMedia Contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,17 +16,14 @@
 
 package com.devbrackets.android.exomedia.ui.widget.controls
 
-import android.annotation.TargetApi
 import android.content.Context
-import android.os.Build
 import androidx.annotation.IntRange
 import android.util.AttributeSet
 import android.view.View
+import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.SeekBar
 import com.devbrackets.android.exomedia.R
-import com.devbrackets.android.exomedia.ui.animation.BottomViewHideShowAnimation
-import com.devbrackets.android.exomedia.ui.animation.TopViewHideShowAnimation
 import com.devbrackets.android.exomedia.util.millisToFormattedTimeString
 import java.util.*
 
@@ -37,6 +34,7 @@ import java.util.*
 class VideoControlsMobile : DefaultVideoControls {
   protected lateinit var seekBar: SeekBar
   protected lateinit var extraViewsContainer: LinearLayout
+  protected lateinit var container: ViewGroup
 
   protected var userInteracting = false
 
@@ -92,6 +90,7 @@ class VideoControlsMobile : DefaultVideoControls {
     super.retrieveViews()
     seekBar = findViewById(R.id.exomedia_controls_video_seek)
     extraViewsContainer = findViewById(R.id.exomedia_controls_extra_container)
+    container = findViewById(R.id.exomedia_controls_container)
   }
 
   override fun addExtraView(view: View) {
@@ -120,31 +119,15 @@ class VideoControlsMobile : DefaultVideoControls {
       return
     }
 
-    if (!hideEmptyTextContainer || !isTextContainerEmpty) {
-      textContainer.startAnimation(TopViewHideShowAnimation(textContainer, toVisible, CONTROL_VISIBILITY_ANIMATION_LENGTH))
-    }
-
-    if (!isLoading) {
-      controlsContainer.startAnimation(BottomViewHideShowAnimation(controlsContainer, toVisible, CONTROL_VISIBILITY_ANIMATION_LENGTH))
-    }
+    val endAlpha = if (toVisible) 1F else 0F
+    container.animate().alpha(endAlpha).start()
 
     isVisible = toVisible
     onVisibilityChanged()
   }
 
   override fun updateTextContainerVisibility() {
-    if (!isVisible) {
-      return
-    }
-
-    val emptyText = isTextContainerEmpty
-    if (hideEmptyTextContainer && emptyText && textContainer.visibility == View.VISIBLE) {
-      textContainer.clearAnimation()
-      textContainer.startAnimation(TopViewHideShowAnimation(textContainer, false, CONTROL_VISIBILITY_ANIMATION_LENGTH))
-    } else if ((!hideEmptyTextContainer || !emptyText) && textContainer.visibility != View.VISIBLE) {
-      textContainer.clearAnimation()
-      textContainer.startAnimation(TopViewHideShowAnimation(textContainer, true, CONTROL_VISIBILITY_ANIMATION_LENGTH))
-    }
+    // Purposefully left blank
   }
 
   override fun showLoading(initialLoad: Boolean) {
@@ -154,10 +137,9 @@ class VideoControlsMobile : DefaultVideoControls {
 
     isLoading = true
     loadingProgressBar.visibility = View.VISIBLE
+    playPauseButton.visibility = View.INVISIBLE
 
-    if (initialLoad) {
-      controlsContainer.visibility = View.GONE
-    } else {
+    if (!initialLoad) {
       playPauseButton.isEnabled = false
       previousButton.isEnabled = false
       nextButton.isEnabled = false
@@ -173,9 +155,10 @@ class VideoControlsMobile : DefaultVideoControls {
 
     isLoading = false
     loadingProgressBar.visibility = View.GONE
-    controlsContainer.visibility = View.VISIBLE
+    container.visibility = View.VISIBLE
 
     playPauseButton.isEnabled = true
+    playPauseButton.visibility = View.VISIBLE
     previousButton.isEnabled = enabledViews.get(R.id.exomedia_controls_previous_btn, true)
     nextButton.isEnabled = enabledViews.get(R.id.exomedia_controls_next_btn, true)
 

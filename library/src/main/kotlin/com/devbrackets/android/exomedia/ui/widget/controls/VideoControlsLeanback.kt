@@ -41,6 +41,8 @@ import com.devbrackets.android.exomedia.util.tintListCompat
 @TargetApi(Build.VERSION_CODES.LOLLIPOP)
 class VideoControlsLeanback : DefaultVideoControls {
 
+  protected lateinit var controlsContainer: ViewGroup
+  protected lateinit var textContainer: ViewGroup
   protected lateinit var progressBar: ProgressBar
 
   protected lateinit var rippleIndicator: ImageView
@@ -76,6 +78,8 @@ class VideoControlsLeanback : DefaultVideoControls {
   override fun retrieveViews() {
     super.retrieveViews()
 
+    controlsContainer = findViewById(R.id.exomedia_controls_interactive_container)
+    textContainer = findViewById(R.id.exomedia_controls_text_container)
     progressBar = findViewById(R.id.exomedia_controls_video_progress)
     rippleIndicator = findViewById(R.id.exomedia_controls_leanback_ripple)
     controlsParent = findViewById(R.id.exomedia_controls_parent)

@@ -82,7 +82,6 @@ class VideoApi(var videoView: VideoView) : BaseMediaApi(), PlaylistListener<Medi
             // Updates the VideoControls display text
             controls.setTitle(currentItem?.title ?: "")
             controls.setSubTitle(currentItem?.album ?: "")
-            controls.setDescription(currentItem?.artist ?: "")
 
             // Updates the VideoControls button visibilities
             controls.setPreviousButtonEnabled(hasPrevious)

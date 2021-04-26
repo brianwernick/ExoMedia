@@ -25,7 +25,6 @@ import androidx.annotation.LayoutRes
 import android.util.AttributeSet
 import android.util.SparseBooleanArray
 import android.view.View
-import android.view.ViewGroup
 import android.widget.ImageButton
 import android.widget.ProgressBar
 import android.widget.RelativeLayout
@@ -58,13 +57,10 @@ abstract class DefaultVideoControls : RelativeLayout, VideoControls {
   protected lateinit var endTimeTextView: TextView
   protected lateinit var titleTextView: TextView
   protected lateinit var subTitleTextView: TextView
-  protected lateinit var descriptionTextView: TextView
   protected lateinit var playPauseButton: ImageButton
   protected lateinit var previousButton: ImageButton
   protected lateinit var nextButton: ImageButton
   protected lateinit var loadingProgressBar: ProgressBar
-  protected lateinit var controlsContainer: ViewGroup
-  protected lateinit var textContainer: ViewGroup
 
   protected lateinit var playDrawable: Drawable
   protected lateinit var pauseDrawable: Drawable
@@ -132,11 +128,7 @@ abstract class DefaultVideoControls : RelativeLayout, VideoControls {
         return false
       }
 
-      if (!subTitleTextView.text.isNullOrEmpty()) {
-        return false
-      }
-
-      return descriptionTextView.text.isNullOrEmpty()
+      return subTitleTextView.text.isNullOrEmpty()
     }
 
   /**
@@ -269,18 +261,6 @@ abstract class DefaultVideoControls : RelativeLayout, VideoControls {
    */
   fun setSubTitle(subTitle: CharSequence?) {
     subTitleTextView.text = subTitle
-    updateTextContainerVisibility()
-  }
-
-  /**
-   * Sets the description text to display for the current item in playback.  This will be displayed
-   * as the third line of text and unlike the [.setTitle] and [.setSubTitle]
-   * this text wont be limited to a single line of text
-   *
-   * @param description The artist to display
-   */
-  fun setDescription(description: CharSequence?) {
-    descriptionTextView.text = description
     updateTextContainerVisibility()
   }
 
@@ -601,13 +581,10 @@ abstract class DefaultVideoControls : RelativeLayout, VideoControls {
     endTimeTextView = findViewById(R.id.exomedia_controls_end_time)
     titleTextView = findViewById(R.id.exomedia_controls_title)
     subTitleTextView = findViewById(R.id.exomedia_controls_sub_title)
-    descriptionTextView = findViewById(R.id.exomedia_controls_description)
     playPauseButton = findViewById(R.id.exomedia_controls_play_pause_btn)
     previousButton = findViewById(R.id.exomedia_controls_previous_btn)
     nextButton = findViewById(R.id.exomedia_controls_next_btn)
     loadingProgressBar = findViewById(R.id.exomedia_controls_video_loading)
-    controlsContainer = findViewById(R.id.exomedia_controls_interactive_container)
-    textContainer = findViewById(R.id.exomedia_controls_text_container)
   }
 
   /**

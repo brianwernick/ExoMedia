@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 - 2018 ExoMedia Contributors
+ * Copyright (C) 2015 - 2021 ExoMedia Contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,8 +19,10 @@ package com.devbrackets.android.exomedia.ui.widget
 import android.content.Context
 import android.content.res.Configuration
 import android.graphics.Rect
+import android.os.Build
 import android.util.AttributeSet
 import android.view.WindowInsets
+import android.view.WindowInsets.Type.systemBars
 import android.widget.RelativeLayout
 
 /**
@@ -59,22 +61,10 @@ class FitsSystemWindowRelativeLayout : RelativeLayout {
     }
   }
 
-  override fun fitSystemWindows(insets: Rect): Boolean {
-    updatePadding(insets)
-    return false
-  }
-
-  //TODO update to use systembars
-  override fun onApplyWindowInsets(insets: WindowInsets): WindowInsets {
-    val windowInsets = Rect(
-        insets.systemWindowInsetLeft,
-        insets.systemWindowInsetTop,
-        insets.systemWindowInsetRight,
-        insets.systemWindowInsetBottom
-    )
-
-    fitSystemWindows(windowInsets)
-    return insets
+  override fun dispatchApplyWindowInsets(insets: WindowInsets?): WindowInsets {
+    return super.dispatchApplyWindowInsets(insets).also {
+      updatePadding(it.asRect())
+    }
   }
 
   /**
@@ -89,6 +79,25 @@ class FitsSystemWindowRelativeLayout : RelativeLayout {
         originalPadding.top + insets.top,
         originalPadding.right + insets.right,
         originalPadding.bottom + insets.bottom
+    )
+  }
+
+  private fun WindowInsets.asRect(): Rect {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+      val insets = getInsetsIgnoringVisibility(systemBars())
+      return Rect(
+          insets.left,
+          insets.top,
+          insets.right,
+          insets.bottom
+      )
+    }
+
+    return Rect(
+        stableInsetLeft,
+        stableInsetTop,
+        stableInsetRight,
+        stableInsetBottom
     )
   }
 

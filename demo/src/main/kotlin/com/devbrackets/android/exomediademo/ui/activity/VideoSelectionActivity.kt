@@ -33,7 +33,7 @@ class VideoSelectionActivity : AppCompatActivity(), AdapterView.OnItemClickListe
     }
 
     private fun startVideoPlayerActivity(selectedIndex: Int) {
-        startActivity(Intent(this, FullScreenVideoPlayerActivity::class.java).apply {
+        startActivity(Intent(this, VideoPlayerActivity::class.java).apply {
             putExtra(VideoPlayerActivity.EXTRA_INDEX, selectedIndex)
         })
     }

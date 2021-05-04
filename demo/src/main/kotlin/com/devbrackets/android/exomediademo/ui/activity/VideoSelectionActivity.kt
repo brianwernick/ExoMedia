@@ -2,7 +2,7 @@ package com.devbrackets.android.exomediademo.ui.activity
 
 import android.content.Intent
 import android.os.Bundle
-import android.support.v7.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatActivity
 import android.view.View
 import android.widget.AdapterView
 import android.widget.ListView
@@ -33,7 +33,7 @@ class VideoSelectionActivity : AppCompatActivity(), AdapterView.OnItemClickListe
     }
 
     private fun startVideoPlayerActivity(selectedIndex: Int) {
-        startActivity(Intent(this, FullScreenVideoPlayerActivity::class.java).apply {
+        startActivity(Intent(this, VideoPlayerActivity::class.java).apply {
             putExtra(VideoPlayerActivity.EXTRA_INDEX, selectedIndex)
         })
     }

@@ -19,7 +19,7 @@ abstract class BaseMediaApi : MediaPlayerApi<MediaItem>, OnPreparedListener, OnC
         statusListener?.onCompletion(this)
     }
 
-    override fun onError(e: Exception): Boolean {
+    override fun onError(e: Exception?): Boolean {
         return statusListener?.onError(this) == true
     }
 

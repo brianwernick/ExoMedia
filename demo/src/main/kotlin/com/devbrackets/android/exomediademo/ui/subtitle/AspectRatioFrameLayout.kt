@@ -16,7 +16,7 @@
 package com.devbrackets.android.exomediademo.ui.subtitle
 
 import android.content.Context
-import android.support.annotation.IntDef
+import androidx.annotation.IntDef
 import android.util.AttributeSet
 import android.view.View
 import android.widget.FrameLayout
@@ -90,7 +90,7 @@ class AspectRatioFrameLayout @JvmOverloads constructor(context: Context, attrs: 
     /**
      * Sets the [AspectRatioListener].
      *
-     * @param listener The listener to be notified about aspect ratios changes.
+     * @param listener The repeatListener to be notified about aspect ratios changes.
      */
     fun setAspectRatioListener(listener: AspectRatioListener) {
         this.aspectRatioListener = listener

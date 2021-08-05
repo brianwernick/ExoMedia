@@ -23,8 +23,8 @@ import android.util.TypedValue
 import android.view.View
 import android.view.accessibility.CaptioningManager
 import com.devbrackets.android.exomedia.core.listener.CaptionListener
-import com.google.android.exoplayer2.text.CaptionStyleCompat
 import com.google.android.exoplayer2.text.Cue
+import com.google.android.exoplayer2.ui.CaptionStyleCompat
 
 @Suppress("MemberVisibilityCanBePrivate", "unused")
 /**

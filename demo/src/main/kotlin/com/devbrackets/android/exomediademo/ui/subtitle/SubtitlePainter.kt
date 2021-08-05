@@ -35,8 +35,8 @@ import android.text.style.AbsoluteSizeSpan
 import android.text.style.RelativeSizeSpan
 import android.util.DisplayMetrics
 import android.util.Log
-import com.google.android.exoplayer2.text.CaptionStyleCompat
 import com.google.android.exoplayer2.text.Cue
+import com.google.android.exoplayer2.ui.CaptionStyleCompat
 import com.google.android.exoplayer2.util.Util
 
 /**

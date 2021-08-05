@@ -1,5 +1,6 @@
 package com.devbrackets.android.exomediademo.ui.activity
 
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.os.Bundle
 import androidx.appcompat.widget.AppCompatImageButton
@@ -120,6 +121,7 @@ open class VideoPlayerActivity : Activity(), VideoControlsSeekListener {
    * Retrieves the playlist instance and performs any generation
    * of content if it hasn't already been performed.
    */
+  @SuppressLint("Range")
   private fun setupPlaylistManager() {
     playlistManager = (applicationContext as App).playlistManager
 

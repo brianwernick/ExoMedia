@@ -34,6 +34,7 @@ import com.google.android.exoplayer2.drm.DrmSessionManagerProvider
 import com.google.android.exoplayer2.metadata.Metadata
 import com.google.android.exoplayer2.source.MediaSource
 import com.google.android.exoplayer2.source.TrackGroupArray
+import com.google.android.exoplayer2.video.VideoSize
 import java.lang.IllegalArgumentException
 
 class ExoVideoPlayer(
@@ -270,8 +271,8 @@ class ExoVideoPlayer(
       _listenerMux?.onBufferingUpdate(percent)
     }
 
-    override fun onVideoSizeChanged(width: Int, height: Int, unAppliedRotationDegrees: Int, pixelWidthHeightRatio: Float) {
-      surface.onVideoSizeChanged(width, height, pixelWidthHeightRatio)
+    override fun onVideoSizeChanged(videoSize: VideoSize) {
+      surface.onVideoSizeChanged(videoSize.width, videoSize.height, videoSize.pixelWidthHeightRatio)
     }
   }
 

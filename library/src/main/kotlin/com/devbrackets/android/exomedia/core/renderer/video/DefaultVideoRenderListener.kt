@@ -20,13 +20,14 @@ package com.devbrackets.android.exomedia.core.renderer.video
 import com.devbrackets.android.exomedia.nmp.CorePlayerListeners
 import com.google.android.exoplayer2.analytics.AnalyticsCollector
 import com.google.android.exoplayer2.video.VideoRendererEventListener
+import com.google.android.exoplayer2.video.VideoSize
 
 class DefaultVideoRenderListener(
     private val coreListeners: CorePlayerListeners,
     private val delegate: AnalyticsCollector
 ): VideoRendererEventListener by delegate {
-  override fun onVideoSizeChanged(width: Int, height: Int, unappliedRotationDegrees: Int, pixelWidthHeightRatio: Float) {
-    coreListeners.videoSizeListener?.onVideoSizeChanged(width, height, unappliedRotationDegrees, pixelWidthHeightRatio)
-    delegate.onVideoSizeChanged(width, height, unappliedRotationDegrees, pixelWidthHeightRatio)
+  override fun onVideoSizeChanged(videoSize: VideoSize) {
+    coreListeners.videoSizeListener?.onVideoSizeChanged(videoSize)
+    delegate.onVideoSizeChanged(videoSize)
   }
 }

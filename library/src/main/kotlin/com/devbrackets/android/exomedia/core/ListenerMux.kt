@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015-2019 ExoMedia Contributors
+ * Copyright (C) 2015-2021 ExoMedia Contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -286,8 +286,8 @@ class ListenerMux(private val muxNotifier: Notifier) :
     analyticsListener?.onDroppedVideoFrames(eventTime, droppedFrames, elapsedMs)
   }
 
-  override fun onRenderedFirstFrame(eventTime: AnalyticsListener.EventTime, surface: Surface?) {
-    analyticsListener?.onRenderedFirstFrame(eventTime, surface)
+  override fun onRenderedFirstFrame(eventTime: AnalyticsListener.EventTime, output: Any, renderTimeMs: Long) {
+    analyticsListener?.onRenderedFirstFrame(eventTime, output, renderTimeMs)
   }
 
   override fun onDrmKeysLoaded(eventTime: AnalyticsListener.EventTime) {

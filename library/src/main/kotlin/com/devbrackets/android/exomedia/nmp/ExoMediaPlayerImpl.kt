@@ -45,7 +45,7 @@ import kotlin.math.min
 
 class ExoMediaPlayerImpl(
     private val config: PlayerConfig
-) : Player.EventListener, ExoMediaPlayer {
+) : Player.Listener, ExoMediaPlayer {
   companion object {
     private const val TAG = "ExoMediaPlayer"
     private const val BUFFER_REPEAT_DELAY = 1_000L
@@ -81,7 +81,7 @@ class ExoMediaPlayerImpl(
   override var surface: Surface? = null
   set(value) {
     field = value
-    sendMessage(C.TRACK_TYPE_VIDEO, Renderer.MSG_SET_SURFACE, surface)
+    sendMessage(C.TRACK_TYPE_VIDEO, Renderer.MSG_SET_VIDEO_OUTPUT , surface)
   }
 
   private var mediaSource: MediaSource? = null
@@ -192,7 +192,6 @@ class ExoMediaPlayerImpl(
   override fun setMediaSource(source: MediaSource?) {
     mediaSource?.let {
       it.removeEventListener(config.analyticsCollector)
-      config.analyticsCollector.resetForNewPlaylist()
     }
 
     source?.addEventListener(config.handler, config.analyticsCollector)
@@ -238,7 +237,7 @@ class ExoMediaPlayerImpl(
     surface?.release()
     surface = null
 
-    sendMessage(C.TRACK_TYPE_VIDEO, Renderer.MSG_SET_SURFACE, null)
+    sendMessage(C.TRACK_TYPE_VIDEO, Renderer.MSG_SET_VIDEO_OUTPUT, null)
   }
 
   override fun setAudioStreamType(streamType: Int) {

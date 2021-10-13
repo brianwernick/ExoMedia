@@ -1,24 +1,29 @@
 buildscript {
-  ext.kotlinVersion = '1.5.21'
+  ext.kotlinVersion = '1.5.31'
   repositories {
-    jcenter()
+    mavenCentral()
     google()
   }
 
   dependencies {
-    classpath 'com.android.tools.build:gradle:7.0.0'
-    classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.8.4'
+    classpath 'com.android.tools.build:gradle:7.0.3'
     classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
   }
 }
 
 allprojects {
   repositories {
-    jcenter()
+    mavenCentral()
+    jcenter() {
+      content {
+        // Included for PlaylistCore until that's migrated to Maven Central
+        includeGroup "com.devbrackets.android"
+      }
+    }
     google()
   }
 }
 
 ext {
-  exoPlayerVersion = "2.14.2"
+  exoPlayerVersion = "2.15.1"
 }

@@ -7,16 +7,9 @@ import com.devbrackets.android.exomedia.nmp.config.PlayerConfigBuilder
 import com.devbrackets.android.exomedia.nmp.config.PlayerConfigProvider
 import com.devbrackets.android.exomediademo.manager.PlaylistManager
 import com.devbrackets.android.exomediademo.util.OkHttpDataSourceFactoryProvider
-import com.squareup.leakcanary.LeakCanary
 
 class App : Application() {
     val playlistManager: PlaylistManager by lazy { PlaylistManager(this) }
-
-    override fun onCreate() {
-        super.onCreate()
-
-        LeakCanary.install(this)
-    }
 
     /**
      * A custom PlayerConfigProvider that uses the OKHttpDataSource, this is referenced in the

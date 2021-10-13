@@ -202,7 +202,7 @@ class ListenerMux(private val muxNotifier: Notifier) :
     analyticsListener?.onLoadingChanged(eventTime, isLoading)
   }
 
-  override fun onPlayerError(eventTime: AnalyticsListener.EventTime, error: ExoPlaybackException) {
+  override fun onPlayerError(eventTime: AnalyticsListener.EventTime, error: PlaybackException) {
     analyticsListener?.onPlayerError(eventTime, error)
   }
 

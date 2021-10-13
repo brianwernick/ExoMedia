@@ -166,7 +166,7 @@ class ExoMediaPlayerImpl(
     reportPlayerState()
   }
 
-  override fun onPlayerError(error: ExoPlaybackException) {
+  override fun onPlayerError(error: PlaybackException) {
     listeners.forEach {
       it.onError(this, error)
     }

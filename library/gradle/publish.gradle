@@ -1,9 +1,10 @@
+import org.gradle.execution.plan.Node
+
 /**
  * Provides the functionality to upload to local maven repositories (for testing
  * purposes) and to push to jcenter for official releases
  */
 apply plugin: 'maven-publish'
-apply plugin: 'com.jfrog.bintray'
 
 task androidJavaDoc(type: Javadoc) {
     source = android.sourceSets.main.java.srcDirs
@@ -82,25 +83,25 @@ publishing {
 /**
  * Configure the Bintray repository values
  */
-bintray {
-    user = System.getenv('BINTRAY_USER')
-    key = System.getenv('BINTRAY_KEY')
-    setPublications('jcenter')
-
-    pkg {
-        userOrg = 'brianwernick'
-        repo = 'maven'
-        name = 'ExoMedia'
-        licenses = ['Apache-2.0']
-        desc = ''
-        vcsUrl = 'https://github.com/brianwernick/ExoMedia'
-        issueTrackerUrl = 'https://github.com/brianwernick/ExoMedia/issues'
-        websiteUrl = 'http://devbrackets.com/dev/libs/exomedia.html'
-        githubRepo = 'https://github.com/brianwernick/ExoMedia'
-
-        version {
-            name = project.getLibraryInfo().versionName
-            released = new Date()
-        }
-    }
-}
+//bintray {
+//    user = System.getenv('BINTRAY_USER')
+//    key = System.getenv('BINTRAY_KEY')
+//    setPublications('jcenter')
+//
+//    pkg {
+//        userOrg = 'brianwernick'
+//        repo = 'maven'
+//        name = 'ExoMedia'
+//        licenses = ['Apache-2.0']
+//        desc = ''
+//        vcsUrl = 'https://github.com/brianwernick/ExoMedia'
+//        issueTrackerUrl = 'https://github.com/brianwernick/ExoMedia/issues'
+//        websiteUrl = 'http://devbrackets.com/dev/libs/exomedia.html'
+//        githubRepo = 'https://github.com/brianwernick/ExoMedia'
+//
+//        version {
+//            name = project.getLibraryInfo().versionName
+//            released = new Date()
+//        }
+//    }
+//}

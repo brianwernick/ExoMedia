@@ -5,7 +5,7 @@ import android.content.Context
 import com.devbrackets.android.exomedia.nmp.config.PlayerConfig
 import com.devbrackets.android.exomedia.nmp.config.PlayerConfigBuilder
 import com.devbrackets.android.exomedia.nmp.config.PlayerConfigProvider
-import com.devbrackets.android.exomediademo.manager.PlaylistManager
+import com.devbrackets.android.exomediademo.playlist.manager.PlaylistManager
 import com.devbrackets.android.exomediademo.util.OkHttpDataSourceFactoryProvider
 
 class App : Application() {

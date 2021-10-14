@@ -11,7 +11,7 @@
         android:id="@+id/controls_background"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:background="#fffafafa"
+        android:background="#FFEBEBF5"
         android:paddingTop="16dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"

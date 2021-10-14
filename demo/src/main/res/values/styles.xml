@@ -3,6 +3,16 @@
         <item name="colorPrimary">#42A5F5</item>
         <item name="colorPrimaryDark">#FF607D8B</item>
         <item name="colorAccent">#FF607D8B</item>
+
+        <item name="android:background">#FFEBEBF5</item>
+    </style>
+
+    <style name="AppTheme.Video">
+        <item name="android:windowTranslucentStatus">true</item>
+        <item name="android:windowTranslucentNavigation">true</item>
+
+        <item name="android:background">@android:color/transparent</item>
+        <item name="android:fitsSystemWindows">true</item>
     </style>
 
 </resources>

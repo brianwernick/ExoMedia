@@ -1,11 +1,11 @@
-package com.devbrackets.android.exomediademo.manager
+package com.devbrackets.android.exomediademo.playlist.manager
 
 import android.app.Application
 import com.devbrackets.android.exomedia.ui.listener.VideoControlsButtonListener
 import com.devbrackets.android.exomedia.ui.widget.controls.DefaultVideoControls
 import com.devbrackets.android.exomediademo.data.MediaItem
 import com.devbrackets.android.exomediademo.playlist.VideoApi
-import com.devbrackets.android.exomediademo.service.MediaService
+import com.devbrackets.android.exomediademo.playlist.service.MediaService
 import com.devbrackets.android.playlistcore.manager.ListPlaylistManager
 
 /**

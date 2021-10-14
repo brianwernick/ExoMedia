@@ -1,9 +1,9 @@
-package com.devbrackets.android.exomediademo.service
+package com.devbrackets.android.exomediademo.playlist.service
 
 
 import com.devbrackets.android.exomediademo.App
 import com.devbrackets.android.exomediademo.data.MediaItem
-import com.devbrackets.android.exomediademo.manager.PlaylistManager
+import com.devbrackets.android.exomediademo.playlist.manager.PlaylistManager
 import com.devbrackets.android.exomediademo.playlist.AudioApi
 import com.devbrackets.android.playlistcore.components.playlisthandler.DefaultPlaylistHandler
 import com.devbrackets.android.playlistcore.components.playlisthandler.PlaylistHandler

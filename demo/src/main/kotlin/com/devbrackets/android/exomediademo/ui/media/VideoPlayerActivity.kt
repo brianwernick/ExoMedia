@@ -1,7 +1,9 @@
-package com.devbrackets.android.exomediademo.ui.activity
+package com.devbrackets.android.exomediademo.ui.media
 
 import android.annotation.SuppressLint
 import android.app.Activity
+import android.content.Context
+import android.content.Intent
 import android.os.Bundle
 import androidx.appcompat.widget.AppCompatImageButton
 import android.view.MenuItem
@@ -14,7 +16,7 @@ import com.devbrackets.android.exomediademo.App
 import com.devbrackets.android.exomediademo.R
 import com.devbrackets.android.exomediademo.data.MediaItem
 import com.devbrackets.android.exomediademo.data.Samples
-import com.devbrackets.android.exomediademo.manager.PlaylistManager
+import com.devbrackets.android.exomediademo.playlist.manager.PlaylistManager
 import com.devbrackets.android.exomediademo.playlist.VideoApi
 import com.devbrackets.android.exomediademo.ui.support.CaptionPopupManager
 import com.devbrackets.android.exomediademo.ui.support.CaptionPopupManager.Companion.CC_DEFAULT
@@ -28,6 +30,18 @@ open class VideoPlayerActivity : Activity(), VideoControlsSeekListener {
   companion object {
     const val EXTRA_INDEX = "EXTRA_INDEX"
     const val PLAYLIST_ID = 6 //Arbitrary, for the example (different from audio)
+
+    fun intent(context: Context, sample: Samples.Sample): Intent {
+      // NOTE:
+      // We pass the index of the sample for simplicity, however you will likely
+      // want to pass an ID for both the selected playlist (audio/video in this demo)
+      // and the selected media item
+      val index = Samples.video.indexOf(sample)
+
+      return Intent(context, VideoPlayerActivity::class.java).apply {
+        putExtra(EXTRA_INDEX, index)
+      }
+    }
   }
 
   private lateinit var videoApi: VideoApi
@@ -125,7 +139,7 @@ open class VideoPlayerActivity : Activity(), VideoControlsSeekListener {
   private fun setupPlaylistManager() {
     playlistManager = (applicationContext as App).playlistManager
 
-    val mediaItems = Samples.getVideoSamples().map {
+    val mediaItems = Samples.video.map {
       MediaItem(it, false)
     }
 

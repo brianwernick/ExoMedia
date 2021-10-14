@@ -1,4 +1,4 @@
-package com.devbrackets.android.exomediademo.service
+package com.devbrackets.android.exomediademo.playlist.service
 
 import android.content.Context
 import android.graphics.Bitmap
@@ -18,7 +18,7 @@ class MediaImageProvider(context: Context, private val onImageUpdated: () -> Uni
   private val remoteViewImageTarget = RemoteViewImageTarget()
 
   private val defaultNotificationImage by lazy {
-    BitmapFactory.decodeResource(context.resources, R.drawable.ic_notification)
+    BitmapFactory.decodeResource(context.resources, R.drawable.ic_media_notification)
   }
 
   private var notificationImage: Bitmap? = null
@@ -26,10 +26,10 @@ class MediaImageProvider(context: Context, private val onImageUpdated: () -> Uni
     private set
 
   override val notificationIconRes: Int
-    get() = R.drawable.ic_notification
+    get() = R.drawable.ic_media_notification
 
   override val remoteViewIconRes: Int
-    get() = R.drawable.ic_notification
+    get() = R.drawable.ic_media_notification
 
   override val largeNotificationImage: Bitmap
     get() = notificationImage ?: defaultNotificationImage

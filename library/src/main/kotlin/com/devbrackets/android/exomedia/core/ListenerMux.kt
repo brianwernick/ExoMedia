@@ -8,13 +8,13 @@ import com.devbrackets.android.exomedia.fallback.exception.NativeMediaPlaybackEx
 import com.devbrackets.android.exomedia.nmp.ExoMediaPlayerImpl
 import com.devbrackets.android.exomedia.core.listener.ExoPlayerListener
 import com.devbrackets.android.exomedia.core.listener.MetadataListener
-import com.devbrackets.android.exomedia.core.video.surface.VideoSurface
 import com.devbrackets.android.exomedia.listener.*
 import com.devbrackets.android.exomedia.nmp.ExoMediaPlayer
 import androidx.media3.exoplayer.*
 import androidx.media3.exoplayer.analytics.AnalyticsListener
 import androidx.media3.exoplayer.source.LoadEventInfo
 import androidx.media3.exoplayer.source.MediaLoadData
+import com.devbrackets.android.exomedia.core.video.surface.SurfaceEnvelope
 import java.io.IOException
 import java.lang.ref.WeakReference
 
@@ -24,18 +24,18 @@ import java.lang.ref.WeakReference
  * error listeners.
  */
 class ListenerMux(private val muxNotifier: Notifier) :
-    ExoPlayerListener,
-    MediaPlayer.OnPreparedListener,
-    MediaPlayer.OnCompletionListener,
-    MediaPlayer.OnErrorListener,
-    MediaPlayer.OnBufferingUpdateListener,
-    MediaPlayer.OnSeekCompleteListener,
-    OnBufferUpdateListener,
-    MetadataListener,
-    AnalyticsListener {
+  ExoPlayerListener,
+  MediaPlayer.OnPreparedListener,
+  MediaPlayer.OnCompletionListener,
+  MediaPlayer.OnErrorListener,
+  MediaPlayer.OnBufferingUpdateListener,
+  MediaPlayer.OnSeekCompleteListener,
+  OnBufferUpdateListener,
+  MetadataListener,
+  AnalyticsListener {
 
   companion object {
-    //The amount of time the current position can be off the duration to call the onCompletion repeatListener
+    //The amount of time the current position can be off the duration to call the onCompletion listener
     private const val COMPLETED_DURATION_LEEWAY: Long = 1_000
   }
 
@@ -49,7 +49,7 @@ class ListenerMux(private val muxNotifier: Notifier) :
   private var metadataListener: MetadataListener? = null
   private var analyticsListener: AnalyticsListener? = null
 
-  private var videoSurfaceRef = WeakReference<VideoSurface>(null)
+  private var surfaceEnvelopeRef = WeakReference<SurfaceEnvelope>(null)
 
   /**
    * Retrieves if the player was prepared
@@ -89,32 +89,32 @@ class ListenerMux(private val muxNotifier: Notifier) :
 
   override fun onStateChanged(playWhenReady: Boolean, playbackState: Int) {
     when (playbackState) {
-        Player.STATE_READY -> {
-            if (!isPrepared) {
-                notifyPreparedListener()
-            }
-            if (playWhenReady) {
-                //Updates the previewImage
-                muxNotifier.onPreviewImageStateChanged(false)
-            }
+      Player.STATE_READY -> {
+        if (!isPrepared) {
+          notifyPreparedListener()
         }
-        Player.STATE_IDLE -> {
-            if (clearRequested) {
-                //Clears the textureView when requested
-                clearRequested = false
-                videoSurfaceRef.get()?.let {
-                  it.clearSurface()
-                  videoSurfaceRef.clear()
-                }
-            }
+        if (playWhenReady) {
+          //Updates the previewImage
+          muxNotifier.onPreviewImageStateChanged(false)
         }
-        Player.STATE_ENDED -> {
-            muxNotifier.onMediaPlaybackEnded()
+      }
+      Player.STATE_IDLE -> {
+        if (clearRequested) {
+          //Clears the textureView when requested
+          clearRequested = false
+          surfaceEnvelopeRef.get()?.let {
+            it.clearSurface()
+            surfaceEnvelopeRef.clear()
+          }
+        }
+      }
+      Player.STATE_ENDED -> {
+        muxNotifier.onMediaPlaybackEnded()
 
-            if (!notifiedCompleted) {
-                notifyCompletionListener()
-            }
+        if (!notifiedCompleted) {
+          notifyCompletionListener()
         }
+      }
     }
   }
 
@@ -142,7 +142,13 @@ class ListenerMux(private val muxNotifier: Notifier) :
   }
 
   @Deprecated("Deprecated in Java")
-  override fun onVideoSizeChanged(eventTime: AnalyticsListener.EventTime, width: Int, height: Int, unappliedRotationDegrees: Int, pixelWidthHeightRatio: Float) {
+  override fun onVideoSizeChanged(
+    eventTime: AnalyticsListener.EventTime,
+    width: Int,
+    height: Int,
+    unappliedRotationDegrees: Int,
+    pixelWidthHeightRatio: Float
+  ) {
     analyticsListener?.onVideoSizeChanged(eventTime, width, height, unappliedRotationDegrees, pixelWidthHeightRatio)
   }
 
@@ -207,7 +213,13 @@ class ListenerMux(private val muxNotifier: Notifier) :
     analyticsListener?.onLoadCanceled(eventTime, loadEventInfo, mediaLoadData)
   }
 
-  override fun onLoadError(eventTime: AnalyticsListener.EventTime, loadEventInfo: LoadEventInfo, mediaLoadData: MediaLoadData, error: IOException, wasCanceled: Boolean) {
+  override fun onLoadError(
+    eventTime: AnalyticsListener.EventTime,
+    loadEventInfo: LoadEventInfo,
+    mediaLoadData: MediaLoadData,
+    error: IOException,
+    wasCanceled: Boolean
+  ) {
     analyticsListener?.onLoadError(eventTime, loadEventInfo, mediaLoadData, error, wasCanceled)
   }
 
@@ -374,76 +386,76 @@ class ListenerMux(private val muxNotifier: Notifier) :
    *
    * @param clearableSurface The [ClearableSurface] to clear when the playback reaches an appropriate state
    */
-  fun clearSurfaceWhenReady(videoSurface: VideoSurface?) {
+  fun clearSurfaceWhenReady(surface: SurfaceEnvelope?) {
     clearRequested = true
-    videoSurfaceRef = WeakReference(videoSurface)
+    surfaceEnvelopeRef = WeakReference(surface)
   }
 
   /**
-   * Sets the repeatListener to inform of VideoPlayer prepared events
+   * Sets the listener to inform of VideoPlayer prepared events
    *
-   * @param listener The repeatListener to inform
+   * @param listener The listener to inform
    */
   fun setOnPreparedListener(listener: OnPreparedListener?) {
     preparedListener = listener
   }
 
   /**
-   * Sets the repeatListener to inform of VideoPlayer completion events
+   * Sets the listener to inform of VideoPlayer completion events
    *
-   * @param listener The repeatListener to inform
+   * @param listener The listener to inform
    */
   fun setOnCompletionListener(listener: OnCompletionListener?) {
     completionListener = listener
   }
 
   /**
-   * Sets the repeatListener to inform of buffering updates
+   * Sets the listener to inform of buffering updates
    *
-   * @param listener The repeatListener to inform
+   * @param listener The listener to inform
    */
   fun setOnBufferUpdateListener(listener: OnBufferUpdateListener?) {
     bufferUpdateListener = listener
   }
 
   /**
-   * Sets the repeatListener to inform of VideoPlayer seek completion events
+   * Sets the listener to inform of VideoPlayer seek completion events
    *
-   * @param listener The repeatListener to inform
+   * @param listener The listener to inform
    */
   fun setOnSeekCompletionListener(listener: OnSeekCompletionListener?) {
     seekCompletionListener = listener
   }
 
   /**
-   * Sets the repeatListener to inform of playback errors
+   * Sets the listener to inform of playback errors
    *
-   * @param listener The repeatListener to inform
+   * @param listener The listener to inform
    */
   fun setOnErrorListener(listener: OnErrorListener?) {
     errorListener = listener
   }
 
   /**
-   * Sets the repeatListener to inform of ID3 metadata updates
+   * Sets the listener to inform of ID3 metadata updates
    *
-   * @param listener The repeatListener to inform
+   * @param listener The listener to inform
    */
   fun setMetadataListener(listener: MetadataListener?) {
     metadataListener = listener
   }
 
   /**
-   * Sets the repeatListener to inform of Analytics updates
+   * Sets the listener to inform of Analytics updates
    *
-   * @param listener The repeatListener to inform
+   * @param listener The listener to inform
    */
   fun setAnalyticsListener(listener: AnalyticsListener?) {
     analyticsListener = listener
   }
 
   /**
-   * Sets weather the repeatListener was notified when we became prepared.
+   * Sets weather the listener was notified when we became prepared.
    *
    * @param wasNotified True if the onPreparedListener was already notified
    */
@@ -453,7 +465,7 @@ class ListenerMux(private val muxNotifier: Notifier) :
   }
 
   /**
-   * Sets weather the repeatListener was notified when the playback was completed
+   * Sets weather the listener was notified when the playback was completed
    * (played through the end).
    *
    * @param wasNotified True if the onCompletionListener was already notified

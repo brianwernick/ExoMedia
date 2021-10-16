@@ -4,7 +4,7 @@ import androidx.media3.common.Metadata
 
 
 /**
- * A repeatListener for receiving ID3 metadata parsed from the media stream.
+ * A listener for receiving ID3 metadata parsed from the media stream.
  */
 interface MetadataListener {
   /**

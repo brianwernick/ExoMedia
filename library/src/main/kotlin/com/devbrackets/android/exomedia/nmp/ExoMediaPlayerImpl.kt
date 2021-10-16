@@ -59,6 +59,8 @@ class ExoMediaPlayerImpl(
 
   private val stateStore = StateStore()
   private val bufferTimer by lazy {
+    // TODO: reading the bufferPercent can throw an IllegalStateException: Player is accessed on the wrong thread
+    // current thread: 'bufferRepeater', expected thread: 'main'
     fixedRateTimer("bufferRepeater", true, 0L, BUFFER_REPEAT_DELAY) {
       bufferUpdateListener?.onBufferingUpdate(bufferedPercent)
     }

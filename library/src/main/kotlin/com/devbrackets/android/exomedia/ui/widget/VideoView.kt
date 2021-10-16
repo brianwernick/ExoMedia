@@ -25,7 +25,6 @@ import com.devbrackets.android.exomedia.core.listener.MetadataListener
 import com.devbrackets.android.exomedia.core.renderer.RendererType
 import com.devbrackets.android.exomedia.core.video.ExoVideoPlayer
 import com.devbrackets.android.exomedia.core.video.scale.ScaleType
-import com.devbrackets.android.exomedia.core.video.surface.VideoSurface
 import com.devbrackets.android.exomedia.listener.*
 import com.devbrackets.android.exomedia.nmp.ExoMediaPlayer
 import com.devbrackets.android.exomedia.nmp.config.PlayerConfig
@@ -41,6 +40,11 @@ import androidx.media3.exoplayer.drm.DrmSessionManager
 import androidx.media3.exoplayer.drm.DrmSessionManagerProvider
 import androidx.media3.exoplayer.source.MediaSource
 import androidx.media3.exoplayer.source.TrackGroupArray
+import com.devbrackets.android.exomedia.core.video.layout.AspectRatioLayout
+import com.devbrackets.android.exomedia.core.video.scale.MatrixManager
+import com.devbrackets.android.exomedia.core.video.surface.SurfaceEnvelope
+import com.devbrackets.android.exomedia.core.video.surface.SurfaceViewSurfaceEnvelope
+import com.devbrackets.android.exomedia.core.video.surface.TextureViewSurfaceEnvelope
 import java.lang.IllegalArgumentException
 
 /**
@@ -64,7 +68,12 @@ open class VideoView : RelativeLayout {
    * @return the preview ImageView
    */
   val previewImageView: ImageView? by lazy { findViewById(R.id.exomedia_video_preview_image) }
+  protected val aspectRatioLayout: AspectRatioLayout by lazy { findViewById(R.id.exomedia_video_ratio_layout) }
+
   protected val surface: View by lazy { findViewById(R.id.exomedia_surface_view) }
+  protected val surfaceEnvelope by lazy {
+    constructEnvelope(surface)
+  }
 
   protected val videoPlayer: VideoPlayerApi by lazy { getApiImplementation() }
 
@@ -133,7 +142,7 @@ open class VideoView : RelativeLayout {
       field = value
       field?.onAttachedToView(this)
 
-      //Sets the onTouch repeatListener to show the controls
+      //Sets the onTouch listener to show the controls
       setOnTouchListener(field?.let { TouchListener(context) })
     }
 
@@ -209,7 +218,7 @@ open class VideoView : RelativeLayout {
     get() = videoPlayer.playbackSpeed
 
   /**
-   * Retrieves a list of available tracks to select from.  Typically [.trackSelectionAvailable]
+   * Retrieves a list of available tracks to select from. Typically [.trackSelectionAvailable]
    * should be called before this.
    *
    * @return A list of available tracks associated with each track type
@@ -239,12 +248,10 @@ open class VideoView : RelativeLayout {
     setup(context, attrs)
   }
 
-  @TargetApi(Build.VERSION_CODES.HONEYCOMB)
   constructor(context: Context, attrs: AttributeSet, defStyleAttr: Int) : super(context, attrs, defStyleAttr) {
     setup(context, attrs)
   }
 
-  @TargetApi(Build.VERSION_CODES.LOLLIPOP)
   constructor(context: Context, attrs: AttributeSet, defStyleAttr: Int, defStyleRes: Int) : super(context, attrs, defStyleAttr, defStyleRes) {
     setup(context, attrs)
   }
@@ -372,7 +379,7 @@ open class VideoView : RelativeLayout {
   }
 
   /**
-   * Stops the current video playback and resets the repeatListener states
+   * Stops the current video playback and resets the listener states
    * so that we receive the callbacks for events like onPrepared
    */
   fun reset() {
@@ -445,9 +452,9 @@ open class VideoView : RelativeLayout {
     if (videoPlayer.restart()) {
       videoControls?.showLoading(true)
       return true
-    } else {
-      return false
     }
+
+    return false
   }
 
   /**
@@ -505,14 +512,17 @@ open class VideoView : RelativeLayout {
    * @param match `true` to match the playback speed
    */
   fun setOverridePositionMatchesPlaybackSpeed(match: Boolean) {
-    if (match != matchOverridePositionSpeed) {
-      matchOverridePositionSpeed = match
-      if (match) {
-        overriddenPositionStopWatch.speedMultiplier = playbackSpeed
-      } else {
-        // Defaults to 1x when disabled
-        overriddenPositionStopWatch.speedMultiplier = 1f
-      }
+    if (match == matchOverridePositionSpeed) {
+      return
+    }
+
+    matchOverridePositionSpeed = match
+
+    if (match) {
+      overriddenPositionStopWatch.speedMultiplier = playbackSpeed
+    } else {
+      // Defaults to 1x when disabled
+      overriddenPositionStopWatch.speedMultiplier = 1f
     }
   }
 
@@ -542,10 +552,10 @@ open class VideoView : RelativeLayout {
   }
 
   /**
-   * Sets the caption repeatListener for this MediaPlayer
+   * Sets the caption listener for this MediaPlayer
    * Only the exoplayer implementation supports captions.
    *
-   * @param listener The caption repeatListener
+   * @param listener The caption listener
    */
   fun setCaptionListener(listener: CaptionListener?) {
     videoPlayer.setCaptionListener(listener)
@@ -611,16 +621,16 @@ open class VideoView : RelativeLayout {
    * @param scaleType how to scale the videos
    */
   fun setScaleType(scaleType: ScaleType) {
-    (surface as VideoSurface).scaleType = scaleType
+    surfaceEnvelope.setScaleType(scaleType)
   }
 
   /**
    * Measures the underlying [VideoPlayerApi] using the video's aspect ratio if `true`
    *
-   * @param measureBasedOnAspectRatioEnabled whether to measure using the video's aspect ratio or not
+   * @param enabled whether to measure using the video's aspect ratio or not
    */
-  fun setMeasureBasedOnAspectRatioEnabled(measureBasedOnAspectRatioEnabled: Boolean) {
-    (surface as VideoSurface).setMeasureBasedOnAspectRatioEnabled(measureBasedOnAspectRatioEnabled)
+  fun setMeasureBasedOnAspectRatioEnabled(enabled: Boolean) {
+    aspectRatioLayout.honorAspectRatio = enabled
   }
 
   /**
@@ -629,79 +639,89 @@ open class VideoView : RelativeLayout {
    * @param rotation The rotation to apply to the video
    */
   fun setVideoRotation(@IntRange(from = 0, to = 359) rotation: Int) {
-    (surface as VideoSurface).setVideoRotation(rotation, true)
+    surfaceEnvelope.setVideoRotation(rotation, true)
   }
 
   /**
-   * Sets the repeatListener to inform of VideoPlayer prepared events
+   * Sets the listener to inform of VideoPlayer prepared events
    *
-   * @param listener The repeatListener
+   * @param listener The listener
    */
   fun setOnPreparedListener(listener: OnPreparedListener?) {
     listenerMux.setOnPreparedListener(listener)
   }
 
   /**
-   * Sets the repeatListener to inform of VideoPlayer completion events
+   * Sets the listener to inform of VideoPlayer completion events
    *
-   * @param listener The repeatListener
+   * @param listener The listener
    */
   fun setOnCompletionListener(listener: OnCompletionListener?) {
     listenerMux.setOnCompletionListener(listener)
   }
 
   /**
-   * Sets the repeatListener to inform of VideoPlayer buffer update events
+   * Sets the listener to inform of VideoPlayer buffer update events
    *
-   * @param listener The repeatListener
+   * @param listener The listener
    */
   fun setOnBufferUpdateListener(listener: OnBufferUpdateListener?) {
     listenerMux.setOnBufferUpdateListener(listener)
   }
 
   /**
-   * Sets the repeatListener to inform of VideoPlayer seek completion events
+   * Sets the listener to inform of VideoPlayer seek completion events
    *
-   * @param listener The repeatListener
+   * @param listener The listener
    */
   fun setOnSeekCompletionListener(listener: OnSeekCompletionListener?) {
     listenerMux.setOnSeekCompletionListener(listener)
   }
 
   /**
-   * Sets the repeatListener to inform of playback errors
+   * Sets the listener to inform of playback errors
    *
-   * @param listener The repeatListener
+   * @param listener The listener
    */
   fun setOnErrorListener(listener: OnErrorListener?) {
     listenerMux.setOnErrorListener(listener)
   }
 
   /**
-   * Sets the repeatListener to inform of ID3 metadata updates
+   * Sets the listener to inform of ID3 metadata updates
    *
-   * @param listener The repeatListener
+   * @param listener The listener
    */
   fun setId3MetadataListener(listener: MetadataListener?) {
     listenerMux.setMetadataListener(listener)
   }
 
   /**
-   * Sets the repeatListener to inform of Analytics updates
+   * Sets the listener to inform of Analytics updates
    *
-   * @param listener The repeatListener to inform
+   * @param listener The listener to inform
    */
   fun setAnalyticsListener(listener: AnalyticsListener?) {
     listenerMux.setAnalyticsListener(listener)
   }
 
   /**
-   * Sets the repeatListener to inform of video size changes
+   * Sets the listener to inform of video size changes
    *
-   * @param listener The repeatListener
+   * @param listener The listener
    */
   fun setOnVideoSizedChangedListener(listener: OnVideoSizeChangedListener?) {
     muxNotifier.videoSizeChangedListener = listener
+  }
+
+  protected fun constructEnvelope(surface: View): SurfaceEnvelope {
+    return when (surface) {
+      is SurfaceView -> SurfaceViewSurfaceEnvelope(surface, MatrixManager())
+      is TextureView -> TextureViewSurfaceEnvelope(surface, MatrixManager())
+      else -> {
+        throw IllegalArgumentException("Provided surface must be either a SurfaceView or TextureView")
+      }
+    }
   }
 
   /**
@@ -737,7 +757,7 @@ open class VideoView : RelativeLayout {
 
     // Inflates the correct surface
     findViewById<ViewStub>(R.id.video_view_surface_stub).apply {
-      layoutResource = if (attributes.useTextureViewBacking) R.layout.exomedia_resizing_texture_view else R.layout.exomedia_resizing_surface_view
+      layoutResource = if (attributes.useTextureViewBacking) R.layout.exomedia_texture_view else R.layout.exomedia_surface_view
       inflate()
     }
 
@@ -759,25 +779,18 @@ open class VideoView : RelativeLayout {
       setScaleType(it)
     }
 
-    attributes.measureBasedOnAspectRatio?.let {
-      setMeasureBasedOnAspectRatioEnabled(it)
-    }
+    setMeasureBasedOnAspectRatioEnabled(attributes.measureBasedOnAspectRatio)
   }
 
   /**
    * Retrieves the API implementation to use to play media
    */
   fun getApiImplementation(): VideoPlayerApi {
-    if (surface !is VideoSurface) {
-      throw IllegalArgumentException("Provided surface must extend ClearableSurface")
+    if (playerConfig.fallbackManager.useFallback()) {
+      return playerConfig.fallbackManager.getFallbackVideoPlayer(context, surfaceEnvelope)
     }
 
-    val videoSurface = surface as VideoSurface
-    return if (playerConfig.fallbackManager.useFallback()) {
-      playerConfig.fallbackManager.getFallbackVideoPlayer(context, videoSurface)
-    } else {
-      ExoVideoPlayer(playerConfig, videoSurface)
-    }
+    return ExoVideoPlayer(playerConfig, surfaceEnvelope)
   }
 
   /**
@@ -856,14 +869,14 @@ open class VideoView : RelativeLayout {
       val status: Int
       if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
         val attributes = AudioAttributes.Builder()
-            .setUsage(AudioAttributes.USAGE_MEDIA)
-            .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
-            .build()
+          .setUsage(AudioAttributes.USAGE_MEDIA)
+          .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+          .build()
         lastFocusRequest = AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN)
-            .setAudioAttributes(attributes)
-            .build().also {
-              status = audioManager!!.requestAudioFocus(it)
-            }
+          .setAudioAttributes(attributes)
+          .build().also {
+            status = audioManager!!.requestAudioFocus(it)
+          }
       } else {
         status = audioManager!!.requestAudioFocus(this, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN)
       }
@@ -934,10 +947,11 @@ open class VideoView : RelativeLayout {
     }
 
     override fun onVideoSizeChanged(width: Int, height: Int, unAppliedRotationDegrees: Int, pixelWidthHeightRatio: Float) {
-      //NOTE: Android 5.0+ will always have an unAppliedRotationDegrees of 0 (ExoPlayer already handles it)
-      (surface as VideoSurface).setVideoRotation(unAppliedRotationDegrees, false)
-      (surface as VideoSurface).onVideoSizeChanged(width, height, pixelWidthHeightRatio)
+      // NOTE: Android 5.0+ will always have an unAppliedRotationDegrees of 0 (ExoPlayer already handles it)
+      surfaceEnvelope.setVideoRotation(unAppliedRotationDegrees, false)
+      surfaceEnvelope.setVideoSize(width, height, pixelWidthHeightRatio)
 
+      aspectRatioLayout.setAspectRatio(width, height, pixelWidthHeightRatio)
       videoSizeChangedListener?.onVideoSizeChanged(width, height, pixelWidthHeightRatio)
     }
 

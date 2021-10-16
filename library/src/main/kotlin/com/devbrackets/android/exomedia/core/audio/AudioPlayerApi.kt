@@ -130,7 +130,7 @@ interface AudioPlayerApi {
   fun release()
 
   /**
-   * Stops the current media playback and resets the repeatListener states
+   * Stops the current media playback and resets the listener states
    * so that we receive the callbacks for events like onPrepared
    */
   fun reset()

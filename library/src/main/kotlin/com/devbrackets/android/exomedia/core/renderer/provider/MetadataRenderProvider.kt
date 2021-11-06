@@ -14,27 +14,33 @@
  * limitations under the License.
  */
 
-package com.devbrackets.android.exomedia.core.renderer.metadata
+package com.devbrackets.android.exomedia.core.renderer.provider
 
 import android.os.Handler
-import com.devbrackets.android.exomedia.core.renderer.RenderProvider
 import com.devbrackets.android.exomedia.core.renderer.RendererType
 import com.google.android.exoplayer2.Renderer
 import com.google.android.exoplayer2.metadata.MetadataDecoderFactory
 import com.google.android.exoplayer2.metadata.MetadataOutput
 import com.google.android.exoplayer2.metadata.MetadataRenderer
 
-class MetadataRenderProvider(
-    private val handler: Handler,
-    private val metadataListener: MetadataOutput
-): RenderProvider {
+class MetadataRenderProvider: RenderProvider {
+  private var latestRenderers: List<Renderer> = emptyList()
+
   override fun type() = RendererType.METADATA
 
   override fun rendererClasses(): List<String> {
     return emptyList()
   }
 
-  override fun buildRenderers(): List<Renderer> {
-    return listOf(MetadataRenderer(metadataListener, handler.looper, MetadataDecoderFactory.DEFAULT))
+  override fun getLatestRenderers(): List<Renderer> {
+    return latestRenderers
+  }
+
+  fun buildRenderers(handler: Handler, metadataListener: MetadataOutput): List<Renderer> {
+    return listOf(
+      MetadataRenderer(metadataListener, handler.looper, MetadataDecoderFactory.DEFAULT)
+    ).also {
+      latestRenderers = it
+    }
   }
 }

@@ -20,36 +20,29 @@ import android.content.Context
 import android.os.Handler
 import android.os.Looper
 import com.devbrackets.android.exomedia.AudioPlayer
-import com.devbrackets.android.exomedia.core.source.data.DataSourceFactoryProvider
-import com.devbrackets.android.exomedia.core.renderer.*
-import com.devbrackets.android.exomedia.core.renderer.audio.AudioRenderProvider
-import com.devbrackets.android.exomedia.core.renderer.audio.DefaultAudioRenderListener
-import com.devbrackets.android.exomedia.core.renderer.caption.CaptionRenderProvider
-import com.devbrackets.android.exomedia.core.renderer.caption.DefaultCaptionRenderListener
-import com.devbrackets.android.exomedia.core.renderer.metadata.DefaultMetadataRenderListener
-import com.devbrackets.android.exomedia.core.renderer.metadata.MetadataRenderProvider
-import com.devbrackets.android.exomedia.core.renderer.video.DefaultVideoRenderListener
-import com.devbrackets.android.exomedia.core.renderer.video.VideoRenderProvider
+import com.devbrackets.android.exomedia.core.renderer.PlayerRendererFactory
 import com.devbrackets.android.exomedia.core.source.MediaSourceProvider
+import com.devbrackets.android.exomedia.core.source.data.DataSourceFactoryProvider
 import com.devbrackets.android.exomedia.core.source.data.DefaultDataSourceFactoryProvider
-import com.devbrackets.android.exomedia.nmp.CorePlayerListeners
 import com.devbrackets.android.exomedia.nmp.manager.UserAgentProvider
 import com.devbrackets.android.exomedia.nmp.manager.WakeManager
 import com.devbrackets.android.exomedia.nmp.manager.track.TrackManager
 import com.devbrackets.android.exomedia.util.FallbackManager
 import com.google.android.exoplayer2.DefaultLoadControl
 import com.google.android.exoplayer2.LoadControl
+import com.google.android.exoplayer2.RenderersFactory
 import com.google.android.exoplayer2.analytics.AnalyticsCollector
 import com.google.android.exoplayer2.source.DefaultMediaSourceFactory
 import com.google.android.exoplayer2.source.MediaSourceFactory
-import com.google.android.exoplayer2.upstream.*
+import com.google.android.exoplayer2.upstream.BandwidthMeter
+import com.google.android.exoplayer2.upstream.DefaultBandwidthMeter
 import com.google.android.exoplayer2.util.Clock
 
 class PlayerConfigBuilder(private val context: Context) {
   private var analyticsCollector: AnalyticsCollector? = null
   private var bandwidthMeter: BandwidthMeter? = null
   private var handler: Handler? = null
-  private var renderProviders: Map<RendererType, RenderProvider>? = null
+  private var rendererFactory: RenderersFactory? = null
   private var trackManager: TrackManager? = null
   private var wakeManager: WakeManager? = null
   private var loadControl: LoadControl? = null
@@ -74,8 +67,8 @@ class PlayerConfigBuilder(private val context: Context) {
     return this
   }
 
-  fun setRenderProviders(renderProviders: Map<RendererType, RenderProvider>): PlayerConfigBuilder {
-    this.renderProviders = renderProviders
+  fun setRendererFactory(factory: RenderersFactory): PlayerConfigBuilder {
+    this.rendererFactory = factory
     return this
   }
 
@@ -140,25 +133,15 @@ class PlayerConfigBuilder(private val context: Context) {
   fun build(): PlayerConfig {
     val actualHandler = handler ?: Handler(Looper.getMainLooper())
     val actualAnalyticsCollector = analyticsCollector ?: AnalyticsCollector(Clock.DEFAULT)
-    val coreListener = CorePlayerListeners()
-
-    // TODO How do we make sure that if someone defines a custom provider that internal functionality
-    // doesn't break? (do we need to wrap the renderProviders?)
-    val providers = renderProviders ?: mapOf(
-        RendererType.AUDIO to AudioRenderProvider(context, actualHandler, DefaultAudioRenderListener(actualAnalyticsCollector)),
-        RendererType.VIDEO to VideoRenderProvider(context, actualHandler, DefaultVideoRenderListener(coreListener, actualAnalyticsCollector)),
-        RendererType.CLOSED_CAPTION to CaptionRenderProvider(actualHandler, DefaultCaptionRenderListener(coreListener)),
-        RendererType.METADATA to MetadataRenderProvider(actualHandler, DefaultMetadataRenderListener(coreListener, actualAnalyticsCollector))
-    )
+    val rendererFactory = rendererFactory ?: PlayerRendererFactory(context)
 
     return PlayerConfig(
         context = context,
-        coreListeners = coreListener,
         fallbackManager = fallbackManager ?: FallbackManager(),
         analyticsCollector = actualAnalyticsCollector,
         bandwidthMeter = bandwidthMeter ?: DefaultBandwidthMeter.Builder(context).build(),
         handler = actualHandler,
-        renderProviders = providers,
+        rendererFactory = rendererFactory,
         trackManager = trackManager ?: TrackManager(context),
         wakeManager = wakeManager ?: WakeManager(context),
         loadControl = loadControl ?: DefaultLoadControl(),

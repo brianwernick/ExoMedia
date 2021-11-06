@@ -51,21 +51,24 @@ class ExoMediaPlayerImpl(
     private const val BUFFER_REPEAT_DELAY = 1_000L
   }
 
+  private val listeners = CopyOnWriteArrayList<ExoPlayerListener>()
+  private val rendererListener = DelegatedRenderListener()
+
   private val exoPlayer: ExoPlayer by lazy {
     ExoPlayer.Builder(
-        renderers.toTypedArray(),
-        config.trackManager.selector,
-        config.mediaSourceFactory,
-        config.loadControl,
-        config.bandwidthMeter
-    ).setAnalyticsCollector(config.analyticsCollector)
-        .build().also {
-          it.addListener(this)
-          it.addListener(config.analyticsCollector)
-        }
+      config.context,
+      config.rendererFactory,
+      config.mediaSourceFactory,
+      config.trackManager.selector,
+      config.loadControl,
+      config.bandwidthMeter,
+      config.analyticsCollector
+    ).build().also {
+      it.addListener(this)
+      it.addListener(rendererListener)
+      it.addListener(config.analyticsCollector)
+    }
   }
-
-  private val listeners = CopyOnWriteArrayList<ExoPlayerListener>()
 
   // TODO: shouldn't stopped/prepared be in the state store?
   private val stopped = AtomicBoolean()
@@ -81,7 +84,7 @@ class ExoMediaPlayerImpl(
   override var surface: Surface? = null
   set(value) {
     field = value
-    sendMessage(C.TRACK_TYPE_VIDEO, Renderer.MSG_SET_VIDEO_OUTPUT , surface)
+    exoPlayer.setVideoSurface(value)
   }
 
   private var mediaSource: MediaSource? = null
@@ -98,7 +101,7 @@ class ExoMediaPlayerImpl(
     get() = requestedVolume
     set(volume) {
       requestedVolume = volume.coerceIn(0.0F, 1.0F)
-      sendMessage(C.TRACK_TYPE_AUDIO, Renderer.MSG_SET_VOLUME, requestedVolume)
+      exoPlayer.volume = requestedVolume
     }
 
   override val playbackState: Int
@@ -107,13 +110,13 @@ class ExoMediaPlayerImpl(
   override var playbackSpeed: Float
     get() = exoPlayer.playbackParameters.speed
     set(value) {
-      exoPlayer.setPlaybackParameters(PlaybackParameters(value, exoPlayer.playbackParameters.pitch))
+      exoPlayer.playbackParameters = PlaybackParameters(value, exoPlayer.playbackParameters.pitch)
     }
 
   override var playbackPitch: Float
     get() = exoPlayer.playbackParameters.pitch
     set(value) {
-      exoPlayer.setPlaybackParameters(PlaybackParameters(exoPlayer.playbackParameters.speed, value))
+      exoPlayer.playbackParameters = PlaybackParameters(exoPlayer.playbackParameters.speed, value)
     }
 
   override val currentPosition: Long
@@ -146,7 +149,7 @@ class ExoMediaPlayerImpl(
     }
 
   override val audioSessionId: Int
-    get() = TODO("The DefaultAudioRenderListener keeps track of the audioSessionId")
+    get() = exoPlayer.audioSessionId
 
   override val playing: Boolean
     get() = exoPlayer.isPlaying
@@ -157,10 +160,6 @@ class ExoMediaPlayerImpl(
       exoPlayer.playWhenReady = playWhenReady
       config.wakeManager.stayAwake(playWhenReady)
     }
-
-  private val renderers by lazy {
-    config.renderProviders.values.flatMap { it.buildRenderers() }
-  }
 
   override fun onPlayerStateChanged(playWhenReady: Boolean, state: Int) {
     reportPlayerState()
@@ -190,10 +189,7 @@ class ExoMediaPlayerImpl(
   }
 
   override fun setMediaSource(source: MediaSource?) {
-    mediaSource?.let {
-      it.removeEventListener(config.analyticsCollector)
-    }
-
+    mediaSource?.removeEventListener(config.analyticsCollector)
     source?.addEventListener(config.handler, config.analyticsCollector)
     this.mediaSource = source
 
@@ -214,15 +210,15 @@ class ExoMediaPlayerImpl(
   }
 
   override fun setMetadataListener(listener: MetadataListener?) {
-    config.coreListeners.metadataListener = listener
+    rendererListener.setMetadataListener(listener)
   }
 
   override fun setCaptionListener(listener: CaptionListener?) {
-    config.coreListeners.captionListener = listener
+    rendererListener.setCaptionListener(listener)
   }
 
   override fun setVideoSizeListener(listener: VideoSizeListener?) {
-    config.coreListeners.videoSizeListener = listener
+    rendererListener.setVideoSizeListener(listener)
   }
 
   override fun addAnalyticsListener(listener: AnalyticsListener) {
@@ -237,7 +233,7 @@ class ExoMediaPlayerImpl(
     surface?.release()
     surface = null
 
-    sendMessage(C.TRACK_TYPE_VIDEO, Renderer.MSG_SET_VIDEO_OUTPUT, null)
+    exoPlayer.clearVideoSurface()
   }
 
   override fun setAudioStreamType(streamType: Int) {
@@ -249,7 +245,7 @@ class ExoMediaPlayerImpl(
         .setContentType(contentType)
         .build()
 
-    sendMessage(C.TRACK_TYPE_AUDIO, Renderer.MSG_SET_AUDIO_ATTRIBUTES, audioAttributes)
+    exoPlayer.setAudioAttributes(audioAttributes, false)
   }
 
   override fun clearSelectedTracks(type: RendererType) {
@@ -274,10 +270,7 @@ class ExoMediaPlayerImpl(
       return
     }
 
-    if (renderers.isNotEmpty()) {
-      exoPlayer.stop()
-    }
-
+    exoPlayer.stop()
     stateStore.reset()
     exoPlayer.setMediaSource(source)
     exoPlayer.prepare()
@@ -402,17 +395,6 @@ class ExoMediaPlayerImpl(
 
   override fun getSelectedTrackIndex(type: RendererType, groupIndex: Int): Int {
     return config.trackManager.getSelectedTrackIndex(type, groupIndex)
-  }
-
-  protected fun sendMessage(renderType: Int, messageType: Int, message: Any?) {
-    renderers.forEach { renderer ->
-      if (renderer.trackType == renderType) {
-        exoPlayer.createMessage(renderer)
-            .setType(messageType)
-            .setPayload(message)
-            .send()
-      }
-    }
   }
 
   private fun reportPlayerState() {

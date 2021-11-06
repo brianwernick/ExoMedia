@@ -64,23 +64,23 @@ open class VideoPlayerActivity : Activity(), VideoControlsSeekListener {
     init()
   }
 
-    override fun onStop() {
-        super.onStop()
-        if (videoApi.isPlaying) {
-            playlistManager.invokeStop()
-        }
+  override fun onStop() {
+    super.onStop()
+    if (videoApi.isPlaying) {
+      playlistManager.invokeStop()
     }
+  }
 
-    override fun onDestroy() {
-        super.onDestroy()
-        playlistManager.removeVideoApi(videoApi)
-        playlistManager.invokeStop()
-    }
+  override fun onDestroy() {
+    super.onDestroy()
+    playlistManager.removeVideoApi(videoApi)
+    playlistManager.invokeStop()
+  }
 
-    override fun onSeekStarted(): Boolean {
-        playlistManager.invokeSeekStarted()
-        return true
-    }
+  override fun onSeekStarted(): Boolean {
+    playlistManager.invokeSeekStarted()
+    return true
+  }
 
   override fun onSeekEnded(seekTime: Long): Boolean {
     playlistManager.invokeSeekEnded(seekTime)

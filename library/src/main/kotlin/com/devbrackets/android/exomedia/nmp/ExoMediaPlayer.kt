@@ -109,7 +109,7 @@ interface ExoMediaPlayer {
   /**
    * The current media playback state
    */
-  @Player.State
+//  @Player.State
   val playbackState: Int
 
   /**

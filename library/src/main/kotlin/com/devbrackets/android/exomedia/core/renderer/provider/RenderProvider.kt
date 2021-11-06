@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-package com.devbrackets.android.exomedia.core.renderer
+package com.devbrackets.android.exomedia.core.renderer.provider
 
+import com.devbrackets.android.exomedia.core.renderer.RendererType
 import com.google.android.exoplayer2.Renderer
 
 /**
@@ -34,7 +35,7 @@ interface RenderProvider {
   fun rendererClasses(): List<String>
 
   /**
-   * Builds the renderers of type [type]
+   * Retrieves the latest built renderers
    */
-  fun buildRenderers(): List<Renderer>
+  fun getLatestRenderers(): List<Renderer>
 }

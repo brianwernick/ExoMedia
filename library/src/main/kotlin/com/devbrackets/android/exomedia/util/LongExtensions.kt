@@ -26,7 +26,7 @@ import android.text.format.DateUtils
  *
  * @return The human readable time
  */
-fun Long.millisToFormattedTimeString(): String {
+fun Long.millisToFormattedDuration(): String {
   if (this < 0) {
     return "--:--"
   }

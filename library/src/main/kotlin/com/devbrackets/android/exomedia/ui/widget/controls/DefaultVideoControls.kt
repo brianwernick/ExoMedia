@@ -35,7 +35,7 @@ import com.devbrackets.android.exomedia.ui.listener.VideoControlsSeekListener
 import com.devbrackets.android.exomedia.ui.listener.VideoControlsVisibilityListener
 import com.devbrackets.android.exomedia.ui.widget.VideoView
 import com.devbrackets.android.exomedia.util.Repeater
-import com.devbrackets.android.exomedia.util.millisToFormattedTimeString
+import com.devbrackets.android.exomedia.util.millisToFormattedDuration
 import com.devbrackets.android.exomedia.util.tintListCompat
 import java.util.*
 import kotlin.math.abs
@@ -183,7 +183,7 @@ abstract class DefaultVideoControls : RelativeLayout, VideoControls {
     if (abs(position - lastUpdatedPosition) >= 1000 || lastUpdatedPosition == 0L) {
       lastUpdatedPosition = position
 
-      currentTimeTextView.text = position.millisToFormattedTimeString()
+      currentTimeTextView.text = position.millisToFormattedDuration()
     }
   }
 

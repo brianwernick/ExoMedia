@@ -8,7 +8,7 @@ import android.view.View
 import android.widget.SeekBar
 import com.bumptech.glide.Glide
 import com.bumptech.glide.RequestManager
-import com.devbrackets.android.exomedia.util.millisToFormattedTimeString
+import com.devbrackets.android.exomedia.util.millisToFormattedDuration
 import com.devbrackets.android.exomediademo.App
 import com.devbrackets.android.exomediademo.R
 import com.devbrackets.android.exomediademo.data.MediaItem
@@ -111,7 +111,7 @@ class AudioPlayerActivity : AppCompatActivity(), PlaylistListener<MediaItem>, Pr
         if (!userInteracting) {
             seekBar.secondaryProgress = (mediaProgress.duration * mediaProgress.bufferPercentFloat).toInt()
             seekBar.progress = mediaProgress.position.toInt()
-            currentPositionView.text = mediaProgress.position.millisToFormattedTimeString()
+            currentPositionView.text = mediaProgress.position.millisToFormattedDuration()
         }
 
         return true
@@ -197,7 +197,7 @@ class AudioPlayerActivity : AppCompatActivity(), PlaylistListener<MediaItem>, Pr
      */
     private fun setDuration(duration: Long) {
         seekBar.max = duration.toInt()
-        durationView.text = duration.millisToFormattedTimeString()
+        durationView.text = duration.millisToFormattedDuration()
     }
 
     /**
@@ -261,7 +261,7 @@ class AudioPlayerActivity : AppCompatActivity(), PlaylistListener<MediaItem>, Pr
             }
 
             seekPosition = progress
-            currentPositionView.text = progress.toLong().millisToFormattedTimeString()
+            currentPositionView.text = progress.toLong().millisToFormattedDuration()
         }
 
         override fun onStartTrackingTouch(seekBar: SeekBar) {

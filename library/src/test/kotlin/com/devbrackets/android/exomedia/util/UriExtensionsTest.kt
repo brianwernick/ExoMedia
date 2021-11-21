@@ -1,7 +1,7 @@
 package com.devbrackets.android.exomedia.util
 
 import android.net.Uri
-import com.google.common.truth.Truth.assertThat
+import org.junit.Assert
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -12,42 +12,74 @@ import org.robolectric.annotation.Config
 class UriExtensionsTest {
 
   @Test
-  fun `getExtension extracts extension from url`() {
-    assertThat(Uri.parse("http://www.example.com/manifest.mpd").getExtension()).isEqualTo(".mpd")
+  fun getExtensionMpd() {
+    val uri = Uri.parse("http://www.example.com/manifest.mpd")
+
+    val actual = uri.getExtension()
+
+    Assert.assertEquals(".mpd", actual)
   }
 
   @Test
-  fun `getExtension extracts extension from url with many path segments`() {
-    assertThat(Uri.parse("http://www.example.com/a/b/c/d/efg/h/manifest.mpd").getExtension()).isEqualTo(".mpd")
+  fun getExtensionMpdPaths() {
+    val uri = Uri.parse("http://www.example.com/a/b/c/d/efg/h/manifest.mpd")
+
+    val actual = uri.getExtension()
+
+    Assert.assertEquals(".mpd", actual)
   }
 
   @Test
-  fun `getExtension extracts extension from url when extension is m3u8`() {
-    assertThat(Uri.parse("http://www.example.com/manifest.m3u8").getExtension()).isEqualTo(".m3u8")
+  fun getExtensionM3u8() {
+    val uri = Uri.parse("http://www.example.com/manifest.m3u8")
+
+    val actual = uri.getExtension()
+
+    Assert.assertEquals(".m3u8", actual)
   }
 
   @Test
-  fun `getExtension extracts lowercased extension from url when extension is uppercase`() {
-    assertThat(Uri.parse("http://www.example.com/manifest.M3U8").getExtension()).isEqualTo(".m3u8")
+  fun getExtensionM3u8Uppercase() {
+    val uri = Uri.parse("http://www.example.com/manifest.M3U8")
+
+    val actual = uri.getExtension()
+
+    Assert.assertEquals(".m3u8", actual)
   }
 
   @Test
-  fun `getExtension extracts extension from url when extension is specified before last path segment`() {
-    assertThat(Uri.parse("http://www.example.com/TearsOfSteelTeaser.ism/manifest").getExtension()).isEqualTo(".ism")
+  fun getExtensionPathManifest() {
+    val uri = Uri.parse("http://www.example.com/TearsOfSteelTeaser.ism/manifest")
+
+    val actual = uri.getExtension()
+
+    Assert.assertEquals(".ism", actual)
   }
 
   @Test
-  fun `getExtension returns empty string when extension is not specified`() {
-    assertThat(Uri.parse("http://www.example.com").getExtension()).isEmpty()
+  fun getExtensionNone() {
+    val uri = Uri.parse("http://www.example.com")
+
+    val actual = uri.getExtension()
+
+    Assert.assertTrue(actual.isEmpty())
   }
 
   @Test
-  fun `getExtension returns empty string when uri is empty`() {
-    assertThat(Uri.EMPTY.getExtension()).isEmpty()
+  fun getExtensionEmpty() {
+    val uri = Uri.EMPTY
+
+    val actual = uri.getExtension()
+
+    Assert.assertTrue(actual.isEmpty())
   }
 
   @Test
-  fun `getExtension converts last path segment to extension if not a real extension is specified`() {
-    assertThat(Uri.parse("http://www.example.com/mp4").getExtension()).isEqualTo(".mp4")
+  fun getExtensionLastPathSegment() {
+    val uri = Uri.parse("http://www.example.com/mp4")
+
+    val actual = uri.getExtension()
+
+    Assert.assertEquals(".mp4", actual)
   }
 }

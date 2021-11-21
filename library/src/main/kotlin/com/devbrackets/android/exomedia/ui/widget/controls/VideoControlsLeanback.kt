@@ -32,7 +32,7 @@ import android.widget.ImageView
 import android.widget.ProgressBar
 import com.devbrackets.android.exomedia.R
 import com.devbrackets.android.exomedia.ui.animation.BottomViewHideShowAnimation
-import com.devbrackets.android.exomedia.util.millisToFormattedTimeString
+import com.devbrackets.android.exomedia.util.millisToFormattedDuration
 import com.devbrackets.android.exomedia.util.tintListCompat
 
 /**
@@ -88,13 +88,13 @@ class VideoControlsLeanback : DefaultVideoControls {
   }
 
   override fun setPosition(position: Long) {
-    currentTimeTextView.text = position.millisToFormattedTimeString()
+    currentTimeTextView.text = position.millisToFormattedDuration()
     progressBar.progress = position.toInt()
   }
 
   override fun setDuration(duration: Long) {
     if (duration != progressBar.max.toLong()) {
-      endTimeTextView.text = duration.millisToFormattedTimeString()
+      endTimeTextView.text = duration.millisToFormattedDuration()
       progressBar.max = duration.toInt()
     }
   }

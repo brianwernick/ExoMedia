@@ -1,37 +1,52 @@
 package com.devbrackets.android.exomedia.util
 
-import com.google.common.truth.Truth.assertThat
+import org.junit.Assert
 import org.junit.Test
 
 class LongExtensionsTest {
 
   @Test
-  fun `millisToFormattedTimeString formats millis in expected form if value is lesser than minute`() {
-    assertThat(10000L.millisToFormattedTimeString()).isEqualTo("00:10")
+  fun millisToFormattedDurationSeconds() {
+    val timeMills = 10_000L
+    
+    val actual = timeMills.millisToFormattedDuration()
+    
+    Assert.assertEquals("00:10", actual)
   }
 
   @Test
-  fun `millisToFormattedTimeString formats millis in expected form if value is lesser than hour`() {
-    assertThat(80000L.millisToFormattedTimeString()).isEqualTo("01:20")
+  fun millisToFormattedDurationMinues() {
+    val timeMills = 80_000L
+
+    val actual = timeMills.millisToFormattedDuration()
+
+    Assert.assertEquals("01:20", actual)
   }
 
   @Test
-  fun `millisToFormattedTimeString formats millis in expected form if value is bigger than hour`() {
-    assertThat(5000000L.millisToFormattedTimeString()).isEqualTo("1:23:20")
+  fun millisToFormattedDurationHours() {
+    val timeMills = 5_000_000L
+
+    val actual = timeMills.millisToFormattedDuration()
+
+    Assert.assertEquals("1:23:20", actual)
   }
 
   @Test
-  fun `millisToFormattedTimeString omits count of days if millis value is bigger than day`() {
-    assertThat(100000000L.millisToFormattedTimeString()).isEqualTo("3:46:40")
+  fun millisToFormattedDurationNegative() {
+    val timeMills = -10_000L
+
+    val actual = timeMills.millisToFormattedDuration()
+
+    Assert.assertEquals("--:--", actual)
   }
 
   @Test
-  fun `millisToFormattedTimeString formats millis in expected form if value is lesser than zero`() {
-    assertThat((-1L).millisToFormattedTimeString()).isEqualTo("--:--")
-  }
+  fun millisToFormattedDurationZero() {
+    val timeMills = 0L
 
-  @Test
-  fun `millisToFormattedTimeString formats millis in expected form if value is zero`() {
-    assertThat(0L.millisToFormattedTimeString()).isEqualTo("00:00")
+    val actual = timeMills.millisToFormattedDuration()
+
+    Assert.assertEquals("00:00", actual)
   }
 }

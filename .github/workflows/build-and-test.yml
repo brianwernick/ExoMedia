@@ -18,5 +18,14 @@ jobs:
           distribution: 'temurin'
           java-version: '11'
           cache: 'gradle'
+      - name: "Gradle Cache"
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
       - name: "Build & Test"
         run: ./gradlew clean assembleDebug testDebugUnitTest

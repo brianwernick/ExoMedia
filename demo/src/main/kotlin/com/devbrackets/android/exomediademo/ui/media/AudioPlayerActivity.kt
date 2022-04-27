@@ -3,7 +3,7 @@ package com.devbrackets.android.exomediademo.ui.media
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import androidx.appcompat.app.AppCompatActivity
+import android.view.LayoutInflater
 import android.view.View
 import android.widget.SeekBar
 import com.bumptech.glide.Glide
@@ -13,12 +13,13 @@ import com.devbrackets.android.exomediademo.App
 import com.devbrackets.android.exomediademo.R
 import com.devbrackets.android.exomediademo.data.MediaItem
 import com.devbrackets.android.exomediademo.data.Samples
+import com.devbrackets.android.exomediademo.databinding.AudioPlayerActivityBinding
 import com.devbrackets.android.exomediademo.playlist.manager.PlaylistManager
+import com.devbrackets.android.exomediademo.ui.support.BindingActivity
 import com.devbrackets.android.playlistcore.data.MediaProgress
 import com.devbrackets.android.playlistcore.data.PlaybackState
 import com.devbrackets.android.playlistcore.listener.PlaylistListener
 import com.devbrackets.android.playlistcore.listener.ProgressListener
-import kotlinx.android.synthetic.main.audio_player_activity.*
 
 /**
  * An example activity to show how to implement and audio UI
@@ -26,7 +27,7 @@ import kotlinx.android.synthetic.main.audio_player_activity.*
  * and [com.devbrackets.android.playlistcore.manager.ListPlaylistManager]
  * classes.
  */
-class AudioPlayerActivity : AppCompatActivity(), PlaylistListener<MediaItem>, ProgressListener {
+class AudioPlayerActivity : BindingActivity<AudioPlayerActivityBinding>(), PlaylistListener<MediaItem>, ProgressListener {
     companion object {
         const val EXTRA_INDEX = "EXTRA_INDEX"
         const val PLAYLIST_ID = 4 //Arbitrary, for the example
@@ -52,9 +53,12 @@ class AudioPlayerActivity : AppCompatActivity(), PlaylistListener<MediaItem>, Pr
 
     private val glide: RequestManager by lazy { Glide.with(this) }
 
+    override fun inflateBinding(layoutInflater: LayoutInflater): AudioPlayerActivityBinding {
+        return AudioPlayerActivityBinding.inflate(layoutInflater)
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.audio_player_activity)
 
         init()
     }
@@ -79,12 +83,12 @@ class AudioPlayerActivity : AppCompatActivity(), PlaylistListener<MediaItem>, Pr
         shouldSetDuration = true
 
         //Updates the button states
-        nextButton.isEnabled = hasNext
-        previousButton.isEnabled = hasPrevious
+        binding.nextButton.isEnabled = hasNext
+        binding.previousButton.isEnabled = hasPrevious
 
         //Loads the new image
         currentItem?.let {
-            glide.load(it.artworkUrl).into(artworkView!!)
+            glide.load(it.artworkUrl).into(binding.artworkView)
         }
 
         return true
@@ -109,9 +113,9 @@ class AudioPlayerActivity : AppCompatActivity(), PlaylistListener<MediaItem>, Pr
         }
 
         if (!userInteracting) {
-            seekBar.secondaryProgress = (mediaProgress.duration * mediaProgress.bufferPercentFloat).toInt()
-            seekBar.progress = mediaProgress.position.toInt()
-            currentPositionView.text = mediaProgress.position.millisToFormattedDuration()
+            binding.seekBar.secondaryProgress = (mediaProgress.duration * mediaProgress.bufferPercentFloat).toInt()
+            binding.seekBar.progress = mediaProgress.position.toInt()
+            binding.currentPositionView.text = mediaProgress.position.millisToFormattedDuration()
         }
 
         return true
@@ -163,7 +167,7 @@ class AudioPlayerActivity : AppCompatActivity(), PlaylistListener<MediaItem>, Pr
      */
     private fun updatePlayPauseImage(isPlaying: Boolean) {
         val resId = if (isPlaying) R.drawable.playlistcore_ic_pause_black else R.drawable.playlistcore_ic_play_arrow_black
-        playPauseButton.setImageResource(resId)
+        binding.playPauseButton.setImageResource(resId)
     }
 
     /**
@@ -171,11 +175,11 @@ class AudioPlayerActivity : AppCompatActivity(), PlaylistListener<MediaItem>, Pr
      * means replacing the loading animation with the PlayPause button
      */
     private fun loadCompleted() {
-        playPauseButton.visibility = View.VISIBLE
-        previousButton.visibility = View.VISIBLE
-        nextButton.visibility = View.VISIBLE
+        binding.playPauseButton.visibility = View.VISIBLE
+        binding.previousButton.visibility = View.VISIBLE
+        binding.nextButton.visibility = View.VISIBLE
 
-        loadingBar.visibility = View.INVISIBLE
+        binding.loadingBar.visibility = View.INVISIBLE
     }
 
     /**
@@ -183,11 +187,11 @@ class AudioPlayerActivity : AppCompatActivity(), PlaylistListener<MediaItem>, Pr
      * This is the opposite of [.loadCompleted]
      */
     private fun restartLoading() {
-        playPauseButton.visibility = View.INVISIBLE
-        previousButton.visibility = View.INVISIBLE
-        nextButton.visibility = View.INVISIBLE
+        binding.playPauseButton.visibility = View.INVISIBLE
+        binding.previousButton.visibility = View.INVISIBLE
+        binding.nextButton.visibility = View.INVISIBLE
 
-        loadingBar.visibility = View.VISIBLE
+        binding.loadingBar.visibility = View.VISIBLE
     }
 
     /**
@@ -196,8 +200,8 @@ class AudioPlayerActivity : AppCompatActivity(), PlaylistListener<MediaItem>, Pr
      * @param duration The duration of the media item in milliseconds
      */
     private fun setDuration(duration: Long) {
-        seekBar.max = duration.toInt()
-        durationView.text = duration.millisToFormattedDuration()
+        binding.seekBar.max = duration.toInt()
+        binding.durationView.text = duration.millisToFormattedDuration()
     }
 
     /**
@@ -230,10 +234,10 @@ class AudioPlayerActivity : AppCompatActivity(), PlaylistListener<MediaItem>, Pr
      * invoke methods in the [.playlistManager]
      */
     private fun setupListeners() {
-        seekBar.setOnSeekBarChangeListener(SeekBarChanged())
-        previousButton.setOnClickListener { playlistManager.invokePrevious() }
-        playPauseButton.setOnClickListener { playlistManager.invokePausePlay() }
-        nextButton.setOnClickListener { playlistManager.invokeNext() }
+        binding.seekBar.setOnSeekBarChangeListener(SeekBarChanged())
+        binding.previousButton.setOnClickListener { playlistManager.invokePrevious() }
+        binding.playPauseButton.setOnClickListener { playlistManager.invokePausePlay() }
+        binding.nextButton.setOnClickListener { playlistManager.invokeNext() }
     }
 
     /**
@@ -261,7 +265,7 @@ class AudioPlayerActivity : AppCompatActivity(), PlaylistListener<MediaItem>, Pr
             }
 
             seekPosition = progress
-            currentPositionView.text = progress.toLong().millisToFormattedDuration()
+            binding.currentPositionView.text = progress.toLong().millisToFormattedDuration()
         }
 
         override fun onStartTrackingTouch(seekBar: SeekBar) {

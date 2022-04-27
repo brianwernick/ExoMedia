@@ -27,9 +27,9 @@ static def getLibraryInfo() {
 dependencies {
   api "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlinVersion"
 
-  implementation 'androidx.media:media:1.4.3'
-  implementation 'androidx.appcompat:appcompat:1.3.1'
-  implementation "androidx.constraintlayout:constraintlayout:2.1.1"
+  implementation 'androidx.media:media:1.6.0'
+  implementation 'androidx.appcompat:appcompat:1.4.1'
+  implementation "androidx.constraintlayout:constraintlayout:2.1.3"
 
   // ExoPlayer
   api "com.google.android.exoplayer:exoplayer-core:$rootProject.ext.exoPlayerVersion"
@@ -38,7 +38,7 @@ dependencies {
   api "com.google.android.exoplayer:exoplayer-smoothstreaming:$rootProject.ext.exoPlayerVersion"
 
   testImplementation 'junit:junit:4.13.2'
-  testImplementation "org.robolectric:robolectric:4.7.2"
+  testImplementation "org.robolectric:robolectric:4.7.3"
 }
 
 android {

@@ -63,10 +63,10 @@ fun DemoNavHost(
     startDestination = startDestination,
     modifier = modifier,
     route = route,
-    enterTransition = { _, _ -> enterTransition },
-    exitTransition = { _, _ -> exitTransition },
-    popEnterTransition = { _, _ -> popEnterTransition },
-    popExitTransition = { _, _ -> popExitTransition },
+    enterTransition = { enterTransition },
+    exitTransition = { exitTransition },
+    popEnterTransition = { popEnterTransition },
+    popExitTransition = { popExitTransition },
     builder = builder
   )
 }

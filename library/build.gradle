@@ -2,26 +2,7 @@ apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 
 afterEvaluate {
-  apply from: 'gradle/publish.gradle'
-}
-
-/**
- * Holds the information associated with the library needed for the
- * bintray plugin to publish the artifact
- */
-class LibraryInfo {
-  static Integer versionMajor = 5
-  static Integer versionMinor = 0
-  static Integer versionPatch = 0
-
-  static String artifactId = 'exomedia'
-  static String groupId = 'com.devbrackets.android'
-  static String versionName = "${versionMajor}.${versionMinor}.${versionPatch}"
-  static Integer versionCode = versionMajor * 10_000 + versionMinor * 1_000 + versionPatch * 100
-}
-
-static def getLibraryInfo() {
-  return new LibraryInfo()
+  apply from: '../gradle/release/publish.gradle'
 }
 
 dependencies {
@@ -50,8 +31,7 @@ android {
 
     vectorDrawables.useSupportLibrary = true
 
-    buildConfigField "String", "EXO_MEDIA_VERSION_NAME", "\"${getLibraryInfo().versionName}\""
-    buildConfigField "int", "EXO_MEDIA_VERSION_CODE", "${getLibraryInfo().versionCode}"
+    buildConfigField "String", "EXO_MEDIA_VERSION_NAME", "\"${rootProject.ext.libraryInfo.versionName}\""
   }
 
   sourceSets {

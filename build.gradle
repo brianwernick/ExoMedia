@@ -2,33 +2,27 @@ import org.gradle.internal.logging.text.StyledTextOutputFactory
 import static org.gradle.internal.logging.text.StyledTextOutput.Style
 
 buildscript {
-  ext.kotlinVersion = '1.5.31'
+  ext.kotlinVersion = '1.6.10'
   repositories {
     mavenCentral()
     google()
   }
 
   dependencies {
-    classpath 'com.android.tools.build:gradle:7.0.3'
+    classpath 'com.android.tools.build:gradle:7.1.3'
     classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
   }
 }
 
 ext {
   moduleTestResults = []
-  exoPlayerVersion = "2.16.0"
+  exoPlayerVersion = "2.17.1"
 }
 
 
 allprojects {
   repositories {
     mavenCentral()
-    jcenter() {
-      content {
-        // Included for PlaylistCore until that's migrated to Maven Central
-        includeGroup "com.devbrackets.android"
-      }
-    }
     google()
   }
 

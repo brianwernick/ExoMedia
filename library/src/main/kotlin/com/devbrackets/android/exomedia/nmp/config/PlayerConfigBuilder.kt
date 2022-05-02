@@ -32,6 +32,7 @@ import com.google.android.exoplayer2.DefaultLoadControl
 import com.google.android.exoplayer2.LoadControl
 import com.google.android.exoplayer2.RenderersFactory
 import com.google.android.exoplayer2.analytics.AnalyticsCollector
+import com.google.android.exoplayer2.analytics.DefaultAnalyticsCollector
 import com.google.android.exoplayer2.source.DefaultMediaSourceFactory
 import com.google.android.exoplayer2.source.MediaSourceFactory
 import com.google.android.exoplayer2.upstream.BandwidthMeter
@@ -132,7 +133,7 @@ class PlayerConfigBuilder(private val context: Context) {
 
   fun build(): PlayerConfig {
     val actualHandler = handler ?: Handler(Looper.getMainLooper())
-    val actualAnalyticsCollector = analyticsCollector ?: AnalyticsCollector(Clock.DEFAULT)
+    val actualAnalyticsCollector = analyticsCollector ?: DefaultAnalyticsCollector(Clock.DEFAULT)
     val rendererFactory = rendererFactory ?: PlayerRendererFactory(context)
 
     return PlayerConfig(

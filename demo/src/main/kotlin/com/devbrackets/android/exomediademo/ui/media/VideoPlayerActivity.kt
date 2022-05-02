@@ -1,10 +1,10 @@
 package com.devbrackets.android.exomediademo.ui.media
 
 import android.annotation.SuppressLint
-import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.view.LayoutInflater
 import androidx.appcompat.widget.AppCompatImageButton
 import android.view.MenuItem
 import com.devbrackets.android.exomedia.core.renderer.RendererType
@@ -16,17 +16,19 @@ import com.devbrackets.android.exomediademo.App
 import com.devbrackets.android.exomediademo.R
 import com.devbrackets.android.exomediademo.data.MediaItem
 import com.devbrackets.android.exomediademo.data.Samples
+import com.devbrackets.android.exomediademo.databinding.AudioPlayerActivityBinding
+import com.devbrackets.android.exomediademo.databinding.VideoPlayerActivityBinding
 import com.devbrackets.android.exomediademo.playlist.manager.PlaylistManager
 import com.devbrackets.android.exomediademo.playlist.VideoApi
+import com.devbrackets.android.exomediademo.ui.support.BindingActivity
 import com.devbrackets.android.exomediademo.ui.support.CaptionPopupManager
 import com.devbrackets.android.exomediademo.ui.support.CaptionPopupManager.Companion.CC_DEFAULT
 import com.devbrackets.android.exomediademo.ui.support.CaptionPopupManager.Companion.CC_DISABLED
 import com.devbrackets.android.exomediademo.ui.support.CaptionPopupManager.Companion.CC_GROUP_INDEX_MOD
 import com.devbrackets.android.exomediademo.ui.support.FullscreenManager
 import com.google.android.exoplayer2.util.EventLogger
-import kotlinx.android.synthetic.main.video_player_activity.*
 
-open class VideoPlayerActivity : Activity(), VideoControlsSeekListener {
+open class VideoPlayerActivity : BindingActivity<VideoPlayerActivityBinding>(), VideoControlsSeekListener {
   companion object {
     const val EXTRA_INDEX = "EXTRA_INDEX"
     const val PLAYLIST_ID = 6 //Arbitrary, for the example (different from audio)
@@ -53,13 +55,16 @@ open class VideoPlayerActivity : Activity(), VideoControlsSeekListener {
   private val captionPopupManager = CaptionPopupManager()
   private val fullscreenManager by lazy {
     FullscreenManager(window) {
-      videoView.showControls()
+      binding.videoView.showControls()
     }
+  }
+
+  override fun inflateBinding(layoutInflater: LayoutInflater): VideoPlayerActivityBinding {
+    return VideoPlayerActivityBinding.inflate(layoutInflater)
   }
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
-    setContentView(R.layout.video_player_activity)
 
     init()
   }
@@ -90,16 +95,16 @@ open class VideoPlayerActivity : Activity(), VideoControlsSeekListener {
   private fun init() {
     setupPlaylistManager()
 
-    videoView.handleAudioFocus = false
-    videoView.setAnalyticsListener(EventLogger(null))
+    binding.videoView.handleAudioFocus = false
+    binding.videoView.setAnalyticsListener(EventLogger(null))
 
     setupClosedCaptions()
 
-    videoApi = VideoApi(videoView)
+    videoApi = VideoApi(binding.videoView)
     playlistManager.addVideoApi(videoApi)
     playlistManager.play(0, false)
 
-    (videoView.videoControls as? DefaultVideoControls)?.visibilityListener = ControlsVisibilityListener()
+    (binding.videoView.videoControls as? DefaultVideoControls)?.visibilityListener = ControlsVisibilityListener()
   }
 
   private fun setupClosedCaptions() {
@@ -109,14 +114,14 @@ open class VideoPlayerActivity : Activity(), VideoControlsSeekListener {
       setOnClickListener { showCaptionsMenu() }
     }
 
-    (videoView.videoControls as? DefaultVideoControls)?.let {
+    (binding.videoView.videoControls as? DefaultVideoControls)?.let {
       it.seekListener = this
-      if (videoView.trackSelectionAvailable()) {
+      if (binding.videoView.trackSelectionAvailable()) {
         it.addExtraView(captionsButton)
       }
     }
 
-    videoView.setOnVideoSizedChangedListener(object : OnVideoSizeChangedListener {
+    binding.videoView.setOnVideoSizedChangedListener(object : OnVideoSizeChangedListener {
       override fun onVideoSizeChanged(intrinsicWidth: Int, intrinsicHeight: Int, pixelWidthHeightRatio: Float) {
         val videoAspectRatio: Float = if (intrinsicWidth == 0 || intrinsicHeight == 0) {
           1f
@@ -124,11 +129,11 @@ open class VideoPlayerActivity : Activity(), VideoControlsSeekListener {
           intrinsicWidth * pixelWidthHeightRatio / intrinsicHeight
         }
 
-        subtitleFrameLayout.setAspectRatio(videoAspectRatio)
+        binding.subtitleFrameLayout.setAspectRatio(videoAspectRatio)
       }
     })
 
-    videoView.setCaptionListener(subtitleView)
+    binding.videoView.setCaptionListener(binding.subtitleView)
   }
 
   /**
@@ -148,7 +153,7 @@ open class VideoPlayerActivity : Activity(), VideoControlsSeekListener {
   }
 
   private fun showCaptionsMenu() {
-    val captionItems = captionPopupManager.getCaptionItems(videoView)
+    val captionItems = captionPopupManager.getCaptionItems(binding.videoView)
     if (captionItems.isEmpty()) {
       return
     }
@@ -162,12 +167,12 @@ open class VideoPlayerActivity : Activity(), VideoControlsSeekListener {
     menuItem.isChecked = true
 
     when (val itemId = menuItem.itemId) {
-      CC_DEFAULT -> videoView.clearSelectedTracks(RendererType.CLOSED_CAPTION)
-      CC_DISABLED -> videoView.setRendererEnabled(RendererType.CLOSED_CAPTION, false)
+      CC_DEFAULT -> binding.videoView.clearSelectedTracks(RendererType.CLOSED_CAPTION)
+      CC_DISABLED -> binding.videoView.setRendererEnabled(RendererType.CLOSED_CAPTION, false)
       else -> {
         val trackIndex = itemId % CC_GROUP_INDEX_MOD
         val groupIndex = itemId / CC_GROUP_INDEX_MOD
-        videoView.setTrack(RendererType.CLOSED_CAPTION, groupIndex, trackIndex)
+        binding.videoView.setTrack(RendererType.CLOSED_CAPTION, groupIndex, trackIndex)
       }
     }
 

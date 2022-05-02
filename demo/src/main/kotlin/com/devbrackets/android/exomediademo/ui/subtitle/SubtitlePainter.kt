@@ -80,7 +80,7 @@ internal class SubtitlePainter(context: Context) {
     private var backgroundColor: Int = 0
     private var windowColor: Int = 0
     private var edgeColor: Int = 0
-    @CaptionStyleCompat.EdgeType
+//    @CaptionStyleCompat.EdgeType
     private var edgeType: Int = 0
     private var defaultTextSizePx: Float = 0.toFloat()
     private var cueTextSizePx: Float = 0.toFloat()

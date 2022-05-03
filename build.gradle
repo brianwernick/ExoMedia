@@ -14,6 +14,10 @@ buildscript {
   }
 }
 
+plugins {
+  id "io.github.gradle-nexus.publish-plugin" version "1.1.0"
+}
+
 ext {
   moduleTestResults = []
   exoPlayerVersion = "2.17.1"
@@ -86,4 +90,32 @@ private printTestResults(title, passed, failed, skipped, total) {
   styledOut.withStyle(style).println('╔═' + summaryTitle + '═' * (summary.length() - summaryTitle.length() -1) + '╗')
   styledOut.withStyle(style).println('║' + summary + '║')
   styledOut.withStyle(style).println('╚' + '═' * summary.length() + '╝')
+}
+
+
+/*
+ * Below is the functionality to publish the `library` module to Maven Central (Sonatype) using the
+ * plugin `io.github.gradle-nexus.publish-plugin`. This functionality is included in this (root)
+ * `build.gradle` because that's what the plugin expects; if this changes in the future then we
+ * should migrate this functionality into the `publish.gradle` file instead.
+ */
+apply from: 'gradle/release/libraryInfo.gradle'
+
+ext {
+  libraryInfo = getLibraryInfo()
+}
+
+// Used by the publish-plugin
+group = libraryInfo.groupId
+version = libraryInfo.versionName
+
+nexusPublishing {
+  repositories {
+    sonatype {
+      nexusUrl.set(uri("https://s01.oss.sonatype.org/service/local/"))
+      snapshotRepositoryUrl.set(uri("https://s01.oss.sonatype.org/content/repositories/snapshots/"))
+      username = System.getenv("SONATYPE_TOKEN_USERNAME")
+      password = System.getenv("SONATYPE_TOKEN_PASSWORD")
+    }
+  }
 }

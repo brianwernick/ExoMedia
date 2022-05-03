@@ -1,0 +1,36 @@
+class LibraryInfo {
+  String artifactId
+  String groupId
+
+  Integer versionMajor
+  Integer versionMinor
+  Integer versionPatch
+  String versionName
+}
+
+def readLibraryProps() {
+  def versionProps = new Properties()
+  def file = new File("$projectDir/libraryInfo.properties")
+  versionProps.load(file.newInputStream())
+
+  return versionProps
+}
+
+def getLibraryInfo() {
+  def props = readLibraryProps()
+  LibraryInfo info = new LibraryInfo()
+
+  info.artifactId = props.get('ARTIFACT_ID') as String
+  info.groupId = props.get('GROUP_ID') as String
+
+  info.versionMajor = props.get('VERSION_MAJOR') as Integer
+  info.versionMinor = props.get('VERSION_MINOR') as Integer
+  info.versionPatch = props.get('VERSION_PATCH') as Integer
+  info.versionName = "${info.versionMajor}.${info.versionMinor}.${info.versionPatch}"
+
+  return info
+}
+
+ext {
+  getLibraryInfo = this.&getLibraryInfo
+}

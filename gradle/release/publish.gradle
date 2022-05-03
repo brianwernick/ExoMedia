@@ -1,0 +1,117 @@
+
+apply plugin: "maven-publish"
+apply plugin: "signing"
+
+task androidJavaDoc(type: Javadoc) {
+  source = android.sourceSets.main.java.srcDirs
+  classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
+  options.encoding "UTF-8"
+  options.charSet 'UTF-8'
+  options.author true
+  options.version true
+  failOnError false
+}
+
+task androidJavaDocJar(type: Jar, dependsOn: androidJavaDoc) {
+  archiveClassifier.set('javadoc')
+  from androidJavaDoc.destinationDir
+}
+
+task androidSourcesJar(type: Jar) {
+  archiveClassifier.set('sources')
+  from android.sourceSets.main.java.srcDirs
+}
+
+/**
+ * Helper to add dependencies to the POM node. This is needed during manual construction
+ * of the dependencies block
+ */
+static def addPomDependency(groovy.util.Node dependenciesNode, Dependency dependency, String dependencyScope) {
+  // Ignore incomplete dependencies
+  if (dependency.name == null || dependency.name == 'unspecified' || dependency.group == null || dependency.version == null) {
+    return
+  }
+
+  def dependencyNode = dependenciesNode.appendNode('dependency')
+  dependencyNode.appendNode('groupId', dependency.group)
+  dependencyNode.appendNode('artifactId', dependency.name)
+  dependencyNode.appendNode('version', dependency.version)
+  dependencyNode.appendNode('scope', dependencyScope)
+}
+
+/**
+ * Deploy to Maven Central (Sonatype)
+ * `$ ./gradlew clean library:assembleRelease androidJavaDocJar androidSourcesJar generatePomFileForNexusPublication publishNexusPublicationToSonatypeRepository closeSonatypeStagingRepository`
+ *
+ * ** NOTE: **
+ * This expects the following environment variables to be present
+ *  - `SONATYPE_TOKEN_USERNAME` : The username for the user token in Sonatype
+ *  - `SONATYPE_TOKEN_PASSWORD` : The password for the user token in Sonatype
+ *  - `SIGNING_KEY_ID` : The ID for the GPG signing key to sign the library with
+ *  - `SIGNING_KEY` : The GPG key to sign the library with
+ *  - `SIGNING_KEY_PASSWORD` : The password for the `SIGNING_KEY`
+ */
+publishing {
+  publications {
+    nexus(MavenPublication) {
+      groupId rootProject.ext.libraryInfo.groupId
+      artifactId rootProject.ext.libraryInfo.artifactId
+      version rootProject.ext.libraryInfo.versionName
+
+      artifact bundleReleaseAar
+      artifact androidJavaDocJar
+      artifact androidSourcesJar
+
+      pom {
+        name = rootProject.ext.libraryInfo.groupId + ":" + rootProject.ext.libraryInfo.artifactId
+        description = "A media playback library that uses the ExoPlayer as a default backing"
+        url = "https://github.com/brianwernick/ExoMedia"
+        licenses {
+          license {
+            name = "The Apache License, Version 2.0"
+            url = "http://www.apache.org/licenses/LICENSE-2.0.txt"
+          }
+        }
+        scm {
+          connection = 'scm:git:github.com/brianwernick/ExoMedia.git'
+          developerConnection = 'scm:git:ssh://github.com/brianwernick/ExoMedia.git'
+          url = 'https://github.com/brianwernick/ExoMedia/tree/main'
+        }
+        developers {
+          developer {
+            name = 'Brian Wernick'
+            email = 'brian@devbrackets.com'
+            organization = 'DevBrackets'
+            organizationUrl = 'https://devbrackets.com'
+          }
+        }
+
+        // The generated POM doesn't include dependencies when building Android artifacts, so we manually
+        // add the dependencies to the POM here
+        withXml {
+          def dependenciesNode = asNode().appendNode('dependencies')
+
+          // Iterate over the implementation dependencies, adding a <dependency> node for each
+          configurations.implementation.dependencies.each {
+            addPomDependency(dependenciesNode, it, "runtime")
+          }
+
+          // Iterate over the api dependencies, adding a <dependency> node for each
+          configurations.api.dependencies.each {
+            addPomDependency(dependenciesNode, it, "compile")
+          }
+        }
+      }
+    }
+  }
+}
+
+signing {
+  useInMemoryPgpKeys(
+      System.getenv("SIGNING_KEY_ID"),
+      System.getenv("SIGNING_KEY"),
+      System.getenv("SIGNING_KEY_PASSWORD"),
+  )
+
+  sign publishing.publications.nexus
+}

@@ -11,9 +11,8 @@ open class UserAgentProvider {
   companion object {
     @SuppressLint("DefaultLocale")
     val defaultUserAgent = String.format(
-        "ExoMedia %s (%d) / Android %s / %s",
+        "ExoMedia %s / Android %s / %s",
         BuildConfig.EXO_MEDIA_VERSION_NAME,
-        BuildConfig.EXO_MEDIA_VERSION_CODE,
         Build.VERSION.RELEASE,
         Build.MODEL
     )

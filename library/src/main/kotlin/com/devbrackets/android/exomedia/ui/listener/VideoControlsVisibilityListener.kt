@@ -21,13 +21,13 @@ package com.devbrackets.android.exomedia.ui.listener
  * of the [com.devbrackets.android.exomedia.ui.widget.DefaultVideoControls] changes
  */
 interface VideoControlsVisibilityListener {
-  /**
-   * Occurs when the DefaultControls becomes visible
-   */
-  fun onControlsShown()
+    /**
+     * Occurs when the DefaultControls becomes visible
+     */
+    fun onControlsShown()
 
-  /**
-   * Occurs when the DefaultControls becomes hidden
-   */
-  fun onControlsHidden()
+    /**
+     * Occurs when the DefaultControls becomes hidden
+     */
+    fun onControlsHidden()
 }

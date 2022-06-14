@@ -15,6 +15,7 @@
  */
 package com.devbrackets.android.exomediademo.ui.subtitle
 
+import android.annotation.SuppressLint
 import android.content.Context
 import androidx.annotation.IntDef
 import android.util.AttributeSet
@@ -22,17 +23,22 @@ import android.view.View
 import android.widget.FrameLayout
 import com.devbrackets.android.exomediademo.R
 
+@SuppressLint("PrivateResource")
 @Suppress("unused")
 /**
  * A [FrameLayout] that resizes itself to match a specified aspect ratio.
  */
-class AspectRatioFrameLayout @JvmOverloads constructor(context: Context, attrs: AttributeSet? = null) : FrameLayout(context, attrs) {
+class AspectRatioFrameLayout @JvmOverloads constructor(
+    context: Context,
+    attrs: AttributeSet? = null
+) : FrameLayout(context, attrs) {
 
     private val aspectRatioUpdateDispatcher: AspectRatioUpdateDispatcher
 
     private var aspectRatioListener: AspectRatioListener? = null
 
     private var videoAspectRatio: Float = 0.toFloat()
+
     @ResizeMode
     private var resizeMode: Int = 0
 
@@ -56,7 +62,13 @@ class AspectRatioFrameLayout @JvmOverloads constructor(context: Context, attrs: 
     // LINT.IfChange
     /** Resize modes for [AspectRatioFrameLayout].  */
     @Retention(AnnotationRetention.SOURCE)
-    @IntDef(RESIZE_MODE_FIT, RESIZE_MODE_FIXED_WIDTH, RESIZE_MODE_FIXED_HEIGHT, RESIZE_MODE_FILL, RESIZE_MODE_ZOOM)
+    @IntDef(
+        RESIZE_MODE_FIT,
+        RESIZE_MODE_FIXED_WIDTH,
+        RESIZE_MODE_FIXED_HEIGHT,
+        RESIZE_MODE_FILL,
+        RESIZE_MODE_ZOOM
+    )
     annotation class ResizeMode
 
     init {
@@ -67,7 +79,8 @@ class AspectRatioFrameLayout @JvmOverloads constructor(context: Context, attrs: 
                 R.styleable.AspectRatioFrameLayout, 0, 0
             )
             try {
-                resizeMode = a.getInt(R.styleable.AspectRatioFrameLayout_resize_mode, RESIZE_MODE_FIT)
+                resizeMode =
+                    a.getInt(R.styleable.AspectRatioFrameLayout_resize_mode, RESIZE_MODE_FIT)
             } finally {
                 a.recycle()
             }
@@ -193,18 +206,22 @@ class AspectRatioFrameLayout @JvmOverloads constructor(context: Context, attrs: 
          * Either the width or height is decreased to obtain the desired aspect ratio.
          */
         const val RESIZE_MODE_FIT = 0
+
         /**
          * The width is fixed and the height is increased or decreased to obtain the desired aspect ratio.
          */
         const val RESIZE_MODE_FIXED_WIDTH = 1
+
         /**
          * The height is fixed and the width is increased or decreased to obtain the desired aspect ratio.
          */
         const val RESIZE_MODE_FIXED_HEIGHT = 2
+
         /**
          * The specified aspect ratio is ignored.
          */
         const val RESIZE_MODE_FILL = 3
+
         /**
          * Either the width or height is increased to obtain the desired aspect ratio.
          */

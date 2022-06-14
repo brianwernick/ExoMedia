@@ -5,7 +5,8 @@ import com.devbrackets.android.exomediademo.data.MediaItem
 import com.devbrackets.android.playlistcore.api.MediaPlayerApi
 import com.devbrackets.android.playlistcore.listener.MediaStatusListener
 
-abstract class BaseMediaApi : MediaPlayerApi<MediaItem>, OnPreparedListener, OnCompletionListener, OnErrorListener, OnSeekCompletionListener, OnBufferUpdateListener {
+abstract class BaseMediaApi : MediaPlayerApi<MediaItem>, OnPreparedListener, OnCompletionListener,
+    OnErrorListener, OnSeekCompletionListener, OnBufferUpdateListener {
     protected var prepared: Boolean = false
     protected var bufferPercent: Int = 0
 

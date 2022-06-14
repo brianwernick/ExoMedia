@@ -31,11 +31,13 @@ import com.google.android.exoplayer2.ui.CaptionStyleCompat
  * A view for displaying subtitle [Cue]s.
  */
 class SubtitleView
-@JvmOverloads constructor(context: Context, attrs: AttributeSet? = null) : View(context, attrs), CaptionListener {
+@JvmOverloads constructor(context: Context, attrs: AttributeSet? = null) : View(context, attrs),
+    CaptionListener {
 
     private val painters = mutableListOf<SubtitlePainter>()
 
     private var cues: List<Cue>? = null
+
     @Cue.TextSizeType
     private var textSizeType = Cue.TEXT_SIZE_TYPE_FRACTIONAL
     private var textSize = DEFAULT_TEXT_SIZE_FRACTION
@@ -46,13 +48,15 @@ class SubtitleView
 
     private val userCaptionFontScaleV19: Float
         get() {
-            val captioningManager = context.getSystemService(Context.CAPTIONING_SERVICE) as CaptioningManager
+            val captioningManager =
+                context.getSystemService(Context.CAPTIONING_SERVICE) as CaptioningManager
             return captioningManager.fontScale
         }
 
     private val userCaptionStyleV19: CaptionStyleCompat
         get() {
-            val captioningManager = context.getSystemService(Context.CAPTIONING_SERVICE) as CaptioningManager
+            val captioningManager =
+                context.getSystemService(Context.CAPTIONING_SERVICE) as CaptioningManager
             return CaptionStyleCompat.createFromCaptionStyle(captioningManager.userStyle)
         }
 
@@ -90,8 +94,7 @@ class SubtitleView
      */
     fun setFixedTextSize(unit: Int, size: Float) {
         val context = context
-        val resources: Resources
-        resources = if (context == null) {
+        val resources: Resources = if (context == null) {
             Resources.getSystem()
         } else {
             context.resources
@@ -235,7 +238,8 @@ class SubtitleView
         val rawViewHeight = rawBottom - rawTop
         val viewHeightMinusPadding = bottom - top
 
-        val defaultViewTextSizePx = resolveTextSize(textSizeType, textSize, rawViewHeight, viewHeightMinusPadding)
+        val defaultViewTextSizePx =
+            resolveTextSize(textSizeType, textSize, rawViewHeight, viewHeightMinusPadding)
         if (defaultViewTextSizePx <= 0) {
             // Text has no height.
             return
@@ -262,11 +266,16 @@ class SubtitleView
         }
     }
 
-    private fun resolveCueTextSize(cue: Cue, rawViewHeight: Int, viewHeightMinusPadding: Int): Float {
+    private fun resolveCueTextSize(
+        cue: Cue,
+        rawViewHeight: Int,
+        viewHeightMinusPadding: Int
+    ): Float {
         if (cue.textSizeType == Cue.TYPE_UNSET || cue.textSize == Cue.DIMEN_UNSET) {
             return 0f
         }
-        val defaultCueTextSizePx = resolveTextSize(cue.textSizeType, cue.textSize, rawViewHeight, viewHeightMinusPadding)
+        val defaultCueTextSizePx =
+            resolveTextSize(cue.textSizeType, cue.textSize, rawViewHeight, viewHeightMinusPadding)
         return Math.max(defaultCueTextSizePx, 0f)
     }
 

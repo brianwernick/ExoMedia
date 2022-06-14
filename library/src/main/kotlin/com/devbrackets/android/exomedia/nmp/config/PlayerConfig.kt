@@ -36,17 +36,17 @@ import com.google.android.exoplayer2.upstream.BandwidthMeter
  * instance as that will provide default implementations.
  */
 data class PlayerConfig(
-  val context: Context,
-  val fallbackManager: FallbackManager,
-  val analyticsCollector: AnalyticsCollector,
-  val bandwidthMeter: BandwidthMeter,
-  val handler: Handler,
-  val rendererFactory: RenderersFactory,
-  val trackManager: TrackManager,
-  val wakeManager: WakeManager,
-  val loadControl: LoadControl,
-  val userAgentProvider: UserAgentProvider,
-  val mediaSourceProvider: MediaSourceProvider,
-  val mediaSourceFactory: MediaSourceFactory,
-  val dataSourceFactoryProvider: DataSourceFactoryProvider
+    val context: Context,
+    val fallbackManager: FallbackManager,
+    val analyticsCollector: AnalyticsCollector,
+    val bandwidthMeter: BandwidthMeter,
+    val handler: Handler,
+    val rendererFactory: RenderersFactory,
+    val trackManager: TrackManager,
+    val wakeManager: WakeManager,
+    val loadControl: LoadControl,
+    val userAgentProvider: UserAgentProvider,
+    val mediaSourceProvider: MediaSourceProvider,
+    val mediaSourceFactory: MediaSourceFactory,
+    val dataSourceFactoryProvider: DataSourceFactoryProvider
 )

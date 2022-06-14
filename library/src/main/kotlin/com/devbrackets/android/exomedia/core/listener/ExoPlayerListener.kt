@@ -24,9 +24,14 @@ import com.devbrackets.android.exomedia.nmp.ExoMediaPlayer
  * A listener for core [ExoMediaPlayer] events
  */
 interface ExoPlayerListener : OnSeekCompletionListener {
-  fun onStateChanged(playWhenReady: Boolean, playbackState: Int)
+    fun onStateChanged(playWhenReady: Boolean, playbackState: Int)
 
-  fun onError(player: ExoMediaPlayer, e: Exception?)
+    fun onError(player: ExoMediaPlayer, e: Exception?)
 
-  fun onVideoSizeChanged(width: Int, height: Int, unAppliedRotationDegrees: Int, pixelWidthHeightRatio: Float)
+    fun onVideoSizeChanged(
+        width: Int,
+        height: Int,
+        unAppliedRotationDegrees: Int,
+        pixelWidthHeightRatio: Float
+    )
 }

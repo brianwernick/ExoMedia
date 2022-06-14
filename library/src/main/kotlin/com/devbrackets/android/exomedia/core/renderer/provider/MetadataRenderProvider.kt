@@ -23,24 +23,24 @@ import com.google.android.exoplayer2.metadata.MetadataDecoderFactory
 import com.google.android.exoplayer2.metadata.MetadataOutput
 import com.google.android.exoplayer2.metadata.MetadataRenderer
 
-class MetadataRenderProvider: RenderProvider {
-  private var latestRenderers: List<Renderer> = emptyList()
+class MetadataRenderProvider : RenderProvider {
+    private var latestRenderers: List<Renderer> = emptyList()
 
-  override fun type() = RendererType.METADATA
+    override fun type() = RendererType.METADATA
 
-  override fun rendererClasses(): List<String> {
-    return emptyList()
-  }
-
-  override fun getLatestRenderers(): List<Renderer> {
-    return latestRenderers
-  }
-
-  fun buildRenderers(handler: Handler, metadataListener: MetadataOutput): List<Renderer> {
-    return listOf(
-      MetadataRenderer(metadataListener, handler.looper, MetadataDecoderFactory.DEFAULT)
-    ).also {
-      latestRenderers = it
+    override fun rendererClasses(): List<String> {
+        return emptyList()
     }
-  }
+
+    override fun getLatestRenderers(): List<Renderer> {
+        return latestRenderers
+    }
+
+    fun buildRenderers(handler: Handler, metadataListener: MetadataOutput): List<Renderer> {
+        return listOf(
+            MetadataRenderer(metadataListener, handler.looper, MetadataDecoderFactory.DEFAULT)
+        ).also {
+            latestRenderers = it
+        }
+    }
 }

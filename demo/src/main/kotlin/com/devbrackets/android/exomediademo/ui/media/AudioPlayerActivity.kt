@@ -27,7 +27,8 @@ import com.devbrackets.android.playlistcore.listener.ProgressListener
  * and [com.devbrackets.android.playlistcore.manager.ListPlaylistManager]
  * classes.
  */
-class AudioPlayerActivity : BindingActivity<AudioPlayerActivityBinding>(), PlaylistListener<MediaItem>, ProgressListener {
+class AudioPlayerActivity : BindingActivity<AudioPlayerActivityBinding>(),
+    PlaylistListener<MediaItem>, ProgressListener {
     companion object {
         const val EXTRA_INDEX = "EXTRA_INDEX"
         const val PLAYLIST_ID = 4 //Arbitrary, for the example
@@ -79,7 +80,11 @@ class AudioPlayerActivity : BindingActivity<AudioPlayerActivityBinding>(), Playl
         updateCurrentPlaybackInformation()
     }
 
-    override fun onPlaylistItemChanged(currentItem: MediaItem?, hasNext: Boolean, hasPrevious: Boolean): Boolean {
+    override fun onPlaylistItemChanged(
+        currentItem: MediaItem?,
+        hasNext: Boolean,
+        hasPrevious: Boolean
+    ): Boolean {
         shouldSetDuration = true
 
         //Updates the button states
@@ -113,7 +118,8 @@ class AudioPlayerActivity : BindingActivity<AudioPlayerActivityBinding>(), Playl
         }
 
         if (!userInteracting) {
-            binding.seekBar.secondaryProgress = (mediaProgress.duration * mediaProgress.bufferPercentFloat).toInt()
+            binding.seekBar.secondaryProgress =
+                (mediaProgress.duration * mediaProgress.bufferPercentFloat).toInt()
             binding.seekBar.progress = mediaProgress.position.toInt()
             binding.currentPositionView.text = mediaProgress.position.millisToFormattedDuration()
         }
@@ -166,7 +172,8 @@ class AudioPlayerActivity : BindingActivity<AudioPlayerActivityBinding>(), Playl
      * @param isPlaying True if the audio item is currently playing
      */
     private fun updatePlayPauseImage(isPlaying: Boolean) {
-        val resId = if (isPlaying) R.drawable.playlistcore_ic_pause_black else R.drawable.playlistcore_ic_play_arrow_black
+        val resId =
+            if (isPlaying) R.drawable.playlistcore_ic_pause_black else R.drawable.playlistcore_ic_play_arrow_black
         binding.playPauseButton.setImageResource(resId)
     }
 

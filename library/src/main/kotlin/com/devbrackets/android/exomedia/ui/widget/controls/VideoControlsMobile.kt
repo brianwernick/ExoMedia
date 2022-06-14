@@ -31,168 +31,182 @@ import java.util.*
  * Provides playback controls for the [VideoView] on Mobile
  * (Phone, Tablet, etc.) devices.
  */
-class VideoControlsMobile : DefaultVideoControls {
-  protected lateinit var seekBar: SeekBar
-  protected lateinit var extraViewsContainer: LinearLayout
-  protected lateinit var container: ViewGroup
+open class VideoControlsMobile : DefaultVideoControls {
+    private lateinit var seekBar: SeekBar
+    private lateinit var extraViewsContainer: LinearLayout
+    private lateinit var container: ViewGroup
 
-  protected var userInteracting = false
+    protected var userInteracting = false
 
-  override val layoutResource: Int
-    get() = R.layout.exomedia_default_controls_mobile
+    override val layoutResource: Int
+        get() = R.layout.exomedia_default_controls_mobile
 
-  override val extraViews: List<View>
-    get() {
-      val childCount = extraViewsContainer.childCount
-      if (childCount <= 0) {
-        return super.extraViews
-      }
-      val children = LinkedList<View>()
-      for (i in 0 until childCount) {
-        children.add(extraViewsContainer.getChildAt(i))
-      }
+    override val extraViews: List<View>
+        get() {
+            val childCount = extraViewsContainer.childCount
+            if (childCount <= 0) {
+                return super.extraViews
+            }
+            val children = LinkedList<View>()
+            for (i in 0 until childCount) {
+                children.add(extraViewsContainer.getChildAt(i))
+            }
 
-      return children
+            return children
+        }
+
+    constructor(context: Context) : super(context)
+    constructor(context: Context, attrs: AttributeSet) : super(context, attrs)
+    constructor(context: Context, attrs: AttributeSet, defStyleAttr: Int) : super(
+        context,
+        attrs,
+        defStyleAttr
+    )
+
+    constructor(context: Context, attrs: AttributeSet, defStyleAttr: Int, defStyleRes: Int) : super(
+        context,
+        attrs,
+        defStyleAttr,
+        defStyleRes
+    )
+
+    override fun setPosition(@IntRange(from = 0) position: Long) {
+        currentTimeTextView.text = position.millisToFormattedDuration()
+        seekBar.progress = position.toInt()
     }
 
-  constructor(context: Context) : super(context)
-  constructor(context: Context, attrs: AttributeSet) : super(context, attrs)
-  constructor(context: Context, attrs: AttributeSet, defStyleAttr: Int) : super(context, attrs, defStyleAttr)
-  constructor(context: Context, attrs: AttributeSet, defStyleAttr: Int, defStyleRes: Int) : super(context, attrs, defStyleAttr, defStyleRes)
-
-  override fun setPosition(@IntRange(from = 0) position: Long) {
-    currentTimeTextView.text = position.millisToFormattedDuration()
-    seekBar.progress = position.toInt()
-  }
-
-  override fun setDuration(@IntRange(from = 0) duration: Long) {
-    if (duration != seekBar.max.toLong()) {
-      endTimeTextView.text = duration.millisToFormattedDuration()
-      seekBar.max = duration.toInt()
-    }
-  }
-
-  override fun updateProgress(@IntRange(from = 0) position: Long, @IntRange(from = 0) duration: Long, @IntRange(from = 0, to = 100) bufferPercent: Int) {
-    if (!userInteracting) {
-      seekBar.secondaryProgress = (seekBar.max * (bufferPercent.toFloat() / 100)).toInt()
-      seekBar.progress = position.toInt()
-
-      updateCurrentTime(position)
-    }
-  }
-
-  override fun registerListeners() {
-    super.registerListeners()
-    seekBar.setOnSeekBarChangeListener(SeekBarChanged())
-  }
-
-  override fun retrieveViews() {
-    super.retrieveViews()
-    seekBar = findViewById(R.id.exomedia_controls_video_seek)
-    extraViewsContainer = findViewById(R.id.exomedia_controls_extra_container)
-    container = findViewById(R.id.exomedia_controls_container)
-  }
-
-  override fun addExtraView(view: View) {
-    extraViewsContainer.addView(view)
-  }
-
-  override fun removeExtraView(view: View) {
-    extraViewsContainer.removeView(view)
-  }
-
-  override fun hideDelayed(delay: Long) {
-    hideDelay = delay
-
-    if (delay < 0 || !canViewHide || isLoading) {
-      return
+    override fun setDuration(@IntRange(from = 0) duration: Long) {
+        if (duration != seekBar.max.toLong()) {
+            endTimeTextView.text = duration.millisToFormattedDuration()
+            seekBar.max = duration.toInt()
+        }
     }
 
-    //If the user is interacting with controls we don't want to start the delayed hide yet
-    if (!userInteracting) {
-      visibilityHandler.postDelayed({ animateVisibility(false) }, delay)
-    }
-  }
+    override fun updateProgress(
+        @IntRange(from = 0) position: Long,
+        @IntRange(from = 0) duration: Long,
+        @IntRange(from = 0, to = 100) bufferPercent: Int
+    ) {
+        if (!userInteracting) {
+            seekBar.secondaryProgress = (seekBar.max * (bufferPercent.toFloat() / 100)).toInt()
+            seekBar.progress = position.toInt()
 
-  override fun animateVisibility(toVisible: Boolean) {
-    if (isVisible == toVisible) {
-      return
-    }
-
-    val endAlpha = if (toVisible) 1F else 0F
-    container.animate().alpha(endAlpha).start()
-
-    isVisible = toVisible
-    onVisibilityChanged()
-  }
-
-  override fun updateTextContainerVisibility() {
-    // Purposefully left blank
-  }
-
-  override fun showLoading(initialLoad: Boolean) {
-    if (isLoading) {
-      return
+            updateCurrentTime(position)
+        }
     }
 
-    isLoading = true
-    loadingProgressBar.visibility = View.VISIBLE
-    playPauseButton.visibility = View.INVISIBLE
-
-    if (!initialLoad) {
-      playPauseButton.isEnabled = false
-      previousButton.isEnabled = false
-      nextButton.isEnabled = false
+    override fun registerListeners() {
+        super.registerListeners()
+        seekBar.setOnSeekBarChangeListener(SeekBarChanged())
     }
 
-    show()
-  }
-
-  override fun finishLoading() {
-    if (!isLoading) {
-      return
+    override fun retrieveViews() {
+        super.retrieveViews()
+        seekBar = findViewById(R.id.exomedia_controls_video_seek)
+        extraViewsContainer = findViewById(R.id.exomedia_controls_extra_container)
+        container = findViewById(R.id.exomedia_controls_container)
     }
 
-    isLoading = false
-    loadingProgressBar.visibility = View.GONE
-    container.visibility = View.VISIBLE
-
-    playPauseButton.isEnabled = true
-    playPauseButton.visibility = View.VISIBLE
-    previousButton.isEnabled = enabledViews.get(R.id.exomedia_controls_previous_btn, true)
-    nextButton.isEnabled = enabledViews.get(R.id.exomedia_controls_next_btn, true)
-
-    updatePlaybackState(videoView?.isPlaying == true)
-  }
-
-  /**
-   * Listens to the seek bar change events and correctly handles the changes
-   */
-  protected inner class SeekBarChanged : SeekBar.OnSeekBarChangeListener {
-    private var seekToTime: Long = 0
-
-    override fun onProgressChanged(seekBar: SeekBar, progress: Int, fromUser: Boolean) {
-      if (!fromUser) {
-        return
-      }
-
-      seekToTime = progress.toLong()
-      currentTimeTextView.text = seekToTime.millisToFormattedDuration()
+    override fun addExtraView(view: View) {
+        extraViewsContainer.addView(view)
     }
 
-    override fun onStartTrackingTouch(seekBar: SeekBar) {
-      userInteracting = true
-
-      if (seekListener?.onSeekStarted() != true) {
-        internalListener.onSeekStarted()
-      }
+    override fun removeExtraView(view: View) {
+        extraViewsContainer.removeView(view)
     }
 
-    override fun onStopTrackingTouch(seekBar: SeekBar) {
-      userInteracting = false
-      if (seekListener?.onSeekEnded(seekToTime) != true) {
-        internalListener.onSeekEnded(seekToTime)
-      }
+    override fun hideDelayed(delay: Long) {
+        hideDelay = delay
+
+        if (delay < 0 || !canViewHide || isLoading) {
+            return
+        }
+
+        //If the user is interacting with controls we don't want to start the delayed hide yet
+        if (!userInteracting) {
+            visibilityHandler.postDelayed({ animateVisibility(false) }, delay)
+        }
     }
-  }
+
+    override fun animateVisibility(toVisible: Boolean) {
+        if (isVisible == toVisible) {
+            return
+        }
+
+        val endAlpha = if (toVisible) 1F else 0F
+        container.animate().alpha(endAlpha).start()
+
+        isVisible = toVisible
+        onVisibilityChanged()
+    }
+
+    override fun updateTextContainerVisibility() {
+        // Purposefully left blank
+    }
+
+    override fun showLoading(initialLoad: Boolean) {
+        if (isLoading) {
+            return
+        }
+
+        isLoading = true
+        loadingProgressBar.visibility = View.VISIBLE
+        playPauseButton.visibility = View.INVISIBLE
+
+        if (!initialLoad) {
+            playPauseButton.isEnabled = false
+            previousButton.isEnabled = false
+            nextButton.isEnabled = false
+        }
+
+        show()
+    }
+
+    override fun finishLoading() {
+        if (!isLoading) {
+            return
+        }
+
+        isLoading = false
+        loadingProgressBar.visibility = View.GONE
+        container.visibility = View.VISIBLE
+
+        playPauseButton.isEnabled = true
+        playPauseButton.visibility = View.VISIBLE
+        previousButton.isEnabled = enabledViews.get(R.id.exomedia_controls_previous_btn, true)
+        nextButton.isEnabled = enabledViews.get(R.id.exomedia_controls_next_btn, true)
+
+        updatePlaybackState(videoView?.isPlaying == true)
+    }
+
+    /**
+     * Listens to the seek bar change events and correctly handles the changes
+     */
+    protected inner class SeekBarChanged : SeekBar.OnSeekBarChangeListener {
+        private var seekToTime: Long = 0
+
+        override fun onProgressChanged(seekBar: SeekBar, progress: Int, fromUser: Boolean) {
+            if (!fromUser) {
+                return
+            }
+
+            seekToTime = progress.toLong()
+            currentTimeTextView.text = seekToTime.millisToFormattedDuration()
+        }
+
+        override fun onStartTrackingTouch(seekBar: SeekBar) {
+            userInteracting = true
+
+            if (seekListener?.onSeekStarted() != true) {
+                internalListener.onSeekStarted()
+            }
+        }
+
+        override fun onStopTrackingTouch(seekBar: SeekBar) {
+            userInteracting = false
+            if (seekListener?.onSeekEnded(seekToTime) != true) {
+                internalListener.onSeekEnded(seekToTime)
+            }
+        }
+    }
 }

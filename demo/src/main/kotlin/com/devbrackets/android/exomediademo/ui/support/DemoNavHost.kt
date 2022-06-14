@@ -15,58 +15,58 @@ private const val ANIMATION_DURATION = 300
 
 @OptIn(ExperimentalAnimationApi::class)
 private val enterTransition = slideInHorizontally(
-  initialOffsetX = { it },
-  animationSpec = tween(
-    durationMillis = ANIMATION_DURATION,
-    easing = FastOutSlowInEasing
-  )
+    initialOffsetX = { it },
+    animationSpec = tween(
+        durationMillis = ANIMATION_DURATION,
+        easing = FastOutSlowInEasing
+    )
 )
 
 @OptIn(ExperimentalAnimationApi::class)
 private val exitTransition = slideOutHorizontally(
-  targetOffsetX = { -it / 5 },
-  animationSpec = tween(
-    durationMillis = ANIMATION_DURATION,
-    easing = FastOutSlowInEasing
-  )
+    targetOffsetX = { -it / 5 },
+    animationSpec = tween(
+        durationMillis = ANIMATION_DURATION,
+        easing = FastOutSlowInEasing
+    )
 )
 
 @OptIn(ExperimentalAnimationApi::class)
 private val popEnterTransition = slideInHorizontally(
-  initialOffsetX = { -it },
-  animationSpec = tween(
-    durationMillis = ANIMATION_DURATION,
-    easing = FastOutSlowInEasing
-  )
+    initialOffsetX = { -it },
+    animationSpec = tween(
+        durationMillis = ANIMATION_DURATION,
+        easing = FastOutSlowInEasing
+    )
 )
 
 @OptIn(ExperimentalAnimationApi::class)
 private val popExitTransition = slideOutHorizontally(
-  targetOffsetX = { it },
-  animationSpec = tween(
-    durationMillis = ANIMATION_DURATION,
-    easing = FastOutSlowInEasing
-  )
+    targetOffsetX = { it },
+    animationSpec = tween(
+        durationMillis = ANIMATION_DURATION,
+        easing = FastOutSlowInEasing
+    )
 )
 
 @Composable
 @OptIn(ExperimentalAnimationApi::class)
 fun DemoNavHost(
-  navController: NavHostController,
-  startDestination: String,
-  modifier: Modifier = Modifier,
-  route: String? = null,
-  builder: NavGraphBuilder.() -> Unit
+    navController: NavHostController,
+    startDestination: String,
+    modifier: Modifier = Modifier,
+    route: String? = null,
+    builder: NavGraphBuilder.() -> Unit
 ) {
-  AnimatedNavHost(
-    navController = navController,
-    startDestination = startDestination,
-    modifier = modifier,
-    route = route,
-    enterTransition = { enterTransition },
-    exitTransition = { exitTransition },
-    popEnterTransition = { popEnterTransition },
-    popExitTransition = { popExitTransition },
-    builder = builder
-  )
+    AnimatedNavHost(
+        navController = navController,
+        startDestination = startDestination,
+        modifier = modifier,
+        route = route,
+        enterTransition = { enterTransition },
+        exitTransition = { exitTransition },
+        popEnterTransition = { popEnterTransition },
+        popExitTransition = { popExitTransition },
+        builder = builder
+    )
 }

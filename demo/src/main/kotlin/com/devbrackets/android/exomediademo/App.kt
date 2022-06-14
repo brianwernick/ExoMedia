@@ -16,7 +16,7 @@ class App : Application() {
      * `video_player_activity` VideoView layout attributes.
      */
     @Suppress("unused")
-    class OkPlayerConfigProvider: PlayerConfigProvider {
+    class OkPlayerConfigProvider : PlayerConfigProvider {
         override fun getConfig(context: Context): PlayerConfig {
             return PlayerConfigBuilder(context)
                 .setDataSourceFactoryProvider(OkHttpDataSourceFactoryProvider(context))

@@ -55,7 +55,10 @@ class VideoApi(var videoView: VideoView) : BaseMediaApi(), PlaylistListener<Medi
         videoView.suspend()
     }
 
-    override fun setVolume(@FloatRange(from = 0.0, to = 1.0) left: Float, @FloatRange(from = 0.0, to = 1.0) right: Float) {
+    override fun setVolume(
+        @FloatRange(from = 0.0, to = 1.0) left: Float,
+        @FloatRange(from = 0.0, to = 1.0) right: Float
+    ) {
         videoView.volume = (left + right) / 2
     }
 
@@ -77,7 +80,11 @@ class VideoApi(var videoView: VideoView) : BaseMediaApi(), PlaylistListener<Medi
      * PlaylistListener methods used for keeping the VideoControls provided
      * by the ExoMedia VideoView up-to-date with the current playback state
      */
-    override fun onPlaylistItemChanged(currentItem: MediaItem?, hasNext: Boolean, hasPrevious: Boolean): Boolean {
+    override fun onPlaylistItemChanged(
+        currentItem: MediaItem?,
+        hasNext: Boolean,
+        hasPrevious: Boolean
+    ): Boolean {
         (videoView.videoControls as? DefaultVideoControls)?.let { controls ->
             // Updates the VideoControls display text
             controls.setTitle(currentItem?.title ?: "")

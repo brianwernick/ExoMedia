@@ -22,17 +22,20 @@ import com.google.android.exoplayer2.source.smoothstreaming.DefaultSsChunkSource
 import com.google.android.exoplayer2.source.smoothstreaming.SsMediaSource
 
 class SsMediaSourceBuilder : MediaSourceBuilder() {
-  override fun build(attributes: MediaSourceAttributes): MediaSource {
-    val factoryAttributes = attributes.copy(
-        transferListener = null
-    )
+    override fun build(attributes: MediaSourceAttributes): MediaSource {
+        val factoryAttributes = attributes.copy(
+            transferListener = null
+        )
 
-    val dataSourceFactory = buildDataSourceFactory(factoryAttributes)
-    val meteredDataSourceFactory = buildDataSourceFactory(attributes)
-    val mediaItem = MediaItem.Builder().setUri(attributes.uri).build()
+        val dataSourceFactory = buildDataSourceFactory(factoryAttributes)
+        val meteredDataSourceFactory = buildDataSourceFactory(attributes)
+        val mediaItem = MediaItem.Builder().setUri(attributes.uri).build()
 
-    return SsMediaSource.Factory(DefaultSsChunkSource.Factory(meteredDataSourceFactory), dataSourceFactory)
-        .setDrmSessionManagerProvider(attributes.drmSessionManagerProvider)
-        .createMediaSource(mediaItem)
-  }
+        return SsMediaSource.Factory(
+            DefaultSsChunkSource.Factory(meteredDataSourceFactory),
+            dataSourceFactory
+        )
+            .setDrmSessionManagerProvider(attributes.drmSessionManagerProvider)
+            .createMediaSource(mediaItem)
+    }
 }

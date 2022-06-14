@@ -38,436 +38,446 @@ import com.google.android.exoplayer2.source.MediaSource
 import com.google.android.exoplayer2.source.TrackGroupArray
 import java.io.IOException
 
-class NativeVideoPlayer(
+open class NativeVideoPlayer(
     protected var context: Context,
     private val surface: VideoSurface
 ) : VideoPlayerApi {
 
-  protected var headers: Map<String, String>? = null
+    private var headers: Map<String, String>? = null
 
-  protected var currentState = State.IDLE
+    protected var currentState = State.IDLE
 
-  // TODO: this works differently from the NativeAudioPlayer, why?
-  protected val mediaPlayer: MediaPlayer by lazy {
-    MediaPlayer().apply {
-      setOnInfoListener(internalListeners)
-      setOnErrorListener(internalListeners)
-      setOnPreparedListener(internalListeners)
-      setOnCompletionListener(internalListeners)
-      setOnSeekCompleteListener(internalListeners)
-      setOnBufferingUpdateListener(internalListeners)
-      setOnVideoSizeChangedListener(internalListeners)
+    // TODO: this works differently from the NativeAudioPlayer, why?
+    protected val mediaPlayer: MediaPlayer by lazy {
+        MediaPlayer().apply {
+            setOnInfoListener(internalListeners)
+            setOnErrorListener(internalListeners)
+            setOnPreparedListener(internalListeners)
+            setOnCompletionListener(internalListeners)
+            setOnSeekCompleteListener(internalListeners)
+            setOnBufferingUpdateListener(internalListeners)
+            setOnVideoSizeChangedListener(internalListeners)
 
-      setAudioAttributes(AudioAttributes.Builder().setContentType(AudioAttributes.CONTENT_TYPE_MUSIC).build())
-      setScreenOnWhilePlaying(true)
-    }
-  }
-
-  protected var playRequested = false
-  protected var requestedSeek: Long = 0
-  protected var currentBufferPercent: Int = 0
-
-  @FloatRange(from = 0.0, to = 1.0)
-  protected var requestedVolume = 1.0f
-
-  protected var _listenerMux: ListenerMux? = null
-
-  var internalListeners = InternalListeners()
-
-  /**
-   * Register a callback to be invoked when the end of a media file
-   * has been reached during playback.
-   */
-  var onCompletionListener: MediaPlayer.OnCompletionListener? = null
-
-  /**
-   * Register a callback to be invoked when the media file
-   * is loaded and ready to go.
-   */
-  var onPreparedListener: MediaPlayer.OnPreparedListener? = null
-
-  /**
-   * Register a callback to be invoked when the status of a network
-   * stream's buffer has changed.
-   */
-  var onBufferingUpdateListener: MediaPlayer.OnBufferingUpdateListener? = null
-
-  /**
-   * Register a callback to be invoked when a seek operation has been
-   * completed.
-   */
-  var onSeekCompleteListener: MediaPlayer.OnSeekCompleteListener? = null
-
-  /**
-   * Register a callback to be invoked when an error occurs
-   * during playback or setup.  If no repeatListener is specified,
-   * or if the repeatListener returned false, TextureVideoView will inform
-   * the user of any errors.
-   */
-  var onErrorListener: MediaPlayer.OnErrorListener? = null
-
-  /**
-   * Register a callback to be invoked when an informational event
-   * occurs during playback or setup.
-   */
-  var onInfoListener: MediaPlayer.OnInfoListener? = null
-
-  override var volume: Float
-    get() = requestedVolume
-    set(value) {
-      requestedVolume = value
-      mediaPlayer.setVolume(value, value)
+            setAudioAttributes(
+                AudioAttributes.Builder().setContentType(AudioAttributes.CONTENT_TYPE_MUSIC).build()
+            )
+            setScreenOnWhilePlaying(true)
+        }
     }
 
-  override val duration: Long
-    get() = if (_listenerMux?.isPrepared != true || !isReady) {
-      0
-    } else mediaPlayer.duration.toLong()
+    protected var playRequested = false
+    protected var requestedSeek: Long = 0
+    protected var currentBufferPercent: Int = 0
 
-  override val currentPosition: Long
-    get() = if (_listenerMux?.isPrepared != true || !isReady) {
-      0
-    } else mediaPlayer.currentPosition.toLong()
+    @FloatRange(from = 0.0, to = 1.0)
+    protected var requestedVolume = 1.0f
 
-  override val isPlaying: Boolean
-    get() = isReady && mediaPlayer.isPlaying
+    private var _listenerMux: ListenerMux? = null
 
-  override val bufferedPercent: Int
-    get() = currentBufferPercent
+    var internalListeners = InternalListeners()
 
-  override var drmSessionManagerProvider: DrmSessionManagerProvider?
-    get() = null
-    set(_) {}
+    /**
+     * Register a callback to be invoked when the end of a media file
+     * has been reached during playback.
+     */
+    var onCompletionListener: MediaPlayer.OnCompletionListener? = null
 
-  override val audioSessionId: Int
-    get() = mediaPlayer.audioSessionId
+    /**
+     * Register a callback to be invoked when the media file
+     * is loaded and ready to go.
+     */
+    var onPreparedListener: MediaPlayer.OnPreparedListener? = null
 
-  override val availableTracks: Map<RendererType, TrackGroupArray>?
-    get() = null
+    /**
+     * Register a callback to be invoked when the status of a network
+     * stream's buffer has changed.
+     */
+    var onBufferingUpdateListener: MediaPlayer.OnBufferingUpdateListener? = null
 
-  override val windowInfo: WindowInfo?
-    get() = null
+    /**
+     * Register a callback to be invoked when a seek operation has been
+     * completed.
+     */
+    var onSeekCompleteListener: MediaPlayer.OnSeekCompleteListener? = null
 
-  // Marshmallow+ support setting the playback speed natively
-  override val playbackSpeed: Float
-    get() = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-      mediaPlayer.playbackParams.speed
-    } else 1f
+    /**
+     * Register a callback to be invoked when an error occurs
+     * during playback or setup.  If no repeatListener is specified,
+     * or if the repeatListener returned false, TextureVideoView will inform
+     * the user of any errors.
+     */
+    var onErrorListener: MediaPlayer.OnErrorListener? = null
 
-  protected val isReady: Boolean
-    get() = currentState != State.ERROR && currentState != State.IDLE && currentState != State.PREPARING
+    /**
+     * Register a callback to be invoked when an informational event
+     * occurs during playback or setup.
+     */
+    var onInfoListener: MediaPlayer.OnInfoListener? = null
 
-  enum class State {
-    ERROR,
-    IDLE,
-    PREPARING,
-    PREPARED,
-    PLAYING,
-    PAUSED,
-    COMPLETED
-  }
+    override var volume: Float
+        get() = requestedVolume
+        set(value) {
+            requestedVolume = value
+            mediaPlayer.setVolume(value, value)
+        }
 
-  init {
-    currentState = State.IDLE
+    override val duration: Long
+        get() = if (_listenerMux?.isPrepared != true || !isReady) {
+            0
+        } else mediaPlayer.duration.toLong()
 
-    when (surface) {
-      is SurfaceView -> {
-        surface.holder.addCallback(HolderCallback())
-      }
-      is TextureView -> {
-        surface.surfaceTextureListener = TextureVideoViewSurfaceListener()
-      }
-      else -> {
-        throw IllegalArgumentException("Surface $surface not one of TextureView or SurfaceView")
-      }
-    }
-  }
+    override val currentPosition: Long
+        get() = if (_listenerMux?.isPrepared != true || !isReady) {
+            0
+        } else mediaPlayer.currentPosition.toLong()
 
-  override fun setListenerMux(listenerMux: ListenerMux) {
-    _listenerMux = listenerMux
+    override val isPlaying: Boolean
+        get() = isReady && mediaPlayer.isPlaying
 
-    onCompletionListener = listenerMux
-    onCompletionListener = listenerMux
-    onPreparedListener = listenerMux
-    onBufferingUpdateListener = listenerMux
-    onSeekCompleteListener = listenerMux
-    onErrorListener = listenerMux
-  }
+    override val bufferedPercent: Int
+        get() = currentBufferPercent
 
-  override fun start() {
-    if (isReady) {
-      mediaPlayer.start()
-      currentState = State.PLAYING
-    }
+    override var drmSessionManagerProvider: DrmSessionManagerProvider?
+        get() = null
+        set(_) {}
 
-    playRequested = true
-    _listenerMux?.setNotifiedCompleted(false)
-  }
+    override val audioSessionId: Int
+        get() = mediaPlayer.audioSessionId
 
-  override fun pause() {
-    if (isReady && mediaPlayer.isPlaying) {
-      mediaPlayer.pause()
-      currentState = State.PAUSED
-    }
+    override val availableTracks: Map<RendererType, TrackGroupArray>?
+        get() = null
 
-    playRequested = false
-  }
+    override val windowInfo: WindowInfo?
+        get() = null
 
-  override fun seekTo(milliseconds: Long) {
-    if (isReady) {
-      mediaPlayer.seekTo(milliseconds.toInt())
-      requestedSeek = 0
-    } else {
-      requestedSeek = milliseconds
-    }
-  }
-
-  override fun setPlaybackSpeed(speed: Float): Boolean {
     // Marshmallow+ support setting the playback speed natively
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-      mediaPlayer.playbackParams = PlaybackParams().apply {
-        this.speed = speed
-      }
-      return true
+    override val playbackSpeed: Float
+        get() = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            mediaPlayer.playbackParams.speed
+        } else 1f
+
+    protected val isReady: Boolean
+        get() = currentState != State.ERROR && currentState != State.IDLE && currentState != State.PREPARING
+
+    enum class State {
+        ERROR,
+        IDLE,
+        PREPARING,
+        PREPARED,
+        PLAYING,
+        PAUSED,
+        COMPLETED
     }
 
-    return false
-  }
+    init {
+        currentState = State.IDLE
 
-  override fun stop() {
-    stop(false)
-  }
-
-  override fun setCaptionListener(listener: CaptionListener?) {
-    // Not Supported
-  }
-
-  override fun stop(clearSurface: Boolean) {
-    currentState = State.IDLE
-
-    if (isReady) {
-      try {
-        mediaPlayer.stop()
-      } catch (e: Exception) {
-        Log.d(ContentValues.TAG, "stopPlayback: error calling mediaPlayer.stop()", e)
-      }
-
+        when (surface) {
+            is SurfaceView -> {
+                surface.holder.addCallback(HolderCallback())
+            }
+            is TextureView -> {
+                surface.surfaceTextureListener = TextureVideoViewSurfaceListener()
+            }
+            else -> {
+                throw IllegalArgumentException("Surface $surface not one of TextureView or SurfaceView")
+            }
+        }
     }
 
-    playRequested = false
-    if (clearSurface) {
-      _listenerMux?.clearSurfaceWhenReady(surface)
-    }
-  }
+    override fun setListenerMux(listenerMux: ListenerMux) {
+        _listenerMux = listenerMux
 
-  /**
-   * Cleans up the resources being held.  This should only be called when
-   * destroying the video view
-   */
-  override fun release() {
-    currentState = State.IDLE
-
-    try {
-      mediaPlayer.reset()
-      mediaPlayer.release()
-    } catch (e: Exception) {
-      Log.d(ContentValues.TAG, "stopPlayback: error calling mediaPlayer.reset() or mediaPlayer.release()", e)
+        onCompletionListener = listenerMux
+        onCompletionListener = listenerMux
+        onPreparedListener = listenerMux
+        onBufferingUpdateListener = listenerMux
+        onSeekCompleteListener = listenerMux
+        onErrorListener = listenerMux
     }
 
-    playRequested = false
-  }
+    override fun start() {
+        if (isReady) {
+            mediaPlayer.start()
+            currentState = State.PLAYING
+        }
 
-  override fun reset() {
-    mediaPlayer.reset()
-  }
-
-  override fun restart(): Boolean {
-    if (currentState != State.COMPLETED) {
-      return false
+        playRequested = true
+        _listenerMux?.setNotifiedCompleted(false)
     }
 
-    seekTo(0)
-    start()
+    override fun pause() {
+        if (isReady && mediaPlayer.isPlaying) {
+            mediaPlayer.pause()
+            currentState = State.PAUSED
+        }
 
-    //Makes sure the listeners get the onPrepared callback
-    _listenerMux?.setNotifiedPrepared(false)
-    _listenerMux?.setNotifiedCompleted(false)
-
-    return true
-  }
-
-  override fun trackSelectionAvailable(): Boolean {
-    return false
-  }
-
-  override fun setSelectedTrack(type: RendererType, groupIndex: Int, trackIndex: Int) {
-    // Not supported
-  }
-
-  override fun getSelectedTrackIndex(type: RendererType, groupIndex: Int): Int {
-    return -1
-  }
-
-  override fun clearSelectedTracks(type: RendererType) {
-    // Not supported
-  }
-
-  override fun setRendererEnabled(type: RendererType, enabled: Boolean) {
-    // Not supported
-  }
-
-  override fun isRendererEnabled(type: RendererType): Boolean {
-    return false
-  }
-
-  override fun setAudioStreamType(streamType: Int) {
-    mediaPlayer.setAudioStreamType(streamType)
-  }
-
-  override fun setWakeLevel(levelAndFlags: Int) {
-    mediaPlayer.setWakeMode(context, levelAndFlags)
-  }
-
-  override fun onMediaPrepared() {
-    TODO("Start playback?")
-  }
-
-  override fun setRepeatMode(repeatMode: Int) {
-    // Not Supported
-  }
-
-  fun onSurfaceSizeChanged(width: Int, height: Int) {
-    if (width <= 0 || height <= 0) {
-      return
+        playRequested = false
     }
 
-    if (requestedSeek != 0L) {
-      seekTo(requestedSeek)
+    override fun seekTo(milliseconds: Long) {
+        requestedSeek = if (isReady) {
+            mediaPlayer.seekTo(milliseconds.toInt())
+            0
+        } else {
+            milliseconds
+        }
     }
 
-    if (playRequested) {
-      start()
-    }
-  }
+    override fun setPlaybackSpeed(speed: Float): Boolean {
+        // Marshmallow+ support setting the playback speed natively
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            mediaPlayer.playbackParams = PlaybackParams().apply {
+                this.speed = speed
+            }
+            return true
+        }
 
-  fun onSurfaceReady(surface: Surface) {
-    mediaPlayer.setSurface(surface)
-    if (playRequested) {
-      start()
-    }
-  }
-
-  override fun setMedia(uri: Uri?, mediaSource: MediaSource?) {
-    if (uri == null) {
-      return
+        return false
     }
 
-    currentBufferPercent = 0
-
-    try {
-      mediaPlayer.reset()
-      mediaPlayer.setDataSource(context.applicationContext, uri, headers)
-      mediaPlayer.prepareAsync()
-
-      currentState = State.PREPARING
-    } catch (ex: IOException) {
-      Log.w(ContentValues.TAG, "Unable to open content: $uri", ex)
-      currentState = State.ERROR
-
-      internalListeners.onError(mediaPlayer, MediaPlayer.MEDIA_ERROR_UNKNOWN, 0)
-    } catch (ex: IllegalArgumentException) {
-      Log.w(ContentValues.TAG, "Unable to open content: $uri", ex)
-      currentState = State.ERROR
-      internalListeners.onError(mediaPlayer, MediaPlayer.MEDIA_ERROR_UNKNOWN, 0)
-    }
-  }
-
-  protected inner class TextureVideoViewSurfaceListener : TextureView.SurfaceTextureListener {
-    override fun onSurfaceTextureAvailable(surfaceTexture: SurfaceTexture, width: Int, height: Int) {
-      onSurfaceReady(Surface(surfaceTexture))
+    override fun stop() {
+        stop(false)
     }
 
-    override fun onSurfaceTextureSizeChanged(surface: SurfaceTexture, width: Int, height: Int) {
-      onSurfaceSizeChanged(width, height)
+    override fun setCaptionListener(listener: CaptionListener?) {
+        // Not Supported
     }
 
-    override fun onSurfaceTextureDestroyed(surface: SurfaceTexture): Boolean {
-      surface.release()
-      release()
-      return true
+    override fun stop(clearSurface: Boolean) {
+        currentState = State.IDLE
+
+        if (isReady) {
+            try {
+                mediaPlayer.stop()
+            } catch (e: Exception) {
+                Log.d(ContentValues.TAG, "stopPlayback: error calling mediaPlayer.stop()", e)
+            }
+
+        }
+
+        playRequested = false
+        if (clearSurface) {
+            _listenerMux?.clearSurfaceWhenReady(surface)
+        }
     }
 
-    override fun onSurfaceTextureUpdated(surface: SurfaceTexture) {
-      //Purposefully left blank
-    }
-  }
+    /**
+     * Cleans up the resources being held.  This should only be called when
+     * destroying the video view
+     */
+    override fun release() {
+        currentState = State.IDLE
 
-  protected inner class HolderCallback : SurfaceHolder.Callback {
-    override fun surfaceCreated(holder: SurfaceHolder) {
-      onSurfaceReady(holder.surface)
-    }
+        try {
+            mediaPlayer.reset()
+            mediaPlayer.release()
+        } catch (e: Exception) {
+            Log.d(
+                ContentValues.TAG,
+                "stopPlayback: error calling mediaPlayer.reset() or mediaPlayer.release()",
+                e
+            )
+        }
 
-    override fun surfaceChanged(holder: SurfaceHolder, format: Int, width: Int, height: Int) {
-      onSurfaceSizeChanged(width, height)
-    }
-
-    override fun surfaceDestroyed(holder: SurfaceHolder) {
-      holder.surface.release()
-      release()
-    }
-  }
-
-  inner class InternalListeners:
-      MediaPlayer.OnBufferingUpdateListener,
-      MediaPlayer.OnErrorListener,
-      MediaPlayer.OnPreparedListener,
-      MediaPlayer.OnCompletionListener,
-      MediaPlayer.OnSeekCompleteListener,
-      MediaPlayer.OnInfoListener,
-      MediaPlayer.OnVideoSizeChangedListener {
-    override fun onBufferingUpdate(mp: MediaPlayer, percent: Int) {
-      currentBufferPercent = percent
-      onBufferingUpdateListener?.onBufferingUpdate(mp, percent)
+        playRequested = false
     }
 
-    override fun onCompletion(mp: MediaPlayer) {
-      currentState = State.COMPLETED
-      onCompletionListener?.onCompletion(mediaPlayer)
+    override fun reset() {
+        mediaPlayer.reset()
     }
 
-    override fun onSeekComplete(mp: MediaPlayer) {
-      onSeekCompleteListener?.onSeekComplete(mp)
-    }
+    override fun restart(): Boolean {
+        if (currentState != State.COMPLETED) {
+            return false
+        }
 
-    override fun onError(mp: MediaPlayer?, what: Int, extra: Int): Boolean {
-      Log.d(ContentValues.TAG, "Error: $what,$extra")
-      currentState = State.ERROR
-
-      return onErrorListener?.onError(mediaPlayer, what, extra) == true
-    }
-
-    override fun onPrepared(mp: MediaPlayer) {
-      currentState = State.PREPARED
-      onPreparedListener?.onPrepared(mediaPlayer)
-
-      // TODO: why does the ExoVideoPlayer not do this
-      surface.updateVideoSize(mp.videoWidth, mp.videoHeight)
-
-      if (requestedSeek != 0L) {
-        seekTo(requestedSeek)
-      }
-
-      if (playRequested) {
+        seekTo(0)
         start()
-      }
+
+        //Makes sure the listeners get the onPrepared callback
+        _listenerMux?.setNotifiedPrepared(false)
+        _listenerMux?.setNotifiedCompleted(false)
+
+        return true
     }
 
-    override fun onInfo(mp: MediaPlayer, what: Int, extra: Int): Boolean {
-      return onInfoListener?.onInfo(mp, what, extra) == true
+    override fun trackSelectionAvailable(): Boolean {
+        return false
     }
 
-    override fun onVideoSizeChanged(mp: MediaPlayer, width: Int, height: Int) {
-      surface.updateVideoSize(mp.videoWidth, mp.videoHeight)
+    override fun setSelectedTrack(type: RendererType, groupIndex: Int, trackIndex: Int) {
+        // Not supported
     }
-  }
+
+    override fun getSelectedTrackIndex(type: RendererType, groupIndex: Int): Int {
+        return -1
+    }
+
+    override fun clearSelectedTracks(type: RendererType) {
+        // Not supported
+    }
+
+    override fun setRendererEnabled(type: RendererType, enabled: Boolean) {
+        // Not supported
+    }
+
+    override fun isRendererEnabled(type: RendererType): Boolean {
+        return false
+    }
+
+    override fun setAudioStreamType(streamType: Int) {
+        mediaPlayer.setAudioStreamType(streamType)
+    }
+
+    override fun setWakeLevel(levelAndFlags: Int) {
+        mediaPlayer.setWakeMode(context, levelAndFlags)
+    }
+
+    override fun onMediaPrepared() {
+        TODO("Start playback?")
+    }
+
+    override fun setRepeatMode(repeatMode: Int) {
+        // Not Supported
+    }
+
+    fun onSurfaceSizeChanged(width: Int, height: Int) {
+        if (width <= 0 || height <= 0) {
+            return
+        }
+
+        if (requestedSeek != 0L) {
+            seekTo(requestedSeek)
+        }
+
+        if (playRequested) {
+            start()
+        }
+    }
+
+    fun onSurfaceReady(surface: Surface) {
+        mediaPlayer.setSurface(surface)
+        if (playRequested) {
+            start()
+        }
+    }
+
+    override fun setMedia(uri: Uri?, mediaSource: MediaSource?) {
+        if (uri == null) {
+            return
+        }
+
+        currentBufferPercent = 0
+
+        try {
+            mediaPlayer.reset()
+            mediaPlayer.setDataSource(context.applicationContext, uri, headers)
+            mediaPlayer.prepareAsync()
+
+            currentState = State.PREPARING
+        } catch (ex: IOException) {
+            Log.w(ContentValues.TAG, "Unable to open content: $uri", ex)
+            currentState = State.ERROR
+
+            internalListeners.onError(mediaPlayer, MediaPlayer.MEDIA_ERROR_UNKNOWN, 0)
+        } catch (ex: IllegalArgumentException) {
+            Log.w(ContentValues.TAG, "Unable to open content: $uri", ex)
+            currentState = State.ERROR
+            internalListeners.onError(mediaPlayer, MediaPlayer.MEDIA_ERROR_UNKNOWN, 0)
+        }
+    }
+
+    protected inner class TextureVideoViewSurfaceListener : TextureView.SurfaceTextureListener {
+        override fun onSurfaceTextureAvailable(
+            surfaceTexture: SurfaceTexture,
+            width: Int,
+            height: Int
+        ) {
+            onSurfaceReady(Surface(surfaceTexture))
+        }
+
+        override fun onSurfaceTextureSizeChanged(surface: SurfaceTexture, width: Int, height: Int) {
+            onSurfaceSizeChanged(width, height)
+        }
+
+        override fun onSurfaceTextureDestroyed(surface: SurfaceTexture): Boolean {
+            surface.release()
+            release()
+            return true
+        }
+
+        override fun onSurfaceTextureUpdated(surface: SurfaceTexture) {
+            //Purposefully left blank
+        }
+    }
+
+    protected inner class HolderCallback : SurfaceHolder.Callback {
+        override fun surfaceCreated(holder: SurfaceHolder) {
+            onSurfaceReady(holder.surface)
+        }
+
+        override fun surfaceChanged(holder: SurfaceHolder, format: Int, width: Int, height: Int) {
+            onSurfaceSizeChanged(width, height)
+        }
+
+        override fun surfaceDestroyed(holder: SurfaceHolder) {
+            holder.surface.release()
+            release()
+        }
+    }
+
+    inner class InternalListeners :
+        MediaPlayer.OnBufferingUpdateListener,
+        MediaPlayer.OnErrorListener,
+        MediaPlayer.OnPreparedListener,
+        MediaPlayer.OnCompletionListener,
+        MediaPlayer.OnSeekCompleteListener,
+        MediaPlayer.OnInfoListener,
+        MediaPlayer.OnVideoSizeChangedListener {
+        override fun onBufferingUpdate(mp: MediaPlayer, percent: Int) {
+            currentBufferPercent = percent
+            onBufferingUpdateListener?.onBufferingUpdate(mp, percent)
+        }
+
+        override fun onCompletion(mp: MediaPlayer) {
+            currentState = State.COMPLETED
+            onCompletionListener?.onCompletion(mediaPlayer)
+        }
+
+        override fun onSeekComplete(mp: MediaPlayer) {
+            onSeekCompleteListener?.onSeekComplete(mp)
+        }
+
+        override fun onError(mp: MediaPlayer?, what: Int, extra: Int): Boolean {
+            Log.d(ContentValues.TAG, "Error: $what,$extra")
+            currentState = State.ERROR
+
+            return onErrorListener?.onError(mediaPlayer, what, extra) == true
+        }
+
+        override fun onPrepared(mp: MediaPlayer) {
+            currentState = State.PREPARED
+            onPreparedListener?.onPrepared(mediaPlayer)
+
+            // TODO: why does the ExoVideoPlayer not do this
+            surface.updateVideoSize(mp.videoWidth, mp.videoHeight)
+
+            if (requestedSeek != 0L) {
+                seekTo(requestedSeek)
+            }
+
+            if (playRequested) {
+                start()
+            }
+        }
+
+        override fun onInfo(mp: MediaPlayer, what: Int, extra: Int): Boolean {
+            return onInfoListener?.onInfo(mp, what, extra) == true
+        }
+
+        override fun onVideoSizeChanged(mp: MediaPlayer, width: Int, height: Int) {
+            surface.updateVideoSize(mp.videoWidth, mp.videoHeight)
+        }
+    }
 }

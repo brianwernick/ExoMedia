@@ -14,38 +14,38 @@ import java.util.*
  * devices that don't support the ExoPlayer.
  */
 open class FallbackManager {
-  private val incompatibleDevices = mapOf(
-      "amazon" to DeviceModels(allModels = true)
-  )
+    private val incompatibleDevices = mapOf(
+        "amazon" to DeviceModels(allModels = true)
+    )
 
-  /**
-   * Determines if the ExoPlayer implementation or the fallback media player
-   * should be used to play media.
-   */
-  open fun useFallback(): Boolean {
-    return incompatibleDevices[Build.MANUFACTURER.toLowerCase(Locale.getDefault())]?.let {
-      it.allModels || it.models.contains(Build.DEVICE.toLowerCase(Locale.getDefault()))
-    } ?: false
-  }
+    /**
+     * Determines if the ExoPlayer implementation or the fallback media player
+     * should be used to play media.
+     */
+    open fun useFallback(): Boolean {
+        return incompatibleDevices[Build.MANUFACTURER.lowercase(Locale.getDefault())]?.let {
+            it.allModels || it.models.contains(Build.DEVICE.lowercase(Locale.getDefault()))
+        } ?: false
+    }
 
-  /**
-   * Retrieves an [AudioPlayerApi] implementation to use in situations where the
-   * ExoPlayer isn't supported.
-   */
-  open fun getFallbackAudioPlayer(context: Context): AudioPlayerApi {
-    return NativeAudioPlayer(context)
-  }
+    /**
+     * Retrieves an [AudioPlayerApi] implementation to use in situations where the
+     * ExoPlayer isn't supported.
+     */
+    open fun getFallbackAudioPlayer(context: Context): AudioPlayerApi {
+        return NativeAudioPlayer(context)
+    }
 
-  /**
-   * Retrieves a [VideoPlayerApi] implementation to use in situations where the
-   * ExoPlayer isn't supported
-   */
-  open fun getFallbackVideoPlayer(context: Context, surface: VideoSurface): VideoPlayerApi {
-    return NativeVideoPlayer(context, surface)
-  }
+    /**
+     * Retrieves a [VideoPlayerApi] implementation to use in situations where the
+     * ExoPlayer isn't supported
+     */
+    open fun getFallbackVideoPlayer(context: Context, surface: VideoSurface): VideoPlayerApi {
+        return NativeVideoPlayer(context, surface)
+    }
 
-  data class DeviceModels(
-      val models: Set<String> = emptySet(),
-      val allModels: Boolean = false
-  )
+    data class DeviceModels(
+        val models: Set<String> = emptySet(),
+        val allModels: Boolean = false
+    )
 }

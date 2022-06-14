@@ -1,45 +1,41 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest
-    package="com.devbrackets.android.exomediademo"
-    xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.devbrackets.android.exomediademo">
 
-    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
 
     <application
+        android:name=".App"
         android:allowBackup="false"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:theme="@style/AppTheme"
-        android:usesCleartextTraffic="true"
-        android:name=".App">
+        android:usesCleartextTraffic="true">
         <activity
             android:name=".ui.selection.SelectionActivity"
-            android:label="@string/app_name"
-            android:exported="true">
+            android:exported="true"
+            android:label="@string/app_name">
             <intent-filter>
-                <action android:name="android.intent.action.MAIN"/>
-                <category android:name="android.intent.category.LAUNCHER"/>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
 
         <activity
             android:name=".ui.media.VideoPlayerActivity"
             android:configChanges="orientation|screenSize"
-            android:theme="@style/AppTheme.Video"
-            android:label="@string/title_activity_video_player">
-        </activity>
+            android:label="@string/title_activity_video_player"
+            android:theme="@style/AppTheme.Video" />
         <activity
             android:name=".ui.media.AudioPlayerActivity"
-            android:label="@string/title_activity_audio_player">
-        </activity>
+            android:label="@string/title_activity_audio_player" />
 
         <service
             android:name="com.devbrackets.android.exomediademo.playlist.service.MediaService"
             android:enabled="true"
-            android:exported="false">
-        </service>
+            android:exported="false" />
     </application>
 
 </manifest>

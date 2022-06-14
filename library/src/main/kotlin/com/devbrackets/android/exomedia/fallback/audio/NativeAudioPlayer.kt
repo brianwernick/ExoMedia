@@ -44,191 +44,191 @@ import com.google.android.exoplayer2.source.TrackGroupArray
  * Amazon devices where they incorrectly call these methods when
  * setting up the MediaPlayer (when in IDLE state)
  */
-class NativeAudioPlayer(protected val context: Context) : AudioPlayerApi {
-  companion object {
-    private const val TAG = "NativeMediaPlayer"
-  }
-
-  protected val mediaPlayer: MediaPlayer = MediaPlayer()
-  protected var internalListeners = InternalListeners()
-
-  protected var _listenerMux: ListenerMux? = null
-
-  protected var requestedSeek: Long = 0
-  override var bufferedPercent = 0
-    protected set
-
-  @FloatRange(from = 0.0, to = 1.0)
-  protected var requestedVolume = 1.0f
-
-  override var volume: Float
-    get() = requestedVolume
-    set(value) {
-      requestedVolume = value
-      mediaPlayer.setVolume(value, value)
+open class NativeAudioPlayer(protected val context: Context) : AudioPlayerApi {
+    companion object {
+        private const val TAG = "NativeMediaPlayer"
     }
 
-  override val isPlaying: Boolean
-    get() = mediaPlayer.isPlaying
+    protected val mediaPlayer: MediaPlayer = MediaPlayer()
+    private var internalListeners = InternalListeners()
 
-  override val duration: Long
-    get() = if (_listenerMux?.isPrepared != true) {
-      0
-    } else mediaPlayer.duration.toLong()
+    protected var _listenerMux: ListenerMux? = null
 
-  override val currentPosition: Long
-    get() = if (_listenerMux?.isPrepared != true) {
-      0
-    } else mediaPlayer.currentPosition.toLong()
+    private var requestedSeek: Long = 0
+    override var bufferedPercent = 0
+        protected set
 
-  override val windowInfo: WindowInfo?
-    get() = null
+    @FloatRange(from = 0.0, to = 1.0)
+    protected var requestedVolume = 1.0f
 
-  override val audioSessionId: Int
-    get() = mediaPlayer.audioSessionId
+    override var volume: Float
+        get() = requestedVolume
+        set(value) {
+            requestedVolume = value
+            mediaPlayer.setVolume(value, value)
+        }
 
-  // Marshmallow+ support setting the playback speed natively
-  override val playbackSpeed: Float
-    get() = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-      mediaPlayer.playbackParams.speed
-    } else 1f
+    override val isPlaying: Boolean
+        get() = mediaPlayer.isPlaying
 
-  override val availableTracks: Map<RendererType, TrackGroupArray>?
-    get() = null
+    override val duration: Long
+        get() = if (_listenerMux?.isPrepared != true) {
+            0
+        } else mediaPlayer.duration.toLong()
 
-  override var drmSessionManagerProvider: DrmSessionManagerProvider?
-    get() = null
-    set(_) {}
+    override val currentPosition: Long
+        get() = if (_listenerMux?.isPrepared != true) {
+            0
+        } else mediaPlayer.currentPosition.toLong()
 
-  init {
-    mediaPlayer.setOnBufferingUpdateListener(internalListeners)
-  }
+    override val windowInfo: WindowInfo?
+        get() = null
 
-  override fun setMedia(uri: Uri?, mediaSource: MediaSource?) {
-    try {
-      requestedSeek = 0
-      mediaPlayer.setDataSource(context, uri!!)
-      mediaPlayer.prepareAsync()
-    } catch (e: Exception) {
-      Log.d(TAG, "MediaPlayer: error setting data source", e)
-    }
-  }
+    override val audioSessionId: Int
+        get() = mediaPlayer.audioSessionId
 
-  override fun reset() {
-    mediaPlayer.reset()
-  }
-
-  override fun seekTo(@IntRange(from = 0) milliseconds: Long) {
-    if (_listenerMux?.isPrepared == true) {
-      mediaPlayer.seekTo(milliseconds.toInt())
-      requestedSeek = 0
-    } else {
-      requestedSeek = milliseconds
-    }
-  }
-
-  override fun start() {
-    mediaPlayer.start()
-    _listenerMux?.setNotifiedCompleted(false)
-  }
-
-  override fun pause() {
-    mediaPlayer.pause()
-  }
-
-  override fun stop() {
-    mediaPlayer.stop()
-  }
-
-  override fun restart(): Boolean {
-    if (_listenerMux?.isPrepared != true) {
-      return false
-    }
-
-    mediaPlayer.seekTo(0)
-    mediaPlayer.start()
-
-    _listenerMux?.setNotifiedCompleted(false)
-
-    return true
-  }
-
-  override fun release() {
-    mediaPlayer.release()
-  }
-
-  override fun setPlaybackSpeed(speed: Float): Boolean {
     // Marshmallow+ support setting the playback speed natively
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-      mediaPlayer.playbackParams = PlaybackParams().apply {
-        this.speed = speed
-      }
+    override val playbackSpeed: Float
+        get() = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            mediaPlayer.playbackParams.speed
+        } else 1f
 
-      return true
+    override val availableTracks: Map<RendererType, TrackGroupArray>?
+        get() = null
+
+    override var drmSessionManagerProvider: DrmSessionManagerProvider?
+        get() = null
+        set(_) {}
+
+    init {
+        mediaPlayer.setOnBufferingUpdateListener(internalListeners)
     }
 
-    return false
-  }
-
-  override fun setAudioStreamType(streamType: Int) {
-    mediaPlayer.setAudioStreamType(streamType)
-  }
-
-  override fun setWakeLevel(levelAndFlags: Int) {
-    mediaPlayer.setWakeMode(context, levelAndFlags)
-  }
-
-  override fun trackSelectionAvailable(): Boolean {
-    return false
-  }
-
-  override fun setSelectedTrack(type: RendererType, groupIndex: Int, trackIndex: Int) {
-    // Not supported
-  }
-
-  override fun getSelectedTrackIndex(type: RendererType, groupIndex: Int): Int {
-    return -1
-  }
-
-  override fun clearSelectedTracks(type: RendererType) {
-    // Not supported
-  }
-
-  override fun setRendererEnabled(type: RendererType, enabled: Boolean) {
-    // Not supported
-  }
-
-  override fun isRendererEnabled(type: RendererType): Boolean {
-    return false
-  }
-
-  override fun setListenerMux(listenerMux: ListenerMux) {
-    _listenerMux = listenerMux
-
-    mediaPlayer.setOnCompletionListener(listenerMux)
-    mediaPlayer.setOnPreparedListener(listenerMux)
-    mediaPlayer.setOnBufferingUpdateListener(listenerMux)
-    mediaPlayer.setOnSeekCompleteListener(listenerMux)
-    mediaPlayer.setOnErrorListener(listenerMux)
-  }
-
-  //TODO The NativeVideoPlayer doesn't need this, it handles the callback itself...
-  // Why are the listeners setup differently between this and the video player?
-  override fun onMediaPrepared() {
-    if (requestedSeek != 0L) {
-      seekTo(requestedSeek)
+    override fun setMedia(uri: Uri?, mediaSource: MediaSource?) {
+        try {
+            requestedSeek = 0
+            mediaPlayer.setDataSource(context, uri!!)
+            mediaPlayer.prepareAsync()
+        } catch (e: Exception) {
+            Log.d(TAG, "MediaPlayer: error setting data source", e)
+        }
     }
-  }
 
-  override fun setRepeatMode(@Player.RepeatMode repeatMode: Int) {
-    // Purposefully left blank
-  }
-
-  protected inner class InternalListeners : MediaPlayer.OnBufferingUpdateListener {
-    override fun onBufferingUpdate(mediaPlayer: MediaPlayer, percent: Int) {
-      _listenerMux?.onBufferingUpdate(percent)
-      bufferedPercent = percent
+    override fun reset() {
+        mediaPlayer.reset()
     }
-  }
+
+    override fun seekTo(@IntRange(from = 0) milliseconds: Long) {
+        requestedSeek = if (_listenerMux?.isPrepared == true) {
+            mediaPlayer.seekTo(milliseconds.toInt())
+            0
+        } else {
+            milliseconds
+        }
+    }
+
+    override fun start() {
+        mediaPlayer.start()
+        _listenerMux?.setNotifiedCompleted(false)
+    }
+
+    override fun pause() {
+        mediaPlayer.pause()
+    }
+
+    override fun stop() {
+        mediaPlayer.stop()
+    }
+
+    override fun restart(): Boolean {
+        if (_listenerMux?.isPrepared != true) {
+            return false
+        }
+
+        mediaPlayer.seekTo(0)
+        mediaPlayer.start()
+
+        _listenerMux?.setNotifiedCompleted(false)
+
+        return true
+    }
+
+    override fun release() {
+        mediaPlayer.release()
+    }
+
+    override fun setPlaybackSpeed(speed: Float): Boolean {
+        // Marshmallow+ support setting the playback speed natively
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            mediaPlayer.playbackParams = PlaybackParams().apply {
+                this.speed = speed
+            }
+
+            return true
+        }
+
+        return false
+    }
+
+    override fun setAudioStreamType(streamType: Int) {
+        mediaPlayer.setAudioStreamType(streamType)
+    }
+
+    override fun setWakeLevel(levelAndFlags: Int) {
+        mediaPlayer.setWakeMode(context, levelAndFlags)
+    }
+
+    override fun trackSelectionAvailable(): Boolean {
+        return false
+    }
+
+    override fun setSelectedTrack(type: RendererType, groupIndex: Int, trackIndex: Int) {
+        // Not supported
+    }
+
+    override fun getSelectedTrackIndex(type: RendererType, groupIndex: Int): Int {
+        return -1
+    }
+
+    override fun clearSelectedTracks(type: RendererType) {
+        // Not supported
+    }
+
+    override fun setRendererEnabled(type: RendererType, enabled: Boolean) {
+        // Not supported
+    }
+
+    override fun isRendererEnabled(type: RendererType): Boolean {
+        return false
+    }
+
+    override fun setListenerMux(listenerMux: ListenerMux) {
+        _listenerMux = listenerMux
+
+        mediaPlayer.setOnCompletionListener(listenerMux)
+        mediaPlayer.setOnPreparedListener(listenerMux)
+        mediaPlayer.setOnBufferingUpdateListener(listenerMux)
+        mediaPlayer.setOnSeekCompleteListener(listenerMux)
+        mediaPlayer.setOnErrorListener(listenerMux)
+    }
+
+    //TODO The NativeVideoPlayer doesn't need this, it handles the callback itself...
+    // Why are the listeners setup differently between this and the video player?
+    override fun onMediaPrepared() {
+        if (requestedSeek != 0L) {
+            seekTo(requestedSeek)
+        }
+    }
+
+    override fun setRepeatMode(@Player.RepeatMode repeatMode: Int) {
+        // Purposefully left blank
+    }
+
+    protected inner class InternalListeners : MediaPlayer.OnBufferingUpdateListener {
+        override fun onBufferingUpdate(mediaPlayer: MediaPlayer, percent: Int) {
+            _listenerMux?.onBufferingUpdate(percent)
+            bufferedPercent = percent
+        }
+    }
 
 }

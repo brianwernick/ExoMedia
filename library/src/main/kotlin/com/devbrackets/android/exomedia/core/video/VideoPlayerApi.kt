@@ -25,18 +25,18 @@ import com.devbrackets.android.exomedia.core.listener.CaptionListener
  * between the Native (Android) VideoView and the VideoView
  * using the ExoPlayer.
  */
-interface VideoPlayerApi: AudioPlayerApi {
-  /**
-   * Performs the functionality to stop the video in playback
-   *
-   * @param clearSurface `true` if the surface should be cleared
-   */
-  fun stop(clearSurface: Boolean)
+interface VideoPlayerApi : AudioPlayerApi {
+    /**
+     * Performs the functionality to stop the video in playback
+     *
+     * @param clearSurface `true` if the surface should be cleared
+     */
+    fun stop(clearSurface: Boolean)
 
-  /**
-   * Specifies the listener to inform of closed caption events
-   *
-   * @param listener The listener to inform of closed caption events
-   */
-  fun setCaptionListener(listener: CaptionListener?)
+    /**
+     * Specifies the listener to inform of closed caption events
+     *
+     * @param listener The listener to inform of closed caption events
+     */
+    fun setCaptionListener(listener: CaptionListener?)
 }

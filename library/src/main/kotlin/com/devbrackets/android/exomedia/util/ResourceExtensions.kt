@@ -35,8 +35,8 @@ import androidx.core.content.res.ResourcesCompat
  * @return The tinted drawable
  */
 fun Context.tintListCompat(@DrawableRes drawableRes: Int, @ColorRes tintListRes: Int): Drawable {
-  val drawable = ResourcesCompat.getDrawable(resources, drawableRes, theme)!!.mutate()
-  return tintListCompat(drawable, tintListRes)
+    val drawable = ResourcesCompat.getDrawable(resources, drawableRes, theme)!!.mutate()
+    return tintListCompat(drawable, tintListRes)
 }
 
 /**
@@ -61,7 +61,7 @@ fun Context.tintListCompat(drawable: Drawable, @ColorRes tintListRes: Int): Draw
  * @return The ColorStateList associated with `colorRes`
  */
 fun Context.getColorStateListCompat(@ColorRes colorRes: Int): ColorStateList {
-  return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-    resources.getColorStateList(colorRes, theme)
-  } else AppCompatResources.getColorStateList(this, colorRes)
+    return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+        resources.getColorStateList(colorRes, theme)
+    } else AppCompatResources.getColorStateList(this, colorRes)
 }

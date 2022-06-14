@@ -26,13 +26,13 @@ import com.google.android.exoplayer2.upstream.TransferListener
  */
 interface DataSourceFactoryProvider {
 
-  /**
-   * Provides a [DataSource.Factory] to use when requesting network
-   * data to load media.
-   *
-   * @param userAgent The "UserAgent" to use when making network requests
-   * @param listener A [TransferListener] to inform of data load & transfer events
-   * @return An instance of [DataSource.Factory]
-   */
-  fun provide(userAgent: String, listener: TransferListener?): DataSource.Factory
+    /**
+     * Provides a [DataSource.Factory] to use when requesting network
+     * data to load media.
+     *
+     * @param userAgent The "UserAgent" to use when making network requests
+     * @param listener A [TransferListener] to inform of data load & transfer events
+     * @return An instance of [DataSource.Factory]
+     */
+    fun provide(userAgent: String, listener: TransferListener?): DataSource.Factory
 }

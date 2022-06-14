@@ -24,18 +24,18 @@ import com.google.android.exoplayer2.Renderer
  */
 interface RenderProvider {
 
-  /**
-   * The [RendererType] that this provider builds
-   */
-  fun type(): RendererType
+    /**
+     * The [RendererType] that this provider builds
+     */
+    fun type(): RendererType
 
-  /**
-   * the list of pre-defined classes to that the provider supports
-   */
-  fun rendererClasses(): List<String>
+    /**
+     * the list of pre-defined classes to that the provider supports
+     */
+    fun rendererClasses(): List<String>
 
-  /**
-   * Retrieves the latest built renderers
-   */
-  fun getLatestRenderers(): List<Renderer>
+    /**
+     * Retrieves the latest built renderers
+     */
+    fun getLatestRenderers(): List<Renderer>
 }

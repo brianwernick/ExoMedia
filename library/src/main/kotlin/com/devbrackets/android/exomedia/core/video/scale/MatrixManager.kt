@@ -26,209 +26,212 @@ import kotlin.math.max
 import kotlin.math.min
 
 open class MatrixManager {
-  companion object {
-    private const val TAG = "MatrixManager"
-    protected const val QUARTER_ROTATION = 90
-  }
-
-  protected var intrinsicVideoSize = Point(0, 0)
-
-  @IntRange(from = 0, to = 359)
-  protected var currentRotation = 0
-    get() = requestedRotation ?: field
-
-  var currentScaleType = ScaleType.FIT_CENTER
-    get() = requestedScaleType ?: field
-
-  protected var requestedRotation: Int? = null
-  protected var requestedScaleType: ScaleType? = null
-  protected var requestedModificationView = WeakReference<View>(null)
-
-  fun reset() {
-    setIntrinsicVideoSize(0, 0)
-    currentRotation = 0
-  }
-
-  fun ready(): Boolean {
-    return intrinsicVideoSize.x > 0 && intrinsicVideoSize.y > 0
-  }
-
-  fun setIntrinsicVideoSize(@IntRange(from = 0) width: Int, @IntRange(from = 0) height: Int) {
-    val currentWidthHeightSwapped = currentRotation / QUARTER_ROTATION % 2 == 1
-    intrinsicVideoSize.x = if (currentWidthHeightSwapped) height else width
-    intrinsicVideoSize.y = if (currentWidthHeightSwapped) width else height
-
-    if (ready()) {
-      applyRequestedModifications()
-    }
-  }
-
-  fun rotate(view: View, @IntRange(from = 0, to = 359) rotation: Int) {
-    if (!ready()) {
-      requestedRotation = rotation
-      requestedModificationView = WeakReference(view)
-      return
+    companion object {
+        private const val TAG = "MatrixManager"
+        protected const val QUARTER_ROTATION = 90
     }
 
-    val swapWidthHeight = rotation / QUARTER_ROTATION % 2 == 1
-    val currentWidthHeightSwapped = currentRotation / QUARTER_ROTATION % 2 == 1
+    private var intrinsicVideoSize = Point(0, 0)
 
-    //Makes sure the width and height are correctly swapped
-    if (swapWidthHeight != currentWidthHeightSwapped) {
-      val tempX = intrinsicVideoSize.x
-      intrinsicVideoSize.x = intrinsicVideoSize.y
-      intrinsicVideoSize.y = tempX
+    @IntRange(from = 0, to = 359)
+    protected var currentRotation = 0
+        get() = requestedRotation ?: field
 
-      //We re-apply the scale to make sure it is correct
-      scale(view, currentScaleType)
+    var currentScaleType = ScaleType.FIT_CENTER
+        get() = requestedScaleType ?: field
+
+    private var requestedRotation: Int? = null
+    private var requestedScaleType: ScaleType? = null
+    private var requestedModificationView = WeakReference<View>(null)
+
+    fun reset() {
+        setIntrinsicVideoSize(0, 0)
+        currentRotation = 0
     }
 
-    currentRotation = rotation
-    view.rotation = rotation.toFloat()
-  }
-
-  /**
-   * Performs the requested scaling on the `view`'s matrix
-   *
-   * @param view The View to alter the matrix to achieve the requested scale type
-   * @param scaleType The type of scaling to use for the specified view
-   * @return True if the scale was applied
-   */
-  fun scale(view: View, scaleType: ScaleType): Boolean {
-    if (!ready()) {
-      requestedScaleType = scaleType
-      requestedModificationView = WeakReference(view)
-      return false
+    private fun ready(): Boolean {
+        return intrinsicVideoSize.x > 0 && intrinsicVideoSize.y > 0
     }
 
-    if (view.height == 0 || view.width == 0) {
-      Log.d(TAG, "Unable to apply scale with a view size of (" + view.width + ", " + view.height + ")")
-      return false
+    fun setIntrinsicVideoSize(@IntRange(from = 0) width: Int, @IntRange(from = 0) height: Int) {
+        val currentWidthHeightSwapped = currentRotation / QUARTER_ROTATION % 2 == 1
+        intrinsicVideoSize.x = if (currentWidthHeightSwapped) height else width
+        intrinsicVideoSize.y = if (currentWidthHeightSwapped) width else height
+
+        if (ready()) {
+            applyRequestedModifications()
+        }
     }
 
-    currentScaleType = scaleType
-    when (scaleType) {
-      ScaleType.CENTER -> applyCenter(view)
-      ScaleType.CENTER_CROP -> applyCenterCrop(view)
-      ScaleType.CENTER_INSIDE -> applyCenterInside(view)
-      ScaleType.FIT_CENTER -> applyFitCenter(view)
-      ScaleType.FIT_XY -> applyFitXy(view)
-      ScaleType.NONE -> setScale(view, 1f, 1f)
+    fun rotate(view: View, @IntRange(from = 0, to = 359) rotation: Int) {
+        if (!ready()) {
+            requestedRotation = rotation
+            requestedModificationView = WeakReference(view)
+            return
+        }
+
+        val swapWidthHeight = rotation / QUARTER_ROTATION % 2 == 1
+        val currentWidthHeightSwapped = currentRotation / QUARTER_ROTATION % 2 == 1
+
+        //Makes sure the width and height are correctly swapped
+        if (swapWidthHeight != currentWidthHeightSwapped) {
+            val tempX = intrinsicVideoSize.x
+            intrinsicVideoSize.x = intrinsicVideoSize.y
+            intrinsicVideoSize.y = tempX
+
+            //We re-apply the scale to make sure it is correct
+            scale(view, currentScaleType)
+        }
+
+        currentRotation = rotation
+        view.rotation = rotation.toFloat()
     }
 
-    return true
-  }
+    /**
+     * Performs the requested scaling on the `view`'s matrix
+     *
+     * @param view The View to alter the matrix to achieve the requested scale type
+     * @param scaleType The type of scaling to use for the specified view
+     * @return True if the scale was applied
+     */
+    fun scale(view: View, scaleType: ScaleType): Boolean {
+        if (!ready()) {
+            requestedScaleType = scaleType
+            requestedModificationView = WeakReference(view)
+            return false
+        }
 
-  /**
-   * Applies the [ScaleType.CENTER] to the specified matrix.  This will
-   * perform no scaling as this just indicates that the video should be centered
-   * in the View
-   *
-   * @param view The view to apply the transformation to
-   */
-  protected fun applyCenter(view: View) {
-    val xScale = intrinsicVideoSize.x.toFloat() / view.width
-    val yScale = intrinsicVideoSize.y.toFloat() / view.height
+        if (view.height == 0 || view.width == 0) {
+            Log.d(
+                TAG,
+                "Unable to apply scale with a view size of (" + view.width + ", " + view.height + ")"
+            )
+            return false
+        }
 
-    setScale(view, xScale, yScale)
-  }
+        currentScaleType = scaleType
+        when (scaleType) {
+            ScaleType.CENTER -> applyCenter(view)
+            ScaleType.CENTER_CROP -> applyCenterCrop(view)
+            ScaleType.CENTER_INSIDE -> applyCenterInside(view)
+            ScaleType.FIT_CENTER -> applyFitCenter(view)
+            ScaleType.FIT_XY -> applyFitXy(view)
+            ScaleType.NONE -> setScale(view, 1f, 1f)
+        }
 
-  /**
-   * Applies the [ScaleType.CENTER_CROP] to the specified matrix.  This will
-   * make sure the smallest side fits the parent container, cropping the other
-   *
-   * @param view The view to apply the transformation to
-   */
-  protected fun applyCenterCrop(view: View) {
-    var xScale = view.width.toFloat() / intrinsicVideoSize.x
-    var yScale = view.height.toFloat() / intrinsicVideoSize.y
-
-    val scale = max(xScale, yScale)
-    xScale = scale / xScale
-    yScale = scale / yScale
-
-    setScale(view, xScale, yScale)
-  }
-
-  /**
-   * Applies the [ScaleType.CENTER_INSIDE] to the specified matrix.  This will
-   * only perform scaling if the video is too large to fit completely in the `view`
-   * in which case it will be scaled to fit
-   *
-   * @param view The view to apply the transformation to
-   */
-  protected fun applyCenterInside(view: View) {
-    if (intrinsicVideoSize.x <= view.width && intrinsicVideoSize.y <= view.height) {
-      applyCenter(view)
-    } else {
-      applyFitCenter(view)
-    }
-  }
-
-  /**
-   * Applies the [ScaleType.FIT_CENTER] to the specified matrix.  This will
-   * scale the video so that the largest side will always match the `view`
-   *
-   * @param view The view to apply the transformation to
-   */
-  protected fun applyFitCenter(view: View) {
-    var xScale = view.width.toFloat() / intrinsicVideoSize.x
-    var yScale = view.height.toFloat() / intrinsicVideoSize.y
-
-    val scale = min(xScale, yScale)
-    xScale = scale / xScale
-    yScale = scale / yScale
-    setScale(view, xScale, yScale)
-  }
-
-  /**
-   * Applies the [ScaleType.FIT_XY] to the specified matrix.  This will
-   * scale the video so that both the width and height will always match that of
-   * the `view`
-   *
-   * @param view The view to apply the transformation to
-   */
-  protected fun applyFitXy(view: View) {
-    setScale(view, 1f, 1f)
-  }
-
-  /**
-   * Applies the specified scale modification to the view
-   *
-   * @param view The view to scale
-   * @param xScale The scale to apply to the x axis
-   * @param yScale The scale to apply to the y axis
-   */
-  protected fun setScale(view: View, xScale: Float, yScale: Float) {
-    //If the width and height have been swapped, we need to re-calculate the scales based on the swapped sizes
-    val currentWidthHeightSwapped = currentRotation / QUARTER_ROTATION % 2 == 1
-    if (currentWidthHeightSwapped) {
-      view.scaleX = yScale * view.height / view.width
-      view.scaleY = xScale * view.width / view.height
-      return
+        return true
     }
 
-    view.scaleX = xScale
-    view.scaleY = yScale
-  }
+    /**
+     * Applies the [ScaleType.CENTER] to the specified matrix.  This will
+     * perform no scaling as this just indicates that the video should be centered
+     * in the View
+     *
+     * @param view The view to apply the transformation to
+     */
+    protected fun applyCenter(view: View) {
+        val xScale = intrinsicVideoSize.x.toFloat() / view.width
+        val yScale = intrinsicVideoSize.y.toFloat() / view.height
 
-  /**
-   * Applies any scale or rotation that was requested before the MatrixManager was
-   * ready to apply those modifications.
-   */
-  protected fun applyRequestedModifications() {
-    requestedModificationView.get()?.let { view ->
-      requestedRotation?.let {
-        rotate(view, it)
-        requestedRotation = null
-      }
-
-      requestedScaleType?.let {
-        scale(view, it)
-        requestedScaleType = null
-      }
+        setScale(view, xScale, yScale)
     }
 
-    requestedModificationView = WeakReference<View>(null)
-  }
+    /**
+     * Applies the [ScaleType.CENTER_CROP] to the specified matrix.  This will
+     * make sure the smallest side fits the parent container, cropping the other
+     *
+     * @param view The view to apply the transformation to
+     */
+    private fun applyCenterCrop(view: View) {
+        var xScale = view.width.toFloat() / intrinsicVideoSize.x
+        var yScale = view.height.toFloat() / intrinsicVideoSize.y
+
+        val scale = max(xScale, yScale)
+        xScale = scale / xScale
+        yScale = scale / yScale
+
+        setScale(view, xScale, yScale)
+    }
+
+    /**
+     * Applies the [ScaleType.CENTER_INSIDE] to the specified matrix.  This will
+     * only perform scaling if the video is too large to fit completely in the `view`
+     * in which case it will be scaled to fit
+     *
+     * @param view The view to apply the transformation to
+     */
+    private fun applyCenterInside(view: View) {
+        if (intrinsicVideoSize.x <= view.width && intrinsicVideoSize.y <= view.height) {
+            applyCenter(view)
+        } else {
+            applyFitCenter(view)
+        }
+    }
+
+    /**
+     * Applies the [ScaleType.FIT_CENTER] to the specified matrix.  This will
+     * scale the video so that the largest side will always match the `view`
+     *
+     * @param view The view to apply the transformation to
+     */
+    private fun applyFitCenter(view: View) {
+        var xScale = view.width.toFloat() / intrinsicVideoSize.x
+        var yScale = view.height.toFloat() / intrinsicVideoSize.y
+
+        val scale = min(xScale, yScale)
+        xScale = scale / xScale
+        yScale = scale / yScale
+        setScale(view, xScale, yScale)
+    }
+
+    /**
+     * Applies the [ScaleType.FIT_XY] to the specified matrix.  This will
+     * scale the video so that both the width and height will always match that of
+     * the `view`
+     *
+     * @param view The view to apply the transformation to
+     */
+    private fun applyFitXy(view: View) {
+        setScale(view, 1f, 1f)
+    }
+
+    /**
+     * Applies the specified scale modification to the view
+     *
+     * @param view The view to scale
+     * @param xScale The scale to apply to the x axis
+     * @param yScale The scale to apply to the y axis
+     */
+    private fun setScale(view: View, xScale: Float, yScale: Float) {
+        //If the width and height have been swapped, we need to re-calculate the scales based on the swapped sizes
+        val currentWidthHeightSwapped = currentRotation / QUARTER_ROTATION % 2 == 1
+        if (currentWidthHeightSwapped) {
+            view.scaleX = yScale * view.height / view.width
+            view.scaleY = xScale * view.width / view.height
+            return
+        }
+
+        view.scaleX = xScale
+        view.scaleY = yScale
+    }
+
+    /**
+     * Applies any scale or rotation that was requested before the MatrixManager was
+     * ready to apply those modifications.
+     */
+    private fun applyRequestedModifications() {
+        requestedModificationView.get()?.let { view ->
+            requestedRotation?.let {
+                rotate(view, it)
+                requestedRotation = null
+            }
+
+            requestedScaleType?.let {
+                scale(view, it)
+                requestedScaleType = null
+            }
+        }
+
+        requestedModificationView = WeakReference<View>(null)
+    }
 }

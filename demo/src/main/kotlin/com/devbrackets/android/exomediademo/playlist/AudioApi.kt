@@ -62,7 +62,10 @@ class AudioApi(context: Context) : BaseMediaApi() {
         audioPlayer.release()
     }
 
-    override fun setVolume(@FloatRange(from = 0.0, to = 1.0) left: Float, @FloatRange(from = 0.0, to = 1.0) right: Float) {
+    override fun setVolume(
+        @FloatRange(from = 0.0, to = 1.0) left: Float,
+        @FloatRange(from = 0.0, to = 1.0) right: Float
+    ) {
         audioPlayer.volume = (left + right) / 2
     }
 

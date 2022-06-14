@@ -12,7 +12,8 @@ import com.devbrackets.android.playlistcore.manager.ListPlaylistManager
  * A PlaylistManager that extends the [ListPlaylistManager] for use with the
  * [MediaService] which extends [com.devbrackets.android.playlistcore.service.BasePlaylistService].
  */
-class PlaylistManager(application: Application) : ListPlaylistManager<MediaItem>(application, MediaService::class.java) {
+class PlaylistManager(application: Application) :
+    ListPlaylistManager<MediaItem>(application, MediaService::class.java) {
 
     /**
      * Note: You can call [.getMediaPlayers] and add it manually in the activity,

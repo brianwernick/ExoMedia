@@ -38,6 +38,8 @@ import android.util.Log
 import com.google.android.exoplayer2.text.Cue
 import com.google.android.exoplayer2.ui.CaptionStyleCompat
 import com.google.android.exoplayer2.util.Util
+import kotlin.math.ceil
+import kotlin.math.roundToInt
 
 /**
  * Paints subtitle [Cue]s.
@@ -65,11 +67,14 @@ internal class SubtitlePainter(context: Context) {
     private var cueTextAlignment: Alignment? = null
     private var cueBitmap: Bitmap? = null
     private var cueLine: Float = 0.toFloat()
+
     @Cue.LineType
     private var cueLineType: Int = 0
+
     @Cue.AnchorType
     private var cueLineAnchor: Int = 0
     private var cuePosition: Float = 0.toFloat()
+
     @Cue.AnchorType
     private var cuePositionAnchor: Int = 0
     private var cueSize: Float = 0.toFloat()
@@ -80,7 +85,8 @@ internal class SubtitlePainter(context: Context) {
     private var backgroundColor: Int = 0
     private var windowColor: Int = 0
     private var edgeColor: Int = 0
-//    @CaptionStyleCompat.EdgeType
+
+    //    @CaptionStyleCompat.EdgeType
     private var edgeType: Int = 0
     private var defaultTextSizePx: Float = 0.toFloat()
     private var cueTextSizePx: Float = 0.toFloat()
@@ -98,7 +104,8 @@ internal class SubtitlePainter(context: Context) {
     private var bitmapRect: Rect? = null
 
     init {
-        val viewAttr = intArrayOf(android.R.attr.lineSpacingExtra, android.R.attr.lineSpacingMultiplier)
+        val viewAttr =
+            intArrayOf(android.R.attr.lineSpacingExtra, android.R.attr.lineSpacingMultiplier)
         val styledAttributes = context.obtainStyledAttributes(null, viewAttr, 0, 0)
         spacingAdd = styledAttributes.getDimensionPixelSize(0, 0).toFloat()
         @SuppressLint("ResourceType")
@@ -107,7 +114,8 @@ internal class SubtitlePainter(context: Context) {
 
         val resources = context.resources
         val displayMetrics = resources.displayMetrics
-        val twoDpInPx = Math.round(2f * displayMetrics.densityDpi / DisplayMetrics.DENSITY_DEFAULT)
+        val twoDpInPx =
+            (2f * displayMetrics.densityDpi / DisplayMetrics.DENSITY_DEFAULT).roundToInt()
         cornerRadius = twoDpInPx.toFloat()
         outlineWidth = twoDpInPx.toFloat()
         shadowRadius = twoDpInPx.toFloat()
@@ -284,7 +292,8 @@ internal class SubtitlePainter(context: Context) {
             }
         }
 
-        val textAlignment = if (cueTextAlignment == null) Alignment.ALIGN_CENTER else cueTextAlignment
+        val textAlignment =
+            if (cueTextAlignment == null) Alignment.ALIGN_CENTER else cueTextAlignment
         textLayout = StaticLayout(
             cueText, textPaint, availableWidth, textAlignment, spacingMult,
             spacingAdd, true
@@ -293,7 +302,8 @@ internal class SubtitlePainter(context: Context) {
         var textWidth = 0
         val lineCount = textLayout?.lineCount ?: 0
         for (i in 0 until lineCount) {
-            textWidth = Math.max(Math.ceil(textLayout?.getLineWidth(i)?.toDouble() ?: 0.0).toInt(), textWidth)
+            textWidth = ceil(textLayout?.getLineWidth(i)?.toDouble() ?: 0.0).toInt()
+                .coerceAtLeast(textWidth)
         }
         if (cueSize != Cue.DIMEN_UNSET && textWidth < availableWidth) {
             textWidth = availableWidth
@@ -303,14 +313,14 @@ internal class SubtitlePainter(context: Context) {
         var textLeft: Int
         val textRight: Int
         if (cuePosition != Cue.DIMEN_UNSET) {
-            val anchorPosition = Math.round(parentWidth * cuePosition) + parentLeft
+            val anchorPosition = (parentWidth * cuePosition).roundToInt() + parentLeft
             textLeft = when (cuePositionAnchor) {
                 Cue.ANCHOR_TYPE_END -> anchorPosition - textWidth
                 Cue.ANCHOR_TYPE_MIDDLE -> (anchorPosition * 2 - textWidth) / 2
                 else -> anchorPosition
             }
-            textLeft = Math.max(textLeft, parentLeft)
-            textRight = Math.min(textLeft + textWidth, parentRight)
+            textLeft = textLeft.coerceAtLeast(parentLeft)
+            textRight = (textLeft + textWidth).coerceAtMost(parentRight)
         } else {
             textLeft = (parentWidth - textWidth) / 2
             textRight = textLeft + textWidth
@@ -318,22 +328,25 @@ internal class SubtitlePainter(context: Context) {
 
         textWidth = textRight - textLeft
         if (textWidth <= 0) {
-            Log.w("SubtitlePainter", "Skipped drawing subtitle cue (invalid horizontal positioning)")
+            Log.w(
+                "SubtitlePainter",
+                "Skipped drawing subtitle cue (invalid horizontal positioning)"
+            )
             return
         }
 
         var textTop: Int
         if (cueLine != Cue.DIMEN_UNSET) {
-            val anchorPosition: Int
-            anchorPosition = if (cueLineType == Cue.LINE_TYPE_FRACTION) {
-                Math.round(parentHeight * cueLine) + parentTop
+            val anchorPosition: Int = if (cueLineType == Cue.LINE_TYPE_FRACTION) {
+                (parentHeight * cueLine).roundToInt() + parentTop
             } else {
                 // cueLineType == Cue.LINE_TYPE_NUMBER
-                val firstLineHeight = (textLayout?.getLineBottom(0) ?: 0) - (textLayout?.getLineTop(0) ?: 0)
+                val firstLineHeight =
+                    (textLayout?.getLineBottom(0) ?: 0) - (textLayout?.getLineTop(0) ?: 0)
                 if (cueLine >= 0) {
-                    Math.round(cueLine * firstLineHeight) + parentTop
+                    (cueLine * firstLineHeight).roundToInt() + parentTop
                 } else {
-                    Math.round((cueLine + 1) * firstLineHeight) + parentBottom
+                    ((cueLine + 1) * firstLineHeight).roundToInt() + parentBottom
                 }
             }
             textTop = when (cueLineAnchor) {
@@ -366,27 +379,23 @@ internal class SubtitlePainter(context: Context) {
         val anchorX = parentLeft + parentWidth * cuePosition
         val anchorY = parentTop + parentHeight * cueLine
         val height = if (cueBitmapHeight != Cue.DIMEN_UNSET) {
-            Math.round(parentHeight * cueBitmapHeight)
+            (parentHeight * cueBitmapHeight).roundToInt()
         } else {
             val height = cueBitmap?.height ?: 0
             val width = cueBitmap?.width ?: 1
-            Math.round(width * (height.toFloat() / width))
+            (width * (height.toFloat() / width)).roundToInt()
         }
-        val width = Math.round(parentWidth * cueSize)
-        val x = Math.round(
-            when (cueLineAnchor) {
-                Cue.ANCHOR_TYPE_END -> anchorX - width
-                Cue.ANCHOR_TYPE_MIDDLE -> anchorX - width / 2
-                else -> anchorX
-            }
-        )
-        val y = Math.round(
-            when (cuePositionAnchor) {
-                Cue.ANCHOR_TYPE_END -> anchorY - height
-                Cue.ANCHOR_TYPE_MIDDLE -> anchorY - height / 2
-                else -> anchorY
-            }
-        )
+        val width = (parentWidth * cueSize).roundToInt()
+        val x = when (cueLineAnchor) {
+            Cue.ANCHOR_TYPE_END -> anchorX - width
+            Cue.ANCHOR_TYPE_MIDDLE -> anchorX - width / 2
+            else -> anchorX
+        }.roundToInt()
+        val y = when (cuePositionAnchor) {
+            Cue.ANCHOR_TYPE_END -> anchorY - height
+            Cue.ANCHOR_TYPE_MIDDLE -> anchorY - height / 2
+            else -> anchorY
+        }.roundToInt()
         bitmapRect = Rect(x, y, x + width, y + height)
     }
 
@@ -407,7 +416,10 @@ internal class SubtitlePainter(context: Context) {
         if (Color.alpha(windowColor) > 0) {
             paint.color = windowColor
             canvas.drawRect(
-                (-textPaddingX).toFloat(), 0f, (layout.width + textPaddingX).toFloat(), layout.height.toFloat(),
+                (-textPaddingX).toFloat(),
+                0f,
+                (layout.width + textPaddingX).toFloat(),
+                layout.height.toFloat(),
                 paint
             )
         }

@@ -27,7 +27,7 @@ import kotlin.concurrent.fixedRateTimer
 import kotlin.math.min
 
 class ExoMediaPlayerImpl(
-    private val config: PlayerConfig
+  private val config: PlayerConfig
 ) : Player.Listener, ExoMediaPlayer {
   companion object {
     private const val TAG = "ExoMediaPlayer"
@@ -65,10 +65,10 @@ class ExoMediaPlayerImpl(
   }
 
   override var surface: Surface? = null
-  set(value) {
-    field = value
-    exoPlayer.setVideoSurface(value)
-  }
+    set(value) {
+      field = value
+      exoPlayer.setVideoSurface(value)
+    }
 
   private var mediaSource: MediaSource? = null
 
@@ -124,10 +124,10 @@ class ExoMediaPlayerImpl(
       val currentWindow = timeline.getWindow(currentWindowIndex, Timeline.Window())
 
       return WindowInfo(
-          exoPlayer.previousWindowIndex,
-          currentWindowIndex,
-          exoPlayer.nextWindowIndex,
-          currentWindow
+        exoPlayer.previousWindowIndex,
+        currentWindowIndex,
+        exoPlayer.nextWindowIndex,
+        currentWindow
       )
     }
 
@@ -158,12 +158,13 @@ class ExoMediaPlayerImpl(
   override fun setMediaUri(uri: Uri?) {
     val mediaSource = uri?.let {
       val attributes = MediaSourceBuilder.MediaSourceAttributes(
-          config.context,
-          it,
-          config.handler,
-          config.userAgentProvider.userAgent,
-          config.bandwidthMeter.transferListener,
-          drmSessionManagerProvider ?: DefaultDrmSessionManagerProvider()
+        context = config.context,
+        uri = it,
+        handler = config.handler,
+        userAgent = config.userAgentProvider.userAgent,
+        transferListener = config.bandwidthMeter.transferListener,
+        drmSessionManagerProvider = drmSessionManagerProvider ?: DefaultDrmSessionManagerProvider(),
+        dataSourceFactoryProvider = config.dataSourceFactoryProvider
       )
 
       config.mediaSourceProvider.generate(attributes)
@@ -225,9 +226,9 @@ class ExoMediaPlayerImpl(
     val contentType = Util.getAudioContentTypeForStreamType(streamType)
 
     val audioAttributes = AudioAttributes.Builder()
-        .setUsage(usage)
-        .setContentType(contentType)
-        .build()
+      .setUsage(usage)
+      .setContentType(contentType)
+      .build()
 
     exoPlayer.setAudioAttributes(audioAttributes, false)
   }

@@ -35,9 +35,9 @@ import android.text.style.AbsoluteSizeSpan
 import android.text.style.RelativeSizeSpan
 import android.util.DisplayMetrics
 import android.util.Log
-import com.google.android.exoplayer2.text.Cue
-import com.google.android.exoplayer2.ui.CaptionStyleCompat
-import com.google.android.exoplayer2.util.Util
+import androidx.media3.common.text.Cue
+import androidx.media3.common.util.Util
+import androidx.media3.ui.CaptionStyleCompat
 
 /**
  * Paints subtitle [Cue]s.
@@ -146,18 +146,18 @@ internal class SubtitlePainter(context: Context) {
      * @param cueBoxBottom The bottom position of the enclosing cue box.
      */
     fun draw(
-        cue: Cue,
-        applyEmbeddedStyles: Boolean,
-        applyEmbeddedFontSizes: Boolean,
-        style: CaptionStyleCompat,
-        defaultTextSizePx: Float,
-        cueTextSizePx: Float,
-        bottomPaddingFraction: Float,
-        canvas: Canvas,
-        cueBoxLeft: Int,
-        cueBoxTop: Int,
-        cueBoxRight: Int,
-        cueBoxBottom: Int
+      cue: Cue,
+      applyEmbeddedStyles: Boolean,
+      applyEmbeddedFontSizes: Boolean,
+      style: CaptionStyleCompat,
+      defaultTextSizePx: Float,
+      cueTextSizePx: Float,
+      bottomPaddingFraction: Float,
+      canvas: Canvas,
+      cueBoxLeft: Int,
+      cueBoxTop: Int,
+      cueBoxRight: Int,
+      cueBoxBottom: Int
     ) {
         val isTextCue = cue.bitmap == null
         var windowColor = Color.BLACK

@@ -10,7 +10,7 @@ import androidx.annotation.IntRange
 import com.devbrackets.android.exomedia.AudioPlayer
 import com.devbrackets.android.exomediademo.data.MediaItem
 import com.devbrackets.android.playlistcore.manager.BasePlaylistManager
-import com.google.android.exoplayer2.util.EventLogger
+import androidx.media3.exoplayer.util.EventLogger
 
 class AudioApi(context: Context) : BaseMediaApi() {
     private val audioPlayer: AudioPlayer = AudioPlayer(context.applicationContext)

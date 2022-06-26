@@ -1,19 +1,3 @@
-/*
- * Copyright (C) 2016 - 2021 ExoMedia Contributors
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package com.devbrackets.android.exomedia.ui.widget
 
 import android.annotation.TargetApi
@@ -31,6 +15,7 @@ import android.widget.ImageView
 import android.widget.RelativeLayout
 import androidx.annotation.DrawableRes
 import androidx.annotation.IntRange
+import androidx.media3.common.Player
 import com.devbrackets.android.exomedia.R
 import com.devbrackets.android.exomedia.core.ListenerMux
 import com.devbrackets.android.exomedia.core.video.VideoPlayerApi
@@ -51,12 +36,11 @@ import com.devbrackets.android.exomedia.ui.widget.controls.VideoControlsLeanback
 import com.devbrackets.android.exomedia.ui.widget.controls.VideoControlsMobile
 import com.devbrackets.android.exomedia.util.StopWatch
 import com.devbrackets.android.exomedia.util.isDeviceTV
-import com.google.android.exoplayer2.Player
-import com.google.android.exoplayer2.analytics.AnalyticsListener
-import com.google.android.exoplayer2.drm.DrmSessionManager
-import com.google.android.exoplayer2.drm.DrmSessionManagerProvider
-import com.google.android.exoplayer2.source.MediaSource
-import com.google.android.exoplayer2.source.TrackGroupArray
+import androidx.media3.exoplayer.analytics.AnalyticsListener
+import androidx.media3.exoplayer.drm.DrmSessionManager
+import androidx.media3.exoplayer.drm.DrmSessionManagerProvider
+import androidx.media3.exoplayer.source.MediaSource
+import androidx.media3.exoplayer.source.TrackGroupArray
 import java.lang.IllegalArgumentException
 
 /**
@@ -207,7 +191,7 @@ open class VideoView : RelativeLayout {
     get() = videoPlayer.bufferedPercent
 
   /**
-   * Retrieves the information associated with the current [com.google.android.exoplayer2.Timeline.Window]
+   * Retrieves the information associated with the current [androidx.media3.exoplayer.Timeline.Window]
    * used by the ExoPlayer backed implementation. When the [android.media.MediaPlayer] backed
    * implementation is being used this will be null.
    *

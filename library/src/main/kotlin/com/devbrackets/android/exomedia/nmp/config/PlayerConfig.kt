@@ -1,19 +1,3 @@
-/*
- * Copyright (C) 2021 ExoMedia Contributors
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package com.devbrackets.android.exomedia.nmp.config
 
 import android.content.Context
@@ -24,11 +8,11 @@ import com.devbrackets.android.exomedia.nmp.manager.UserAgentProvider
 import com.devbrackets.android.exomedia.nmp.manager.WakeManager
 import com.devbrackets.android.exomedia.nmp.manager.track.TrackManager
 import com.devbrackets.android.exomedia.util.FallbackManager
-import com.google.android.exoplayer2.LoadControl
-import com.google.android.exoplayer2.RenderersFactory
-import com.google.android.exoplayer2.analytics.AnalyticsCollector
-import com.google.android.exoplayer2.source.MediaSourceFactory
-import com.google.android.exoplayer2.upstream.BandwidthMeter
+import androidx.media3.exoplayer.LoadControl
+import androidx.media3.exoplayer.RenderersFactory
+import androidx.media3.exoplayer.analytics.AnalyticsCollector
+import androidx.media3.exoplayer.source.MediaSourceFactory
+import androidx.media3.exoplayer.upstream.BandwidthMeter
 
 /**
  * Supplies the classes necessary for the [com.devbrackets.android.exomedia.nmp.ExoMediaPlayerImpl]

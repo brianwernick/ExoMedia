@@ -1,25 +1,11 @@
-/*
- * Copyright (C) 2021 ExoMedia Contributors
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package com.devbrackets.android.exomedia.nmp
 
 import android.net.Uri
 import android.os.PowerManager
 import android.view.Surface
 import androidx.annotation.IntRange
+import androidx.media3.common.C
+import androidx.media3.common.Player
 import com.devbrackets.android.exomedia.core.listener.CaptionListener
 import com.devbrackets.android.exomedia.nmp.manager.window.WindowInfo
 import com.devbrackets.android.exomedia.core.listener.ExoPlayerListener
@@ -27,12 +13,10 @@ import com.devbrackets.android.exomedia.core.listener.MetadataListener
 import com.devbrackets.android.exomedia.core.listener.VideoSizeListener
 import com.devbrackets.android.exomedia.core.renderer.RendererType
 import com.devbrackets.android.exomedia.listener.OnBufferUpdateListener
-import com.google.android.exoplayer2.C
-import com.google.android.exoplayer2.Player
-import com.google.android.exoplayer2.analytics.AnalyticsListener
-import com.google.android.exoplayer2.drm.DrmSessionManagerProvider
-import com.google.android.exoplayer2.source.MediaSource
-import com.google.android.exoplayer2.source.TrackGroupArray
+import androidx.media3.exoplayer.analytics.AnalyticsListener
+import androidx.media3.exoplayer.drm.DrmSessionManagerProvider
+import androidx.media3.exoplayer.source.MediaSource
+import androidx.media3.exoplayer.source.TrackGroupArray
 
 
 interface ExoMediaPlayer {
@@ -61,7 +45,7 @@ interface ExoMediaPlayer {
 
   /**
    * Returns the duration of the loaded media in milliseconds, if no media is loaded then
-   * [com.google.android.exoplayer2.C.TIME_UNSET] will be returned.
+   * [androidx.media3.exoplayer.C.TIME_UNSET] will be returned.
    */
   val duration: Long
 

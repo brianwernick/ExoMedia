@@ -1,26 +1,11 @@
-/*
- * Copyright (C) 2015-2021 ExoMedia Contributors,
- * Copyright (C) 2015 The Android Open Source Project
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package com.devbrackets.android.exomedia.nmp
 
 import android.net.Uri
 import androidx.annotation.FloatRange
 import android.util.Log
 import android.view.Surface
+import androidx.media3.common.*
+import androidx.media3.common.util.Util
 import com.devbrackets.android.exomedia.core.listener.CaptionListener
 import com.devbrackets.android.exomedia.nmp.manager.StateStore
 import com.devbrackets.android.exomedia.nmp.manager.window.WindowInfo
@@ -31,13 +16,11 @@ import com.devbrackets.android.exomedia.core.renderer.RendererType
 import com.devbrackets.android.exomedia.core.source.builder.MediaSourceBuilder
 import com.devbrackets.android.exomedia.listener.OnBufferUpdateListener
 import com.devbrackets.android.exomedia.nmp.config.PlayerConfig
-import com.google.android.exoplayer2.*
-import com.google.android.exoplayer2.analytics.AnalyticsListener
-import com.google.android.exoplayer2.audio.AudioAttributes
-import com.google.android.exoplayer2.drm.*
-import com.google.android.exoplayer2.source.MediaSource
-import com.google.android.exoplayer2.source.TrackGroupArray
-import com.google.android.exoplayer2.util.Util
+import androidx.media3.exoplayer.*
+import androidx.media3.exoplayer.analytics.AnalyticsListener
+import androidx.media3.exoplayer.drm.*
+import androidx.media3.exoplayer.source.MediaSource
+import androidx.media3.exoplayer.source.TrackGroupArray
 import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.concurrent.fixedRateTimer
@@ -161,6 +144,7 @@ class ExoMediaPlayerImpl(
       config.wakeManager.stayAwake(playWhenReady)
     }
 
+  @Deprecated("Deprecated in Java")
   override fun onPlayerStateChanged(playWhenReady: Boolean, state: Int) {
     reportPlayerState()
   }
@@ -179,7 +163,7 @@ class ExoMediaPlayerImpl(
           config.handler,
           config.userAgentProvider.userAgent,
           config.bandwidthMeter.transferListener,
-          drmSessionManagerProvider
+          drmSessionManagerProvider ?: DefaultDrmSessionManagerProvider()
       )
 
       config.mediaSourceProvider.generate(attributes)

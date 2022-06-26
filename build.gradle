@@ -20,7 +20,7 @@ plugins {
 
 ext {
   moduleTestResults = []
-  exoPlayerVersion = "2.17.1"
+  media3Version = "1.0.0-beta01"
 }
 
 

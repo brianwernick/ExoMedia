@@ -7,7 +7,6 @@ import com.devbrackets.android.exomedia.core.video.VideoPlayerApi
 import com.devbrackets.android.exomedia.core.video.surface.VideoSurface
 import com.devbrackets.android.exomedia.fallback.audio.NativeAudioPlayer
 import com.devbrackets.android.exomedia.fallback.video.NativeVideoPlayer
-import java.util.*
 
 /**
  * Determines if, and provides the fallback media player implementations on
@@ -23,8 +22,8 @@ open class FallbackManager {
    * should be used to play media.
    */
   open fun useFallback(): Boolean {
-    return incompatibleDevices[Build.MANUFACTURER.toLowerCase(Locale.getDefault())]?.let {
-      it.allModels || it.models.contains(Build.DEVICE.toLowerCase(Locale.getDefault()))
+    return incompatibleDevices[Build.MANUFACTURER.lowercase()]?.let {
+      it.allModels || it.models.contains(Build.DEVICE.lowercase())
     } ?: false
   }
 

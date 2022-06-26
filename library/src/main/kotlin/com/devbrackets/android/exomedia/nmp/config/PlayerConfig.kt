@@ -11,7 +11,7 @@ import com.devbrackets.android.exomedia.util.FallbackManager
 import androidx.media3.exoplayer.LoadControl
 import androidx.media3.exoplayer.RenderersFactory
 import androidx.media3.exoplayer.analytics.AnalyticsCollector
-import androidx.media3.exoplayer.source.MediaSourceFactory
+import androidx.media3.exoplayer.source.MediaSource
 import androidx.media3.exoplayer.upstream.BandwidthMeter
 
 /**
@@ -31,6 +31,6 @@ data class PlayerConfig(
   val loadControl: LoadControl,
   val userAgentProvider: UserAgentProvider,
   val mediaSourceProvider: MediaSourceProvider,
-  val mediaSourceFactory: MediaSourceFactory,
+  val mediaSourceFactory: MediaSource.Factory,
   val dataSourceFactoryProvider: DataSourceFactoryProvider
 )

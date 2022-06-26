@@ -1,25 +1,9 @@
-/*
- * Copyright (C) 2015-2021 ExoMedia Contributors
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package com.devbrackets.android.exomedia.core
 
 import android.media.MediaPlayer
 import android.os.Handler
 import androidx.annotation.IntRange
-import android.view.Surface
+import androidx.media3.common.*
 import com.devbrackets.android.exomedia.fallback.exception.NativeMediaPlaybackException
 import com.devbrackets.android.exomedia.nmp.ExoMediaPlayerImpl
 import com.devbrackets.android.exomedia.core.listener.ExoPlayerListener
@@ -27,15 +11,10 @@ import com.devbrackets.android.exomedia.core.listener.MetadataListener
 import com.devbrackets.android.exomedia.core.video.surface.VideoSurface
 import com.devbrackets.android.exomedia.listener.*
 import com.devbrackets.android.exomedia.nmp.ExoMediaPlayer
-import com.google.android.exoplayer2.*
-import com.google.android.exoplayer2.analytics.AnalyticsListener
-import com.google.android.exoplayer2.audio.AudioAttributes
-import com.google.android.exoplayer2.decoder.DecoderCounters
-import com.google.android.exoplayer2.metadata.Metadata
-import com.google.android.exoplayer2.source.LoadEventInfo
-import com.google.android.exoplayer2.source.MediaLoadData
-import com.google.android.exoplayer2.source.TrackGroupArray
-import com.google.android.exoplayer2.trackselection.TrackSelectionArray
+import androidx.media3.exoplayer.*
+import androidx.media3.exoplayer.analytics.AnalyticsListener
+import androidx.media3.exoplayer.source.LoadEventInfo
+import androidx.media3.exoplayer.source.MediaLoadData
 import java.io.IOException
 import java.lang.ref.WeakReference
 
@@ -162,10 +141,12 @@ class ListenerMux(private val muxNotifier: Notifier) :
     analyticsListener?.onMetadata(eventTime, metadata)
   }
 
+  @Deprecated("Deprecated in Java")
   override fun onVideoSizeChanged(eventTime: AnalyticsListener.EventTime, width: Int, height: Int, unappliedRotationDegrees: Int, pixelWidthHeightRatio: Float) {
     analyticsListener?.onVideoSizeChanged(eventTime, width, height, unappliedRotationDegrees, pixelWidthHeightRatio)
   }
 
+  @Deprecated("Deprecated in Java")
   override fun onPlayerStateChanged(eventTime: AnalyticsListener.EventTime, playWhenReady: Boolean, playbackState: Int) {
     analyticsListener?.onPlayerStateChanged(eventTime, playWhenReady, playbackState)
   }
@@ -174,14 +155,17 @@ class ListenerMux(private val muxNotifier: Notifier) :
     analyticsListener?.onTimelineChanged(eventTime, reason)
   }
 
+  @Deprecated("Deprecated in Java")
   override fun onPositionDiscontinuity(eventTime: AnalyticsListener.EventTime, reason: Int) {
     analyticsListener?.onPositionDiscontinuity(eventTime, reason)
   }
 
+  @Deprecated("Deprecated in Java")
   override fun onSeekStarted(eventTime: AnalyticsListener.EventTime) {
     analyticsListener?.onSeekStarted(eventTime)
   }
 
+  @Deprecated("Deprecated in Java")
   override fun onSeekProcessed(eventTime: AnalyticsListener.EventTime) {
     analyticsListener?.onSeekProcessed(eventTime)
   }
@@ -198,6 +182,7 @@ class ListenerMux(private val muxNotifier: Notifier) :
     analyticsListener?.onShuffleModeChanged(eventTime, shuffleModeEnabled)
   }
 
+  @Deprecated("Deprecated in Java")
   override fun onLoadingChanged(eventTime: AnalyticsListener.EventTime, isLoading: Boolean) {
     analyticsListener?.onLoadingChanged(eventTime, isLoading)
   }
@@ -206,8 +191,8 @@ class ListenerMux(private val muxNotifier: Notifier) :
     analyticsListener?.onPlayerError(eventTime, error)
   }
 
-  override fun onTracksChanged(eventTime: AnalyticsListener.EventTime, trackGroups: TrackGroupArray, trackSelections: TrackSelectionArray) {
-    analyticsListener?.onTracksChanged(eventTime, trackGroups, trackSelections)
+  override fun onTracksChanged(eventTime: AnalyticsListener.EventTime, tracks: Tracks) {
+    analyticsListener?.onTracksChanged(eventTime, tracks)
   }
 
   override fun onLoadStarted(eventTime: AnalyticsListener.EventTime, loadEventInfo: LoadEventInfo, mediaLoadData: MediaLoadData) {
@@ -246,6 +231,7 @@ class ListenerMux(private val muxNotifier: Notifier) :
     analyticsListener?.onVolumeChanged(eventTime, volume)
   }
 
+  @Deprecated("Deprecated in Java")
   override fun onDrmSessionAcquired(eventTime: AnalyticsListener.EventTime) {
     analyticsListener?.onDrmSessionAcquired(eventTime)
   }
@@ -258,18 +244,22 @@ class ListenerMux(private val muxNotifier: Notifier) :
     analyticsListener?.onAudioAttributesChanged(eventTime, audioAttributes)
   }
 
+  @Deprecated("Deprecated in Java")
   override fun onDecoderEnabled(eventTime: AnalyticsListener.EventTime, trackType: Int, decoderCounters: DecoderCounters) {
     analyticsListener?.onDecoderEnabled(eventTime, trackType, decoderCounters)
   }
 
+  @Deprecated("Deprecated in Java")
   override fun onDecoderInitialized(eventTime: AnalyticsListener.EventTime, trackType: Int, decoderName: String, initializationDurationMs: Long) {
     analyticsListener?.onDecoderInitialized(eventTime, trackType, decoderName, initializationDurationMs)
   }
 
+  @Deprecated("Deprecated in Java")
   override fun onDecoderInputFormatChanged(eventTime: AnalyticsListener.EventTime, trackType: Int, format: Format) {
     analyticsListener?.onDecoderInputFormatChanged(eventTime, trackType, format)
   }
 
+  @Deprecated("Deprecated in Java")
   override fun onDecoderDisabled(eventTime: AnalyticsListener.EventTime, trackType: Int, decoderCounters: DecoderCounters) {
     analyticsListener?.onDecoderDisabled(eventTime, trackType, decoderCounters)
   }
@@ -334,10 +324,12 @@ class ListenerMux(private val muxNotifier: Notifier) :
     analyticsListener?.onAudioEnabled(eventTime, counters)
   }
 
+  @Deprecated("Deprecated in Java")
   override fun onAudioDecoderInitialized(eventTime: AnalyticsListener.EventTime, decoderName: String, initializationDurationMs: Long) {
     analyticsListener?.onAudioDecoderInitialized(eventTime, decoderName, initializationDurationMs)
   }
 
+  @Deprecated("Deprecated in Java")
   override fun onAudioInputFormatChanged(eventTime: AnalyticsListener.EventTime, format: Format) {
     analyticsListener?.onAudioInputFormatChanged(eventTime, format)
   }
@@ -358,10 +350,12 @@ class ListenerMux(private val muxNotifier: Notifier) :
     analyticsListener?.onVideoEnabled(eventTime, counters)
   }
 
+  @Deprecated("Deprecated in Java")
   override fun onVideoDecoderInitialized(eventTime: AnalyticsListener.EventTime, decoderName: String, initializationDurationMs: Long) {
     analyticsListener?.onVideoDecoderInitialized(eventTime, decoderName, initializationDurationMs)
   }
 
+  @Deprecated("Deprecated in Java")
   override fun onVideoInputFormatChanged(eventTime: AnalyticsListener.EventTime, format: Format) {
     analyticsListener?.onVideoInputFormatChanged(eventTime, format)
   }

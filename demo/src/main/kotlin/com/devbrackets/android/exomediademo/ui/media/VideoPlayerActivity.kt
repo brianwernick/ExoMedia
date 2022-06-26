@@ -26,7 +26,7 @@ import com.devbrackets.android.exomediademo.ui.support.CaptionPopupManager.Compa
 import com.devbrackets.android.exomediademo.ui.support.CaptionPopupManager.Companion.CC_DISABLED
 import com.devbrackets.android.exomediademo.ui.support.CaptionPopupManager.Companion.CC_GROUP_INDEX_MOD
 import com.devbrackets.android.exomediademo.ui.support.FullscreenManager
-import com.google.android.exoplayer2.util.EventLogger
+import androidx.media3.exoplayer.util.EventLogger
 
 open class VideoPlayerActivity : BindingActivity<VideoPlayerActivityBinding>(), VideoControlsSeekListener {
   companion object {

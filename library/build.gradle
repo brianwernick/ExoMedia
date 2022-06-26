@@ -8,26 +8,25 @@ afterEvaluate {
 dependencies {
   api "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlinVersion"
 
-  implementation 'androidx.media:media:1.6.0'
-  implementation 'androidx.appcompat:appcompat:1.4.1'
-  implementation "androidx.constraintlayout:constraintlayout:2.1.3"
+  implementation 'androidx.appcompat:appcompat:1.4.2'
+  implementation "androidx.constraintlayout:constraintlayout:2.1.4"
 
   // ExoPlayer
-  api "com.google.android.exoplayer:exoplayer-core:$rootProject.ext.exoPlayerVersion"
-  api "com.google.android.exoplayer:exoplayer-dash:$rootProject.ext.exoPlayerVersion"
-  api "com.google.android.exoplayer:exoplayer-hls:$rootProject.ext.exoPlayerVersion"
-  api "com.google.android.exoplayer:exoplayer-smoothstreaming:$rootProject.ext.exoPlayerVersion"
+  api "androidx.media3:media3-exoplayer:$rootProject.ext.media3Version"
+  api "androidx.media3:media3-exoplayer-dash:$rootProject.ext.media3Version"
+  api "androidx.media3:media3-exoplayer-hls:$rootProject.ext.media3Version"
+  api "androidx.media3:media3-exoplayer-smoothstreaming:$rootProject.ext.media3Version"
 
   testImplementation 'junit:junit:4.13.2'
-  testImplementation "org.robolectric:robolectric:4.7.3"
+  testImplementation "org.robolectric:robolectric:4.8.1"
 }
 
 android {
-  compileSdkVersion 31
+  compileSdkVersion 32
 
   defaultConfig {
     minSdkVersion 21
-    targetSdkVersion 31
+    targetSdkVersion 32
 
     vectorDrawables.useSupportLibrary = true
 

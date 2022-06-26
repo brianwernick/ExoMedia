@@ -1,19 +1,3 @@
-/*
- * Copyright (C) 2016 - 2021 ExoMedia Contributors
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package com.devbrackets.android.exomedia.fallback.audio
 
 import android.content.Context
@@ -24,14 +8,14 @@ import android.os.Build
 import androidx.annotation.FloatRange
 import androidx.annotation.IntRange
 import android.util.Log
+import androidx.media3.common.Player
 import com.devbrackets.android.exomedia.core.ListenerMux
 import com.devbrackets.android.exomedia.core.audio.AudioPlayerApi
 import com.devbrackets.android.exomedia.core.renderer.RendererType
 import com.devbrackets.android.exomedia.nmp.manager.window.WindowInfo
-import com.google.android.exoplayer2.Player
-import com.google.android.exoplayer2.drm.DrmSessionManagerProvider
-import com.google.android.exoplayer2.source.MediaSource
-import com.google.android.exoplayer2.source.TrackGroupArray
+import androidx.media3.exoplayer.drm.DrmSessionManagerProvider
+import androidx.media3.exoplayer.source.MediaSource
+import androidx.media3.exoplayer.source.TrackGroupArray
 
 /**
  * A simple MediaPlayer implementation that extends the

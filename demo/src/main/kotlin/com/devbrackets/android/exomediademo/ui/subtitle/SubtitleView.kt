@@ -22,9 +22,9 @@ import android.util.AttributeSet
 import android.util.TypedValue
 import android.view.View
 import android.view.accessibility.CaptioningManager
+import androidx.media3.common.text.Cue
 import com.devbrackets.android.exomedia.core.listener.CaptionListener
-import com.google.android.exoplayer2.text.Cue
-import com.google.android.exoplayer2.ui.CaptionStyleCompat
+import androidx.media3.ui.CaptionStyleCompat
 
 @Suppress("MemberVisibilityCanBePrivate", "unused")
 /**

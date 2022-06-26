@@ -1,24 +1,9 @@
-/*
- * Copyright (C) 2021 ExoMedia Contributors
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package com.devbrackets.android.exomedia.nmp.config
 
 import android.content.Context
 import android.os.Handler
 import android.os.Looper
+import androidx.media3.common.util.Clock
 import com.devbrackets.android.exomedia.AudioPlayer
 import com.devbrackets.android.exomedia.core.renderer.PlayerRendererFactory
 import com.devbrackets.android.exomedia.core.source.MediaSourceProvider
@@ -28,16 +13,15 @@ import com.devbrackets.android.exomedia.nmp.manager.UserAgentProvider
 import com.devbrackets.android.exomedia.nmp.manager.WakeManager
 import com.devbrackets.android.exomedia.nmp.manager.track.TrackManager
 import com.devbrackets.android.exomedia.util.FallbackManager
-import com.google.android.exoplayer2.DefaultLoadControl
-import com.google.android.exoplayer2.LoadControl
-import com.google.android.exoplayer2.RenderersFactory
-import com.google.android.exoplayer2.analytics.AnalyticsCollector
-import com.google.android.exoplayer2.analytics.DefaultAnalyticsCollector
-import com.google.android.exoplayer2.source.DefaultMediaSourceFactory
-import com.google.android.exoplayer2.source.MediaSourceFactory
-import com.google.android.exoplayer2.upstream.BandwidthMeter
-import com.google.android.exoplayer2.upstream.DefaultBandwidthMeter
-import com.google.android.exoplayer2.util.Clock
+import androidx.media3.exoplayer.DefaultLoadControl
+import androidx.media3.exoplayer.LoadControl
+import androidx.media3.exoplayer.RenderersFactory
+import androidx.media3.exoplayer.analytics.AnalyticsCollector
+import androidx.media3.exoplayer.analytics.DefaultAnalyticsCollector
+import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
+import androidx.media3.exoplayer.source.MediaSourceFactory
+import androidx.media3.exoplayer.upstream.BandwidthMeter
+import androidx.media3.exoplayer.upstream.DefaultBandwidthMeter
 
 class PlayerConfigBuilder(private val context: Context) {
   private var analyticsCollector: AnalyticsCollector? = null
@@ -84,14 +68,14 @@ class PlayerConfigBuilder(private val context: Context) {
   }
 
   /**
-   * Specifies the [LoadControl] to use when building the [com.google.android.exoplayer2.ExoPlayer] instance
+   * Specifies the [LoadControl] to use when building the [androidx.media3.exoplayer.ExoPlayer] instance
    * used in the [com.devbrackets.android.exomedia.ui.widget.VideoView] and [AudioPlayer]. This allows the
    * buffering amounts to be modified to better suit your needs which can be easily specified by using an instance of
-   * [com.google.android.exoplayer2.DefaultLoadControl]. When the `loadControl` is `null`
-   * the default instance of the [com.google.android.exoplayer2.DefaultLoadControl] will be used. This will only
+   * [androidx.media3.exoplayer.DefaultLoadControl]. When the `loadControl` is `null`
+   * the default instance of the [androidx.media3.exoplayer.DefaultLoadControl] will be used. This will only
    * take effect for any instances created *after* this was set.
    *
-   * @param loadControl The [LoadControl] to use for any new [com.google.android.exoplayer2.ExoPlayer] instances
+   * @param loadControl The [LoadControl] to use for any new [androidx.media3.exoplayer.ExoPlayer] instances
    */
   fun setLoadControl(loadControl: LoadControl): PlayerConfigBuilder {
     this.loadControl = loadControl
@@ -114,7 +98,7 @@ class PlayerConfigBuilder(private val context: Context) {
   }
 
   /**
-   * Specifies the provider to use when building [com.google.android.exoplayer2.upstream.DataSource.Factory]
+   * Specifies the provider to use when building [androidx.media3.exoplayer.upstream.DataSource.Factory]
    * instances for use with the [com.devbrackets.android.exomedia.core.source.builder.MediaSourceBuilder]s. This will
    * only be used for builders that haven't customized the [com.devbrackets.android.exomedia.core.source.builder.MediaSourceBuilder.buildDataSourceFactory]
    * method.

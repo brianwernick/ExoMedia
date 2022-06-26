@@ -1,6 +1,6 @@
 package com.devbrackets.android.exomedia.core.listener
 
-import com.google.android.exoplayer2.video.VideoSize
+import androidx.media3.common.VideoSize
 
 interface VideoSizeListener {
   fun onVideoSizeChanged(videoSize: VideoSize)

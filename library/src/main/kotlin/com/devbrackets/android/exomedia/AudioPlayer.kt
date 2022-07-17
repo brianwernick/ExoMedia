@@ -8,19 +8,17 @@ import com.devbrackets.android.exomedia.core.ListenerMux
 import com.devbrackets.android.exomedia.core.audio.AudioPlayerApi
 import com.devbrackets.android.exomedia.core.audio.ExoAudioPlayer
 import com.devbrackets.android.exomedia.core.listener.MetadataListener
+import com.devbrackets.android.exomedia.core.state.PlaybackState
+import com.devbrackets.android.exomedia.core.state.PlaybackStateListener
 import com.devbrackets.android.exomedia.listener.*
 import com.devbrackets.android.exomedia.nmp.ExoMediaPlayer
 import com.devbrackets.android.exomedia.nmp.config.PlayerConfig
 import com.devbrackets.android.exomedia.nmp.config.PlayerConfigBuilder
 
 /**
- * An AudioPlayer that uses the ExoPlayer as the backing architecture.  If the current device
- * does *NOT* pass the Android Compatibility Test Suite (CTS) then the backing architecture
- * will fall back to using the default Android MediaPlayer.
- *
- *
- * To help with quick conversions from the Android MediaPlayer this class follows the APIs
- * the Android MediaPlayer provides.
+ * An AudioPlayer that uses the ExoPlayer as the backing implementation. If the
+ * current device does *NOT* support the ExoPlayer then the AudioPlayer will
+ * fallback to using the OS MediaPlayer.
  */
 open class AudioPlayer(protected val audioPlayerImpl: AudioPlayerApi) : AudioPlayerApi by audioPlayerImpl {
   companion object {
@@ -45,7 +43,7 @@ open class AudioPlayer(protected val audioPlayerImpl: AudioPlayerApi) : AudioPla
   }
 
   /**
-   * Retrieves the duration of the current audio item.  This should only be called after
+   * Retrieves the duration of the current audio item. This should only be called after
    * the item is prepared (see [.setOnPreparedListener]).
    * If [.overrideDuration] is set then that value will be returned.
    *
@@ -57,7 +55,7 @@ open class AudioPlayer(protected val audioPlayerImpl: AudioPlayerApi) : AudioPla
     } else audioPlayerImpl.duration
 
   /**
-   * Retrieves the current buffer percent of the audio item.  If an audio item is not currently
+   * Retrieves the current buffer percent of the audio item. If an audio item is not currently
    * prepared or buffering the value will be 0.  This should only be called after the audio item is
    * prepared (see [.setOnPreparedListener])
    *
@@ -83,7 +81,7 @@ open class AudioPlayer(protected val audioPlayerImpl: AudioPlayerApi) : AudioPla
   }
 
   /**
-   * Setting this will override the duration that the item may actually be.  This method should
+   * Setting this will override the duration that the item may actually be. This method should
    * only be used when the item doesn't return the correct duration such as with audio streams.
    * This only overrides the current audio item.
    *
@@ -157,6 +155,26 @@ open class AudioPlayer(protected val audioPlayerImpl: AudioPlayerApi) : AudioPla
   }
 
   /**
+   * Sets the listener to inform of playback state changes. If only the current value
+   * is needed then [getPlaybackState] can be used.
+   *
+   * @param listener The listener to inform of [PlaybackState] changes
+   */
+  fun setPlaybackStateListener(listener: PlaybackStateListener?) {
+    listenerMux.setPlaybackStateListener(listener)
+  }
+
+  /**
+   * Retrieves the current [PlaybackState] of this [AudioPlayer]. Changes to this value
+   * can also be listened to via the [setPlaybackStateListener].
+   *
+   * @return The current [PlaybackState] of this [AudioPlayer]
+   */
+  fun getPlaybackState(): PlaybackState {
+    return listenerMux.playbackState
+  }
+
+  /**
    * Performs the functionality to stop the progress polling, and stop any other
    * procedures from running that we no longer need.
    */
@@ -165,10 +183,6 @@ open class AudioPlayer(protected val audioPlayerImpl: AudioPlayerApi) : AudioPla
   }
 
   private inner class MuxNotifier : ListenerMux.Notifier() {
-    override fun shouldNotifyCompletion(endLeeway: Long): Boolean {
-      return currentPosition > 0 && duration > 0 && currentPosition + endLeeway >= duration
-    }
-
     override fun onExoPlayerError(exoMediaPlayer: ExoMediaPlayer, e: Exception?) {
       stop()
       exoMediaPlayer.forcePrepare()

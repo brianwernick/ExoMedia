@@ -5,6 +5,8 @@ import android.os.PowerManager
 import android.view.Surface
 import androidx.annotation.IntRange
 import androidx.media3.common.AudioAttributes
+import com.devbrackets.android.exomedia.core.state.PlaybackState
+import com.devbrackets.android.exomedia.core.state.PlaybackStateListener
 
 interface FallbackMediaPlayer {
 
@@ -63,7 +65,7 @@ interface FallbackMediaPlayer {
   /**
    * The current media playback state
    */
-  val playbackState: State
+  val playbackState: PlaybackState
 
   /**
    * The surface to play video media on
@@ -134,23 +136,7 @@ interface FallbackMediaPlayer {
 
   fun setListener(listener: Listener?)
 
-  enum class State {
-    IDLE,
-    PREPARING,
-    BUFFERING,
-    SEEKING,
-    READY,
-    PLAYING,
-    PAUSED,
-    COMPLETED,
-    STOPPED,
-    RELEASED,
-    ERROR
-  }
-
-  interface Listener {
-    fun onStateChange(state: State)
-
+  interface Listener: PlaybackStateListener {
     fun onBufferUpdate(mediaPlayer: FallbackMediaPlayer, percent: Int)
 
     fun onSeekComplete(mediaPlayer: FallbackMediaPlayer)

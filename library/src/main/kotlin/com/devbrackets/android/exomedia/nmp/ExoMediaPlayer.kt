@@ -300,7 +300,7 @@ interface ExoMediaPlayer {
   /**
    * Adds an [AnalyticsListener] to receive analytics events.
    *
-   * @param listener The repeatListener to be added.
+   * @param listener The listener to be added.
    */
   fun addAnalyticsListener(listener: AnalyticsListener)
 

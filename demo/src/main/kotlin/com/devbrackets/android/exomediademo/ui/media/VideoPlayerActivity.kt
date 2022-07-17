@@ -16,7 +16,6 @@ import com.devbrackets.android.exomediademo.App
 import com.devbrackets.android.exomediademo.R
 import com.devbrackets.android.exomediademo.data.MediaItem
 import com.devbrackets.android.exomediademo.data.Samples
-import com.devbrackets.android.exomediademo.databinding.AudioPlayerActivityBinding
 import com.devbrackets.android.exomediademo.databinding.VideoPlayerActivityBinding
 import com.devbrackets.android.exomediademo.playlist.manager.PlaylistManager
 import com.devbrackets.android.exomediademo.playlist.VideoApi

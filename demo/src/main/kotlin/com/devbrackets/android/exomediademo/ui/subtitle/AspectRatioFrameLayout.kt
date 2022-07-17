@@ -90,7 +90,7 @@ class AspectRatioFrameLayout @JvmOverloads constructor(context: Context, attrs: 
     /**
      * Sets the [AspectRatioListener].
      *
-     * @param listener The repeatListener to be notified about aspect ratios changes.
+     * @param listener The listener to be notified about aspect ratios changes.
      */
     fun setAspectRatioListener(listener: AspectRatioListener) {
         this.aspectRatioListener = listener

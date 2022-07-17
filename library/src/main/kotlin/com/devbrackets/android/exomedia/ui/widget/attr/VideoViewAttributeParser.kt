@@ -28,7 +28,7 @@ class VideoViewAttributeParser {
     val measureBasedOnAspectRatio = if (typedArray.hasValue(R.styleable.VideoView_measureBasedOnAspectRatio)) {
       typedArray.getBoolean(R.styleable.VideoView_measureBasedOnAspectRatio, false)
     } else {
-      null
+      false
     }
 
     val configProvider = typedArray.getString(R.styleable.VideoView_playerConfigProvider)?.let {

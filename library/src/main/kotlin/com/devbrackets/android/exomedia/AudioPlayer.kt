@@ -72,7 +72,7 @@ open class AudioPlayer(protected val audioPlayerImpl: AudioPlayerApi) : AudioPla
   }
 
   /**
-   * Stops the current audio playback and resets the repeatListener states
+   * Stops the current audio playback and resets the listener states
    * so that we receive the callbacks for events like onPrepared
    */
   override fun reset() {
@@ -94,63 +94,63 @@ open class AudioPlayer(protected val audioPlayerImpl: AudioPlayerApi) : AudioPla
   }
 
   /**
-   * Sets the repeatListener to inform of VideoPlayer prepared events
+   * Sets the listener to inform of VideoPlayer prepared events
    *
-   * @param listener The repeatListener
+   * @param listener The listener
    */
   fun setOnPreparedListener(listener: OnPreparedListener?) {
     listenerMux.setOnPreparedListener(listener)
   }
 
   /**
-   * Sets the repeatListener to inform of VideoPlayer completion events
+   * Sets the listener to inform of VideoPlayer completion events
    *
-   * @param listener The repeatListener
+   * @param listener The listener
    */
   fun setOnCompletionListener(listener: OnCompletionListener?) {
     listenerMux.setOnCompletionListener(listener)
   }
 
   /**
-   * Sets the repeatListener to inform of VideoPlayer buffer update events
+   * Sets the listener to inform of VideoPlayer buffer update events
    *
-   * @param listener The repeatListener
+   * @param listener The listener
    */
   fun setOnBufferUpdateListener(listener: OnBufferUpdateListener?) {
     listenerMux.setOnBufferUpdateListener(listener)
   }
 
   /**
-   * Sets the repeatListener to inform of VideoPlayer seek completion events
+   * Sets the listener to inform of VideoPlayer seek completion events
    *
-   * @param listener The repeatListener
+   * @param listener The listener
    */
   fun setOnSeekCompletionListener(listener: OnSeekCompletionListener?) {
     listenerMux.setOnSeekCompletionListener(listener)
   }
 
   /**
-   * Sets the repeatListener to inform of playback errors
+   * Sets the listener to inform of playback errors
    *
-   * @param listener The repeatListener
+   * @param listener The listener
    */
   fun setOnErrorListener(listener: OnErrorListener?) {
     listenerMux.setOnErrorListener(listener)
   }
 
   /**
-   * Sets the repeatListener to inform of ID3 metadata updates
+   * Sets the listener to inform of ID3 metadata updates
    *
-   * @param listener The repeatListener to inform
+   * @param listener The listener to inform
    */
   fun setMetadataListener(listener: MetadataListener?) {
     listenerMux.setMetadataListener(listener)
   }
 
   /**
-   * Sets the repeatListener to inform of Analytics updates
+   * Sets the listener to inform of Analytics updates
    *
-   * @param listener The repeatListener to inform
+   * @param listener The listener to inform
    */
   fun setAnalyticsListener(listener: AnalyticsListener?) {
     listenerMux.setAnalyticsListener(listener)

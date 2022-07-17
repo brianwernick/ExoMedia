@@ -2,9 +2,10 @@ package com.devbrackets.android.exomedia.util
 
 import android.content.Context
 import android.os.Build
+import android.view.View
 import com.devbrackets.android.exomedia.core.audio.AudioPlayerApi
 import com.devbrackets.android.exomedia.core.video.VideoPlayerApi
-import com.devbrackets.android.exomedia.core.video.surface.VideoSurface
+import com.devbrackets.android.exomedia.core.video.surface.SurfaceEnvelope
 import com.devbrackets.android.exomedia.fallback.audio.NativeAudioPlayer
 import com.devbrackets.android.exomedia.fallback.video.NativeVideoPlayer
 
@@ -14,7 +15,7 @@ import com.devbrackets.android.exomedia.fallback.video.NativeVideoPlayer
  */
 open class FallbackManager {
   private val incompatibleDevices = mapOf(
-      "amazon" to DeviceModels(allModels = true)
+    "amazon" to DeviceModels(allModels = true)
   )
 
   /**
@@ -39,12 +40,12 @@ open class FallbackManager {
    * Retrieves a [VideoPlayerApi] implementation to use in situations where the
    * ExoPlayer isn't supported
    */
-  open fun getFallbackVideoPlayer(context: Context, surface: VideoSurface): VideoPlayerApi {
+  open fun getFallbackVideoPlayer(context: Context, surface: SurfaceEnvelope): VideoPlayerApi {
     return NativeVideoPlayer(context, surface)
   }
 
   data class DeviceModels(
-      val models: Set<String> = emptySet(),
-      val allModels: Boolean = false
+    val models: Set<String> = emptySet(),
+    val allModels: Boolean = false
   )
 }

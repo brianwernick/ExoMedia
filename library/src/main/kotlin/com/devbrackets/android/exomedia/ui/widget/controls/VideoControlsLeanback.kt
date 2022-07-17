@@ -311,7 +311,7 @@ class VideoControlsLeanback : DefaultVideoControls {
   }
 
   /**
-   * A repeatListener to monitor the selected button and move the ripple
+   * A listener to monitor the selected button and move the ripple
    * indicator when the focus shifts.
    */
   protected inner class ButtonFocusChangeListener : View.OnFocusChangeListener {
@@ -338,7 +338,7 @@ class VideoControlsLeanback : DefaultVideoControls {
   }
 
   /**
-   * A repeatListener to catch the key events so that we can correctly perform the
+   * A listener to catch the key events so that we can correctly perform the
    * playback functionality and to hide/show the controls
    */
   protected inner class RemoteKeyListener : View.OnKeyListener {

@@ -1,7 +1,7 @@
 package com.devbrackets.android.exomedia.core.video
 
-import android.graphics.SurfaceTexture
 import android.net.Uri
+import android.util.Log
 import android.view.*
 import androidx.annotation.IntRange
 import androidx.media3.common.Metadata
@@ -11,7 +11,6 @@ import com.devbrackets.android.exomedia.core.listener.CaptionListener
 import com.devbrackets.android.exomedia.core.listener.MetadataListener
 import com.devbrackets.android.exomedia.core.listener.VideoSizeListener
 import com.devbrackets.android.exomedia.core.renderer.RendererType
-import com.devbrackets.android.exomedia.core.video.surface.VideoSurface
 import com.devbrackets.android.exomedia.listener.OnBufferUpdateListener
 import com.devbrackets.android.exomedia.nmp.ExoMediaPlayerImpl
 import com.devbrackets.android.exomedia.nmp.config.PlayerConfig
@@ -19,12 +18,12 @@ import com.devbrackets.android.exomedia.nmp.manager.window.WindowInfo
 import androidx.media3.exoplayer.drm.DrmSessionManagerProvider
 import androidx.media3.exoplayer.source.MediaSource
 import androidx.media3.exoplayer.source.TrackGroupArray
-import java.lang.IllegalArgumentException
+import com.devbrackets.android.exomedia.core.video.surface.SurfaceEnvelope
 
 class ExoVideoPlayer(
-    private val playerConfig: PlayerConfig,
-    private val surface: VideoSurface
-): VideoPlayerApi {
+  private val playerConfig: PlayerConfig,
+  private val surface: SurfaceEnvelope
+) : VideoPlayerApi {
   val corePlayer: ExoMediaPlayerImpl by lazy {
     ExoMediaPlayerImpl(playerConfig).apply {
       setMetadataListener(internalListeners)
@@ -38,6 +37,7 @@ class ExoVideoPlayer(
   protected var playRequested = false
 
   protected var internalListeners = InternalListeners()
+  protected val surfaceCallback = SurfaceCallback()
 
   override var volume: Float
     get() = corePlayer.volume
@@ -80,19 +80,8 @@ class ExoVideoPlayer(
     }
 
   init {
-    when(surface) {
-      is SurfaceView -> {
-        surface.holder.addCallback(HolderCallback())
-      }
-      is TextureView -> {
-        surface.surfaceTextureListener = ExoMediaVideoSurfaceTextureListener()
-      }
-      else -> {
-        throw IllegalArgumentException("Surface $surface not one of TextureView or SurfaceView")
-      }
-    }
-
-    surface.updateVideoSize(0, 0)
+    surface.addCallback(surfaceCallback)
+    surface.setVideoSize(0, 0)
   }
 
   override fun setMedia(uri: Uri?, mediaSource: MediaSource?) {
@@ -131,6 +120,12 @@ class ExoVideoPlayer(
     _listenerMux?.setNotifiedCompleted(false)
 
     return true
+  }
+
+  override fun release() {
+    corePlayer.release()
+    playRequested = false
+    surface.removeCallback(surfaceCallback)
   }
 
   override fun seekTo(@IntRange(from = 0) milliseconds: Long) {
@@ -211,18 +206,13 @@ class ExoVideoPlayer(
     corePlayer.setAudioStreamType(streamType)
   }
 
-  override fun release() {
-    corePlayer.release()
-    playRequested = false
-  }
-
   override fun setRepeatMode(repeatMode: Int) {
     corePlayer.setRepeatMode(repeatMode)
   }
 
-  fun onSurfaceReady(surface: Surface) {
+  fun onSurfaceReady(surface: Surface?) {
     corePlayer.surface = surface
-    if (playRequested) {
+    if (playRequested && surface != null) {
       corePlayer.playWhenReady = true
     }
   }
@@ -256,43 +246,24 @@ class ExoVideoPlayer(
     }
 
     override fun onVideoSizeChanged(videoSize: VideoSize) {
-      surface.onVideoSizeChanged(videoSize.width, videoSize.height, videoSize.pixelWidthHeightRatio)
+      _listenerMux?.onVideoSizeChanged(videoSize.width, videoSize.height, videoSize.unappliedRotationDegrees, videoSize.pixelWidthHeightRatio)
     }
   }
 
-  protected inner class ExoMediaVideoSurfaceTextureListener : TextureView.SurfaceTextureListener {
-    override fun onSurfaceTextureAvailable(surfaceTexture: SurfaceTexture, width: Int, height: Int) {
-      onSurfaceReady(Surface(surfaceTexture))
+  protected inner class SurfaceCallback: SurfaceEnvelope.Callback {
+    override fun onSurfaceAvailable(envelope: SurfaceEnvelope) {
+      onSurfaceReady(envelope.getSurface())
     }
 
-    override fun onSurfaceTextureDestroyed(surfaceTexture: SurfaceTexture): Boolean {
+    override fun onSurfaceDestroyed(envelope: SurfaceEnvelope) {
       onSurfaceDestroyed()
-      surfaceTexture.release()
-
-      return true
+      envelope.release()
     }
 
-    override fun onSurfaceTextureSizeChanged(surfaceTexture: SurfaceTexture, width: Int, height: Int) {
-      // Purposefully left blank
-    }
-
-    override fun onSurfaceTextureUpdated(surfaceTexture: SurfaceTexture) {
-      // Purposefully left blank
-    }
-  }
-
-  protected inner class HolderCallback : SurfaceHolder.Callback {
-    override fun surfaceCreated(holder: SurfaceHolder) {
-      onSurfaceReady(holder.surface)
-    }
-
-    override fun surfaceChanged(holder: SurfaceHolder, format: Int, width: Int, height: Int) {
-      //Purposefully left blank
-    }
-
-    override fun surfaceDestroyed(holder: SurfaceHolder) {
-      onSurfaceDestroyed()
-      holder.surface.release()
+    override fun onSurfaceSizeChanged(envelope: SurfaceEnvelope, width: Int, height: Int) {
+      // When working with the ExoPlayer we need to include the width:height ratio when updating
+      // the video size, because we don't have that ratio here we will let the VideoSizeListener
+      // handle notifying the [surface] of the update (No-Op here)
     }
   }
 }

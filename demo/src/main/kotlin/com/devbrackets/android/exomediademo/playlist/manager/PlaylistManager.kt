@@ -17,7 +17,7 @@ class PlaylistManager(application: Application) : ListPlaylistManager<MediaItem>
     /**
      * Note: You can call [.getMediaPlayers] and add it manually in the activity,
      * however we have this helper method to allow registration of the media controls
-     * repeatListener provided by ExoMedia's [com.devbrackets.android.exomedia.ui.widget.DefaultVideoControls]
+     * listener provided by ExoMedia's [com.devbrackets.android.exomedia.ui.widget.DefaultVideoControls]
      */
     fun addVideoApi(videoApi: VideoApi) {
         mediaPlayers.add(videoApi)
@@ -27,7 +27,7 @@ class PlaylistManager(application: Application) : ListPlaylistManager<MediaItem>
 
     /**
      * Note: You can call [.getMediaPlayers] and remove it manually in the activity,
-     * however we have this helper method to remove the registered repeatListener from [.addVideoApi]
+     * however we have this helper method to remove the registered listener from [.addVideoApi]
      */
     fun removeVideoApi(videoApi: VideoApi) {
         (videoApi.videoView.videoControls as? DefaultVideoControls)?.setButtonListener(null)

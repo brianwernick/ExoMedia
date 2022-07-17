@@ -80,7 +80,8 @@ android {
     kotlinCompilerExtensionVersion composeVersion
   }
 
-  lintOptions {
+  lint {
     abortOnError false
   }
+
 }

@@ -26,7 +26,7 @@ class VideoRenderProvider(
     return latestRenderers
   }
 
-   fun buildRenderers(context: Context, handler: Handler, listener: VideoRendererEventListener): List<Renderer> {
+  fun buildRenderers(context: Context, handler: Handler, listener: VideoRendererEventListener): List<Renderer> {
     val renderers = mutableListOf<Renderer>()
     renderers.add(MediaCodecVideoRenderer(context, MediaCodecSelector.DEFAULT, videoJoiningTimeMs, handler, listener, droppedFrameNotificationAmount))
 

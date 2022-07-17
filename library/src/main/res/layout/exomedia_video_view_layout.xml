@@ -1,21 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
+  xmlns:android="http://schemas.android.com/apk/res/android"
+  xmlns:tools="http://schemas.android.com/tools"
+  android:layout_width="match_parent"
+  android:layout_height="match_parent">
+
+  <com.devbrackets.android.exomedia.core.video.layout.AspectRatioLayout
+    android:id="@+id/exomedia_video_ratio_layout"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:layout_centerInParent="true">
 
     <ViewStub
-        android:id="@+id/video_view_surface_stub"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_centerInParent="true"
-        android:inflatedId="@+id/exomedia_surface_view"/>
+      android:id="@+id/video_view_surface_stub"
+      android:layout_width="match_parent"
+      android:layout_height="match_parent"
+      android:inflatedId="@+id/exomedia_surface_view" />
+  </com.devbrackets.android.exomedia.core.video.layout.AspectRatioLayout>
 
-    <ImageView
-        android:id="@+id/exomedia_video_preview_image"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:scaleType="centerCrop"
-        tools:ignore="ContentDescription"/>
+  <ImageView
+    android:id="@+id/exomedia_video_preview_image"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:scaleType="centerCrop"
+    tools:ignore="ContentDescription" />
 </RelativeLayout>

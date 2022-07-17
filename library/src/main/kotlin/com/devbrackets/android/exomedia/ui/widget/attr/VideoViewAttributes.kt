@@ -26,12 +26,9 @@ data class VideoViewAttributes(
   val scaleType: ScaleType? = null,
 
   /**
-   * Specifies if the [VideoView] should be measured based on the aspect ratio. Because
-   * the default value is different between the [com.devbrackets.android.exomedia.core.video.ResizingSurfaceView]
-   * and [com.devbrackets.android.exomedia.core.video.ResizingTextureView] this will be `null`
-   * when not specified.
+   * Specifies if the [VideoView] should be measured based on the aspect ratio.
    */
-  val measureBasedOnAspectRatio: Boolean? = null,
+  val measureBasedOnAspectRatio: Boolean = false,
 
   /**
    * Specifies the provider to use when fetching the configuration for the

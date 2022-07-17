@@ -2,7 +2,6 @@ package com.devbrackets.android.exomedia.fallback.video
 
 import android.content.ContentValues
 import android.content.Context
-import android.graphics.SurfaceTexture
 import android.media.AudioAttributes
 import android.media.MediaPlayer
 import android.media.PlaybackParams
@@ -15,16 +14,16 @@ import com.devbrackets.android.exomedia.core.ListenerMux
 import com.devbrackets.android.exomedia.core.listener.CaptionListener
 import com.devbrackets.android.exomedia.core.renderer.RendererType
 import com.devbrackets.android.exomedia.core.video.VideoPlayerApi
-import com.devbrackets.android.exomedia.core.video.surface.VideoSurface
 import com.devbrackets.android.exomedia.nmp.manager.window.WindowInfo
 import androidx.media3.exoplayer.drm.DrmSessionManagerProvider
 import androidx.media3.exoplayer.source.MediaSource
 import androidx.media3.exoplayer.source.TrackGroupArray
+import com.devbrackets.android.exomedia.core.video.surface.SurfaceEnvelope
 import java.io.IOException
 
 class NativeVideoPlayer(
-    protected var context: Context,
-    private val surface: VideoSurface
+  protected var context: Context,
+  private val surface: SurfaceEnvelope
 ) : VideoPlayerApi {
 
   protected var headers: Map<String, String>? = null
@@ -57,6 +56,7 @@ class NativeVideoPlayer(
   protected var _listenerMux: ListenerMux? = null
 
   var internalListeners = InternalListeners()
+  protected var surfaceCallback = SurfaceCallback()
 
   /**
    * Register a callback to be invoked when the end of a media file
@@ -84,8 +84,8 @@ class NativeVideoPlayer(
 
   /**
    * Register a callback to be invoked when an error occurs
-   * during playback or setup.  If no repeatListener is specified,
-   * or if the repeatListener returned false, TextureVideoView will inform
+   * during playback or setup.  If no listener is specified,
+   * or if the listener returned false, TextureVideoView will inform
    * the user of any errors.
    */
   var onErrorListener: MediaPlayer.OnErrorListener? = null
@@ -153,18 +153,7 @@ class NativeVideoPlayer(
 
   init {
     currentState = State.IDLE
-
-    when (surface) {
-      is SurfaceView -> {
-        surface.holder.addCallback(HolderCallback())
-      }
-      is TextureView -> {
-        surface.surfaceTextureListener = TextureVideoViewSurfaceListener()
-      }
-      else -> {
-        throw IllegalArgumentException("Surface $surface not one of TextureView or SurfaceView")
-      }
-    }
+    surface.addCallback(surfaceCallback)
   }
 
   override fun setListenerMux(listenerMux: ListenerMux) {
@@ -245,7 +234,7 @@ class NativeVideoPlayer(
   }
 
   /**
-   * Cleans up the resources being held.  This should only be called when
+   * Cleans up the resources being held. This should only be called when
    * destroying the video view
    */
   override fun release() {
@@ -259,6 +248,7 @@ class NativeVideoPlayer(
     }
 
     playRequested = false
+    surface.removeCallback(surfaceCallback)
   }
 
   override fun reset() {
@@ -334,9 +324,9 @@ class NativeVideoPlayer(
     }
   }
 
-  fun onSurfaceReady(surface: Surface) {
+  fun onSurfaceReady(surface: Surface?) {
     mediaPlayer.setSurface(surface)
-    if (playRequested) {
+    if (playRequested && surface != null) {
       start()
     }
   }
@@ -366,49 +356,29 @@ class NativeVideoPlayer(
     }
   }
 
-  protected inner class TextureVideoViewSurfaceListener : TextureView.SurfaceTextureListener {
-    override fun onSurfaceTextureAvailable(surfaceTexture: SurfaceTexture, width: Int, height: Int) {
-      onSurfaceReady(Surface(surfaceTexture))
+  protected inner class SurfaceCallback : SurfaceEnvelope.Callback {
+    override fun onSurfaceAvailable(envelope: SurfaceEnvelope) {
+      onSurfaceReady(envelope.getSurface())
     }
 
-    override fun onSurfaceTextureSizeChanged(surface: SurfaceTexture, width: Int, height: Int) {
-      onSurfaceSizeChanged(width, height)
-    }
-
-    override fun onSurfaceTextureDestroyed(surface: SurfaceTexture): Boolean {
-      surface.release()
+    override fun onSurfaceDestroyed(envelope: SurfaceEnvelope) {
+      envelope.release()
       release()
-      return true
     }
 
-    override fun onSurfaceTextureUpdated(surface: SurfaceTexture) {
-      //Purposefully left blank
+    override fun onSurfaceSizeChanged(envelope: SurfaceEnvelope, width: Int, height: Int) {
+      this@NativeVideoPlayer.onSurfaceSizeChanged(width, height)
     }
   }
 
-  protected inner class HolderCallback : SurfaceHolder.Callback {
-    override fun surfaceCreated(holder: SurfaceHolder) {
-      onSurfaceReady(holder.surface)
-    }
-
-    override fun surfaceChanged(holder: SurfaceHolder, format: Int, width: Int, height: Int) {
-      onSurfaceSizeChanged(width, height)
-    }
-
-    override fun surfaceDestroyed(holder: SurfaceHolder) {
-      holder.surface.release()
-      release()
-    }
-  }
-
-  inner class InternalListeners:
-      MediaPlayer.OnBufferingUpdateListener,
-      MediaPlayer.OnErrorListener,
-      MediaPlayer.OnPreparedListener,
-      MediaPlayer.OnCompletionListener,
-      MediaPlayer.OnSeekCompleteListener,
-      MediaPlayer.OnInfoListener,
-      MediaPlayer.OnVideoSizeChangedListener {
+  inner class InternalListeners :
+    MediaPlayer.OnBufferingUpdateListener,
+    MediaPlayer.OnErrorListener,
+    MediaPlayer.OnPreparedListener,
+    MediaPlayer.OnCompletionListener,
+    MediaPlayer.OnSeekCompleteListener,
+    MediaPlayer.OnInfoListener,
+    MediaPlayer.OnVideoSizeChangedListener {
     override fun onBufferingUpdate(mp: MediaPlayer, percent: Int) {
       currentBufferPercent = percent
       onBufferingUpdateListener?.onBufferingUpdate(mp, percent)
@@ -435,7 +405,7 @@ class NativeVideoPlayer(
       onPreparedListener?.onPrepared(mediaPlayer)
 
       // TODO: why does the ExoVideoPlayer not do this
-      surface.updateVideoSize(mp.videoWidth, mp.videoHeight)
+      surface.setVideoSize(mp.videoWidth, mp.videoHeight)
 
       if (requestedSeek != 0L) {
         seekTo(requestedSeek)
@@ -451,7 +421,7 @@ class NativeVideoPlayer(
     }
 
     override fun onVideoSizeChanged(mp: MediaPlayer, width: Int, height: Int) {
-      surface.updateVideoSize(mp.videoWidth, mp.videoHeight)
+      surface.setVideoSize(mp.videoWidth, mp.videoHeight)
     }
   }
 }

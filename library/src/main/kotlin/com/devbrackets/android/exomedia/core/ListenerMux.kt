@@ -2,20 +2,18 @@ package com.devbrackets.android.exomedia.core
 
 import android.media.MediaPlayer
 import android.os.Handler
+import android.os.Looper
 import androidx.annotation.IntRange
-import androidx.media3.common.*
-import com.devbrackets.android.exomedia.fallback.exception.NativeMediaPlaybackException
-import com.devbrackets.android.exomedia.nmp.ExoMediaPlayerImpl
+import androidx.media3.common.Metadata
+import androidx.media3.common.Player
+import androidx.media3.exoplayer.analytics.AnalyticsListener
 import com.devbrackets.android.exomedia.core.listener.ExoPlayerListener
 import com.devbrackets.android.exomedia.core.listener.MetadataListener
+import com.devbrackets.android.exomedia.core.video.surface.SurfaceEnvelope
+import com.devbrackets.android.exomedia.fallback.exception.NativeMediaPlaybackException
 import com.devbrackets.android.exomedia.listener.*
 import com.devbrackets.android.exomedia.nmp.ExoMediaPlayer
-import androidx.media3.exoplayer.*
-import androidx.media3.exoplayer.analytics.AnalyticsListener
-import androidx.media3.exoplayer.source.LoadEventInfo
-import androidx.media3.exoplayer.source.MediaLoadData
-import com.devbrackets.android.exomedia.core.video.surface.SurfaceEnvelope
-import java.io.IOException
+import com.devbrackets.android.exomedia.nmp.ExoMediaPlayerImpl
 import java.lang.ref.WeakReference
 
 /**
@@ -23,7 +21,10 @@ import java.lang.ref.WeakReference
  * Android VideoView, and the Android MediaPlayer to output to the correct
  * error listeners.
  */
-class ListenerMux(private val muxNotifier: Notifier) :
+class ListenerMux(
+  private val muxNotifier: Notifier,
+  private val analyticsDelegate: AnalyticsDelegate = AnalyticsDelegate()
+) :
   ExoPlayerListener,
   MediaPlayer.OnPreparedListener,
   MediaPlayer.OnCompletionListener,
@@ -32,14 +33,15 @@ class ListenerMux(private val muxNotifier: Notifier) :
   MediaPlayer.OnSeekCompleteListener,
   OnBufferUpdateListener,
   MetadataListener,
-  AnalyticsListener {
+  AnalyticsListener by analyticsDelegate
+{
 
   companion object {
     //The amount of time the current position can be off the duration to call the onCompletion listener
     private const val COMPLETED_DURATION_LEEWAY: Long = 1_000
   }
 
-  private val delayedHandler = Handler()
+  private val delayedHandler = Handler(Looper.getMainLooper())
 
   private var preparedListener: OnPreparedListener? = null
   private var completionListener: OnCompletionListener? = null
@@ -47,7 +49,6 @@ class ListenerMux(private val muxNotifier: Notifier) :
   private var seekCompletionListener: OnSeekCompletionListener? = null
   private var errorListener: OnErrorListener? = null
   private var metadataListener: MetadataListener? = null
-  private var analyticsListener: AnalyticsListener? = null
 
   private var surfaceEnvelopeRef = WeakReference<SurfaceEnvelope>(null)
 
@@ -136,255 +137,11 @@ class ListenerMux(private val muxNotifier: Notifier) :
     muxNotifier.onVideoSizeChanged(width, height, unAppliedRotationDegrees, pixelWidthHeightRatio)
   }
 
-  // Analytics
-  override fun onMetadata(eventTime: AnalyticsListener.EventTime, metadata: Metadata) {
-    analyticsListener?.onMetadata(eventTime, metadata)
-  }
-
-  @Deprecated("Deprecated in Java")
-  override fun onVideoSizeChanged(
-    eventTime: AnalyticsListener.EventTime,
-    width: Int,
-    height: Int,
-    unappliedRotationDegrees: Int,
-    pixelWidthHeightRatio: Float
-  ) {
-    analyticsListener?.onVideoSizeChanged(eventTime, width, height, unappliedRotationDegrees, pixelWidthHeightRatio)
-  }
-
-  @Deprecated("Deprecated in Java")
-  override fun onPlayerStateChanged(eventTime: AnalyticsListener.EventTime, playWhenReady: Boolean, playbackState: Int) {
-    analyticsListener?.onPlayerStateChanged(eventTime, playWhenReady, playbackState)
-  }
-
-  override fun onTimelineChanged(eventTime: AnalyticsListener.EventTime, reason: Int) {
-    analyticsListener?.onTimelineChanged(eventTime, reason)
-  }
-
-  @Deprecated("Deprecated in Java")
-  override fun onPositionDiscontinuity(eventTime: AnalyticsListener.EventTime, reason: Int) {
-    analyticsListener?.onPositionDiscontinuity(eventTime, reason)
-  }
-
-  @Deprecated("Deprecated in Java")
-  override fun onSeekStarted(eventTime: AnalyticsListener.EventTime) {
-    analyticsListener?.onSeekStarted(eventTime)
-  }
-
-  @Deprecated("Deprecated in Java")
-  override fun onSeekProcessed(eventTime: AnalyticsListener.EventTime) {
-    analyticsListener?.onSeekProcessed(eventTime)
-  }
-
-  override fun onPlaybackParametersChanged(eventTime: AnalyticsListener.EventTime, playbackParameters: PlaybackParameters) {
-    analyticsListener?.onPlaybackParametersChanged(eventTime, playbackParameters)
-  }
-
-  override fun onRepeatModeChanged(eventTime: AnalyticsListener.EventTime, repeatMode: Int) {
-    analyticsListener?.onRepeatModeChanged(eventTime, repeatMode)
-  }
-
-  override fun onShuffleModeChanged(eventTime: AnalyticsListener.EventTime, shuffleModeEnabled: Boolean) {
-    analyticsListener?.onShuffleModeChanged(eventTime, shuffleModeEnabled)
-  }
-
-  @Deprecated("Deprecated in Java")
-  override fun onLoadingChanged(eventTime: AnalyticsListener.EventTime, isLoading: Boolean) {
-    analyticsListener?.onLoadingChanged(eventTime, isLoading)
-  }
-
-  override fun onPlayerError(eventTime: AnalyticsListener.EventTime, error: PlaybackException) {
-    analyticsListener?.onPlayerError(eventTime, error)
-  }
-
-  override fun onTracksChanged(eventTime: AnalyticsListener.EventTime, tracks: Tracks) {
-    analyticsListener?.onTracksChanged(eventTime, tracks)
-  }
-
-  override fun onLoadStarted(eventTime: AnalyticsListener.EventTime, loadEventInfo: LoadEventInfo, mediaLoadData: MediaLoadData) {
-    analyticsListener?.onLoadStarted(eventTime, loadEventInfo, mediaLoadData)
-  }
-
-  override fun onLoadCompleted(eventTime: AnalyticsListener.EventTime, loadEventInfo: LoadEventInfo, mediaLoadData: MediaLoadData) {
-    analyticsListener?.onLoadCompleted(eventTime, loadEventInfo, mediaLoadData)
-  }
-
-  override fun onLoadCanceled(eventTime: AnalyticsListener.EventTime, loadEventInfo: LoadEventInfo, mediaLoadData: MediaLoadData) {
-    analyticsListener?.onLoadCanceled(eventTime, loadEventInfo, mediaLoadData)
-  }
-
-  override fun onLoadError(
-    eventTime: AnalyticsListener.EventTime,
-    loadEventInfo: LoadEventInfo,
-    mediaLoadData: MediaLoadData,
-    error: IOException,
-    wasCanceled: Boolean
-  ) {
-    analyticsListener?.onLoadError(eventTime, loadEventInfo, mediaLoadData, error, wasCanceled)
-  }
-
-  override fun onDownstreamFormatChanged(eventTime: AnalyticsListener.EventTime, mediaLoadData: MediaLoadData) {
-    analyticsListener?.onDownstreamFormatChanged(eventTime, mediaLoadData)
-  }
-
-  override fun onUpstreamDiscarded(eventTime: AnalyticsListener.EventTime, mediaLoadData: MediaLoadData) {
-    analyticsListener?.onUpstreamDiscarded(eventTime, mediaLoadData)
-  }
-
-  override fun onBandwidthEstimate(eventTime: AnalyticsListener.EventTime, totalLoadTimeMs: Int, totalBytesLoaded: Long, bitrateEstimate: Long) {
-    analyticsListener?.onBandwidthEstimate(eventTime, totalLoadTimeMs, totalBytesLoaded, bitrateEstimate)
-  }
-
-  override fun onSurfaceSizeChanged(eventTime: AnalyticsListener.EventTime, width: Int, height: Int) {
-    analyticsListener?.onSurfaceSizeChanged(eventTime, width, height)
-  }
-
-  override fun onVolumeChanged(eventTime: AnalyticsListener.EventTime, volume: Float) {
-    analyticsListener?.onVolumeChanged(eventTime, volume)
-  }
-
-  @Deprecated("Deprecated in Java")
-  override fun onDrmSessionAcquired(eventTime: AnalyticsListener.EventTime) {
-    analyticsListener?.onDrmSessionAcquired(eventTime)
-  }
-
-  override fun onDrmSessionReleased(eventTime: AnalyticsListener.EventTime) {
-    analyticsListener?.onDrmSessionReleased(eventTime)
-  }
-
-  override fun onAudioAttributesChanged(eventTime: AnalyticsListener.EventTime, audioAttributes: AudioAttributes) {
-    analyticsListener?.onAudioAttributesChanged(eventTime, audioAttributes)
-  }
-
-  @Deprecated("Deprecated in Java")
-  override fun onDecoderEnabled(eventTime: AnalyticsListener.EventTime, trackType: Int, decoderCounters: DecoderCounters) {
-    analyticsListener?.onDecoderEnabled(eventTime, trackType, decoderCounters)
-  }
-
-  @Deprecated("Deprecated in Java")
-  override fun onDecoderInitialized(eventTime: AnalyticsListener.EventTime, trackType: Int, decoderName: String, initializationDurationMs: Long) {
-    analyticsListener?.onDecoderInitialized(eventTime, trackType, decoderName, initializationDurationMs)
-  }
-
-  @Deprecated("Deprecated in Java")
-  override fun onDecoderInputFormatChanged(eventTime: AnalyticsListener.EventTime, trackType: Int, format: Format) {
-    analyticsListener?.onDecoderInputFormatChanged(eventTime, trackType, format)
-  }
-
-  @Deprecated("Deprecated in Java")
-  override fun onDecoderDisabled(eventTime: AnalyticsListener.EventTime, trackType: Int, decoderCounters: DecoderCounters) {
-    analyticsListener?.onDecoderDisabled(eventTime, trackType, decoderCounters)
-  }
-
-  override fun onAudioSessionIdChanged(eventTime: AnalyticsListener.EventTime, audioSessionId: Int) {
-    analyticsListener?.onAudioSessionIdChanged(eventTime, audioSessionId)
-  }
-
-  override fun onAudioUnderrun(eventTime: AnalyticsListener.EventTime, bufferSize: Int, bufferSizeMs: Long, elapsedSinceLastFeedMs: Long) {
-    analyticsListener?.onAudioUnderrun(eventTime, bufferSize, bufferSizeMs, elapsedSinceLastFeedMs)
-  }
-
-  override fun onDroppedVideoFrames(eventTime: AnalyticsListener.EventTime, droppedFrames: Int, elapsedMs: Long) {
-    analyticsListener?.onDroppedVideoFrames(eventTime, droppedFrames, elapsedMs)
-  }
-
-  override fun onRenderedFirstFrame(eventTime: AnalyticsListener.EventTime, output: Any, renderTimeMs: Long) {
-    analyticsListener?.onRenderedFirstFrame(eventTime, output, renderTimeMs)
-  }
-
-  override fun onDrmKeysLoaded(eventTime: AnalyticsListener.EventTime) {
-    analyticsListener?.onDrmKeysLoaded(eventTime)
-  }
-
-  override fun onDrmSessionManagerError(eventTime: AnalyticsListener.EventTime, error: java.lang.Exception) {
-    analyticsListener?.onDrmSessionManagerError(eventTime, error)
-  }
-
-  override fun onDrmKeysRestored(eventTime: AnalyticsListener.EventTime) {
-    analyticsListener?.onDrmKeysRestored(eventTime)
-  }
-
-  override fun onDrmKeysRemoved(eventTime: AnalyticsListener.EventTime) {
-    analyticsListener?.onDrmKeysRemoved(eventTime)
-  }
-
-  override fun onPlaybackStateChanged(eventTime: AnalyticsListener.EventTime, state: Int) {
-    analyticsListener?.onPlaybackStateChanged(eventTime, state)
-  }
-
-  override fun onPlayWhenReadyChanged(eventTime: AnalyticsListener.EventTime, playWhenReady: Boolean, reason: Int) {
-    analyticsListener?.onPlayWhenReadyChanged(eventTime, playWhenReady, reason)
-  }
-
-  override fun onPlaybackSuppressionReasonChanged(eventTime: AnalyticsListener.EventTime, playbackSuppressionReason: Int) {
-    analyticsListener?.onPlaybackSuppressionReasonChanged(eventTime, playbackSuppressionReason)
-  }
-
-  override fun onIsPlayingChanged(eventTime: AnalyticsListener.EventTime, isPlaying: Boolean) {
-    analyticsListener?.onIsPlayingChanged(eventTime, isPlaying)
-  }
-
-  override fun onMediaItemTransition(eventTime: AnalyticsListener.EventTime, mediaItem: MediaItem?, reason: Int) {
-    analyticsListener?.onMediaItemTransition(eventTime, mediaItem, reason)
-  }
-
-  override fun onIsLoadingChanged(eventTime: AnalyticsListener.EventTime, isLoading: Boolean) {
-    analyticsListener?.onIsLoadingChanged(eventTime, isLoading)
-  }
-
-  override fun onAudioEnabled(eventTime: AnalyticsListener.EventTime, counters: DecoderCounters) {
-    analyticsListener?.onAudioEnabled(eventTime, counters)
-  }
-
-  @Deprecated("Deprecated in Java")
-  override fun onAudioDecoderInitialized(eventTime: AnalyticsListener.EventTime, decoderName: String, initializationDurationMs: Long) {
-    analyticsListener?.onAudioDecoderInitialized(eventTime, decoderName, initializationDurationMs)
-  }
-
-  @Deprecated("Deprecated in Java")
-  override fun onAudioInputFormatChanged(eventTime: AnalyticsListener.EventTime, format: Format) {
-    analyticsListener?.onAudioInputFormatChanged(eventTime, format)
-  }
-
-  override fun onAudioPositionAdvancing(eventTime: AnalyticsListener.EventTime, playoutStartSystemTimeMs: Long) {
-    analyticsListener?.onAudioPositionAdvancing(eventTime, playoutStartSystemTimeMs)
-  }
-
-  override fun onAudioDisabled(eventTime: AnalyticsListener.EventTime, counters: DecoderCounters) {
-    analyticsListener?.onAudioDisabled(eventTime, counters)
-  }
-
-  override fun onSkipSilenceEnabledChanged(eventTime: AnalyticsListener.EventTime, skipSilenceEnabled: Boolean) {
-    analyticsListener?.onSkipSilenceEnabledChanged(eventTime, skipSilenceEnabled)
-  }
-
-  override fun onVideoEnabled(eventTime: AnalyticsListener.EventTime, counters: DecoderCounters) {
-    analyticsListener?.onVideoEnabled(eventTime, counters)
-  }
-
-  @Deprecated("Deprecated in Java")
-  override fun onVideoDecoderInitialized(eventTime: AnalyticsListener.EventTime, decoderName: String, initializationDurationMs: Long) {
-    analyticsListener?.onVideoDecoderInitialized(eventTime, decoderName, initializationDurationMs)
-  }
-
-  @Deprecated("Deprecated in Java")
-  override fun onVideoInputFormatChanged(eventTime: AnalyticsListener.EventTime, format: Format) {
-    analyticsListener?.onVideoInputFormatChanged(eventTime, format)
-  }
-
-  override fun onVideoDisabled(eventTime: AnalyticsListener.EventTime, counters: DecoderCounters) {
-    analyticsListener?.onVideoDisabled(eventTime, counters)
-  }
-
-  override fun onVideoFrameProcessingOffset(eventTime: AnalyticsListener.EventTime, totalProcessingOffsetUs: Long, frameCount: Int) {
-    analyticsListener?.onVideoFrameProcessingOffset(eventTime, totalProcessingOffsetUs, frameCount)
-  }
-
   /**
    * Specifies the surface to clear when the playback reaches an appropriate state.
-   * Once the `clearableSurface` is cleared, the reference will be removed
+   * Once the [SurfaceEnvelope] is cleared, the reference will be removed
    *
-   * @param clearableSurface The [ClearableSurface] to clear when the playback reaches an appropriate state
+   * @param surface The [SurfaceEnvelope] to clear when the playback reaches an appropriate state
    */
   fun clearSurfaceWhenReady(surface: SurfaceEnvelope?) {
     clearRequested = true
@@ -451,7 +208,7 @@ class ListenerMux(private val muxNotifier: Notifier) :
    * @param listener The listener to inform
    */
   fun setAnalyticsListener(listener: AnalyticsListener?) {
-    analyticsListener = listener
+   analyticsDelegate.listener = listener
   }
 
   /**

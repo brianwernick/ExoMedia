@@ -177,9 +177,5 @@ open class AudioPlayer(protected val audioPlayerImpl: AudioPlayerApi) : AudioPla
     override fun onMediaPlaybackEnded() {
       onPlaybackEnded()
     }
-
-    override fun onPrepared() {
-      audioPlayerImpl.onMediaPrepared()
-    }
   }
 }

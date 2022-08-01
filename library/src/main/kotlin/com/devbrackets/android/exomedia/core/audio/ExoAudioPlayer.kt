@@ -2,18 +2,19 @@ package com.devbrackets.android.exomedia.core.audio
 
 import android.net.Uri
 import androidx.annotation.IntRange
+import androidx.media3.common.AudioAttributes
 import androidx.media3.common.Metadata
 import androidx.media3.common.Player
-import com.devbrackets.android.exomedia.core.ListenerMux
-import com.devbrackets.android.exomedia.nmp.ExoMediaPlayerImpl
-import com.devbrackets.android.exomedia.nmp.manager.window.WindowInfo
-import com.devbrackets.android.exomedia.core.listener.MetadataListener
-import com.devbrackets.android.exomedia.core.renderer.RendererType
-import com.devbrackets.android.exomedia.listener.OnBufferUpdateListener
-import com.devbrackets.android.exomedia.nmp.config.PlayerConfig
 import androidx.media3.exoplayer.drm.DrmSessionManagerProvider
 import androidx.media3.exoplayer.source.MediaSource
 import androidx.media3.exoplayer.source.TrackGroupArray
+import com.devbrackets.android.exomedia.core.ListenerMux
+import com.devbrackets.android.exomedia.core.listener.MetadataListener
+import com.devbrackets.android.exomedia.core.renderer.RendererType
+import com.devbrackets.android.exomedia.listener.OnBufferUpdateListener
+import com.devbrackets.android.exomedia.nmp.ExoMediaPlayerImpl
+import com.devbrackets.android.exomedia.nmp.config.PlayerConfig
+import com.devbrackets.android.exomedia.nmp.manager.window.WindowInfo
 
 /**
  * A [AudioPlayerApi] implementation that uses the ExoPlayer
@@ -142,8 +143,8 @@ open class ExoAudioPlayer(protected val config: PlayerConfig) : AudioPlayerApi {
     return true
   }
 
-  override fun setAudioStreamType(streamType: Int) {
-    corePlayer.setAudioStreamType(streamType)
+  override fun setAudioAttributes(attributes: AudioAttributes) {
+    corePlayer.setAudioAttributes(attributes)
   }
 
   override fun setWakeLevel(levelAndFlags: Int) {
@@ -183,10 +184,6 @@ open class ExoAudioPlayer(protected val config: PlayerConfig) : AudioPlayerApi {
     this._listenerMux = listenerMux
     corePlayer.addListener(listenerMux)
     corePlayer.addAnalyticsListener(listenerMux)
-  }
-
-  override fun onMediaPrepared() {
-    //Purposefully left blank
   }
 
   override fun setRepeatMode(@Player.RepeatMode repeatMode: Int) {

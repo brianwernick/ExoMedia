@@ -2,7 +2,6 @@ package com.devbrackets.android.exomedia.util
 
 import android.content.Context
 import android.os.Build
-import android.view.View
 import com.devbrackets.android.exomedia.core.audio.AudioPlayerApi
 import com.devbrackets.android.exomedia.core.video.VideoPlayerApi
 import com.devbrackets.android.exomedia.core.video.surface.SurfaceEnvelope

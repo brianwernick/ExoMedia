@@ -4,19 +4,20 @@ import android.net.Uri
 import android.os.PowerManager
 import android.view.Surface
 import androidx.annotation.IntRange
+import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
 import androidx.media3.common.Player
+import androidx.media3.exoplayer.analytics.AnalyticsListener
+import androidx.media3.exoplayer.drm.DrmSessionManagerProvider
+import androidx.media3.exoplayer.source.MediaSource
+import androidx.media3.exoplayer.source.TrackGroupArray
 import com.devbrackets.android.exomedia.core.listener.CaptionListener
-import com.devbrackets.android.exomedia.nmp.manager.window.WindowInfo
 import com.devbrackets.android.exomedia.core.listener.ExoPlayerListener
 import com.devbrackets.android.exomedia.core.listener.MetadataListener
 import com.devbrackets.android.exomedia.core.listener.VideoSizeListener
 import com.devbrackets.android.exomedia.core.renderer.RendererType
 import com.devbrackets.android.exomedia.listener.OnBufferUpdateListener
-import androidx.media3.exoplayer.analytics.AnalyticsListener
-import androidx.media3.exoplayer.drm.DrmSessionManagerProvider
-import androidx.media3.exoplayer.source.MediaSource
-import androidx.media3.exoplayer.source.TrackGroupArray
+import com.devbrackets.android.exomedia.nmp.manager.window.WindowInfo
 
 
 interface ExoMediaPlayer {
@@ -233,7 +234,10 @@ interface ExoMediaPlayer {
   /**
    * Specifies the [C.StreamType] for the player
    */
+  @Deprecated("Use setAudioAttributes instead")
   fun setAudioStreamType(@C.StreamType streamType: Int)
+
+  fun setAudioAttributes(attributes: AudioAttributes)
 
   /**
    * This function has the MediaPlayer access the low-level power manager

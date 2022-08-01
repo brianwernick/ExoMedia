@@ -1,6 +1,5 @@
 package com.devbrackets.android.exomedia.core
 
-import android.media.MediaPlayer
 import android.os.Handler
 import android.os.Looper
 import androidx.annotation.IntRange
@@ -10,6 +9,7 @@ import androidx.media3.exoplayer.analytics.AnalyticsListener
 import com.devbrackets.android.exomedia.core.listener.ExoPlayerListener
 import com.devbrackets.android.exomedia.core.listener.MetadataListener
 import com.devbrackets.android.exomedia.core.video.surface.SurfaceEnvelope
+import com.devbrackets.android.exomedia.fallback.FallbackMediaPlayer
 import com.devbrackets.android.exomedia.fallback.exception.NativeMediaPlaybackException
 import com.devbrackets.android.exomedia.listener.*
 import com.devbrackets.android.exomedia.nmp.ExoMediaPlayer
@@ -26,11 +26,7 @@ class ListenerMux(
   private val analyticsDelegate: AnalyticsDelegate = AnalyticsDelegate()
 ) :
   ExoPlayerListener,
-  MediaPlayer.OnPreparedListener,
-  MediaPlayer.OnCompletionListener,
-  MediaPlayer.OnErrorListener,
-  MediaPlayer.OnBufferingUpdateListener,
-  MediaPlayer.OnSeekCompleteListener,
+  FallbackMediaPlayer.Listener,
   OnBufferUpdateListener,
   MetadataListener,
   AnalyticsListener by analyticsDelegate
@@ -62,24 +58,32 @@ class ListenerMux(
   private var notifiedCompleted = false
   private var clearRequested = false
 
-  override fun onBufferingUpdate(mp: MediaPlayer, percent: Int) {
+  override fun onStateChange(state: FallbackMediaPlayer.State) {
+    when (state) {
+      FallbackMediaPlayer.State.COMPLETED -> completionListener?.onCompletion()
+      FallbackMediaPlayer.State.READY -> {
+        if (!isPrepared) {
+          notifyPreparedListener()
+        }
+      }
+      else -> {}
+    }
+  }
+
+  override fun onBufferUpdate(mediaPlayer: FallbackMediaPlayer, percent: Int) {
     onBufferingUpdate(percent)
   }
 
-  override fun onCompletion(mp: MediaPlayer) {
-    completionListener?.onCompletion()
-  }
-
-  override fun onError(mp: MediaPlayer, what: Int, extra: Int): Boolean {
-    return notifyErrorListener(NativeMediaPlaybackException(what, extra))
-  }
-
-  override fun onSeekComplete(mp: MediaPlayer) {
+  override fun onSeekComplete(mediaPlayer: FallbackMediaPlayer) {
     seekCompletionListener?.onSeekComplete()
   }
 
-  override fun onPrepared(mp: MediaPlayer) {
-    notifyPreparedListener()
+  override fun onError(mediaPlayer: FallbackMediaPlayer, what: Int, extra: Int): Boolean {
+    return notifyErrorListener(NativeMediaPlaybackException(what, extra))
+  }
+
+  override fun onVideoSizeChanged(mediaPlayer: FallbackMediaPlayer, width: Int, height: Int) {
+    muxNotifier.onVideoSizeChanged(width, height, 0, 1f)
   }
 
   override fun onError(player: ExoMediaPlayer, e: Exception?) {

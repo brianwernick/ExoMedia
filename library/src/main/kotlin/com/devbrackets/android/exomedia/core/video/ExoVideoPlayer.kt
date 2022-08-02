@@ -1,24 +1,24 @@
 package com.devbrackets.android.exomedia.core.video
 
 import android.net.Uri
-import android.util.Log
-import android.view.*
+import android.view.Surface
 import androidx.annotation.IntRange
+import androidx.media3.common.AudioAttributes
 import androidx.media3.common.Metadata
 import androidx.media3.common.VideoSize
+import androidx.media3.exoplayer.drm.DrmSessionManagerProvider
+import androidx.media3.exoplayer.source.MediaSource
+import androidx.media3.exoplayer.source.TrackGroupArray
 import com.devbrackets.android.exomedia.core.ListenerMux
 import com.devbrackets.android.exomedia.core.listener.CaptionListener
 import com.devbrackets.android.exomedia.core.listener.MetadataListener
 import com.devbrackets.android.exomedia.core.listener.VideoSizeListener
 import com.devbrackets.android.exomedia.core.renderer.RendererType
+import com.devbrackets.android.exomedia.core.video.surface.SurfaceEnvelope
 import com.devbrackets.android.exomedia.listener.OnBufferUpdateListener
 import com.devbrackets.android.exomedia.nmp.ExoMediaPlayerImpl
 import com.devbrackets.android.exomedia.nmp.config.PlayerConfig
 import com.devbrackets.android.exomedia.nmp.manager.window.WindowInfo
-import androidx.media3.exoplayer.drm.DrmSessionManagerProvider
-import androidx.media3.exoplayer.source.MediaSource
-import androidx.media3.exoplayer.source.TrackGroupArray
-import com.devbrackets.android.exomedia.core.video.surface.SurfaceEnvelope
 
 class ExoVideoPlayer(
   private val playerConfig: PlayerConfig,
@@ -202,8 +202,8 @@ class ExoVideoPlayer(
     return true
   }
 
-  override fun setAudioStreamType(streamType: Int) {
-    corePlayer.setAudioStreamType(streamType)
+  override fun setAudioAttributes(attributes: AudioAttributes) {
+    corePlayer.setAudioAttributes(attributes)
   }
 
   override fun setRepeatMode(repeatMode: Int) {
@@ -230,10 +230,6 @@ class ExoVideoPlayer(
     this._listenerMux = listenerMux
     corePlayer.addListener(listenerMux)
     corePlayer.addAnalyticsListener(listenerMux)
-  }
-
-  override fun onMediaPrepared() {
-    // Purposefully left blank
   }
 
   protected inner class InternalListeners : MetadataListener, OnBufferUpdateListener, VideoSizeListener {

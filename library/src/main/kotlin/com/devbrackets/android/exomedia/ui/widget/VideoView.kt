@@ -16,18 +16,28 @@ import android.widget.RelativeLayout
 import androidx.annotation.DrawableRes
 import androidx.annotation.IntRange
 import androidx.media3.common.Player
+import androidx.media3.exoplayer.analytics.AnalyticsListener
+import androidx.media3.exoplayer.drm.DrmSessionManager
+import androidx.media3.exoplayer.drm.DrmSessionManagerProvider
+import androidx.media3.exoplayer.source.MediaSource
+import androidx.media3.exoplayer.source.TrackGroupArray
 import com.devbrackets.android.exomedia.R
 import com.devbrackets.android.exomedia.core.ListenerMux
-import com.devbrackets.android.exomedia.core.video.VideoPlayerApi
-import com.devbrackets.android.exomedia.nmp.manager.window.WindowInfo
 import com.devbrackets.android.exomedia.core.listener.CaptionListener
 import com.devbrackets.android.exomedia.core.listener.MetadataListener
 import com.devbrackets.android.exomedia.core.renderer.RendererType
 import com.devbrackets.android.exomedia.core.video.ExoVideoPlayer
+import com.devbrackets.android.exomedia.core.video.VideoPlayerApi
+import com.devbrackets.android.exomedia.core.video.layout.AspectRatioLayout
+import com.devbrackets.android.exomedia.core.video.scale.MatrixManager
 import com.devbrackets.android.exomedia.core.video.scale.ScaleType
+import com.devbrackets.android.exomedia.core.video.surface.SurfaceEnvelope
+import com.devbrackets.android.exomedia.core.video.surface.SurfaceViewSurfaceEnvelope
+import com.devbrackets.android.exomedia.core.video.surface.TextureViewSurfaceEnvelope
 import com.devbrackets.android.exomedia.listener.*
 import com.devbrackets.android.exomedia.nmp.ExoMediaPlayer
 import com.devbrackets.android.exomedia.nmp.config.PlayerConfig
+import com.devbrackets.android.exomedia.nmp.manager.window.WindowInfo
 import com.devbrackets.android.exomedia.ui.widget.attr.VideoViewAttributeParser
 import com.devbrackets.android.exomedia.ui.widget.attr.VideoViewAttributes
 import com.devbrackets.android.exomedia.ui.widget.controls.VideoControls
@@ -35,17 +45,6 @@ import com.devbrackets.android.exomedia.ui.widget.controls.VideoControlsLeanback
 import com.devbrackets.android.exomedia.ui.widget.controls.VideoControlsMobile
 import com.devbrackets.android.exomedia.util.StopWatch
 import com.devbrackets.android.exomedia.util.isDeviceTV
-import androidx.media3.exoplayer.analytics.AnalyticsListener
-import androidx.media3.exoplayer.drm.DrmSessionManager
-import androidx.media3.exoplayer.drm.DrmSessionManagerProvider
-import androidx.media3.exoplayer.source.MediaSource
-import androidx.media3.exoplayer.source.TrackGroupArray
-import com.devbrackets.android.exomedia.core.video.layout.AspectRatioLayout
-import com.devbrackets.android.exomedia.core.video.scale.MatrixManager
-import com.devbrackets.android.exomedia.core.video.surface.SurfaceEnvelope
-import com.devbrackets.android.exomedia.core.video.surface.SurfaceViewSurfaceEnvelope
-import com.devbrackets.android.exomedia.core.video.surface.TextureViewSurfaceEnvelope
-import java.lang.IllegalArgumentException
 
 /**
  * This is a support VideoView that will use the standard VideoView on devices below

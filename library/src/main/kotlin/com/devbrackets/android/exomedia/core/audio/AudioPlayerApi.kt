@@ -1,16 +1,16 @@
 package com.devbrackets.android.exomedia.core.audio
 
-import android.media.AudioManager
 import android.net.Uri
 import androidx.annotation.FloatRange
 import androidx.annotation.IntRange
+import androidx.media3.common.AudioAttributes
 import androidx.media3.common.Player
-import com.devbrackets.android.exomedia.core.ListenerMux
-import com.devbrackets.android.exomedia.core.renderer.RendererType
-import com.devbrackets.android.exomedia.nmp.manager.window.WindowInfo
 import androidx.media3.exoplayer.drm.DrmSessionManagerProvider
 import androidx.media3.exoplayer.source.MediaSource
 import androidx.media3.exoplayer.source.TrackGroupArray
+import com.devbrackets.android.exomedia.core.ListenerMux
+import com.devbrackets.android.exomedia.core.renderer.RendererType
+import com.devbrackets.android.exomedia.nmp.manager.window.WindowInfo
 
 /**
  * The basic APIs expected in the backing media player
@@ -144,15 +144,13 @@ interface AudioPlayerApi {
   fun setPlaybackSpeed(speed: Float): Boolean
 
   /**
-   * Sets the audio stream type for this MediaPlayer. See [AudioManager]
-   * for a list of stream types. Must call this method before prepare() or
-   * prepareAsync() in order for the target stream type to become effective
-   * thereafter.
+   * Sets the audio attributes for this [AudioPlayerApi].
+   * You must call this method before loading media with [setMedia] in order
+   * for the audio attributes to become effective.
    *
-   * @param streamType The audio stream type
-   * @see android.media.AudioManager
+   * @param attributes The [AudioAttributes] to apply
    */
-  fun setAudioStreamType(streamType: Int)
+  fun setAudioAttributes(attributes: AudioAttributes)
 
   /**
    * Determines if the current video player implementation supports
@@ -225,9 +223,6 @@ interface AudioPlayerApi {
   fun setWakeLevel(levelAndFlags: Int)
 
   fun setListenerMux(listenerMux: ListenerMux)
-
-  //TODO: remove onMediaPrepared and let the implementations handle that internally?
-  fun onMediaPrepared()
 
   /**
    * Sets the repeat mode for this MediaPlayer.

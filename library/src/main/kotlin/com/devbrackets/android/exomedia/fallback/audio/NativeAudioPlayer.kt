@@ -1,69 +1,50 @@
 package com.devbrackets.android.exomedia.fallback.audio
 
 import android.content.Context
-import android.media.MediaPlayer
-import android.media.PlaybackParams
 import android.net.Uri
-import android.os.Build
-import androidx.annotation.FloatRange
 import androidx.annotation.IntRange
-import android.util.Log
+import androidx.media3.common.AudioAttributes
+import androidx.media3.common.C
 import androidx.media3.common.Player
-import com.devbrackets.android.exomedia.core.ListenerMux
-import com.devbrackets.android.exomedia.core.audio.AudioPlayerApi
-import com.devbrackets.android.exomedia.core.renderer.RendererType
-import com.devbrackets.android.exomedia.nmp.manager.window.WindowInfo
 import androidx.media3.exoplayer.drm.DrmSessionManagerProvider
 import androidx.media3.exoplayer.source.MediaSource
 import androidx.media3.exoplayer.source.TrackGroupArray
+import com.devbrackets.android.exomedia.core.ListenerMux
+import com.devbrackets.android.exomedia.core.audio.AudioPlayerApi
+import com.devbrackets.android.exomedia.core.renderer.RendererType
+import com.devbrackets.android.exomedia.fallback.FallbackMediaPlayer
+import com.devbrackets.android.exomedia.fallback.FallbackMediaPlayerImpl
+import com.devbrackets.android.exomedia.nmp.manager.window.WindowInfo
 
 /**
- * A simple MediaPlayer implementation that extends the
- * one provided by the system to add integration with
- * the [ListenerMux] and to mitigate state errors.
- *
- *
- * NOTE: The `listenerMux` shouldn't be null when any
- * method utilizing it is called, however there are some cases on
- * Amazon devices where they incorrectly call these methods when
- * setting up the MediaPlayer (when in IDLE state)
+ * A simple [AudioPlayerApi] implementation that uses the fallback (system) MediaPlayer
+ * to add integration with the [ListenerMux] and to mitigate state errors.
  */
-class NativeAudioPlayer(protected val context: Context) : AudioPlayerApi {
-  companion object {
-    private const val TAG = "NativeMediaPlayer"
+class NativeAudioPlayer(context: Context) : AudioPlayerApi {
+  private val mediaPlayer: FallbackMediaPlayer by lazy {
+    FallbackMediaPlayerImpl(context).apply {
+      setAudioAttributes(getAudioAttributes(C.USAGE_MEDIA, C.AUDIO_CONTENT_TYPE_MUSIC))
+    }
   }
 
-  protected val mediaPlayer: MediaPlayer = MediaPlayer()
-  protected var internalListeners = InternalListeners()
+  private var _listenerMux: ListenerMux? = null
 
-  protected var _listenerMux: ListenerMux? = null
-
-  protected var requestedSeek: Long = 0
-  override var bufferedPercent = 0
-    protected set
-
-  @FloatRange(from = 0.0, to = 1.0)
-  protected var requestedVolume = 1.0f
+  override val bufferedPercent = mediaPlayer.bufferedPercent
 
   override var volume: Float
-    get() = requestedVolume
+    get() = mediaPlayer.volume
     set(value) {
-      requestedVolume = value
-      mediaPlayer.setVolume(value, value)
+      mediaPlayer.volume = value
     }
 
   override val isPlaying: Boolean
-    get() = mediaPlayer.isPlaying
+    get() = mediaPlayer.playing
 
   override val duration: Long
-    get() = if (_listenerMux?.isPrepared != true) {
-      0
-    } else mediaPlayer.duration.toLong()
+    get() = mediaPlayer.duration
 
   override val currentPosition: Long
-    get() = if (_listenerMux?.isPrepared != true) {
-      0
-    } else mediaPlayer.currentPosition.toLong()
+    get() = mediaPlayer.currentPosition
 
   override val windowInfo: WindowInfo?
     get() = null
@@ -71,11 +52,8 @@ class NativeAudioPlayer(protected val context: Context) : AudioPlayerApi {
   override val audioSessionId: Int
     get() = mediaPlayer.audioSessionId
 
-  // Marshmallow+ support setting the playback speed natively
   override val playbackSpeed: Float
-    get() = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-      mediaPlayer.playbackParams.speed
-    } else 1f
+    get() = mediaPlayer.playbackSpeed
 
   override val availableTracks: Map<RendererType, TrackGroupArray>?
     get() = null
@@ -84,18 +62,12 @@ class NativeAudioPlayer(protected val context: Context) : AudioPlayerApi {
     get() = null
     set(_) {}
 
-  init {
-    mediaPlayer.setOnBufferingUpdateListener(internalListeners)
-  }
-
   override fun setMedia(uri: Uri?, mediaSource: MediaSource?) {
-    try {
-      requestedSeek = 0
-      mediaPlayer.setDataSource(context, uri!!)
-      mediaPlayer.prepareAsync()
-    } catch (e: Exception) {
-      Log.d(TAG, "MediaPlayer: error setting data source", e)
-    }
+    mediaPlayer.setMedia(uri)
+
+    //Makes sure the listeners get the onPrepared callback
+    _listenerMux?.setNotifiedPrepared(false)
+    _listenerMux?.setNotifiedCompleted(false)
   }
 
   override fun reset() {
@@ -103,12 +75,7 @@ class NativeAudioPlayer(protected val context: Context) : AudioPlayerApi {
   }
 
   override fun seekTo(@IntRange(from = 0) milliseconds: Long) {
-    if (_listenerMux?.isPrepared == true) {
-      mediaPlayer.seekTo(milliseconds.toInt())
-      requestedSeek = 0
-    } else {
-      requestedSeek = milliseconds
-    }
+    mediaPlayer.seekTo(milliseconds)
   }
 
   override fun start() {
@@ -125,13 +92,12 @@ class NativeAudioPlayer(protected val context: Context) : AudioPlayerApi {
   }
 
   override fun restart(): Boolean {
-    if (_listenerMux?.isPrepared != true) {
+    if (!mediaPlayer.restart()) {
       return false
     }
 
-    mediaPlayer.seekTo(0)
-    mediaPlayer.start()
-
+    //Makes sure the listeners get the onPrepared callback
+    _listenerMux?.setNotifiedPrepared(false)
     _listenerMux?.setNotifiedCompleted(false)
 
     return true
@@ -142,24 +108,16 @@ class NativeAudioPlayer(protected val context: Context) : AudioPlayerApi {
   }
 
   override fun setPlaybackSpeed(speed: Float): Boolean {
-    // Marshmallow+ support setting the playback speed natively
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-      mediaPlayer.playbackParams = PlaybackParams().apply {
-        this.speed = speed
-      }
-
-      return true
-    }
-
-    return false
+    mediaPlayer.playbackSpeed = speed
+    return true
   }
 
-  override fun setAudioStreamType(streamType: Int) {
-    mediaPlayer.setAudioStreamType(streamType)
+  override fun setAudioAttributes(attributes: AudioAttributes) {
+    mediaPlayer.setAudioAttributes(attributes)
   }
 
   override fun setWakeLevel(levelAndFlags: Int) {
-    mediaPlayer.setWakeMode(context, levelAndFlags)
+    mediaPlayer.setWakeLevel(levelAndFlags)
   }
 
   override fun trackSelectionAvailable(): Boolean {
@@ -188,31 +146,18 @@ class NativeAudioPlayer(protected val context: Context) : AudioPlayerApi {
 
   override fun setListenerMux(listenerMux: ListenerMux) {
     _listenerMux = listenerMux
-
-    mediaPlayer.setOnCompletionListener(listenerMux)
-    mediaPlayer.setOnPreparedListener(listenerMux)
-    mediaPlayer.setOnBufferingUpdateListener(listenerMux)
-    mediaPlayer.setOnSeekCompleteListener(listenerMux)
-    mediaPlayer.setOnErrorListener(listenerMux)
-  }
-
-  //TODO The NativeVideoPlayer doesn't need this, it handles the callback itself...
-  // Why are the listeners setup differently between this and the video player?
-  override fun onMediaPrepared() {
-    if (requestedSeek != 0L) {
-      seekTo(requestedSeek)
-    }
+    mediaPlayer.setListener(listenerMux)
   }
 
   override fun setRepeatMode(@Player.RepeatMode repeatMode: Int) {
     // Purposefully left blank
   }
 
-  protected inner class InternalListeners : MediaPlayer.OnBufferingUpdateListener {
-    override fun onBufferingUpdate(mediaPlayer: MediaPlayer, percent: Int) {
-      _listenerMux?.onBufferingUpdate(percent)
-      bufferedPercent = percent
-    }
+  @Suppress("SameParameterValue")
+  private fun getAudioAttributes(@C.AudioUsage usage: Int, @C.AudioContentType contentType: Int): AudioAttributes {
+    return AudioAttributes.Builder()
+      .setUsage(usage)
+      .setContentType(contentType)
+      .build()
   }
-
 }

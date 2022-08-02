@@ -1,14 +1,18 @@
 package com.devbrackets.android.exomedia.nmp
 
 import android.net.Uri
-import androidx.annotation.FloatRange
 import android.util.Log
 import android.view.Surface
+import androidx.annotation.FloatRange
 import androidx.media3.common.*
 import androidx.media3.common.util.Util
+import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.exoplayer.analytics.AnalyticsListener
+import androidx.media3.exoplayer.drm.DefaultDrmSessionManagerProvider
+import androidx.media3.exoplayer.drm.DrmSessionManagerProvider
+import androidx.media3.exoplayer.source.MediaSource
+import androidx.media3.exoplayer.source.TrackGroupArray
 import com.devbrackets.android.exomedia.core.listener.CaptionListener
-import com.devbrackets.android.exomedia.nmp.manager.StateStore
-import com.devbrackets.android.exomedia.nmp.manager.window.WindowInfo
 import com.devbrackets.android.exomedia.core.listener.ExoPlayerListener
 import com.devbrackets.android.exomedia.core.listener.MetadataListener
 import com.devbrackets.android.exomedia.core.listener.VideoSizeListener
@@ -16,11 +20,8 @@ import com.devbrackets.android.exomedia.core.renderer.RendererType
 import com.devbrackets.android.exomedia.core.source.builder.MediaSourceBuilder
 import com.devbrackets.android.exomedia.listener.OnBufferUpdateListener
 import com.devbrackets.android.exomedia.nmp.config.PlayerConfig
-import androidx.media3.exoplayer.*
-import androidx.media3.exoplayer.analytics.AnalyticsListener
-import androidx.media3.exoplayer.drm.*
-import androidx.media3.exoplayer.source.MediaSource
-import androidx.media3.exoplayer.source.TrackGroupArray
+import com.devbrackets.android.exomedia.nmp.manager.StateStore
+import com.devbrackets.android.exomedia.nmp.manager.window.WindowInfo
 import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.concurrent.fixedRateTimer
@@ -223,6 +224,7 @@ class ExoMediaPlayerImpl(
     exoPlayer.clearVideoSurface()
   }
 
+  @Deprecated("Use setAudioAttributes instead")
   override fun setAudioStreamType(streamType: Int) {
     val usage = Util.getAudioUsageForStreamType(streamType)
     val contentType = Util.getAudioContentTypeForStreamType(streamType)
@@ -232,7 +234,11 @@ class ExoMediaPlayerImpl(
       .setContentType(contentType)
       .build()
 
-    exoPlayer.setAudioAttributes(audioAttributes, false)
+    setAudioAttributes(audioAttributes)
+  }
+
+  override fun setAudioAttributes(attributes: AudioAttributes) {
+    exoPlayer.setAudioAttributes(attributes, false)
   }
 
   override fun clearSelectedTracks(type: RendererType) {

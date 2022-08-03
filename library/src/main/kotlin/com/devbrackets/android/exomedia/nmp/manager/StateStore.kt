@@ -37,13 +37,17 @@ internal class StateStore {
     prevStates[0] = prevStates[1]
     prevStates[1] = prevStates[2]
     prevStates[2] = prevStates[3]
-    prevStates[3] = state
+    prevStates[3] = newState
   }
 
   fun getState(playWhenReady: Boolean, state: Int): Int {
     return state or if (playWhenReady) FLAG_PLAY_WHEN_READY else 0
   }
 
+  /**
+   * Determines if the current state ([mostRecentState]) represents a completion of a seek process
+   * represented by previous states.
+   */
   fun seekCompleted(): Boolean {
     // Because the playWhenReady isn't a state in itself, rather a flag to a state we will ignore informing of
     // see events when that is the only change.
@@ -58,6 +62,18 @@ internal class StateStore {
 
     // Some devices we get states ordered as [seeking, ready, buffering, ready]
     return matchesHistory(intArrayOf(STATE_SEEKING, Player.STATE_READY, Player.STATE_BUFFERING, Player.STATE_READY), true)
+  }
+
+  /**
+   * Determines if the current state ([mostRecentState]) represents a pause when compared to the
+   * previous state.
+   */
+  fun paused(): Boolean {
+    if (getState(false, Player.STATE_READY) != mostRecentState) {
+      return false
+    }
+
+    return prevStates[2] == getState(true, Player.STATE_READY)
   }
 
   fun matchesHistory(@Size(min = 1, max = 4) states: IntArray, ignorePlayWhenReady: Boolean): Boolean {

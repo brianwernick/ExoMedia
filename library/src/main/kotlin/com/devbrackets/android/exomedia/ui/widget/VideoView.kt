@@ -26,6 +26,8 @@ import com.devbrackets.android.exomedia.core.ListenerMux
 import com.devbrackets.android.exomedia.core.listener.CaptionListener
 import com.devbrackets.android.exomedia.core.listener.MetadataListener
 import com.devbrackets.android.exomedia.core.renderer.RendererType
+import com.devbrackets.android.exomedia.core.state.PlaybackState
+import com.devbrackets.android.exomedia.core.state.PlaybackStateListener
 import com.devbrackets.android.exomedia.core.video.ExoVideoPlayer
 import com.devbrackets.android.exomedia.core.video.VideoPlayerApi
 import com.devbrackets.android.exomedia.core.video.layout.AspectRatioLayout
@@ -47,14 +49,9 @@ import com.devbrackets.android.exomedia.util.StopWatch
 import com.devbrackets.android.exomedia.util.isDeviceTV
 
 /**
- * This is a support VideoView that will use the standard VideoView on devices below
- * JellyBean.  On devices with JellyBean and up we will use the ExoPlayer in order to
- * better support HLS streaming and full 1080p video resolutions which the VideoView
- * struggles with, and in some cases crashes.
- *
- *
- * To an external user this view should have the same APIs used with the standard VideoView
- * to help with quick implementations.
+ * This is a support VideoView that will use the standard, MediaPlayer backed, VideoView
+ * on devices that don't support the ExoPlayer; otherwise the ExoPlayer backed VideoView
+ * will be used to provide better configurability and format support.
  *
  * TODO why doesn't this extend VideoPlayerApi?
  * TODO: standardize naming of exposed methods with the AudioPlayer (e.g. setMediaUri instead of setVideoUri)
@@ -108,7 +105,7 @@ open class VideoView : RelativeLayout {
    * ***WARNING:*** Use of this method may cause memory leaks.
    *
    * Enables or disables the automatic release when the VideoView is detached
-   * from the window.  Normally this is expected to release all resources used
+   * from the window. Normally this is expected to release all resources used
    * by calling [.release].  If `releaseOnDetach` is disabled
    * then [.release] will need to be manually called.
    */
@@ -130,6 +127,7 @@ open class VideoView : RelativeLayout {
    * If the controls haven't been specified with [.setControls]
    * or through the XML attribute `useDefaultControls` this will return
    * null
+   *
    * @return The video controls being used by this view or null
    */
   var videoControls: VideoControls? = null
@@ -598,7 +596,7 @@ open class VideoView : RelativeLayout {
    * Enables or disables the track associated with the `type`. Note, by default all
    * tracks are enabled
    *
-   * @param type The [com.devbrackets.android.exomedia.ExoMedia.RendererType] to enable or disable the track for
+   * @param type The [RendererType] to enable or disable the track for
    * @param enabled `true` if the track should be enabled.
    */
   fun setRendererEnabled(type: RendererType, enabled: Boolean) {
@@ -711,6 +709,26 @@ open class VideoView : RelativeLayout {
    */
   fun setOnVideoSizedChangedListener(listener: OnVideoSizeChangedListener?) {
     muxNotifier.videoSizeChangedListener = listener
+  }
+
+  /**
+   * Sets the listener to inform of playback state changes. If only the current value
+   * is needed then [getPlaybackState] can be used.
+   *
+   * @param listener The listener to inform of [PlaybackState] changes
+   */
+  fun setPlaybackStateListener(listener: PlaybackStateListener?) {
+    listenerMux.setPlaybackStateListener(listener)
+  }
+
+  /**
+   * Retrieves the current [PlaybackState] of this [VideoView]. Changes to this value
+   * can also be listened to via the [setPlaybackStateListener].
+   *
+   * @return The current [PlaybackState] of this [VideoView]
+   */
+  fun getPlaybackState(): PlaybackState {
+    return listenerMux.playbackState
   }
 
   protected fun constructEnvelope(surface: View): SurfaceEnvelope {
@@ -924,12 +942,6 @@ open class VideoView : RelativeLayout {
 
   protected inner class MuxNotifier : ListenerMux.Notifier() {
     var videoSizeChangedListener: OnVideoSizeChangedListener? = null
-
-    override fun shouldNotifyCompletion(endLeeway: Long): Boolean {
-      val position = currentPosition
-      val duration = duration
-      return position > 0 && duration > 0 && position + endLeeway >= duration
-    }
 
     override fun onExoPlayerError(exoMediaPlayer: ExoMediaPlayer, e: Exception?) {
       stopPlayback()

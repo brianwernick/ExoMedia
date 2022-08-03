@@ -18,6 +18,7 @@ import com.devbrackets.android.exomedia.core.listener.MetadataListener
 import com.devbrackets.android.exomedia.core.listener.VideoSizeListener
 import com.devbrackets.android.exomedia.core.renderer.RendererType
 import com.devbrackets.android.exomedia.core.source.builder.MediaSourceBuilder
+import com.devbrackets.android.exomedia.core.state.PlaybackState
 import com.devbrackets.android.exomedia.listener.OnBufferUpdateListener
 import com.devbrackets.android.exomedia.nmp.config.PlayerConfig
 import com.devbrackets.android.exomedia.nmp.manager.StateStore
@@ -33,6 +34,9 @@ class ExoMediaPlayerImpl(
   companion object {
     private const val TAG = "ExoMediaPlayer"
     private const val BUFFER_REPEAT_DELAY = 1_000L
+
+    // The amount of time the current position can be off the duration to call the onCompletion listener
+    private const val COMPLETED_DURATION_LEEWAY: Long = 1_000
   }
 
   private val listeners = CopyOnWriteArrayList<ExoPlayerListener>()
@@ -54,7 +58,6 @@ class ExoMediaPlayerImpl(
     }
   }
 
-  // TODO: shouldn't stopped/prepared be in the state store?
   private val stopped = AtomicBoolean()
   private var prepared = false
 
@@ -90,8 +93,8 @@ class ExoMediaPlayerImpl(
       exoPlayer.volume = requestedVolume
     }
 
-  override val playbackState: Int
-    get() = exoPlayer.playbackState
+  override var playbackState = PlaybackState.IDLE
+    private set
 
   override var playbackSpeed: Float
     get() = exoPlayer.playbackParameters.speed
@@ -147,12 +150,17 @@ class ExoMediaPlayerImpl(
       config.wakeManager.stayAwake(playWhenReady)
     }
 
-  @Deprecated("Deprecated in Java")
-  override fun onPlayerStateChanged(playWhenReady: Boolean, state: Int) {
-    reportPlayerState()
+  override fun onPlaybackStateChanged(playbackState: Int) {
+    reportExoPlayerState()
+  }
+
+  override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
+    reportExoPlayerState()
   }
 
   override fun onPlayerError(error: PlaybackException) {
+    reportState(PlaybackState.ERROR)
+
     listeners.forEach {
       it.onError(this, error)
     }
@@ -263,6 +271,8 @@ class ExoMediaPlayerImpl(
       return
     }
 
+    reportState(PlaybackState.PREPARING)
+
     exoPlayer.stop()
     stateStore.reset()
     exoPlayer.setMediaSource(source)
@@ -281,7 +291,7 @@ class ExoMediaPlayerImpl(
   }
 
   override fun restart(): Boolean {
-    val playbackState = playbackState
+    val playbackState = exoPlayer.playbackState
     if (playbackState != Player.STATE_IDLE && playbackState != Player.STATE_ENDED) {
       return false
     }
@@ -299,6 +309,7 @@ class ExoMediaPlayerImpl(
     if (!stopped.getAndSet(true)) {
       exoPlayer.playWhenReady = false
       exoPlayer.stop()
+      reportState(PlaybackState.STOPPED)
     }
   }
 
@@ -313,6 +324,7 @@ class ExoMediaPlayerImpl(
     playWhenReady = false
     exoPlayer.release()
     config.wakeManager.stayAwake(false)
+    reportState(PlaybackState.RELEASED)
   }
 
   override fun seekTo(positionMs: Long) {
@@ -321,6 +333,8 @@ class ExoMediaPlayerImpl(
 
   override fun seekTo(positionMs: Long, limitToCurrentWindow: Boolean) {
     config.analyticsCollector.notifySeekStarted()
+    reportState(PlaybackState.SEEKING)
+
     if (limitToCurrentWindow) {
       exoPlayer.seekTo(positionMs)
       stateStore.setMostRecentState(stateStore.isLastReportedPlayWhenReady, StateStore.STATE_SEEKING)
@@ -390,9 +404,9 @@ class ExoMediaPlayerImpl(
     return config.trackManager.getSelectedTrackIndex(type, groupIndex)
   }
 
-  private fun reportPlayerState() {
+  private fun reportExoPlayerState() {
     val playWhenReady = exoPlayer.playWhenReady
-    val playbackState = playbackState
+    val playbackState = exoPlayer.playbackState
 
     // Don't report duplicate states
     val newState = stateStore.getState(playWhenReady, playbackState)
@@ -403,12 +417,80 @@ class ExoMediaPlayerImpl(
     stateStore.setMostRecentState(playWhenReady, playbackState)
     val informSeekCompletion = stateStore.seekCompleted()
 
+    reportState(determinePlaybackState(playbackState, informSeekCompletion))
+
     listeners.forEach { listener ->
       listener.onStateChanged(playWhenReady, playbackState)
 
       if (informSeekCompletion) {
         listener.onSeekComplete()
       }
+    }
+  }
+
+  private fun reportState(state: PlaybackState) {
+    playbackState = state
+
+    listeners.forEach { listener ->
+      listener.onPlaybackStateChange(state)
+    }
+  }
+
+  private fun determinePlaybackState(@Player.State state: Int, seekCompleted: Boolean): PlaybackState {
+    // Seek Completion
+    if (seekCompleted && state == Player.STATE_READY) {
+      return when (playWhenReady) {
+        true -> PlaybackState.PLAYING
+        false -> PlaybackState.READY
+      }
+    }
+
+    // Check for Playback
+    if (playWhenReady && state == Player.STATE_READY) {
+      return PlaybackState.PLAYING
+    }
+
+    // Check for a Pause
+    if (stateStore.paused()) {
+        return PlaybackState.PAUSED
+    }
+
+    // Handle Ended
+    if (state == Player.STATE_ENDED) {
+      return determineEndedState()
+    }
+
+    // Standard mapping
+    return when (state) {
+      Player.STATE_IDLE -> PlaybackState.IDLE
+      Player.STATE_BUFFERING -> PlaybackState.BUFFERING
+      Player.STATE_READY -> PlaybackState.READY
+      else -> PlaybackState.IDLE
+    }
+  }
+
+  /**
+   * The ExoPlayer will report [Player.STATE_ENDED] in a few circumstances that map to one of the below. This
+   * means that we need to determine which state is actually being represented:
+   *  - COMPLETED
+   *  - STOPPED
+   *  - RELEASED
+   *  - ERROR
+   */
+  private fun determineEndedState(): PlaybackState {
+    when (playbackState) {
+      PlaybackState.COMPLETED -> return PlaybackState.COMPLETED
+      PlaybackState.RELEASED -> return PlaybackState.RELEASED
+      PlaybackState.STOPPED -> return PlaybackState.STOPPED
+      PlaybackState.ERROR -> return PlaybackState.ERROR
+      else -> {}
+    }
+
+    val completed = currentPosition > 0 && duration > 0 && currentPosition + COMPLETED_DURATION_LEEWAY >= duration
+    return if (completed) {
+      PlaybackState.COMPLETED
+    } else {
+      PlaybackState.STOPPED
     }
   }
 }

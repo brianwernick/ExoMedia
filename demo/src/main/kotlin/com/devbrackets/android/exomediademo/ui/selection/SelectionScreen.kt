@@ -14,6 +14,7 @@ import androidx.compose.material.icons.rounded.Videocam
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
@@ -143,6 +144,7 @@ fun MediaCategoryCard(
     Card(
       modifier = Modifier
         .size(136.dp, 136.dp)
+        .clip(MaterialTheme.shapes.medium)
         .clickable(onClick = onClick)
         .align(Alignment.Center),
       elevation = 2.dp

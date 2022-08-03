@@ -5,8 +5,9 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
-import androidx.appcompat.widget.AppCompatImageButton
 import android.view.MenuItem
+import androidx.appcompat.widget.AppCompatImageButton
+import androidx.media3.exoplayer.util.EventLogger
 import com.devbrackets.android.exomedia.core.renderer.RendererType
 import com.devbrackets.android.exomedia.listener.OnVideoSizeChangedListener
 import com.devbrackets.android.exomedia.ui.listener.VideoControlsSeekListener
@@ -17,15 +18,14 @@ import com.devbrackets.android.exomediademo.R
 import com.devbrackets.android.exomediademo.data.MediaItem
 import com.devbrackets.android.exomediademo.data.Samples
 import com.devbrackets.android.exomediademo.databinding.VideoPlayerActivityBinding
-import com.devbrackets.android.exomediademo.playlist.manager.PlaylistManager
 import com.devbrackets.android.exomediademo.playlist.VideoApi
+import com.devbrackets.android.exomediademo.playlist.manager.PlaylistManager
 import com.devbrackets.android.exomediademo.ui.support.BindingActivity
 import com.devbrackets.android.exomediademo.ui.support.CaptionPopupManager
 import com.devbrackets.android.exomediademo.ui.support.CaptionPopupManager.Companion.CC_DEFAULT
 import com.devbrackets.android.exomediademo.ui.support.CaptionPopupManager.Companion.CC_DISABLED
 import com.devbrackets.android.exomediademo.ui.support.CaptionPopupManager.Companion.CC_GROUP_INDEX_MOD
 import com.devbrackets.android.exomediademo.ui.support.FullscreenManager
-import androidx.media3.exoplayer.util.EventLogger
 
 open class VideoPlayerActivity : BindingActivity<VideoPlayerActivityBinding>(), VideoControlsSeekListener {
   companion object {

@@ -10,7 +10,7 @@ import android.view.Surface
 import androidx.annotation.FloatRange
 import androidx.annotation.IntRange
 import androidx.media3.common.AudioAttributes
-import com.devbrackets.android.exomedia.fallback.FallbackMediaPlayer.State
+import com.devbrackets.android.exomedia.core.state.PlaybackState
 import java.io.IOException
 
 class FallbackMediaPlayerImpl(
@@ -30,16 +30,14 @@ class FallbackMediaPlayerImpl(
 
     // States representing we have access to media information / control
     private val accessibleStates = setOf(
-      State.BUFFERING,
-      State.SEEKING,
-      State.READY,
-      State.PLAYING,
-      State.PAUSED
+      PlaybackState.BUFFERING,
+      PlaybackState.SEEKING,
+      PlaybackState.READY,
+      PlaybackState.PLAYING,
+      PlaybackState.PAUSED
     )
   }
 
-  override var playbackState = State.IDLE
-    private set
 
   private val mediaPlayer: MediaPlayer by lazy {
     MediaPlayer().apply {
@@ -108,6 +106,9 @@ class FallbackMediaPlayerImpl(
       updatePlaybackParams(playbackSpeed, value)
     }
 
+  override var playbackState = PlaybackState.IDLE
+    private set
+
   private val mediaAccessible: Boolean
     get() = accessibleStates.contains(playbackState)
 
@@ -123,7 +124,7 @@ class FallbackMediaPlayerImpl(
       return
     }
 
-    reportPlaybackState(State.SEEKING)
+    reportPlaybackState(PlaybackState.SEEKING)
     mediaPlayer.seekTo(positionMs.toInt())
     requestedSeek = 0
   }
@@ -131,7 +132,7 @@ class FallbackMediaPlayerImpl(
   override fun start() {
     if (mediaAccessible) {
       mediaPlayer.start()
-      reportPlaybackState(State.PLAYING)
+      reportPlaybackState(PlaybackState.PLAYING)
     }
 
     playWhenReady = true
@@ -140,7 +141,7 @@ class FallbackMediaPlayerImpl(
   override fun pause() {
     if (mediaAccessible && mediaPlayer.isPlaying) {
       mediaPlayer.pause()
-      reportPlaybackState(State.PAUSED)
+      reportPlaybackState(PlaybackState.PAUSED)
     }
 
     playWhenReady = false
@@ -153,11 +154,11 @@ class FallbackMediaPlayerImpl(
 
     prepared = false
     playWhenReady = false
-    reportPlaybackState(State.STOPPED)
+    reportPlaybackState(PlaybackState.STOPPED)
   }
 
   override fun restart(): Boolean {
-    if (!prepared || !(accessibleStates.contains(playbackState) || playbackState == State.COMPLETED)) {
+    if (!prepared || !(accessibleStates.contains(playbackState) || playbackState == PlaybackState.COMPLETED)) {
       return false
     }
 
@@ -172,7 +173,7 @@ class FallbackMediaPlayerImpl(
 
     prepared = false
     playWhenReady = false
-    reportPlaybackState(State.IDLE)
+    reportPlaybackState(PlaybackState.IDLE)
   }
 
   override fun release() {
@@ -183,7 +184,7 @@ class FallbackMediaPlayerImpl(
 
     prepared = false
     playWhenReady = false
-    reportPlaybackState(State.RELEASED)
+    reportPlaybackState(PlaybackState.RELEASED)
   }
 
   override fun setAudioAttributes(attributes: AudioAttributes) {
@@ -207,15 +208,15 @@ class FallbackMediaPlayerImpl(
       mediaPlayer.setDataSource(context.applicationContext, uri, headers)
       mediaPlayer.prepareAsync()
 
-      reportPlaybackState(State.PREPARING)
+      reportPlaybackState(PlaybackState.PREPARING)
     } catch (ex: IOException) {
       Log.w(TAG, "Unable to open content: $uri", ex)
-      reportPlaybackState(State.ERROR)
+      reportPlaybackState(PlaybackState.ERROR)
 
       listener?.onError(this, MediaPlayer.MEDIA_ERROR_UNKNOWN, 0)
     } catch (ex: IllegalArgumentException) {
       Log.w(TAG, "Unable to open content: $uri", ex)
-      reportPlaybackState(State.ERROR)
+      reportPlaybackState(PlaybackState.ERROR)
       listener?.onError(this, MediaPlayer.MEDIA_ERROR_UNKNOWN, 0)
     }
   }
@@ -230,7 +231,7 @@ class FallbackMediaPlayerImpl(
   }
 
   override fun onCompletion(mp: MediaPlayer) {
-    reportPlaybackState(State.COMPLETED)
+    reportPlaybackState(PlaybackState.COMPLETED)
   }
 
   override fun onSeekComplete(mp: MediaPlayer) {
@@ -239,19 +240,19 @@ class FallbackMediaPlayerImpl(
     if (playWhenReady) {
       start()
     } else if (prepared) {
-      reportPlaybackState(State.PAUSED)
+      reportPlaybackState(PlaybackState.PAUSED)
     }
   }
 
   override fun onError(mp: MediaPlayer?, what: Int, extra: Int): Boolean {
-    reportPlaybackState(State.ERROR)
+    reportPlaybackState(PlaybackState.ERROR)
 
     return listener?.onError(this, what, extra) == true
   }
 
   override fun onPrepared(mp: MediaPlayer) {
     prepared = true
-    reportPlaybackState(State.READY)
+    reportPlaybackState(PlaybackState.READY)
     listener?.onVideoSizeChanged(this, mp.videoWidth, mp.videoHeight)
 
     if (requestedSeek != 0L) {
@@ -270,9 +271,9 @@ class FallbackMediaPlayerImpl(
     listener?.onVideoSizeChanged(this, mp.videoWidth, mp.videoHeight)
   }
 
-  private fun reportPlaybackState(state: State) {
+  private fun reportPlaybackState(state: PlaybackState) {
     playbackState = state
-    listener?.onStateChange(state)
+    listener?.onPlaybackStateChange(state)
   }
 
   private fun updatePlaybackParams(speed: Float, pitch: Float) {
@@ -300,7 +301,7 @@ class FallbackMediaPlayerImpl(
 
   private fun handleMediaInfo(mediaInfo: Int) {
     if (mediaInfo == MediaPlayer.MEDIA_INFO_BUFFERING_START) {
-      reportPlaybackState(State.BUFFERING)
+      reportPlaybackState(PlaybackState.BUFFERING)
       return
     }
 
@@ -310,7 +311,7 @@ class FallbackMediaPlayerImpl(
 
     // Double-Check if the media is actually playing (resumed on buffer completion)
     if (playing) {
-      reportPlaybackState(State.PLAYING)
+      reportPlaybackState(PlaybackState.PLAYING)
       return
     }
 
@@ -320,6 +321,6 @@ class FallbackMediaPlayerImpl(
     }
 
     // We assume that the media was already playing when buffering ends
-    reportPlaybackState(State.PAUSED)
+    reportPlaybackState(PlaybackState.PAUSED)
   }
 }

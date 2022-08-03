@@ -16,6 +16,7 @@ import com.devbrackets.android.exomedia.core.listener.ExoPlayerListener
 import com.devbrackets.android.exomedia.core.listener.MetadataListener
 import com.devbrackets.android.exomedia.core.listener.VideoSizeListener
 import com.devbrackets.android.exomedia.core.renderer.RendererType
+import com.devbrackets.android.exomedia.core.state.PlaybackState
 import com.devbrackets.android.exomedia.listener.OnBufferUpdateListener
 import com.devbrackets.android.exomedia.nmp.manager.window.WindowInfo
 
@@ -94,8 +95,7 @@ interface ExoMediaPlayer {
   /**
    * The current media playback state
    */
-//  @Player.State
-  val playbackState: Int
+  val playbackState: PlaybackState
 
   /**
    * The surface to play video media on

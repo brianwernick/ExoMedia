@@ -42,20 +42,18 @@ class ExoMediaPlayerImpl(
   private val listeners = CopyOnWriteArrayList<ExoPlayerListener>()
   private val rendererListener = DelegatedRenderListener()
 
-  private val exoPlayer: ExoPlayer by lazy {
-    ExoPlayer.Builder(
-      config.context,
-      config.rendererFactory,
-      config.mediaSourceFactory,
-      config.trackManager.selector,
-      config.loadControl,
-      config.bandwidthMeter,
-      config.analyticsCollector
-    ).build().also {
-      it.addListener(this)
-      it.addListener(rendererListener)
-      it.addListener(config.analyticsCollector)
-    }
+  private val exoPlayer: ExoPlayer = ExoPlayer.Builder(
+    config.context,
+    config.rendererFactory,
+    config.mediaSourceFactory,
+    config.trackManager.selector,
+    config.loadControl,
+    config.bandwidthMeter,
+    config.analyticsCollector
+  ).build().also {
+    it.addListener(this)
+    it.addListener(rendererListener)
+    it.addListener(config.analyticsCollector)
   }
 
   private val stopped = AtomicBoolean()

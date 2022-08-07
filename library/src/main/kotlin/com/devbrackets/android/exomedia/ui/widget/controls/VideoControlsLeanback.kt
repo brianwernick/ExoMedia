@@ -1,10 +1,6 @@
 package com.devbrackets.android.exomedia.ui.widget.controls
 
-import android.annotation.TargetApi
 import android.content.Context
-import android.graphics.drawable.Drawable
-import android.os.Build
-import androidx.annotation.IntRange
 import android.util.AttributeSet
 import android.view.KeyEvent
 import android.view.View
@@ -14,29 +10,30 @@ import android.view.animation.TranslateAnimation
 import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.ProgressBar
+import androidx.annotation.IntRange
 import com.devbrackets.android.exomedia.R
 import com.devbrackets.android.exomedia.ui.animation.BottomViewHideShowAnimation
 import com.devbrackets.android.exomedia.util.millisToFormattedDuration
 import com.devbrackets.android.exomedia.util.tintListCompat
 
 /**
- * Provides playback controls for the [VideoView] on TV devices.
+ * Provides playback controls for the [com.devbrackets.android.exomedia.ui.widget.VideoView]
+ * on TVs.
  */
-@TargetApi(Build.VERSION_CODES.LOLLIPOP)
 class VideoControlsLeanback : DefaultVideoControls {
 
-  protected lateinit var controlsContainer: ViewGroup
-  protected lateinit var textContainer: ViewGroup
-  protected lateinit var progressBar: ProgressBar
+  private lateinit var controlsContainer: ViewGroup
+  private lateinit var textContainer: ViewGroup
+  private lateinit var progressBar: ProgressBar
 
-  protected lateinit var rippleIndicator: ImageView
-  protected lateinit var controlsParent: ViewGroup
+  private lateinit var rippleIndicator: ImageView
+  private lateinit var controlsParent: ViewGroup
 
-  protected var fastForwardButton: ImageButton? = null
-  protected var rewindButton: ImageButton? = null
+  private var fastForwardButton: ImageButton? = null
+  private var rewindButton: ImageButton? = null
 
-  protected var currentFocus: View? = null
-  protected var buttonFocusChangeListener = ButtonFocusChangeListener()
+  private var currentFocus: View? = null
+  private var buttonFocusChangeListener = ButtonFocusChangeListener()
 
   override val layoutResource: Int
     get() = R.layout.exomedia_default_controls_leanback
@@ -77,25 +74,22 @@ class VideoControlsLeanback : DefaultVideoControls {
   }
 
   override fun setDuration(duration: Long) {
+    super.setDuration(duration)
     if (duration != progressBar.max.toLong()) {
       endTimeTextView.text = duration.millisToFormattedDuration()
       progressBar.max = duration.toInt()
     }
   }
 
-  override fun updateProgress(@IntRange(from = 0) position: Long, @IntRange(from = 0) duration: Long, @IntRange(from = 0, to = 100) bufferPercent: Int) {
+  override fun updateProgress(
+    @IntRange(from = 0) position: Long,
+    @IntRange(from = 0) duration: Long,
+    @IntRange(from = 0, to = 100) bufferPercent: Int
+  ) {
     progressBar.secondaryProgress = (progressBar.max * (bufferPercent.toFloat() / 100)).toInt()
     progressBar.progress = position.toInt()
 
     updateCurrentTime(position)
-  }
-
-  override fun setRewindDrawable(drawable: Drawable) {
-    rewindButton?.setImageDrawable(drawable)
-  }
-
-  override fun setFastForwardDrawable(drawable: Drawable) {
-    fastForwardButton?.setImageDrawable(drawable)
   }
 
   override fun setRewindButtonEnabled(enabled: Boolean) {
@@ -205,7 +199,7 @@ class VideoControlsLeanback : DefaultVideoControls {
    * Performs the functionality to rewind the current video by
    * {@value #FAST_FORWARD_REWIND_AMOUNT} milliseconds.
    */
-  protected fun onRewindClick() {
+  private fun onRewindClick() {
     if (buttonsListener == null || !buttonsListener!!.onRewindClicked()) {
       internalListener.onRewindClicked()
     }
@@ -215,7 +209,7 @@ class VideoControlsLeanback : DefaultVideoControls {
    * Performs the functionality to fast forward the current video by
    * {@value #FAST_FORWARD_REWIND_AMOUNT} milliseconds.
    */
-  protected fun onFastForwardClick() {
+  private fun onFastForwardClick() {
     if (buttonsListener == null || !buttonsListener!!.onFastForwardClicked()) {
       internalListener.onFastForwardClicked()
     }
@@ -227,7 +221,7 @@ class VideoControlsLeanback : DefaultVideoControls {
    *
    * @param seekToTime The time to seek to in milliseconds
    */
-  protected fun performSeek(seekToTime: Long) {
+  private fun performSeek(seekToTime: Long) {
     if (seekListener == null || !seekListener!!.onSeekEnded(seekToTime)) {
       show()
       internalListener.onSeekEnded(seekToTime)
@@ -239,7 +233,7 @@ class VideoControlsLeanback : DefaultVideoControls {
    * delay.  If the [.videoView] is not playing then the controls
    * will not be hidden.
    */
-  protected fun showTemporary() {
+  private fun showTemporary() {
     show()
     if (videoView?.isPlaying == true) {
       hideDelayed()
@@ -250,7 +244,7 @@ class VideoControlsLeanback : DefaultVideoControls {
    * Registers all selectable fields for key events in order
    * to correctly handle navigation.
    */
-  protected fun registerForInput() {
+  private fun registerForInput() {
     val remoteKeyListener = RemoteKeyListener()
     setOnKeyListener(remoteKeyListener)
 
@@ -267,7 +261,7 @@ class VideoControlsLeanback : DefaultVideoControls {
    *
    * @param view The view to find the next focus for
    */
-  protected fun focusNext(view: View?) {
+  private fun focusNext(view: View?) {
     view ?: return
 
     val nextId = view.nextFocusRightId
@@ -291,7 +285,7 @@ class VideoControlsLeanback : DefaultVideoControls {
    *
    * @param view The view to find the previous focus for
    */
-  protected fun focusPrevious(view: View?) {
+  private fun focusPrevious(view: View?) {
     view ?: return
 
     val previousId = view.nextFocusLeftId
@@ -314,7 +308,7 @@ class VideoControlsLeanback : DefaultVideoControls {
    * A listener to monitor the selected button and move the ripple
    * indicator when the focus shifts.
    */
-  protected inner class ButtonFocusChangeListener : View.OnFocusChangeListener {
+  private inner class ButtonFocusChangeListener : OnFocusChangeListener {
     override fun onFocusChange(view: View, hasFocus: Boolean) {
       if (!hasFocus) {
         return
@@ -325,7 +319,7 @@ class VideoControlsLeanback : DefaultVideoControls {
       rippleIndicator.startAnimation(RippleTranslateAnimation(xDelta))
     }
 
-    protected fun getHorizontalDelta(selectedView: View): Int {
+    private fun getHorizontalDelta(selectedView: View): Int {
       val position = IntArray(2)
       selectedView.getLocationOnScreen(position)
 
@@ -341,10 +335,10 @@ class VideoControlsLeanback : DefaultVideoControls {
    * A listener to catch the key events so that we can correctly perform the
    * playback functionality and to hide/show the controls
    */
-  protected inner class RemoteKeyListener : View.OnKeyListener {
+  private inner class RemoteKeyListener : OnKeyListener {
     /**
      * NOTE: the view is not always the currently focused view, thus the
-     * [.currentFocus] variable
+     * [currentFocus] variable
      */
     override fun onKey(view: View, keyCode: Int, event: KeyEvent): Boolean {
       if (event.action != KeyEvent.ACTION_DOWN) {
@@ -352,76 +346,76 @@ class VideoControlsLeanback : DefaultVideoControls {
       }
 
       when (keyCode) {
-          KeyEvent.KEYCODE_BACK -> if (isVisible && canViewHide && !isLoading) {
-              hide()
-              return true
-          } else if (controlsParent.animation != null) {
-              //This occurs if we are animating the hide or show of the controls
-              return true
-          }
+        KeyEvent.KEYCODE_BACK -> if (isVisible && !isLoading) {
+          hide()
+          return true
+        } else if (controlsParent.animation != null) {
+          // This occurs if we are animating the hide or show of the controls
+          return true
+        }
 
-          KeyEvent.KEYCODE_DPAD_UP -> {
-              showTemporary()
-              return true
-          }
+        KeyEvent.KEYCODE_DPAD_UP -> {
+          showTemporary()
+          return true
+        }
 
-          KeyEvent.KEYCODE_DPAD_DOWN -> {
-              hide()
-              return true
-          }
+        KeyEvent.KEYCODE_DPAD_DOWN -> {
+          hide()
+          return true
+        }
 
-          KeyEvent.KEYCODE_DPAD_LEFT -> {
-              showTemporary()
-              focusPrevious(currentFocus)
-              return true
-          }
+        KeyEvent.KEYCODE_DPAD_LEFT -> {
+          showTemporary()
+          focusPrevious(currentFocus)
+          return true
+        }
 
-          KeyEvent.KEYCODE_DPAD_RIGHT -> {
-              showTemporary()
-              focusNext(currentFocus)
-              return true
-          }
+        KeyEvent.KEYCODE_DPAD_RIGHT -> {
+          showTemporary()
+          focusNext(currentFocus)
+          return true
+        }
 
-          KeyEvent.KEYCODE_DPAD_CENTER -> {
-              showTemporary()
-              currentFocus?.callOnClick()
-              return true
-          }
+        KeyEvent.KEYCODE_DPAD_CENTER -> {
+          showTemporary()
+          currentFocus?.callOnClick()
+          return true
+        }
 
-          KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE -> {
-              onPlayPauseClick()
-              return true
-          }
+        KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE -> {
+          onPlayPauseClick()
+          return true
+        }
 
-          KeyEvent.KEYCODE_MEDIA_PLAY -> if (videoView != null && !videoView!!.isPlaying) {
-              videoView?.start()
-              return true
-          }
+        KeyEvent.KEYCODE_MEDIA_PLAY -> if (videoView != null && !videoView!!.isPlaying) {
+          videoView?.start()
+          return true
+        }
 
-          KeyEvent.KEYCODE_MEDIA_PAUSE -> if (videoView != null && videoView!!.isPlaying) {
-              videoView?.pause()
-              return true
-          }
+        KeyEvent.KEYCODE_MEDIA_PAUSE -> if (videoView != null && videoView!!.isPlaying) {
+          videoView?.pause()
+          return true
+        }
 
-          KeyEvent.KEYCODE_MEDIA_NEXT -> {
-              onNextClick()
-              return true
-          }
+        KeyEvent.KEYCODE_MEDIA_NEXT -> {
+          onNextClick()
+          return true
+        }
 
-          KeyEvent.KEYCODE_MEDIA_PREVIOUS -> {
-              onPreviousClick()
-              return true
-          }
+        KeyEvent.KEYCODE_MEDIA_PREVIOUS -> {
+          onPreviousClick()
+          return true
+        }
 
-          KeyEvent.KEYCODE_MEDIA_REWIND -> {
-              onRewindClick()
-              return true
-          }
+        KeyEvent.KEYCODE_MEDIA_REWIND -> {
+          onRewindClick()
+          return true
+        }
 
-          KeyEvent.KEYCODE_MEDIA_FAST_FORWARD -> {
-              onFastForwardClick()
-              return true
-          }
+        KeyEvent.KEYCODE_MEDIA_FAST_FORWARD -> {
+          onFastForwardClick()
+          return true
+        }
       }
 
       return false
@@ -432,7 +426,9 @@ class VideoControlsLeanback : DefaultVideoControls {
    * An animation for moving the ripple indicator to the correctly
    * focused view.
    */
-  protected inner class RippleTranslateAnimation(protected var xDelta: Int) : TranslateAnimation(0f, xDelta.toFloat(), 0f, 0f), Animation.AnimationListener {
+  private inner class RippleTranslateAnimation(
+    private var xDelta: Int
+  ) : TranslateAnimation(0f, xDelta.toFloat(), 0f, 0f), Animation.AnimationListener {
     init {
       duration = 250L
       setAnimationListener(this)
@@ -452,33 +448,30 @@ class VideoControlsLeanback : DefaultVideoControls {
     }
   }
 
-  protected inner class LeanbackInternalListener : InternalListener() {
+  private inner class LeanbackInternalListener : InternalListener() {
     override fun onFastForwardClicked(): Boolean {
-      return videoView?.let {
-        var newPosition = it.currentPosition + FAST_FORWARD_REWIND_AMOUNT
-        if (newPosition > progressBar.max) {
-          newPosition = progressBar.max.toLong()
-        }
-
-        performSeek(newPosition)
-        true
-      } ?: false
+      return seekBy(FAST_FORWARD_REWIND_AMOUNT)
     }
 
     override fun onRewindClicked(): Boolean {
-      return videoView?.let {
-        var newPosition = it.currentPosition - FAST_FORWARD_REWIND_AMOUNT
-        if (newPosition < 0) {
-          newPosition = 0
-        }
+      return seekBy(-FAST_FORWARD_REWIND_AMOUNT)
+    }
 
-        performSeek(newPosition)
-        true
-      } ?: false
+    @Suppress("FoldInitializerAndIfToElvis")
+    private fun seekBy(amountMillis: Long): Boolean {
+      val view = videoView
+      if (view == null) {
+        return false
+      }
+
+      val position = (view.currentPosition + amountMillis).coerceIn(0, progressBar.max.toLong())
+      performSeek(position)
+
+      return true
     }
   }
 
   companion object {
-    protected val FAST_FORWARD_REWIND_AMOUNT = 10_000 //10 seconds
+    private const val FAST_FORWARD_REWIND_AMOUNT = 10_000L // 10 seconds
   }
 }

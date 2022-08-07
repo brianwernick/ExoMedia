@@ -3,13 +3,9 @@ package com.devbrackets.android.exomedia.ui.widget.attr
 import com.devbrackets.android.exomedia.core.video.scale.ScaleType
 import com.devbrackets.android.exomedia.nmp.config.DefaultPlayerConfigProvider
 import com.devbrackets.android.exomedia.nmp.config.PlayerConfigProvider
+import com.devbrackets.android.exomedia.ui.widget.controls.VideoControlsProvider
 
 data class VideoViewAttributes(
-  /**
-   * Specifies if the [DefaultVideoControls] should be added to the view.  These
-   * can be added through source code with [.setControls]
-   */
-  val useDefaultControls: Boolean = false,
 
   /**
    * Specifies if the [VideoViewApi] implementations should use the [android.view.TextureView]
@@ -34,5 +30,11 @@ data class VideoViewAttributes(
    * Specifies the provider to use when fetching the configuration for the
    * media playback.
    */
-  val playerConfigProvider: PlayerConfigProvider = DefaultPlayerConfigProvider()
+  val playerConfigProvider: PlayerConfigProvider = DefaultPlayerConfigProvider(),
+
+  /**
+   * Specifies the provider to use when getting the video controls to use with the
+   * video playback.
+   */
+  val videoControlsProvider: VideoControlsProvider = VideoControlsProvider()
 )

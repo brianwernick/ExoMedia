@@ -43,10 +43,7 @@ import com.devbrackets.android.exomedia.nmp.manager.window.WindowInfo
 import com.devbrackets.android.exomedia.ui.widget.attr.VideoViewAttributeParser
 import com.devbrackets.android.exomedia.ui.widget.attr.VideoViewAttributes
 import com.devbrackets.android.exomedia.ui.widget.controls.VideoControls
-import com.devbrackets.android.exomedia.ui.widget.controls.VideoControlsLeanback
-import com.devbrackets.android.exomedia.ui.widget.controls.VideoControlsMobile
 import com.devbrackets.android.exomedia.util.StopWatch
-import com.devbrackets.android.exomedia.util.isDeviceTV
 
 /**
  * This is a support VideoView that will use the standard, MediaPlayer backed, VideoView
@@ -56,7 +53,8 @@ import com.devbrackets.android.exomedia.util.isDeviceTV
  * TODO why doesn't this extend VideoPlayerApi?
  * TODO: standardize naming of exposed methods with the AudioPlayer (e.g. setMediaUri instead of setVideoUri)
  */
-open class VideoView : RelativeLayout {
+@Suppress("MemberVisibilityCanBePrivate")
+open class VideoView : RelativeLayout, PlaybackStateListener {
 
   /**
    * Gets the preview ImageView for use with image loading libraries.
@@ -98,8 +96,14 @@ open class VideoView : RelativeLayout {
   protected var overriddenPositionStopWatch = StopWatch()
 
   protected var muxNotifier = MuxNotifier()
-  protected val listenerMux: ListenerMux by lazy { ListenerMux(muxNotifier) }
+  protected val listenerMux: ListenerMux by lazy {
+    ListenerMux(muxNotifier).apply {
+      setPlaybackStateListener(this@VideoView)
+    }
+  }
   protected lateinit var playerConfig: PlayerConfig
+
+  protected var playbackListener: PlaybackStateListener? = null
 
   /**
    * ***WARNING:*** Use of this method may cause memory leaks.
@@ -138,9 +142,6 @@ open class VideoView : RelativeLayout {
 
       field = value
       field?.onAttachedToView(this)
-
-      //Sets the onTouch listener to show the controls
-      setOnTouchListener(field?.let { TouchListener(context) })
     }
 
   /**
@@ -261,9 +262,9 @@ open class VideoView : RelativeLayout {
     }
   }
 
-  override fun setOnTouchListener(listener: OnTouchListener?) {
-    surface.setOnTouchListener(listener)
-    super.setOnTouchListener(listener)
+  override fun onPlaybackStateChange(state: PlaybackState) {
+    videoControls?.onPlaybackStateChange(state)
+    playbackListener?.onPlaybackStateChange(state)
   }
 
   /**
@@ -272,7 +273,6 @@ open class VideoView : RelativeLayout {
    * [.setReleaseOnDetachFromWindow] has been set.
    */
   fun release() {
-    videoControls?.onDetachedFromView(this)
     videoControls = null
 
     stopPlayback()
@@ -318,18 +318,6 @@ open class VideoView : RelativeLayout {
   }
 
   /**
-   * Requests the [DefaultVideoControls] to become visible.  This should only be called after
-   * [setControls].
-   */
-  fun showControls() {
-    videoControls?.show()
-
-    if (isPlaying) {
-      videoControls?.hide(true)
-    }
-  }
-
-  /**
    * Sets the Uri location for the video to play
    *
    * @param uri The video's Uri
@@ -337,7 +325,6 @@ open class VideoView : RelativeLayout {
   fun setVideoURI(uri: Uri?) {
     videoUri = uri
     videoPlayer.setMedia(uri)
-    videoControls?.showLoading(true)
   }
 
   /**
@@ -349,7 +336,6 @@ open class VideoView : RelativeLayout {
   fun setVideoURI(uri: Uri?, mediaSource: MediaSource?) {
     videoUri = uri
     videoPlayer.setMedia(uri, mediaSource)
-    videoControls?.showLoading(true)
   }
 
   /**
@@ -390,7 +376,6 @@ open class VideoView : RelativeLayout {
    * @param milliSeconds The time to move the playback to
    */
   fun seekTo(milliSeconds: Long) {
-    videoControls?.showLoading(false)
     videoPlayer.seekTo(milliSeconds)
   }
 
@@ -406,8 +391,6 @@ open class VideoView : RelativeLayout {
 
     videoPlayer.start()
     keepScreenOn = true
-
-    videoControls?.updatePlaybackState(true)
   }
 
   /**
@@ -425,8 +408,6 @@ open class VideoView : RelativeLayout {
 
     videoPlayer.pause()
     keepScreenOn = false
-
-    videoControls?.updatePlaybackState(false)
   }
 
   /**
@@ -447,7 +428,6 @@ open class VideoView : RelativeLayout {
     }
 
     if (videoPlayer.restart()) {
-      videoControls?.showLoading(true)
       return true
     }
 
@@ -463,8 +443,6 @@ open class VideoView : RelativeLayout {
     audioFocusHelper.abandonFocus()
     videoPlayer.release()
     keepScreenOn = false
-
-    videoControls?.updatePlaybackState(false)
   }
 
   /**
@@ -718,7 +696,7 @@ open class VideoView : RelativeLayout {
    * @param listener The listener to inform of [PlaybackState] changes
    */
   fun setPlaybackStateListener(listener: PlaybackStateListener?) {
-    listenerMux.setPlaybackStateListener(listener)
+    playbackListener = listener
   }
 
   /**
@@ -788,14 +766,11 @@ open class VideoView : RelativeLayout {
    * @param attributes The attributes associated with this instance
    */
   protected fun postInit(attributes: VideoViewAttributes) {
-    if (attributes.useDefaultControls) {
-      videoControls = if (context.isDeviceTV()) VideoControlsLeanback(context) else VideoControlsMobile(context)
-    }
-
     attributes.scaleType?.let {
       setScaleType(it)
     }
 
+    videoControls = attributes.videoControlsProvider.getControls(context)
     setMeasureBasedOnAspectRatioEnabled(attributes.measureBasedOnAspectRatio)
   }
 
@@ -830,8 +805,6 @@ open class VideoView : RelativeLayout {
     audioFocusHelper.abandonFocus()
     videoPlayer.stop(clearSurface)
     keepScreenOn = false
-
-    videoControls?.updatePlaybackState(false)
   }
 
   /**
@@ -953,10 +926,6 @@ open class VideoView : RelativeLayout {
       onPlaybackEnded()
     }
 
-    override fun onSeekComplete() {
-      videoControls?.finishLoading()
-    }
-
     override fun onVideoSizeChanged(width: Int, height: Int, unAppliedRotationDegrees: Int, pixelWidthHeightRatio: Float) {
       // NOTE: Android 5.0+ will always have an unAppliedRotationDegrees of 0 (ExoPlayer already handles it)
       surfaceEnvelope.setVideoRotation(unAppliedRotationDegrees, false)
@@ -966,40 +935,8 @@ open class VideoView : RelativeLayout {
       videoSizeChangedListener?.onVideoSizeChanged(width, height, pixelWidthHeightRatio)
     }
 
-    override fun onPrepared() {
-      videoControls?.setDuration(duration)
-      videoControls?.finishLoading()
-    }
-
     override fun onPreviewImageStateChanged(toVisible: Boolean) {
       previewImageView?.visibility = if (toVisible) View.VISIBLE else View.GONE
     }
   }
-
-  /**
-   * Monitors the view click events to show and hide the video controls if they have been specified.
-   * TODO: this should probably be located in the controls
-   */
-  protected inner class TouchListener(context: Context) : GestureDetector.SimpleOnGestureListener(), View.OnTouchListener {
-    protected val gestureDetector by lazy {
-      GestureDetector(context, this)
-    }
-
-    override fun onTouch(view: View, event: MotionEvent): Boolean {
-      gestureDetector.onTouchEvent(event)
-      return true
-    }
-
-    override fun onSingleTapConfirmed(event: MotionEvent): Boolean {
-      // Toggles between hiding and showing the controls
-      if (videoControls?.isVisible == true) {
-        videoControls?.hide(false)
-      } else {
-        showControls()
-      }
-
-      return true
-    }
-  }
-
 }

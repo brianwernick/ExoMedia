@@ -1,26 +1,29 @@
 package com.devbrackets.android.exomedia.ui.widget.controls
 
+import android.annotation.SuppressLint
 import android.content.Context
-import androidx.annotation.IntRange
 import android.util.AttributeSet
+import android.view.GestureDetector
+import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.SeekBar
+import androidx.annotation.IntRange
 import com.devbrackets.android.exomedia.R
 import com.devbrackets.android.exomedia.util.millisToFormattedDuration
 import java.util.*
 
 /**
- * Provides playback controls for the [VideoView] on Mobile
- * (Phone, Tablet, etc.) devices.
+ * Provides playback controls for the [com.devbrackets.android.exomedia.ui.widget.VideoView]
+ * on mobile devices (Phone, Tablet, etc.).
  */
 class VideoControlsMobile : DefaultVideoControls {
-  protected lateinit var seekBar: SeekBar
-  protected lateinit var extraViewsContainer: LinearLayout
-  protected lateinit var container: ViewGroup
+  private lateinit var seekBar: SeekBar
+  private lateinit var extraViewsContainer: LinearLayout
+  private lateinit var container: ViewGroup
 
-  protected var userInteracting = false
+  private var userInteracting = false
 
   override val layoutResource: Int
     get() = R.layout.exomedia_default_controls_mobile
@@ -44,19 +47,29 @@ class VideoControlsMobile : DefaultVideoControls {
   constructor(context: Context, attrs: AttributeSet, defStyleAttr: Int) : super(context, attrs, defStyleAttr)
   constructor(context: Context, attrs: AttributeSet, defStyleAttr: Int, defStyleRes: Int) : super(context, attrs, defStyleAttr, defStyleRes)
 
+  override fun setup(context: Context) {
+    super.setup(context)
+    setOnTouchListener(TouchListener(context))
+  }
+
   override fun setPosition(@IntRange(from = 0) position: Long) {
     currentTimeTextView.text = position.millisToFormattedDuration()
     seekBar.progress = position.toInt()
   }
 
   override fun setDuration(@IntRange(from = 0) duration: Long) {
+    super.setDuration(duration)
     if (duration != seekBar.max.toLong()) {
       endTimeTextView.text = duration.millisToFormattedDuration()
       seekBar.max = duration.toInt()
     }
   }
 
-  override fun updateProgress(@IntRange(from = 0) position: Long, @IntRange(from = 0) duration: Long, @IntRange(from = 0, to = 100) bufferPercent: Int) {
+  override fun updateProgress(
+    @IntRange(from = 0) position: Long,
+    @IntRange(from = 0) duration: Long,
+    @IntRange(from = 0, to = 100) bufferPercent: Int
+  ) {
     if (!userInteracting) {
       seekBar.secondaryProgress = (seekBar.max * (bufferPercent.toFloat() / 100)).toInt()
       seekBar.progress = position.toInt()
@@ -85,10 +98,18 @@ class VideoControlsMobile : DefaultVideoControls {
     extraViewsContainer.removeView(view)
   }
 
+  override fun show() {
+    super.show()
+
+    if (videoView?.isPlaying == true) {
+      hide(true)
+    }
+  }
+
   override fun hideDelayed(delay: Long) {
     hideDelay = delay
 
-    if (delay < 0 || !canViewHide || isLoading) {
+    if (delay < 0 || isLoading) {
       return
     }
 
@@ -152,7 +173,7 @@ class VideoControlsMobile : DefaultVideoControls {
   /**
    * Listens to the seek bar change events and correctly handles the changes
    */
-  protected inner class SeekBarChanged : SeekBar.OnSeekBarChangeListener {
+  private inner class SeekBarChanged : SeekBar.OnSeekBarChangeListener {
     private var seekToTime: Long = 0
 
     override fun onProgressChanged(seekBar: SeekBar, progress: Int, fromUser: Boolean) {
@@ -177,6 +198,32 @@ class VideoControlsMobile : DefaultVideoControls {
       if (seekListener?.onSeekEnded(seekToTime) != true) {
         internalListener.onSeekEnded(seekToTime)
       }
+    }
+  }
+
+  /**
+   * Monitors the view click events to show and hide the video controls if they have been specified.
+   */
+  private inner class TouchListener(context: Context) : GestureDetector.SimpleOnGestureListener(), OnTouchListener {
+    private val gestureDetector by lazy {
+      GestureDetector(context, this)
+    }
+
+    @SuppressLint("ClickableViewAccessibility")
+    override fun onTouch(view: View, event: MotionEvent): Boolean {
+      gestureDetector.onTouchEvent(event)
+      return true
+    }
+
+    override fun onSingleTapConfirmed(event: MotionEvent): Boolean {
+      // Toggles between hiding and showing the controls
+      if (isVisible) {
+        hide(false)
+      } else {
+        show()
+      }
+
+      return true
     }
   }
 }

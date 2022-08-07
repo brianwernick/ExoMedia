@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
   <declare-styleable name="VideoView">
-    <attr name="useDefaultControls" format="boolean" />
     <attr name="useTextureViewBacking" format="boolean" />
     <attr name="measureBasedOnAspectRatio" format="boolean" />
     <attr name="playerConfigProvider" format="string" />
+    <attr name="videoControlsProvider" format="string" />
+
     <attr name="videoScale" format="enum">
       <enum name="center" value="0" />
       <enum name="centerCrop" value="1" />

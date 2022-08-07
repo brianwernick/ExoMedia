@@ -54,7 +54,7 @@ open class VideoPlayerActivity : BindingActivity<VideoPlayerActivityBinding>(), 
   private val captionPopupManager = CaptionPopupManager()
   private val fullscreenManager by lazy {
     FullscreenManager(window) {
-      binding.videoView.showControls()
+      (binding.videoView.videoControls as? DefaultVideoControls)?.show()
     }
   }
 

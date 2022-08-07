@@ -129,7 +129,6 @@ class ListenerMux(
   }
 
   override fun onSeekComplete() {
-    muxNotifier.onSeekComplete()
     seekCompletionListener?.onSeekComplete()
   }
 
@@ -258,7 +257,6 @@ class ListenerMux(
     isPrepared = true
 
     delayedHandler.post {
-      muxNotifier.onPrepared()
       preparedListener?.onPrepared()
     }
   }
@@ -269,17 +267,7 @@ class ListenerMux(
   }
 
   abstract class Notifier {
-    @Deprecated("Implementations should observe the PlaybackState instead")
-    open fun onSeekComplete() {
-      //Purposefully left blank
-    }
-
     open fun onVideoSizeChanged(width: Int, height: Int, unAppliedRotationDegrees: Int, pixelWidthHeightRatio: Float) {
-      //Purposefully left blank
-    }
-
-    @Deprecated("Implementations should observe the PlaybackState instead")
-    open fun onPrepared() {
       //Purposefully left blank
     }
 

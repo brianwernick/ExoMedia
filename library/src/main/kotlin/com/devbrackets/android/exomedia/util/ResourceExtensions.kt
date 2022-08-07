@@ -4,10 +4,11 @@ import android.content.Context
 import android.content.res.ColorStateList
 import android.graphics.drawable.Drawable
 import android.os.Build
-import androidx.annotation.*
-import androidx.core.graphics.drawable.DrawableCompat
+import androidx.annotation.ColorRes
+import androidx.annotation.DrawableRes
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.content.res.ResourcesCompat
+import androidx.core.graphics.drawable.DrawableCompat
 
 /**
  * Retrieves the drawable specified with the `drawableRes` using the
@@ -18,7 +19,7 @@ import androidx.core.content.res.ResourcesCompat
  * @param tintListRes The resource id for the ColorStateList to use for tinting
  * @return The tinted drawable
  */
-fun Context.tintListCompat(@DrawableRes drawableRes: Int, @ColorRes tintListRes: Int): Drawable {
+internal fun Context.tintListCompat(@DrawableRes drawableRes: Int, @ColorRes tintListRes: Int): Drawable {
   val drawable = ResourcesCompat.getDrawable(resources, drawableRes, theme)!!.mutate()
   return tintListCompat(drawable, tintListRes)
 }
@@ -32,10 +33,12 @@ fun Context.tintListCompat(@DrawableRes drawableRes: Int, @ColorRes tintListRes:
  * @param tintListRes The resource id for the ColorStateList to use for tinting
  * @return The tinted drawable
  */
-fun Context.tintListCompat(drawable: Drawable, @ColorRes tintListRes: Int): Drawable =
+internal fun Context.tintListCompat(drawable: Drawable, @ColorRes tintListRes: Int): Drawable =
     DrawableCompat
         .wrap(drawable)
-        .also { DrawableCompat.setTintList(it, getColorStateListCompat(tintListRes)) }
+        .also {
+          DrawableCompat.setTintList(it, getColorStateListCompat(tintListRes))
+        }
 
 /**
  * Retrieves the ColorStateList specified with the `colorRes`.  This
@@ -44,8 +47,10 @@ fun Context.tintListCompat(drawable: Drawable, @ColorRes tintListRes: Int): Draw
  * @param colorRes The id for the ColorStateList to retrieve
  * @return The ColorStateList associated with `colorRes`
  */
-fun Context.getColorStateListCompat(@ColorRes colorRes: Int): ColorStateList {
+internal fun Context.getColorStateListCompat(@ColorRes colorRes: Int): ColorStateList {
   return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
     resources.getColorStateList(colorRes, theme)
-  } else AppCompatResources.getColorStateList(this, colorRes)
+  } else {
+    AppCompatResources.getColorStateList(this, colorRes)
+  }
 }

@@ -3,9 +3,7 @@ package com.devbrackets.android.exomedia.ui.widget.controls
 import android.content.Context
 import android.graphics.drawable.Drawable
 import android.os.Handler
-import androidx.annotation.ColorRes
-import androidx.annotation.IntRange
-import androidx.annotation.LayoutRes
+import android.os.Looper
 import android.util.AttributeSet
 import android.util.SparseBooleanArray
 import android.view.View
@@ -13,7 +11,11 @@ import android.widget.ImageButton
 import android.widget.ProgressBar
 import android.widget.RelativeLayout
 import android.widget.TextView
+import androidx.annotation.ColorRes
+import androidx.annotation.IntRange
+import androidx.annotation.LayoutRes
 import com.devbrackets.android.exomedia.R
+import com.devbrackets.android.exomedia.core.state.PlaybackState
 import com.devbrackets.android.exomedia.ui.listener.VideoControlsButtonListener
 import com.devbrackets.android.exomedia.ui.listener.VideoControlsSeekListener
 import com.devbrackets.android.exomedia.ui.listener.VideoControlsVisibilityListener
@@ -31,7 +33,7 @@ import kotlin.math.abs
 abstract class DefaultVideoControls : RelativeLayout, VideoControls {
   companion object {
     @JvmStatic
-    val DEFAULT_CONTROL_HIDE_DELAY = 2000
+    val DEFAULT_CONTROL_HIDE_DELAY = 2_000L
 
     @JvmStatic
     protected val CONTROL_VISIBILITY_ANIMATION_LENGTH: Long = 300
@@ -49,7 +51,7 @@ abstract class DefaultVideoControls : RelativeLayout, VideoControls {
   protected lateinit var playDrawable: Drawable
   protected lateinit var pauseDrawable: Drawable
 
-  protected var visibilityHandler = Handler()
+  protected var visibilityHandler = Handler(Looper.getMainLooper())
   protected var progressPollRepeater = Repeater()
 
   protected var videoView: VideoView? = null
@@ -65,19 +67,10 @@ abstract class DefaultVideoControls : RelativeLayout, VideoControls {
   /**
    * The delay in milliseconds to wait to start the hide animation
    */
-  protected var hideDelay = DEFAULT_CONTROL_HIDE_DELAY.toLong()
+  protected var hideDelay = DEFAULT_CONTROL_HIDE_DELAY
 
   protected var isLoading = false
-
-  /**
-   * Returns `true` if the [DefaultVideoControls] are visible
-   *
-   * @return `true` if the controls are visible
-   */
-  override var isVisible = true
-    protected set
-
-  protected var canViewHide = true
+  protected var isVisible = true
 
   /**
    * `true` If the empty text blocks can be hidden [default: true]
@@ -89,6 +82,7 @@ abstract class DefaultVideoControls : RelativeLayout, VideoControls {
     }
 
   private var lastUpdatedPosition: Long = 0
+  private var knownDuration: Long? = null
 
   /**
    * Used to retrieve the layout resource identifier to inflate
@@ -131,7 +125,11 @@ abstract class DefaultVideoControls : RelativeLayout, VideoControls {
    * @param duration The duration of the video in milliseconds
    * @param bufferPercent The integer percent that is buffered [0, 100] inclusive
    */
-  abstract fun updateProgress(@IntRange(from = 0) position: Long, @IntRange(from = 0) duration: Long, @IntRange(from = 0, to = 100) bufferPercent: Int)
+  abstract fun updateProgress(
+    @IntRange(from = 0) position: Long,
+    @IntRange(from = 0) duration: Long,
+    @IntRange(from = 0, to = 100) bufferPercent: Int
+  )
 
   /**
    * Performs the control visibility animation for showing or hiding
@@ -164,7 +162,7 @@ abstract class DefaultVideoControls : RelativeLayout, VideoControls {
   protected fun updateCurrentTime(position: Long) {
     // optimization :
     // update the timestamp text per second regarding the 'reset' or 'seek' operations.
-    if (abs(position - lastUpdatedPosition) >= 1000 || lastUpdatedPosition == 0L) {
+    if (abs(position - lastUpdatedPosition) >= 1_000 || lastUpdatedPosition == 0L) {
       lastUpdatedPosition = position
 
       currentTimeTextView.text = position.millisToFormattedDuration()
@@ -210,14 +208,32 @@ abstract class DefaultVideoControls : RelativeLayout, VideoControls {
     this.buttonsListener = callback
   }
 
+  override fun onPlaybackStateChange(state: PlaybackState) {
+    when (state) {
+      PlaybackState.IDLE -> {}
+      PlaybackState.PREPARING -> showLoading(true)
+      PlaybackState.BUFFERING -> showLoading(false)
+      PlaybackState.SEEKING -> showLoading(false)
+      PlaybackState.READY -> {
+        finishLoading()
+      }
+      PlaybackState.PLAYING -> updatePlaybackState(true)
+      PlaybackState.PAUSED -> updatePlaybackState(false)
+      PlaybackState.COMPLETED -> updatePlaybackState(false)
+      PlaybackState.STOPPED -> updatePlaybackState(false)
+      PlaybackState.RELEASED -> updatePlaybackState(false)
+      PlaybackState.ERROR -> updatePlaybackState(false)
+    }
+  }
+
   /**
    * Informs the controls that the playback state has changed.  This will
    * update to display the correct views, and manage progress polling.
    *
    * @param isPlaying True if the media is currently playing
    */
-  override fun updatePlaybackState(isPlaying: Boolean) {
-    updatePlayPauseImage(isPlaying)
+  fun updatePlaybackState(isPlaying: Boolean) {
+    playPauseButton.setImageDrawable(if (isPlaying) pauseDrawable else playDrawable)
     progressPollRepeater.start()
 
     if (isPlaying) {
@@ -225,6 +241,42 @@ abstract class DefaultVideoControls : RelativeLayout, VideoControls {
     } else {
       show()
     }
+  }
+
+  /**
+   * Update the controls to indicate that the video
+   * is loading.
+   *
+   * @param initialLoad `true` if the loading is the initial state, not for seeking or buffering
+   */
+  open fun showLoading(initialLoad: Boolean) {
+    if (isLoading) {
+      return
+    }
+
+    isLoading = true
+  }
+
+  /**
+   * Update the controls to indicate that the video is no longer loading
+   * which will re-display the play/pause, progress, etc. controls
+   */
+  open fun finishLoading() {
+    if (!isLoading) {
+      return
+    }
+
+    isLoading = false
+  }
+
+  /**
+   * Sets the video duration in Milliseconds to display
+   * at the end of the progress bar
+   *
+   * @param duration The duration of the video in milliseconds
+   */
+  open fun setDuration(@IntRange(from = 0) duration: Long) {
+    knownDuration = duration
   }
 
   /**
@@ -249,64 +301,6 @@ abstract class DefaultVideoControls : RelativeLayout, VideoControls {
   }
 
   /**
-   * Sets the drawables to use for the PlayPause button
-   *
-   * @param playDrawable The drawable to represent play
-   * @param pauseDrawable The drawable to represent pause
-   */
-  fun setPlayPauseDrawables(playDrawable: Drawable, pauseDrawable: Drawable) {
-    this.playDrawable = playDrawable
-    this.pauseDrawable = pauseDrawable
-
-    updatePlayPauseImage(videoView?.isPlaying == true)
-  }
-
-  /**
-   * Sets the drawable for the previous button
-   *
-   * @param drawable The drawable to use
-   */
-  fun setPreviousDrawable(drawable: Drawable) {
-    previousButton.setImageDrawable(drawable)
-  }
-
-  /**
-   * Sets the drawable for the next button
-   *
-   * @param drawable The drawable to use
-   */
-  fun setNextDrawable(drawable: Drawable) {
-    nextButton.setImageDrawable(drawable)
-  }
-
-  /**
-   * Sets the drawable for the rewind button
-   *
-   * @param drawable The drawable to use
-   */
-  open fun setRewindDrawable(drawable: Drawable) {
-    //Purposefully let blank
-  }
-
-  /**
-   * Sets the drawable for the Fast  button
-   *
-   * @param drawable The drawable to use
-   */
-  open fun setFastForwardDrawable(drawable: Drawable) {
-    //Purposefully let blank
-  }
-
-  /**
-   * Makes sure the playPause button represents the correct playback state
-   *
-   * @param isPlaying If the video is currently playing
-   */
-  fun updatePlayPauseImage(isPlaying: Boolean) {
-    playPauseButton.setImageDrawable(if (isPlaying) pauseDrawable else playDrawable)
-  }
-
-  /**
    * Sets the button state for the Previous button.  This will just
    * change the images specified with [.setPreviousDrawable],
    * or use the defaults if they haven't been set, and block any click events.
@@ -326,7 +320,6 @@ abstract class DefaultVideoControls : RelativeLayout, VideoControls {
    * Sets the button state for the Next button.  This will just
    * change the images specified with [.setNextDrawable],
    * or use the defaults if they haven't been set, and block any click events.
-   *
    *
    * This method will NOT re-add buttons that have previously been removed with
    * [.setPreviousButtonRemoved].
@@ -395,7 +388,7 @@ abstract class DefaultVideoControls : RelativeLayout, VideoControls {
    * @param removed If the Rewind button should be removed [default: true]
    */
   open fun setRewindButtonRemoved(removed: Boolean) {
-    //Purposefully left blank
+    // Purposefully left blank
   }
 
   /**
@@ -405,29 +398,29 @@ abstract class DefaultVideoControls : RelativeLayout, VideoControls {
    * @param removed If the FastForward button should be removed [default: true]
    */
   open fun setFastForwardButtonRemoved(removed: Boolean) {
-    //Purposefully left blank
+    // Purposefully left blank
   }
 
   open fun addExtraView(view: View) {
-    //Purposefully left blank
+    // Purposefully left blank
   }
 
   open fun removeExtraView(view: View) {
-    //Purposefully left blank
+    // Purposefully left blank
   }
 
   /**
    * Immediately starts the animation to show the controls
    */
-  override fun show() {
-    //Makes sure we don't have a hide animation scheduled
+  open fun show() {
+    // Makes sure we don't have a hide animation scheduled
     visibilityHandler.removeCallbacksAndMessages(null)
     clearAnimation()
 
     animateVisibility(true)
   }
 
-  override fun hide(delayed: Boolean) {
+  protected fun hide(delayed: Boolean) {
     if (delayed) {
       hideDelayed()
     } else {
@@ -439,7 +432,7 @@ abstract class DefaultVideoControls : RelativeLayout, VideoControls {
    * Immediately starts the animation to hide the controls
    */
   fun hide() {
-    if (!canViewHide || isLoading) {
+    if (isLoading) {
       return
     }
 
@@ -467,20 +460,11 @@ abstract class DefaultVideoControls : RelativeLayout, VideoControls {
   open fun hideDelayed(delay: Long) {
     hideDelay = delay
 
-    if (delay < 0 || !canViewHide || isLoading) {
+    if (delay < 0 || isLoading) {
       return
     }
 
     visibilityHandler.postDelayed({ hide() }, delay)
-  }
-
-  /**
-   * Sets weather this control can be hidden.
-   *
-   * @param canHide If this control can be hidden [default: true]
-   */
-  fun setCanHide(canHide: Boolean) {
-    canViewHide = canHide
   }
 
   /**
@@ -584,11 +568,15 @@ abstract class DefaultVideoControls : RelativeLayout, VideoControls {
   }
 
   /**
-   * Called by the [.progressPollRepeater] to update the progress
-   * bar using the [.videoView] to retrieve the correct information
+   * Called by the [progressPollRepeater] to update the progress
+   * bar using the [videoView] to retrieve the correct information
    */
   protected fun updateProgress() {
     videoView?.let {
+      if (knownDuration == null || it.duration != knownDuration) {
+        setDuration(it.duration)
+      }
+
       updateProgress(it.currentPosition, it.duration, it.bufferPercentage)
     }
   }
@@ -598,7 +586,7 @@ abstract class DefaultVideoControls : RelativeLayout, VideoControls {
    * VideoControls
    */
   protected open inner class InternalListener : VideoControlsSeekListener, VideoControlsButtonListener {
-    protected var pausedForSeek = false
+    private var pausedForSeek = false
 
     override fun onPlayPauseClicked(): Boolean {
       return videoView?.let {

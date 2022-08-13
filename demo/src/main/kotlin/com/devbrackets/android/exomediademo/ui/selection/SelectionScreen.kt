@@ -125,10 +125,12 @@ private fun MediaItem(
     modifier = Modifier
       .fillMaxWidth()
       .defaultMinSize(minHeight = 48.dp)
+      .padding(horizontal = 8.dp)
+      .clip(MaterialTheme.shapes.medium)
       .clickable {
         onClick()
       }
-      .padding(16.dp)
+      .padding(horizontal = 8.dp, vertical = 16.dp)
   ) {
     Text(text = title)
   }

@@ -113,7 +113,7 @@ abstract class BaseSurfaceEnvelope<T: View>(
 
       gl10.eglTerminate(display)
     } catch (e: Exception) {
-      Log.w("VideoSurfaceController", "Error clearing surface", e)
+      Log.w("BaseSurfaceEnvelope", "Error clearing surface", e)
     }
   }
 

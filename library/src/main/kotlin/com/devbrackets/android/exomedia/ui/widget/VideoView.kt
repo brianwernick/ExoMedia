@@ -609,7 +609,14 @@ open class VideoView : RelativeLayout, PlaybackStateListener {
   }
 
   /**
-   * Sets the rotation for the Video
+   * Sets the rotation for the Video, this will apply the rotation on-top of the
+   * specified rotation in the media file.
+   *
+   * **NOTE:**
+   * Setting a manual video rotation is _not_ supported by the `SurfaceView`, this
+   * means you will need to use the `TextureView` backing which can be applied by
+   * adding `app:useTextureViewBacking="true"` to the `VideoView` definition in
+   * XML.
    *
    * @param rotation The rotation to apply to the video
    */

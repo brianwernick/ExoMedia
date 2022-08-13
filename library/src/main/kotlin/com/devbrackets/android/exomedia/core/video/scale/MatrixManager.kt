@@ -1,10 +1,9 @@
 package com.devbrackets.android.exomedia.core.video.scale
 
 import android.graphics.Point
-import androidx.annotation.IntRange
 import android.util.Log
 import android.view.View
-
+import androidx.annotation.IntRange
 import java.lang.ref.WeakReference
 import kotlin.math.max
 import kotlin.math.min
@@ -57,13 +56,13 @@ open class MatrixManager {
     val swapWidthHeight = rotation / QUARTER_ROTATION % 2 == 1
     val currentWidthHeightSwapped = currentRotation / QUARTER_ROTATION % 2 == 1
 
-    //Makes sure the width and height are correctly swapped
+    // Makes sure the width and height are correctly swapped
     if (swapWidthHeight != currentWidthHeightSwapped) {
       val tempX = intrinsicVideoSize.x
       intrinsicVideoSize.x = intrinsicVideoSize.y
       intrinsicVideoSize.y = tempX
 
-      //We re-apply the scale to make sure it is correct
+      // We re-apply the scale to make sure it is correct
       scale(view, currentScaleType)
     }
 

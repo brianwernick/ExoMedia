@@ -2,7 +2,7 @@ import org.gradle.internal.logging.text.StyledTextOutputFactory
 import static org.gradle.internal.logging.text.StyledTextOutput.Style
 
 buildscript {
-  ext.kotlinVersion = '1.6.10'
+  ext.kotlinVersion = '1.7.10'
   repositories {
     mavenCentral()
     google()

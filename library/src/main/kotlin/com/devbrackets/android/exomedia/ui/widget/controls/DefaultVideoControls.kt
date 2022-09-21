@@ -52,7 +52,9 @@ abstract class DefaultVideoControls : RelativeLayout, VideoControls {
   protected lateinit var pauseDrawable: Drawable
 
   protected var visibilityHandler = Handler(Looper.getMainLooper())
-  protected var progressPollRepeater = Repeater()
+  protected var progressPollRepeater = Repeater {
+    updateProgress()
+  }
 
   protected var videoView: VideoView? = null
 
@@ -172,11 +174,6 @@ abstract class DefaultVideoControls : RelativeLayout, VideoControls {
   override fun onAttachedToWindow() {
     super.onAttachedToWindow()
 
-    //A poll used to periodically update the progress bar
-    progressPollRepeater.repeatListener = {
-      updateProgress()
-    }
-
     if (videoView?.isPlaying == true) {
       updatePlaybackState(true)
     }
@@ -186,7 +183,6 @@ abstract class DefaultVideoControls : RelativeLayout, VideoControls {
     super.onDetachedFromWindow()
 
     progressPollRepeater.stop()
-    progressPollRepeater.repeatListener = null
   }
 
   override fun onAttachedToView(videoView: VideoView) {

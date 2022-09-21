@@ -2,18 +2,17 @@ package com.devbrackets.android.exomedia.util
 
 import android.os.Handler
 import android.os.HandlerThread
+import android.os.Looper
 import androidx.annotation.FloatRange
 
 /**
  * A simple stopwatch to keep a correct and updated record of the running duration
  * of processes.
- *
- * TODO: can we replace this with fixedRateTimer?
  */
 class StopWatch {
   companion object {
-    protected const val HANDLER_THREAD_NAME = "ExoMedia_StopWatch_HandlerThread"
-    protected const val DEFAULT_TICK_DELAY = 33 // ~30 fps
+    private const val HANDLER_THREAD_NAME = "ExoMedia_StopWatch_HandlerThread"
+    private const val DEFAULT_TICK_DELAY = 33 // ~30 fps
   }
 
   /**
@@ -23,23 +22,23 @@ class StopWatch {
    */
   @Volatile
   var isRunning = false
-    protected set
+    private set
 
   /**
    * The approximate duration between time updates in milliseconds [default: {@value #DEFAULT_TICK_DELAY}]
    */
   var tickDelay = DEFAULT_TICK_DELAY
 
-  protected var delayedHandler: Handler? = null
-  protected val handlerThread by lazy { HandlerThread(HANDLER_THREAD_NAME) }
-  protected var useHandlerThread = false
+  private var delayedHandler: Handler? = null
+  private val handlerThread by lazy { HandlerThread(HANDLER_THREAD_NAME) }
+  private var useHandlerThread = false
 
   var tickListener: ((currentTime: Long) -> Unit)? = null
-  protected var tickRunnable = TickRunnable()
+  private var tickRunnable = TickRunnable()
 
-  protected var startTime: Long = 0
-  protected var currentTime: Long = 0
-  protected var storedTime: Long = 0
+  private var startTime: Long = 0
+  private var currentTime: Long = 0
+  private var storedTime: Long = 0
 
   /**
    * The multiplier to use when calculating the passed duration. This
@@ -63,7 +62,7 @@ class StopWatch {
   @JvmOverloads
   constructor(processOnStartingThread: Boolean = true) {
     if (processOnStartingThread) {
-      delayedHandler = Handler()
+      delayedHandler = Handler(Looper.myLooper() ?: Looper.getMainLooper())
       return
     }
 
@@ -136,8 +135,8 @@ class StopWatch {
     storedTime = time
   }
 
-  protected inner class TickRunnable : Runnable {
-    protected var tempNow: Long = 0
+  private inner class TickRunnable : Runnable {
+    private var tempNow: Long = 0
     var lastTickTimestamp: Long = -1
 
     override fun run() {

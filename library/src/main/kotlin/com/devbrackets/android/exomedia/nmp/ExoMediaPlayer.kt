@@ -47,7 +47,7 @@ interface ExoMediaPlayer {
 
   /**
    * Returns the duration of the loaded media in milliseconds, if no media is loaded then
-   * [androidx.media3.exoplayer.C.TIME_UNSET] will be returned.
+   * [androidx.media3.common.C.TIME_UNSET] will be returned.
    */
   val duration: Long
 
@@ -141,13 +141,16 @@ interface ExoMediaPlayer {
   fun seekTo(positionMs: Long, limitToCurrentWindow: Boolean)
 
   /**
-   * TODO: setMediaSource should call this automatically, should we keep this for audioPlayer compat or just let
-   *       the fallback implementations handle this internally?
+   * Performs the functionality to prepare the media player for playback.
+   * This should be called _after_ media has been specified via [setMediaUri]
+   * or [setMediaSource].
    */
   fun prepare()
 
   /**
-   * TODO: see comment on `prepare`
+   * Indicates to the media player that the next call to [prepare] should
+   * proceed with the initial preparation even if [prepare] the media player
+   * has previously been prepared.
    */
   fun forcePrepare()
 

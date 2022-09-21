@@ -20,6 +20,7 @@ class CaptionPopupManager {
       val selected: Boolean
   )
 
+  @androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
   fun getCaptionItems(videoView: VideoView): List<CaptionItem> {
     val trackGroupArray = videoView.availableTracks?.get(RendererType.CLOSED_CAPTION)
     if (trackGroupArray == null || trackGroupArray.isEmpty) {

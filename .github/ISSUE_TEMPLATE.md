@@ -1,14 +1,12 @@
-- [ ] I have verified there are no duplicate active or recent bugs, questions, or requests
-
-###### Include the following:
- - ExoMedia version: `4.0.0`
- - Device OS version: `7.0`
- - Devide Manufacturer: `Google`
- - Device Name: `Pixel XL`
+### Environment:
+ - ExoMedia version: `5.0.0`
+ - Device OS version: `12.0`
+ - Device Manufacturer: `Google`
+ - Device Name: `Pixel 6 Pro`
  
-###### Reproduction Steps
+### Reproduction Steps
  0.  
 
-###### Expected Result
+#### Expected Result
 
-###### Actual Result
+#### Actual Result

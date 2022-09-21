@@ -1,12 +1,10 @@
 package com.devbrackets.android.exomedia.core.audio
 
-import android.net.Uri
 import androidx.annotation.FloatRange
 import androidx.annotation.IntRange
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.drm.DrmSessionManagerProvider
-import androidx.media3.exoplayer.source.MediaSource
 import androidx.media3.exoplayer.source.TrackGroupArray
 import com.devbrackets.android.exomedia.core.ListenerMux
 import com.devbrackets.android.exomedia.core.renderer.RendererType
@@ -51,7 +49,7 @@ interface AudioPlayerApi {
   val bufferedPercent: Int
 
   /**
-   * Retrieves the information associated with the current [androidx.media3.exoplayer.Timeline.Window]
+   * Retrieves the information associated with the current [androidx.media3.common.Timeline.Window]
    * used by the ExoPlayer backed implementation. When the [android.media.MediaPlayer] backed
    * implementation is being used this will be null.
    *
@@ -92,13 +90,13 @@ interface AudioPlayerApi {
   var drmSessionManagerProvider: DrmSessionManagerProvider?
 
   /**
-   * Sets the source path for the media item.  This path can be a web address (e.g. http://) or
+   * Sets the source for the media item. The uri can be a web address (e.g. https://) or
    * an absolute local path (e.g. file://)
    *
-   * @param uri The Uri representing the path to the audio item
-   * @param mediaSource The MediaSource to use for audio playback
+   * @param mediaItem The [MediaItem] that specifies the media for playback. If both the uri and mediaSource
+   *                  are defined then the mediaSource will take precedence when supported.
    */
-  fun setMedia(uri: Uri? = null, mediaSource: MediaSource? = null)
+  fun setMedia(mediaItem: MediaItem?)
 
   /**
    * Starts the playback for the media specified in [setMedia].
@@ -185,7 +183,7 @@ interface AudioPlayerApi {
    * Enables or disables the track associated with the `type`. Note, by default all
    * tracks are enabled
    *
-   * @param type The [com.devbrackets.android.exomedia.ExoMedia.RendererType] to enable or disable the track for
+   * @param type The [RendererType] to enable or disable the track for
    * @param enabled `true` if the track should be enabled.
    */
   fun setRendererEnabled(type: RendererType, enabled: Boolean)
@@ -201,7 +199,7 @@ interface AudioPlayerApi {
   /**
    * Moves the current audio progress to the specified location.
    * This method should only be called after the AudioPlayer is
-   * prepared. (see [setOnPreparedListener]
+   * prepared.
    *
    * @param milliseconds The time to move the playback to
    */

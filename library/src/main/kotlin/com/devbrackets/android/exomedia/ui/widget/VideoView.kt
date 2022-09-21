@@ -10,7 +10,10 @@ import android.media.AudioManager
 import android.net.Uri
 import android.os.Build
 import android.util.AttributeSet
-import android.view.*
+import android.view.SurfaceView
+import android.view.TextureView
+import android.view.View
+import android.view.ViewStub
 import android.widget.ImageView
 import android.widget.RelativeLayout
 import androidx.annotation.DrawableRes
@@ -23,6 +26,7 @@ import androidx.media3.exoplayer.source.MediaSource
 import androidx.media3.exoplayer.source.TrackGroupArray
 import com.devbrackets.android.exomedia.R
 import com.devbrackets.android.exomedia.core.ListenerMux
+import com.devbrackets.android.exomedia.core.audio.MediaItem
 import com.devbrackets.android.exomedia.core.listener.CaptionListener
 import com.devbrackets.android.exomedia.core.listener.MetadataListener
 import com.devbrackets.android.exomedia.core.renderer.RendererType
@@ -49,11 +53,8 @@ import com.devbrackets.android.exomedia.util.StopWatch
  * This is a support VideoView that will use the standard, MediaPlayer backed, VideoView
  * on devices that don't support the ExoPlayer; otherwise the ExoPlayer backed VideoView
  * will be used to provide better configurability and format support.
- *
- * TODO why doesn't this extend VideoPlayerApi?
- * TODO: standardize naming of exposed methods with the AudioPlayer (e.g. setMediaUri instead of setVideoUri)
  */
-@Suppress("MemberVisibilityCanBePrivate")
+@Suppress("MemberVisibilityCanBePrivate", "unused")
 open class VideoView : RelativeLayout, PlaybackStateListener {
 
   /**
@@ -72,12 +73,9 @@ open class VideoView : RelativeLayout, PlaybackStateListener {
   protected val videoPlayer: VideoPlayerApi by lazy { getApiImplementation() }
 
   /**
-   * Retrieves the current Video URI.  If this hasn't been set with [.setVideoURI]
-   * or [.setVideoPath] then null will be returned.
-   *
-   * @return The current video URI or null
+   * Gets the [MediaItem] currently used. This is specified by calling [setMedia]
    */
-  var videoUri: Uri? = null
+  var mediaItem: MediaItem? = null
     protected set
 
   protected var audioManager: AudioManager? = null
@@ -198,7 +196,7 @@ open class VideoView : RelativeLayout, PlaybackStateListener {
     get() = videoPlayer.bufferedPercent
 
   /**
-   * Retrieves the information associated with the current [androidx.media3.exoplayer.Timeline.Window]
+   * Retrieves the information associated with the current [androidx.media3.common.Timeline.Window]
    * used by the ExoPlayer backed implementation. When the [android.media.MediaPlayer] backed
    * implementation is being used this will be null.
    *
@@ -265,20 +263,27 @@ open class VideoView : RelativeLayout, PlaybackStateListener {
   override fun onPlaybackStateChange(state: PlaybackState) {
     videoControls?.onPlaybackStateChange(state)
     playbackListener?.onPlaybackStateChange(state)
+
+    updatePreviewVisibility(state)
   }
 
-  /**
-   * Stops the playback and releases all resources attached to this
-   * VideoView.  This should not be called manually unless
-   * [.setReleaseOnDetachFromWindow] has been set.
-   */
-  fun release() {
-    videoControls = null
+  @Suppress("FoldInitializerAndIfToElvis")
+  protected fun updatePreviewVisibility(state: PlaybackState) {
+    val view = previewImageView
+    if (view == null) {
+      return
+    }
 
-    stopPlayback()
-    overriddenPositionStopWatch.stop()
+    // Show when preparing
+    if (state == PlaybackState.IDLE || state == PlaybackState.PREPARING) {
+      view.visibility = View.VISIBLE
+      return
+    }
 
-    videoPlayer.release()
+    // Hide when playback was started
+    if (view.visibility == View.VISIBLE && state == PlaybackState.PLAYING) {
+      view.visibility = View.GONE
+    }
   }
 
   /**
@@ -318,34 +323,31 @@ open class VideoView : RelativeLayout, PlaybackStateListener {
   }
 
   /**
-   * Sets the Uri location for the video to play
+   * Sets the [Uri] to play the video from
    *
-   * @param uri The video's Uri
+   * @param uri The video's [Uri]
    */
-  fun setVideoURI(uri: Uri?) {
-    videoUri = uri
-    videoPlayer.setMedia(uri)
+  fun setMedia(uri: Uri?) {
+    val mediaItem = uri?.let {
+      MediaItem(it, null)
+    }
+
+    videoPlayer.setMedia(mediaItem)
+    this.mediaItem = mediaItem
   }
 
   /**
-   * Sets the Uri location for the video to play
+   * Sets the [MediaSource] to play the video from
    *
-   * @param uri The video's Uri
-   * @param mediaSource MediaSource that should be used
+   * @param mediaSource [MediaSource] that should be used
    */
-  fun setVideoURI(uri: Uri?, mediaSource: MediaSource?) {
-    videoUri = uri
-    videoPlayer.setMedia(uri, mediaSource)
-  }
+  fun setMedia(mediaSource: MediaSource?) {
+    val mediaItem = mediaSource?.let {
+      MediaItem(null, it)
+    }
 
-  /**
-   * Sets the path to the video.  This path can be a web address (e.g. http://) or
-   * an absolute local path (e.g. file://)
-   *
-   * @param path The path to the video
-   */
-  fun setVideoPath(path: String) {
-    setVideoURI(Uri.parse(path))
+    videoPlayer.setMedia(mediaItem)
+    this.mediaItem = mediaItem
   }
 
   /**
@@ -359,15 +361,6 @@ open class VideoView : RelativeLayout, PlaybackStateListener {
    */
   fun setDrmSessionManagerProvider(drmSessionManagerProvider: DrmSessionManagerProvider?) {
     videoPlayer.drmSessionManagerProvider = drmSessionManagerProvider
-  }
-
-  /**
-   * Stops the current video playback and resets the listener states
-   * so that we receive the callbacks for events like onPrepared
-   */
-  fun reset() {
-    stopPlayback()
-    setVideoURI(null)
   }
 
   /**
@@ -411,19 +404,12 @@ open class VideoView : RelativeLayout, PlaybackStateListener {
   }
 
   /**
-   * If a video is currently in playback then the playback will be stopped
-   */
-  fun stopPlayback() {
-    stopPlayback(true)
-  }
-
-  /**
    * If the video has completed playback, calling `restart` will seek to the beginning of the video, and play it.
    *
    * @return `true` if the video was successfully restarted, otherwise `false`
    */
   fun restart(): Boolean {
-    if (videoUri == null) {
+    if (mediaItem == null) {
       return false
     }
 
@@ -435,9 +421,39 @@ open class VideoView : RelativeLayout, PlaybackStateListener {
   }
 
   /**
-   * If a video is currently in playback then the playback will be suspended
-   * TODO: rename to release? Internally we call release on the videoPlayer which
-   *       means we won't be able to start playback again with this instance
+   * If a video is currently in playback then the playback will be stopped
+   */
+  fun stop() {
+    stopPlayback(true)
+  }
+
+  /**
+   * Stops the current video playback and resets the listener states
+   * so that we receive the callbacks for events like onPrepared
+   */
+  fun reset() {
+    stop()
+    setMedia(uri = null)
+  }
+
+  /**
+   * Stops the playback and releases all resources attached to this
+   * VideoView. This should not be called manually unless
+   * [releaseOnDetachFromWindow] has been set.
+   */
+  fun release() {
+    videoControls = null
+
+    stop()
+    overriddenPositionStopWatch.stop()
+
+    videoPlayer.release()
+  }
+
+  /**
+   * If a video is currently in playback then the playback will be suspended.
+   * This is similar to the functionality provided by [release] with the exception
+   * that the [videoControls] won't be detached.
    */
   fun suspend() {
     audioFocusHelper.abandonFocus()
@@ -819,12 +835,12 @@ open class VideoView : RelativeLayout, PlaybackStateListener {
    * when enabled.
    */
   protected inner class AudioFocusHelper : AudioManager.OnAudioFocusChangeListener {
-    protected var startRequested = false
-    protected var pausedForLoss = false
-    protected var currentFocus = 0
+    private var startRequested = false
+    private var pausedForLoss = false
+    private var currentFocus = 0
 
     @TargetApi(Build.VERSION_CODES.O)
-    protected var lastFocusRequest: AudioFocusRequest? = null
+    private var lastFocusRequest: AudioFocusRequest? = null
 
     override fun onAudioFocusChange(focusChange: Int) {
       if (!handleAudioFocus || currentFocus == focusChange) {
@@ -875,6 +891,7 @@ open class VideoView : RelativeLayout, PlaybackStateListener {
             status = audioManager!!.requestAudioFocus(it)
           }
       } else {
+        @Suppress("DEPRECATION")
         status = audioManager!!.requestAudioFocus(this, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN)
       }
 
@@ -913,6 +930,7 @@ open class VideoView : RelativeLayout, PlaybackStateListener {
           }
         } ?: AudioManager.AUDIOFOCUS_REQUEST_GRANTED
       } else {
+        @Suppress("DEPRECATION")
         status = audioManager!!.abandonAudioFocus(this)
       }
 
@@ -924,7 +942,7 @@ open class VideoView : RelativeLayout, PlaybackStateListener {
     var videoSizeChangedListener: OnVideoSizeChangedListener? = null
 
     override fun onExoPlayerError(exoMediaPlayer: ExoMediaPlayer, e: Exception?) {
-      stopPlayback()
+      stop()
       exoMediaPlayer.forcePrepare()
     }
 
@@ -940,10 +958,6 @@ open class VideoView : RelativeLayout, PlaybackStateListener {
 
       aspectRatioLayout.setAspectRatio(width, height, pixelWidthHeightRatio)
       videoSizeChangedListener?.onVideoSizeChanged(width, height, pixelWidthHeightRatio)
-    }
-
-    override fun onPreviewImageStateChanged(toVisible: Boolean) {
-      previewImageView?.visibility = if (toVisible) View.VISIBLE else View.GONE
     }
   }
 }

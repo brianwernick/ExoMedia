@@ -9,7 +9,6 @@ import android.view.MenuItem
 import androidx.appcompat.widget.AppCompatImageButton
 import androidx.media3.exoplayer.util.EventLogger
 import com.devbrackets.android.exomedia.core.renderer.RendererType
-import com.devbrackets.android.exomedia.listener.OnVideoSizeChangedListener
 import com.devbrackets.android.exomedia.ui.listener.VideoControlsSeekListener
 import com.devbrackets.android.exomedia.ui.listener.VideoControlsVisibilityListener
 import com.devbrackets.android.exomedia.ui.widget.controls.DefaultVideoControls
@@ -95,7 +94,7 @@ open class VideoPlayerActivity : BindingActivity<VideoPlayerActivityBinding>(), 
     setupPlaylistManager()
 
     binding.videoView.handleAudioFocus = false
-    binding.videoView.setAnalyticsListener(EventLogger(null))
+    binding.videoView.setAnalyticsListener(EventLogger())
 
     setupClosedCaptions()
 
@@ -120,17 +119,15 @@ open class VideoPlayerActivity : BindingActivity<VideoPlayerActivityBinding>(), 
       }
     }
 
-    binding.videoView.setOnVideoSizedChangedListener(object : OnVideoSizeChangedListener {
-      override fun onVideoSizeChanged(intrinsicWidth: Int, intrinsicHeight: Int, pixelWidthHeightRatio: Float) {
-        val videoAspectRatio: Float = if (intrinsicWidth == 0 || intrinsicHeight == 0) {
-          1f
-        } else {
-          intrinsicWidth * pixelWidthHeightRatio / intrinsicHeight
-        }
-
-        binding.subtitleFrameLayout.setAspectRatio(videoAspectRatio)
+    binding.videoView.setOnVideoSizedChangedListener { intrinsicWidth, intrinsicHeight, pixelWidthHeightRatio ->
+      val videoAspectRatio: Float = if (intrinsicWidth == 0 || intrinsicHeight == 0) {
+        1f
+      } else {
+        intrinsicWidth * pixelWidthHeightRatio / intrinsicHeight
       }
-    })
+
+      binding.subtitleFrameLayout.setAspectRatio(videoAspectRatio)
+    }
 
     binding.videoView.setCaptionListener(binding.subtitleView)
   }

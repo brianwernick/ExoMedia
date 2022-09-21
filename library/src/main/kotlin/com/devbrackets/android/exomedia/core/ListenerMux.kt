@@ -4,8 +4,6 @@ import android.os.Handler
 import android.os.Looper
 import androidx.annotation.IntRange
 import androidx.media3.common.Metadata
-import androidx.media3.common.Player
-import androidx.media3.common.Player.State
 import androidx.media3.exoplayer.analytics.AnalyticsListener
 import com.devbrackets.android.exomedia.core.listener.ExoPlayerListener
 import com.devbrackets.android.exomedia.core.listener.MetadataListener
@@ -79,6 +77,8 @@ class ListenerMux(
     playbackState = state
     playbackStateListener?.onPlaybackStateChange(state)
 
+    notifyPreparedListener(state)
+
     when (state) {
       PlaybackState.IDLE -> {
         if (clearRequested) {
@@ -89,34 +89,11 @@ class ListenerMux(
           }
         }
       }
-      PlaybackState.READY -> {
-        if (!isPrepared) {
-          notifyPreparedListener()
-        }
-      }
       PlaybackState.COMPLETED -> {
         notifyCompletionListener()
       }
       PlaybackState.STOPPED, PlaybackState.RELEASED -> {
         muxNotifier.onMediaPlaybackEnded()
-      }
-      else -> {}
-    }
-  }
-
-  /**
-   * TODO: migrate functionality
-   * This method has been temporarily retained until the VideoView has been updated to monitor the
-   * state change itself to dismiss the preview image.
-   */
-  @Deprecated("Use onPlaybackStateChange")
-  override fun onStateChanged(playWhenReady: Boolean, @State playbackState: Int) {
-    when (playbackState) {
-      Player.STATE_READY -> {
-        if (playWhenReady) {
-          // Updates the previewImage
-          muxNotifier.onPreviewImageStateChanged(false)
-        }
       }
       else -> {}
     }
@@ -234,7 +211,6 @@ class ListenerMux(
    */
   fun setNotifiedPrepared(wasNotified: Boolean) {
     isPrepared = wasNotified
-    muxNotifier.onPreviewImageStateChanged(true)
   }
 
   /**
@@ -253,11 +229,20 @@ class ListenerMux(
     }
   }
 
-  private fun notifyPreparedListener() {
-    isPrepared = true
+  private fun notifyPreparedListener(state: PlaybackState) {
+    if (isPrepared) {
+      return
+    }
 
-    delayedHandler.post {
-      preparedListener?.onPrepared()
+    when (state) {
+      PlaybackState.READY, PlaybackState.PLAYING, PlaybackState.PAUSED -> {
+        isPrepared = true
+
+        delayedHandler.post {
+          preparedListener?.onPrepared()
+        }
+      }
+      else -> {}
     }
   }
 
@@ -268,10 +253,6 @@ class ListenerMux(
 
   abstract class Notifier {
     open fun onVideoSizeChanged(width: Int, height: Int, unAppliedRotationDegrees: Int, pixelWidthHeightRatio: Float) {
-      //Purposefully left blank
-    }
-
-    open fun onPreviewImageStateChanged(toVisible: Boolean) {
       //Purposefully left blank
     }
 

@@ -23,9 +23,9 @@ import com.devbrackets.android.exomedia.listener.OnBufferUpdateListener
 import com.devbrackets.android.exomedia.nmp.config.PlayerConfig
 import com.devbrackets.android.exomedia.nmp.manager.StateStore
 import com.devbrackets.android.exomedia.nmp.manager.window.WindowInfo
+import com.devbrackets.android.exomedia.util.Repeater
 import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.atomic.AtomicBoolean
-import kotlin.concurrent.fixedRateTimer
 import kotlin.math.min
 
 class ExoMediaPlayerImpl(
@@ -60,11 +60,14 @@ class ExoMediaPlayerImpl(
   private var prepared = false
 
   private val stateStore = StateStore()
-  private val bufferTimer by lazy {
-    // TODO: reading the bufferPercent can throw an IllegalStateException: Player is accessed on the wrong thread
-    // current thread: 'bufferRepeater', expected thread: 'main'
-    fixedRateTimer("bufferRepeater", true, 0L, BUFFER_REPEAT_DELAY) {
-      bufferUpdateListener?.onBufferingUpdate(bufferedPercent)
+  private val bufferRepeater by lazy {
+    Repeater(
+      delayMillis = BUFFER_REPEAT_DELAY,
+      callback = {
+        bufferUpdateListener?.onBufferingUpdate(bufferedPercent)
+      }
+    ).apply {
+      start()
     }
   }
 
@@ -312,8 +315,7 @@ class ExoMediaPlayerImpl(
   }
 
   override fun release() {
-    // TODO: there's no returning from cancel(), is that expected in release? (or should we revert to using the Repeater?)
-    bufferTimer.cancel()
+    bufferRepeater.stop()
     listeners.clear()
 
     mediaSource?.removeEventListener(config.analyticsCollector)

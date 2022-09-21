@@ -210,9 +210,7 @@ abstract class DefaultVideoControls : RelativeLayout, VideoControls {
       PlaybackState.PREPARING -> showLoading(true)
       PlaybackState.BUFFERING -> showLoading(false)
       PlaybackState.SEEKING -> showLoading(false)
-      PlaybackState.READY -> {
-        finishLoading()
-      }
+      PlaybackState.READY -> finishLoading()
       PlaybackState.PLAYING -> updatePlaybackState(true)
       PlaybackState.PAUSED -> updatePlaybackState(false)
       PlaybackState.COMPLETED -> updatePlaybackState(false)
@@ -230,7 +228,9 @@ abstract class DefaultVideoControls : RelativeLayout, VideoControls {
    */
   fun updatePlaybackState(isPlaying: Boolean) {
     playPauseButton.setImageDrawable(if (isPlaying) pauseDrawable else playDrawable)
+
     progressPollRepeater.start()
+    finishLoading()
 
     if (isPlaying) {
       hideDelayed()

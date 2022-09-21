@@ -1,13 +1,12 @@
 package com.devbrackets.android.exomedia.fallback.video
 
 import android.content.Context
-import android.net.Uri
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
 import androidx.media3.exoplayer.drm.DrmSessionManagerProvider
-import androidx.media3.exoplayer.source.MediaSource
 import androidx.media3.exoplayer.source.TrackGroupArray
 import com.devbrackets.android.exomedia.core.ListenerMux
+import com.devbrackets.android.exomedia.core.audio.MediaItem
 import com.devbrackets.android.exomedia.core.listener.CaptionListener
 import com.devbrackets.android.exomedia.core.renderer.RendererType
 import com.devbrackets.android.exomedia.core.video.VideoPlayerApi
@@ -168,8 +167,8 @@ class NativeVideoPlayer(
     // Not Supported
   }
 
-  override fun setMedia(uri: Uri?, mediaSource: MediaSource?) {
-    mediaPlayer.setMedia(uri)
+  override fun setMedia(mediaItem: MediaItem?) {
+    mediaPlayer.setMedia(mediaItem?.uri)
 
     //Makes sure the listeners get the onPrepared callback
     _listenerMux?.setNotifiedPrepared(false)

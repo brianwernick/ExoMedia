@@ -11,6 +11,7 @@ import androidx.media3.exoplayer.source.MediaSource
 import androidx.media3.exoplayer.source.TrackGroupArray
 import com.devbrackets.android.exomedia.core.ListenerMux
 import com.devbrackets.android.exomedia.core.audio.AudioPlayerApi
+import com.devbrackets.android.exomedia.core.audio.MediaItem
 import com.devbrackets.android.exomedia.core.renderer.RendererType
 import com.devbrackets.android.exomedia.fallback.FallbackMediaPlayer
 import com.devbrackets.android.exomedia.fallback.FallbackMediaPlayerImpl
@@ -62,8 +63,8 @@ class NativeAudioPlayer(context: Context) : AudioPlayerApi {
     get() = null
     set(_) {}
 
-  override fun setMedia(uri: Uri?, mediaSource: MediaSource?) {
-    mediaPlayer.setMedia(uri)
+  override fun setMedia(mediaItem: MediaItem?) {
+    mediaPlayer.setMedia(mediaItem?.uri)
 
     //Makes sure the listeners get the onPrepared callback
     _listenerMux?.setNotifiedPrepared(false)

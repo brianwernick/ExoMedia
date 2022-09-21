@@ -1,7 +1,6 @@
 package com.devbrackets.android.exomedia.util
 
 import android.net.Uri
-import java.util.*
 
 /**
  * A utility to handle the checks and comparisons when determining
@@ -23,5 +22,5 @@ fun Uri.getExtension(): String {
     path = ".$lastPathSegment"
   }
 
-  return path.substring(periodIndex).toLowerCase(Locale.getDefault())
+  return path.substring(periodIndex).lowercase()
 }

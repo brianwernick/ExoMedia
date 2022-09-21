@@ -7,6 +7,7 @@ import androidx.media3.exoplayer.source.MediaSource
 import com.devbrackets.android.exomedia.core.ListenerMux
 import com.devbrackets.android.exomedia.core.audio.AudioPlayerApi
 import com.devbrackets.android.exomedia.core.audio.ExoAudioPlayer
+import com.devbrackets.android.exomedia.core.audio.MediaItem
 import com.devbrackets.android.exomedia.core.listener.MetadataListener
 import com.devbrackets.android.exomedia.core.state.PlaybackState
 import com.devbrackets.android.exomedia.core.state.PlaybackStateListener
@@ -20,6 +21,7 @@ import com.devbrackets.android.exomedia.nmp.config.PlayerConfigBuilder
  * current device does *NOT* support the ExoPlayer then the AudioPlayer will
  * fallback to using the OS MediaPlayer.
  */
+@Suppress("MemberVisibilityCanBePrivate", "unused")
 open class AudioPlayer(protected val audioPlayerImpl: AudioPlayerApi) : AudioPlayerApi by audioPlayerImpl {
   companion object {
     fun getPlayerImplementation(config: PlayerConfig): AudioPlayerApi {
@@ -64,8 +66,42 @@ open class AudioPlayer(protected val audioPlayerImpl: AudioPlayerApi) : AudioPla
   val bufferPercentage: Int
     get() = audioPlayerImpl.bufferedPercent
 
-  override fun setMedia(uri: Uri?, mediaSource: MediaSource?) {
-    audioPlayerImpl.setMedia(uri, mediaSource)
+  /**
+   * Gets the [MediaItem] currently used. This is specified by calling [setMedia]
+   */
+  var mediaItem: MediaItem? = null
+    protected set
+
+  /**
+   * Sets the [Uri] to play the audio from
+   *
+   * @param uri The video's [Uri]
+   */
+  fun setMedia(uri: Uri?) {
+    val mediaItem = uri?.let {
+      MediaItem(it, null)
+    }
+
+    setMedia(mediaItem)
+  }
+
+  /**
+   * Sets the [MediaSource] to play the audio from
+   *
+   * @param mediaSource [MediaSource] that should be used
+   */
+  fun setMedia(mediaSource: MediaSource?) {
+    val mediaItem = mediaSource?.let {
+      MediaItem(null, it)
+    }
+
+    setMedia(mediaItem)
+  }
+
+  override fun setMedia(mediaItem: MediaItem?) {
+    audioPlayerImpl.setMedia(mediaItem)
+
+    this.mediaItem = mediaItem
     overrideDuration(-1)
   }
 
@@ -75,7 +111,7 @@ open class AudioPlayer(protected val audioPlayerImpl: AudioPlayerApi) : AudioPla
    */
   override fun reset() {
     stop()
-    setMedia(null, null)
+    setMedia(mediaItem = null)
 
     audioPlayerImpl.reset()
   }

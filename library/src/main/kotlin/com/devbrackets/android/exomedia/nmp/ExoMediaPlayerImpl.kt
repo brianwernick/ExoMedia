@@ -127,13 +127,13 @@ class ExoMediaPlayerImpl(
         return null
       }
 
-      val currentWindowIndex = exoPlayer.currentWindowIndex
+      val currentWindowIndex = exoPlayer.currentMediaItemIndex
       val currentWindow = timeline.getWindow(currentWindowIndex, Timeline.Window())
 
       return WindowInfo(
-        exoPlayer.previousWindowIndex,
+        exoPlayer.previousMediaItemIndex,
         currentWindowIndex,
-        exoPlayer.nextWindowIndex,
+        exoPlayer.nextMediaItemIndex,
         currentWindow
       )
     }
@@ -375,7 +375,7 @@ class ExoMediaPlayerImpl(
     // TODO cache the total time at the start of each window (e.g. Map<WindowIndex, cumulativeStartTimeMs>)
     // Adds the preceding window durations
     val timeline = exoPlayer.currentTimeline
-    val maxWindowIndex = min(timeline.windowCount - 1, exoPlayer.currentWindowIndex)
+    val maxWindowIndex = min(timeline.windowCount - 1, exoPlayer.currentMediaItemIndex)
 
     var cumulativePositionMs: Long = 0
     val window = Timeline.Window()
@@ -419,10 +419,8 @@ class ExoMediaPlayerImpl(
 
     reportState(determinePlaybackState(playbackState, informSeekCompletion))
 
-    listeners.forEach { listener ->
-      listener.onStateChanged(playWhenReady, playbackState)
-
-      if (informSeekCompletion) {
+    if (informSeekCompletion) {
+      listeners.forEach { listener ->
         listener.onSeekComplete()
       }
     }

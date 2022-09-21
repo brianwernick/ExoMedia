@@ -1,15 +1,14 @@
 package com.devbrackets.android.exomedia.core.video
 
-import android.net.Uri
 import android.view.Surface
 import androidx.annotation.IntRange
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.Metadata
 import androidx.media3.common.VideoSize
 import androidx.media3.exoplayer.drm.DrmSessionManagerProvider
-import androidx.media3.exoplayer.source.MediaSource
 import androidx.media3.exoplayer.source.TrackGroupArray
 import com.devbrackets.android.exomedia.core.ListenerMux
+import com.devbrackets.android.exomedia.core.audio.MediaItem
 import com.devbrackets.android.exomedia.core.listener.CaptionListener
 import com.devbrackets.android.exomedia.core.listener.MetadataListener
 import com.devbrackets.android.exomedia.core.listener.VideoSizeListener
@@ -32,7 +31,7 @@ class ExoVideoPlayer(
     }
   }
 
-  var _listenerMux: ListenerMux? = null
+  var mux: ListenerMux? = null
 
   protected var playRequested = false
 
@@ -49,12 +48,12 @@ class ExoVideoPlayer(
     get() = corePlayer.playWhenReady
 
   override val duration: Long
-    get() = if (!_listenerMux!!.isPrepared) {
+    get() = if (!mux!!.isPrepared) {
       0
     } else corePlayer.duration
 
   override val currentPosition: Long
-    get() = if (!_listenerMux!!.isPrepared) {
+    get() = if (!mux!!.isPrepared) {
       0
     } else corePlayer.currentPosition
 
@@ -84,21 +83,21 @@ class ExoVideoPlayer(
     surface.setVideoSize(0, 0)
   }
 
-  override fun setMedia(uri: Uri?, mediaSource: MediaSource?) {
+  override fun setMedia(mediaItem: MediaItem?) {
     //Makes sure the listeners get the onPrepared callback
-    _listenerMux?.setNotifiedPrepared(false)
+    mux?.setNotifiedPrepared(false)
     corePlayer.seekTo(0)
 
-    mediaSource?.let {
+    mediaItem?.mediaSource?.let {
       corePlayer.setMediaSource(it)
-      _listenerMux?.setNotifiedCompleted(false)
+      mux?.setNotifiedCompleted(false)
       corePlayer.prepare()
       return
     }
 
-    uri?.let {
+    mediaItem?.uri?.let {
       corePlayer.setMediaUri(it)
-      _listenerMux?.setNotifiedCompleted(false)
+      mux?.setNotifiedCompleted(false)
       corePlayer.prepare()
       return
     }
@@ -116,8 +115,8 @@ class ExoVideoPlayer(
     }
 
     //Makes sure the listeners get the onPrepared callback
-    _listenerMux?.setNotifiedPrepared(false)
-    _listenerMux?.setNotifiedCompleted(false)
+    mux?.setNotifiedPrepared(false)
+    mux?.setNotifiedCompleted(false)
 
     return true
   }
@@ -138,7 +137,7 @@ class ExoVideoPlayer(
 
   override fun start() {
     corePlayer.playWhenReady = true
-    _listenerMux?.setNotifiedCompleted(false)
+    mux?.setNotifiedCompleted(false)
     playRequested = true
   }
 
@@ -156,7 +155,7 @@ class ExoVideoPlayer(
     playRequested = false
 
     if (clearSurface) {
-      _listenerMux?.clearSurfaceWhenReady(surface)
+      mux?.clearSurfaceWhenReady(surface)
     }
   }
 
@@ -222,27 +221,27 @@ class ExoVideoPlayer(
   }
 
   override fun setListenerMux(listenerMux: ListenerMux) {
-    this._listenerMux?.let { oldListenerMux ->
+    this.mux?.let { oldListenerMux ->
       corePlayer.removeListener(oldListenerMux)
       corePlayer.removeAnalyticsListener(oldListenerMux)
     }
 
-    this._listenerMux = listenerMux
+    this.mux = listenerMux
     corePlayer.addListener(listenerMux)
     corePlayer.addAnalyticsListener(listenerMux)
   }
 
   protected inner class InternalListeners : MetadataListener, OnBufferUpdateListener, VideoSizeListener {
     override fun onMetadata(metadata: Metadata) {
-      _listenerMux?.onMetadata(metadata)
+      mux?.onMetadata(metadata)
     }
 
     override fun onBufferingUpdate(@IntRange(from = 0, to = 100) percent: Int) {
-      _listenerMux?.onBufferingUpdate(percent)
+      mux?.onBufferingUpdate(percent)
     }
 
     override fun onVideoSizeChanged(videoSize: VideoSize) {
-      _listenerMux?.onVideoSizeChanged(videoSize.width, videoSize.height, videoSize.unappliedRotationDegrees, videoSize.pixelWidthHeightRatio)
+      mux?.onVideoSizeChanged(videoSize.width, videoSize.height, videoSize.unappliedRotationDegrees, videoSize.pixelWidthHeightRatio)
     }
   }
 

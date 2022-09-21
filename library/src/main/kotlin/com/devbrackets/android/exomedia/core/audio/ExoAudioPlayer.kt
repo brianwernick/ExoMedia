@@ -1,12 +1,10 @@
 package com.devbrackets.android.exomedia.core.audio
 
-import android.net.Uri
 import androidx.annotation.IntRange
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.Metadata
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.drm.DrmSessionManagerProvider
-import androidx.media3.exoplayer.source.MediaSource
 import androidx.media3.exoplayer.source.TrackGroupArray
 import com.devbrackets.android.exomedia.core.ListenerMux
 import com.devbrackets.android.exomedia.core.listener.MetadataListener
@@ -23,7 +21,7 @@ import com.devbrackets.android.exomedia.nmp.manager.window.WindowInfo
 open class ExoAudioPlayer(protected val config: PlayerConfig) : AudioPlayerApi {
   protected val corePlayer: ExoMediaPlayerImpl = ExoMediaPlayerImpl(config)
 
-  protected var _listenerMux: ListenerMux? = null
+  protected var mux: ListenerMux? = null
 
   protected var internalListeners = InternalListeners()
 
@@ -39,12 +37,12 @@ open class ExoAudioPlayer(protected val config: PlayerConfig) : AudioPlayerApi {
     get() = corePlayer.playWhenReady
 
   override val duration: Long
-    get() = if (!_listenerMux!!.isPrepared) {
+    get() = if (!mux!!.isPrepared) {
       0
     } else corePlayer.duration
 
   override val currentPosition: Long
-    get() = if (!_listenerMux!!.isPrepared) {
+    get() = if (!mux!!.isPrepared) {
       0
     } else corePlayer.currentPosition
 
@@ -72,21 +70,21 @@ open class ExoAudioPlayer(protected val config: PlayerConfig) : AudioPlayerApi {
     corePlayer.setBufferUpdateListener(internalListeners)
   }
 
-  override fun setMedia(uri: Uri?, mediaSource: MediaSource?) {
+  override fun setMedia(mediaItem: MediaItem?) {
     //Makes sure the listeners get the onPrepared callback
-    _listenerMux?.setNotifiedPrepared(false)
+    mux?.setNotifiedPrepared(false)
     corePlayer.seekTo(0)
 
-    mediaSource?.let {
+    mediaItem?.mediaSource?.let {
       corePlayer.setMediaSource(it)
-      _listenerMux?.setNotifiedCompleted(false)
+      mux?.setNotifiedCompleted(false)
       corePlayer.prepare()
       return
     }
 
-    uri?.let {
+    mediaItem?.uri?.let {
       corePlayer.setMediaUri(it)
-      _listenerMux?.setNotifiedCompleted(false)
+      mux?.setNotifiedCompleted(false)
       corePlayer.prepare()
       return
     }
@@ -104,7 +102,7 @@ open class ExoAudioPlayer(protected val config: PlayerConfig) : AudioPlayerApi {
 
   override fun start() {
     corePlayer.playWhenReady = true
-    _listenerMux?.setNotifiedCompleted(false)
+    mux?.setNotifiedCompleted(false)
     playRequested = true
   }
 
@@ -128,8 +126,8 @@ open class ExoAudioPlayer(protected val config: PlayerConfig) : AudioPlayerApi {
       return false
     }
 
-    _listenerMux?.setNotifiedCompleted(false)
-    _listenerMux?.setNotifiedPrepared(false)
+    mux?.setNotifiedCompleted(false)
+    mux?.setNotifiedPrepared(false)
 
     return true
   }
@@ -176,12 +174,12 @@ open class ExoAudioPlayer(protected val config: PlayerConfig) : AudioPlayerApi {
   }
 
   override fun setListenerMux(listenerMux: ListenerMux) {
-    this._listenerMux?.let { oldListenerMux ->
+    this.mux?.let { oldListenerMux ->
       corePlayer.removeListener(oldListenerMux)
       corePlayer.removeAnalyticsListener(oldListenerMux)
     }
 
-    this._listenerMux = listenerMux
+    this.mux = listenerMux
     corePlayer.addListener(listenerMux)
     corePlayer.addAnalyticsListener(listenerMux)
   }
@@ -192,11 +190,11 @@ open class ExoAudioPlayer(protected val config: PlayerConfig) : AudioPlayerApi {
 
   protected inner class InternalListeners : MetadataListener, OnBufferUpdateListener {
     override fun onMetadata(metadata: Metadata) {
-      _listenerMux?.onMetadata(metadata)
+      mux?.onMetadata(metadata)
     }
 
     override fun onBufferingUpdate(@IntRange(from = 0, to = 100) percent: Int) {
-      _listenerMux?.onBufferingUpdate(percent)
+      mux?.onBufferingUpdate(percent)
     }
   }
 }

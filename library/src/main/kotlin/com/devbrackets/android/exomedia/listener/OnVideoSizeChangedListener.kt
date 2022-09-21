@@ -4,7 +4,7 @@ package com.devbrackets.android.exomedia.listener
  * Interface definition of a callback to be invoked when there
  * has been a change is the size of the video currently being displayed.
  */
-interface OnVideoSizeChangedListener {
+fun interface OnVideoSizeChangedListener {
   /**
    * Called when the size of the video currently playing has changed.
    * Normally this will only be called once or twice per video, however

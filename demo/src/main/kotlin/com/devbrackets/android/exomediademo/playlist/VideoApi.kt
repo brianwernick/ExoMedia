@@ -45,7 +45,7 @@ class VideoApi(var videoView: VideoView) : BaseMediaApi(), PlaylistListener<Medi
   }
 
   override fun stop() {
-    videoView.stopPlayback()
+    videoView.stop()
   }
 
   override fun reset() {
@@ -70,7 +70,7 @@ class VideoApi(var videoView: VideoView) : BaseMediaApi(), PlaylistListener<Medi
 
   override fun playItem(item: MediaItem) {
     bufferPercent = 0
-    videoView.setVideoURI(Uri.parse(if (item.downloaded) item.downloadedMediaUri else item.mediaUrl))
+    videoView.setMedia(Uri.parse(if (item.downloaded) item.downloadedMediaUri else item.mediaUrl))
   }
 
   /*

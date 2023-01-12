@@ -8,7 +8,7 @@ afterEvaluate {
 dependencies {
   api "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlinVersion"
 
-  implementation 'androidx.appcompat:appcompat:1.5.1'
+  implementation 'androidx.appcompat:appcompat:1.6.0'
   implementation "androidx.constraintlayout:constraintlayout:2.1.4"
 
   // ExoPlayer
@@ -18,7 +18,7 @@ dependencies {
   api "androidx.media3:media3-exoplayer-smoothstreaming:$rootProject.ext.media3Version"
 
   testImplementation 'junit:junit:4.13.2'
-  testImplementation "org.robolectric:robolectric:4.8.1"
+  testImplementation "org.robolectric:robolectric:4.9.2"
 }
 
 android {

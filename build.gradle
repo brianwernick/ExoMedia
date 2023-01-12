@@ -2,14 +2,14 @@ import org.gradle.internal.logging.text.StyledTextOutputFactory
 import static org.gradle.internal.logging.text.StyledTextOutput.Style
 
 buildscript {
-  ext.kotlinVersion = '1.7.10'
+  ext.kotlinVersion = '1.7.20'
   repositories {
     mavenCentral()
     google()
   }
 
   dependencies {
-    classpath 'com.android.tools.build:gradle:7.3.0'
+    classpath 'com.android.tools.build:gradle:7.3.1'
     classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
   }
 }
@@ -20,7 +20,7 @@ plugins {
 
 ext {
   moduleTestResults = []
-  media3Version = "1.0.0-beta02"
+  media3Version = "1.0.0-beta03"
 }
 
 

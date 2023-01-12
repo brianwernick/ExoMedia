@@ -1,11 +1,9 @@
 package com.devbrackets.android.exomediademo.ui.selection
 
-import android.content.Intent
 import android.os.Bundle
-import androidx.appcompat.app.AppCompatActivity
 import androidx.activity.compose.setContent
+import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.animation.ExperimentalAnimationApi
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -33,7 +31,6 @@ class SelectionActivity : AppCompatActivity() {
   }
 
   @Composable
-  @OptIn(ExperimentalFoundationApi::class)
   fun Content() {
     val navController = rememberAnimatedNavController()
 

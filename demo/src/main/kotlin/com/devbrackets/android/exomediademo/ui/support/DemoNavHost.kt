@@ -13,7 +13,6 @@ import com.google.accompanist.navigation.animation.AnimatedNavHost
 
 private const val ANIMATION_DURATION = 300
 
-@OptIn(ExperimentalAnimationApi::class)
 private val enterTransition = slideInHorizontally(
   initialOffsetX = { it },
   animationSpec = tween(
@@ -22,7 +21,6 @@ private val enterTransition = slideInHorizontally(
   )
 )
 
-@OptIn(ExperimentalAnimationApi::class)
 private val exitTransition = slideOutHorizontally(
   targetOffsetX = { -it / 5 },
   animationSpec = tween(
@@ -31,7 +29,6 @@ private val exitTransition = slideOutHorizontally(
   )
 )
 
-@OptIn(ExperimentalAnimationApi::class)
 private val popEnterTransition = slideInHorizontally(
   initialOffsetX = { -it },
   animationSpec = tween(
@@ -40,7 +37,6 @@ private val popEnterTransition = slideInHorizontally(
   )
 )
 
-@OptIn(ExperimentalAnimationApi::class)
 private val popExitTransition = slideOutHorizontally(
   targetOffsetX = { it },
   animationSpec = tween(

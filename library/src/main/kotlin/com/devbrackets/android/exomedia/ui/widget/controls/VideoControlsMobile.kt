@@ -26,7 +26,7 @@ class VideoControlsMobile : DefaultVideoControls {
   private var userInteracting = false
 
   override val layoutResource: Int
-    get() = R.layout.exomedia_default_controls_mobile
+    get() = R.layout.exomedia_controls_mobile
 
   override val extraViews: List<View>
     get() {
@@ -53,8 +53,8 @@ class VideoControlsMobile : DefaultVideoControls {
   }
 
   override fun setPosition(@IntRange(from = 0) position: Long) {
-    currentTimeTextView.text = position.millisToFormattedDuration()
     seekBar.progress = position.toInt()
+    updateCurrentTime(position)
   }
 
   override fun setDuration(@IntRange(from = 0) duration: Long) {
@@ -107,9 +107,7 @@ class VideoControlsMobile : DefaultVideoControls {
   }
 
   override fun hideDelayed(delay: Long) {
-    hideDelay = delay
-
-    if (delay < 0 || isLoading) {
+    if (delay < 0 || currentLoadState != null) {
       return
     }
 
@@ -131,41 +129,46 @@ class VideoControlsMobile : DefaultVideoControls {
     onVisibilityChanged()
   }
 
-  override fun updateTextContainerVisibility() {
-    // Purposefully left blank
-  }
-
-  override fun showLoading(initialLoad: Boolean) {
-    if (isLoading) {
-      return
-    }
-
-    isLoading = true
+  override fun onLoadStarted(state: LoadState) {
     loadingProgressBar.visibility = View.VISIBLE
     playPauseButton.visibility = View.INVISIBLE
 
-    if (!initialLoad) {
-      playPauseButton.isEnabled = false
-      previousButton.isEnabled = false
-      nextButton.isEnabled = false
+    if (state == LoadState.PREPARING) {
+      seekBar.visibility = View.INVISIBLE
+
+      currentTimeTextView.visibility = View.INVISIBLE
+      timeSeparatorView.visibility = View.INVISIBLE
+      endTimeTextView.visibility = View.INVISIBLE
+
+      previousButton.visibility = View.INVISIBLE
+      nextButton.visibility = View.INVISIBLE
+
+      extraViewsContainer.visibility = View.INVISIBLE
     }
 
     show()
   }
 
-  override fun finishLoading() {
-    if (!isLoading) {
-      return
-    }
-
-    isLoading = false
+  override fun onLoadEnded(state: LoadState?) {
+    currentLoadState = null
     loadingProgressBar.visibility = View.GONE
+    seekBar.visibility = View.VISIBLE
     container.visibility = View.VISIBLE
 
-    playPauseButton.isEnabled = true
+    currentTimeTextView.visibility = View.VISIBLE
+    timeSeparatorView.visibility = View.VISIBLE
+    endTimeTextView.visibility = View.VISIBLE
+
     playPauseButton.visibility = View.VISIBLE
+    playPauseButton.isEnabled = true
+
+    previousButton.visibility = View.VISIBLE
     previousButton.isEnabled = enabledViews.get(R.id.exomedia_controls_previous_btn, true)
+
+    nextButton.visibility = View.VISIBLE
     nextButton.isEnabled = enabledViews.get(R.id.exomedia_controls_next_btn, true)
+
+    extraViewsContainer.visibility = View.VISIBLE
 
     updatePlaybackState(videoView?.isPlaying == true)
   }
@@ -182,7 +185,7 @@ class VideoControlsMobile : DefaultVideoControls {
       }
 
       seekToTime = progress.toLong()
-      currentTimeTextView.text = seekToTime.millisToFormattedDuration()
+      updateCurrentTime(seekToTime)
     }
 
     override fun onStartTrackingTouch(seekBar: SeekBar) {

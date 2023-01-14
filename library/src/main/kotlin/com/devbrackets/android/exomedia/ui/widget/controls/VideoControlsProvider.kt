@@ -8,7 +8,7 @@ open class VideoControlsProvider {
 
   open fun getControls(context: Context): VideoControls? {
     return if (isDeviceTv(context)) {
-      VideoControlsLeanback(context)
+      VideoControlsTv(context)
     } else {
       VideoControlsMobile(context)
     }

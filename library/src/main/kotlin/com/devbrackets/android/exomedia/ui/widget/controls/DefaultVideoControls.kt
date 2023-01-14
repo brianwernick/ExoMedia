@@ -30,17 +30,17 @@ import kotlin.math.abs
  * This is a simple abstraction for the [VideoView] to have a single "View" to add
  * or remove for the Default Video Controls.
  */
+@Suppress("MemberVisibilityCanBePrivate")
 abstract class DefaultVideoControls : RelativeLayout, VideoControls {
   companion object {
     @JvmStatic
-    val DEFAULT_CONTROL_HIDE_DELAY = 2_000L
-
-    @JvmStatic
-    protected val CONTROL_VISIBILITY_ANIMATION_LENGTH: Long = 300
+    val DEFAULT_CONTROL_HIDE_DELAY = 2_500L
   }
 
   protected lateinit var currentTimeTextView: TextView
   protected lateinit var endTimeTextView: TextView
+  protected lateinit var timeSeparatorView: View
+
   protected lateinit var titleTextView: TextView
   protected lateinit var subTitleTextView: TextView
   protected lateinit var playPauseButton: ImageButton
@@ -71,17 +71,12 @@ abstract class DefaultVideoControls : RelativeLayout, VideoControls {
    */
   protected var hideDelay = DEFAULT_CONTROL_HIDE_DELAY
 
-  protected var isLoading = false
-  protected var isVisible = true
-
   /**
-   * `true` If the empty text blocks can be hidden [default: true]
+   * Keeps track of the [LoadState] so that we can filter out duplicates and
+   * properly report the [LoadState] when calling [onLoadEnded]
    */
-  protected var hideEmptyTextContainer = true
-    set(value) {
-      field = value
-      updateTextContainerVisibility()
-    }
+  protected var currentLoadState: LoadState? = null
+  protected var isVisible = true
 
   private var lastUpdatedPosition: Long = 0
   private var knownDuration: Long? = null
@@ -96,20 +91,6 @@ abstract class DefaultVideoControls : RelativeLayout, VideoControls {
 
   open val extraViews: List<View>
     get() = LinkedList()
-
-  /**
-   * Determines if the `textContainer` doesn't have any text associated with it
-   *
-   * @return True if there is no text contained in the views in the `textContainer`
-   */
-  protected val isTextContainerEmpty: Boolean
-    get() {
-      if (!titleTextView.text.isNullOrEmpty()) {
-        return false
-      }
-
-      return subTitleTextView.text.isNullOrEmpty()
-    }
 
   /**
    * Sets the current video position, updating the seek bar
@@ -141,11 +122,6 @@ abstract class DefaultVideoControls : RelativeLayout, VideoControls {
    */
   protected abstract fun animateVisibility(toVisible: Boolean)
 
-  /**
-   * Update the current visibility of the text block independent of
-   * the controls visibility
-   */
-  protected abstract fun updateTextContainerVisibility()
 
   constructor(context: Context) : super(context)
   constructor(context: Context, attrs: AttributeSet) : super(context, attrs)
@@ -154,21 +130,6 @@ abstract class DefaultVideoControls : RelativeLayout, VideoControls {
 
   init {
     setup(context)
-  }
-
-  /***
-   * Updates the current timestamp
-   *
-   * @param position The position in milliseconds
-   */
-  protected fun updateCurrentTime(position: Long) {
-    // optimization :
-    // update the timestamp text per second regarding the 'reset' or 'seek' operations.
-    if (abs(position - lastUpdatedPosition) >= 1_000 || lastUpdatedPosition == 0L) {
-      lastUpdatedPosition = position
-
-      currentTimeTextView.text = position.millisToFormattedDuration()
-    }
   }
 
   override fun onAttachedToWindow() {
@@ -207,10 +168,10 @@ abstract class DefaultVideoControls : RelativeLayout, VideoControls {
   override fun onPlaybackStateChange(state: PlaybackState) {
     when (state) {
       PlaybackState.IDLE -> {}
-      PlaybackState.PREPARING -> showLoading(true)
-      PlaybackState.BUFFERING -> showLoading(false)
-      PlaybackState.SEEKING -> showLoading(false)
-      PlaybackState.READY -> finishLoading()
+      PlaybackState.PREPARING -> reportLoadStarted(state)
+      PlaybackState.BUFFERING -> reportLoadStarted(state)
+      PlaybackState.SEEKING -> reportLoadStarted(state)
+      PlaybackState.READY -> updatePlaybackState(false)
       PlaybackState.PLAYING -> updatePlaybackState(true)
       PlaybackState.PAUSED -> updatePlaybackState(false)
       PlaybackState.COMPLETED -> updatePlaybackState(false)
@@ -221,16 +182,16 @@ abstract class DefaultVideoControls : RelativeLayout, VideoControls {
   }
 
   /**
-   * Informs the controls that the playback state has changed.  This will
+   * Informs the controls that the playback state has changed. This will
    * update to display the correct views, and manage progress polling.
    *
    * @param isPlaying True if the media is currently playing
    */
   fun updatePlaybackState(isPlaying: Boolean) {
     playPauseButton.setImageDrawable(if (isPlaying) pauseDrawable else playDrawable)
-
     progressPollRepeater.start()
-    finishLoading()
+
+    reportLoadEnded()
 
     if (isPlaying) {
       hideDelayed()
@@ -240,29 +201,80 @@ abstract class DefaultVideoControls : RelativeLayout, VideoControls {
   }
 
   /**
-   * Update the controls to indicate that the video
-   * is loading.
+   * Reports that the loading has started via [onLoadStarted] using the [playbackState]
+   * to determine the correct [LoadState] to report. If [onLoadEnded] has not been notified
+   * since the previous call to this method, the call will be treated as a duplicate even if
+   * the [playbackState] is different.
    *
-   * @param initialLoad `true` if the loading is the initial state, not for seeking or buffering
+   * @param playbackState The [PlaybackState] used to determine the correct [LoadState] to report
    */
-  open fun showLoading(initialLoad: Boolean) {
-    if (isLoading) {
+  protected open fun reportLoadStarted(playbackState: PlaybackState) {
+    val newState = when (playbackState) {
+      PlaybackState.PREPARING -> LoadState.PREPARING
+      PlaybackState.BUFFERING -> LoadState.BUFFERING
+      PlaybackState.SEEKING -> LoadState.SEEKING
+      else -> null
+    }
+
+    // We can occasionally get a PREPARING after a SEEKING or BUFFERING so we ensure that we can
+    // escalate priority (lower value is higher priority) when reporting
+    val newPriority = newState?.ordinal ?: 99
+    val currentPriority = currentLoadState?.ordinal ?: 100
+    if (newPriority >= currentPriority) {
       return
     }
 
-    isLoading = true
+    newState?.let {
+      currentLoadState = it
+      onLoadStarted(it)
+    }
+  }
+
+  /**
+   * Reports that the loading has ended via [onLoadEnded], using the
+   * [currentLoadState] and other local state information to
+   * determine the correct [LoadState].
+   */
+  protected open fun reportLoadEnded() {
+    currentLoadState?.let {
+      onLoadEnded(it)
+    }
+
+    currentLoadState = null
+  }
+
+  /**
+   * Update the controls to indicate that the video is loading.
+   *
+   * @param state The [LoadState] representing why loading started
+   */
+  open fun onLoadStarted(state: LoadState) {
+    // Purposefully left blank
   }
 
   /**
    * Update the controls to indicate that the video is no longer loading
    * which will re-display the play/pause, progress, etc. controls
+   *
+   * @param state The [LoadState] representing what was just completed
    */
-  open fun finishLoading() {
-    if (!isLoading) {
+  open fun onLoadEnded(state: LoadState?) {
+    // Purposefully left blank
+  }
+
+  /***
+   * Updates the display of the current timestamp by formatting the [position] in to
+   * a human readable (hh:)mm:ss format
+   *
+   * @param position The position in milliseconds
+   */
+  protected fun updateCurrentTime(position: Long) {
+    if (abs(position - lastUpdatedPosition) < 1_000 && lastUpdatedPosition != 0L) {
       return
     }
 
-    isLoading = false
+    lastUpdatedPosition = position
+    currentTimeTextView.text = position.millisToFormattedDuration()
   }
 
   /**
@@ -282,28 +294,21 @@ abstract class DefaultVideoControls : RelativeLayout, VideoControls {
    */
   fun setTitle(title: CharSequence?) {
     titleTextView.text = title
-    updateTextContainerVisibility()
   }
 
   /**
-   * Sets the subtitle to display for the current item in playback.  This will be displayed
+   * Sets the subtitle to display for the current item in playback. This will be displayed
    * as the second line of text
    *
    * @param subTitle The sub title to display
    */
   fun setSubTitle(subTitle: CharSequence?) {
     subTitleTextView.text = subTitle
-    updateTextContainerVisibility()
   }
 
   /**
-   * Sets the button state for the Previous button.  This will just
-   * change the images specified with [.setPreviousDrawable],
-   * or use the defaults if they haven't been set, and block any click events.
-   *
-   *
-   * This method will NOT re-add buttons that have previously been removed with
-   * [.setNextButtonRemoved].
+   * Sets the button state for the Previous button. This method will NOT re-add
+   * buttons that have previously been removed with [setNextButtonRemoved].
    *
    * @param enabled If the Previous button is enabled [default: false]
    */
@@ -313,12 +318,8 @@ abstract class DefaultVideoControls : RelativeLayout, VideoControls {
   }
 
   /**
-   * Sets the button state for the Next button.  This will just
-   * change the images specified with [.setNextDrawable],
-   * or use the defaults if they haven't been set, and block any click events.
-   *
-   * This method will NOT re-add buttons that have previously been removed with
-   * [.setPreviousButtonRemoved].
+   * Sets the button state for the Next button. This method will NOT re-add
+   * buttons that have previously been removed with [setPreviousButtonRemoved].
    *
    * @param enabled If the Next button is enabled [default: false]
    */
@@ -339,11 +340,11 @@ abstract class DefaultVideoControls : RelativeLayout, VideoControls {
    * @param enabled If the Rewind button is enabled [default: false]
    */
   open fun setRewindButtonEnabled(enabled: Boolean) {
-    //Purposefully left blank
+    // Purposefully left blank
   }
 
   /**
-   * Sets the button state for the Fast Forward button.  This will just
+   * Sets the button state for the Fast Forward button. This will just
    * change the images specified with [.setFastForwardDrawable],
    * or use the defaults if they haven't been set
    *
@@ -354,12 +355,12 @@ abstract class DefaultVideoControls : RelativeLayout, VideoControls {
    * @param enabled If the Rewind button is enabled [default: false]
    */
   open fun setFastForwardButtonEnabled(enabled: Boolean) {
-    //Purposefully left blank
+    // Purposefully left blank
   }
 
   /**
-   * Adds or removes the Previous button.  This will change the visibility
-   * of the button, if you want to change the enabled/disabled images see [.setPreviousButtonEnabled]
+   * Adds or removes the Previous button. This will change the visibility
+   * of the button, if you want to change the enabled/disabled images see [setPreviousButtonEnabled]
    *
    * @param removed If the Previous button should be removed [default: true]
    */
@@ -368,8 +369,8 @@ abstract class DefaultVideoControls : RelativeLayout, VideoControls {
   }
 
   /**
-   * Adds or removes the Next button.  This will change the visibility
-   * of the button, if you want to change the enabled/disabled images see [.setNextButtonEnabled]
+   * Adds or removes the Next button. This will change the visibility
+   * of the button, if you want to change the enabled/disabled images see [setNextButtonEnabled]
    *
    * @param removed If the Next button should be removed [default: true]
    */
@@ -378,8 +379,8 @@ abstract class DefaultVideoControls : RelativeLayout, VideoControls {
   }
 
   /**
-   * Adds or removes the Rewind button.  This will change the visibility
-   * of the button, if you want to change the enabled/disabled images see [.setRewindButtonEnabled]
+   * Adds or removes the Rewind button. This will change the visibility
+   * of the button, if you want to change the enabled/disabled images see [setRewindButtonEnabled]
    *
    * @param removed If the Rewind button should be removed [default: true]
    */
@@ -388,8 +389,8 @@ abstract class DefaultVideoControls : RelativeLayout, VideoControls {
   }
 
   /**
-   * Adds or removes the FastForward button.  This will change the visibility
-   * of the button, if you want to change the enabled/disabled images see [.setFastForwardButtonEnabled]
+   * Adds or removes the FastForward button. This will change the visibility
+   * of the button, if you want to change the enabled/disabled images see [setFastForwardButtonEnabled]
    *
    * @param removed If the FastForward button should be removed [default: true]
    */
@@ -428,7 +429,7 @@ abstract class DefaultVideoControls : RelativeLayout, VideoControls {
    * Immediately starts the animation to hide the controls
    */
   fun hide() {
-    if (isLoading) {
+    if (currentLoadState != null) {
       return
     }
 
@@ -440,7 +441,21 @@ abstract class DefaultVideoControls : RelativeLayout, VideoControls {
   }
 
   /**
-   * After the specified delay the view will be hidden.  If the user is interacting
+   * Specifies the default delay to use when hiding the controls after user interaction
+   * or when playback is resumed. The default value is defined by [DEFAULT_CONTROL_HIDE_DELAY]
+   *
+   * @param delayMs The default delay to use when hiding the controls in milliseconds
+   */
+  fun setDefaultHideDelay(delayMs: Long) {
+    if (delayMs < 0) {
+      return
+    }
+
+    hideDelay = delayMs
+  }
+
+  /**
+   * After the specified delay the view will be hidden. If the user is interacting
    * with the controls then we wait until after they are done to start the delay.
    */
   fun hideDelayed() {
@@ -448,15 +463,13 @@ abstract class DefaultVideoControls : RelativeLayout, VideoControls {
   }
 
   /**
-   * After the specified delay the view will be hidden.  If the user is interacting
+   * After the specified delay the view will be hidden. If the user is interacting
    * with the controls then we wait until after they are done to start the delay.
    *
    * @param delay The delay in milliseconds to wait to start the hide animation
    */
   open fun hideDelayed(delay: Long) {
-    hideDelay = delay
-
-    if (delay < 0 || isLoading) {
+    if (delay < 0 || currentLoadState != null) {
       return
     }
 
@@ -477,7 +490,7 @@ abstract class DefaultVideoControls : RelativeLayout, VideoControls {
    * Updates the drawables used for the buttons to AppCompatTintDrawables
    */
   protected open fun updateButtonDrawables() {
-    updateButtonDrawables(R.color.exomedia_default_controls_button_selector)
+    updateButtonDrawables(R.color.exomedia_controls_button_foreground)
   }
 
   protected open fun updateButtonDrawables(@ColorRes tintList: Int) {
@@ -493,13 +506,33 @@ abstract class DefaultVideoControls : RelativeLayout, VideoControls {
   }
 
   /**
-   * Performs the functionality when the PlayPause button is clicked.  This
+   * Performs the functionality when the PlayPause button is clicked. This
    * includes invoking the callback method if it is enabled, posting the bus
    * event, and toggling the video playback.
    */
   protected fun onPlayPauseClick() {
     if (buttonsListener?.onPlayPauseClicked() != true) {
       internalListener.onPlayPauseClicked()
+    }
+  }
+
+  /**
+   * Performs the functionality to inform any listeners that the play
+   * button has been clicked
+   */
+  protected fun onPlayClick() {
+    if (buttonsListener?.onPlayClicked() != true) {
+      internalListener.onPlayClicked()
+    }
+  }
+
+  /**
+   * Performs the functionality to inform any listeners that the pause
+   * button has been clicked
+   */
+  protected fun onPauseClick() {
+    if (buttonsListener?.onPauseClicked() != true) {
+      internalListener.onPauseClicked()
     }
   }
 
@@ -543,6 +576,8 @@ abstract class DefaultVideoControls : RelativeLayout, VideoControls {
   protected open fun retrieveViews() {
     currentTimeTextView = findViewById(R.id.exomedia_controls_current_time)
     endTimeTextView = findViewById(R.id.exomedia_controls_end_time)
+    timeSeparatorView = findViewById(R.id.exomedia_controls_time_separator)
+
     titleTextView = findViewById(R.id.exomedia_controls_title)
     subTitleTextView = findViewById(R.id.exomedia_controls_sub_title)
     playPauseButton = findViewById(R.id.exomedia_controls_play_pause_btn)
@@ -577,6 +612,25 @@ abstract class DefaultVideoControls : RelativeLayout, VideoControls {
     }
   }
 
+  enum class LoadState {
+    /**
+     * Occurs when the media content is being prepared for playback. This
+     * is specific to each media item specified.
+     */
+    PREPARING,
+
+    /**
+     * Occurs when the media being played needs to buffer before playback can resume.
+     * This will typically occur when streaming content over a slow connection.
+     */
+    BUFFERING,
+
+    /**
+     * Occurs when the user performs a seek to a different timestamp in the media.
+     */
+    SEEKING
+  }
+
   /**
    * An internal class used to handle the default functionality for the
    * VideoControls
@@ -595,23 +649,45 @@ abstract class DefaultVideoControls : RelativeLayout, VideoControls {
       } ?: false
     }
 
+    override fun onPlayClicked(): Boolean {
+      return videoView?.let {
+        if (!it.isPlaying) {
+          it.start()
+          true
+        } else {
+          false
+        }
+      } ?: false
+    }
+
+    override fun onPauseClicked(): Boolean {
+      return videoView?.let {
+        if (it.isPlaying) {
+          it.pause()
+          true
+        } else {
+          false
+        }
+      } ?: false
+    }
+
     override fun onPreviousClicked(): Boolean {
-      //Purposefully left blank
+      // Purposefully left blank
       return false
     }
 
     override fun onNextClicked(): Boolean {
-      //Purposefully left blank
+      // Purposefully left blank
       return false
     }
 
     override fun onRewindClicked(): Boolean {
-      //Purposefully left blank
+      // Purposefully left blank
       return false
     }
 
     override fun onFastForwardClicked(): Boolean {
-      //Purposefully left blank
+      // Purposefully left blank
       return false
     }
 

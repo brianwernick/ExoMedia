@@ -1,0 +1,204 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+  android:id="@+id/exomedia_controls_container"
+  xmlns:android="http://schemas.android.com/apk/res/android"
+  xmlns:app="http://schemas.android.com/apk/res-auto"
+  xmlns:tools="http://schemas.android.com/tools"
+  android:layout_width="match_parent"
+  android:layout_height="match_parent"
+  android:background="#59000000">
+
+  <ImageButton
+    android:id="@+id/exomedia_controls_play_pause_btn"
+    android:layout_width="48dp"
+    android:layout_height="48dp"
+    android:padding="8dp"
+    android:layout_marginStart="2dp"
+    android:background="@color/exomedia_controls_button_background"
+    android:scaleType="fitCenter"
+    android:src="@drawable/exomedia_ic_play_arrow_white"
+    android:contentDescription="@string/exomedia_controls_accessibility_play_pause"
+    app:layout_constraintBottom_toTopOf="@id/exomedia_controls_overscan_bottom"
+    app:layout_constraintStart_toEndOf="@id/exomedia_controls_overscan_start"
+    app:tint="@color/exomedia_controls_button_foreground" />
+
+  <ImageButton
+    android:id="@+id/exomedia_controls_previous_btn"
+    android:layout_width="48dp"
+    android:layout_height="48dp"
+    android:padding="8dp"
+    android:layout_marginStart="18dp"
+    android:background="@color/exomedia_controls_button_background"
+    android:scaleType="fitCenter"
+    android:src="@drawable/exomedia_ic_skip_previous_white"
+    android:visibility="gone"
+    android:contentDescription="@string/exomedia_controls_accessibility_previous"
+    app:layout_constraintBottom_toBottomOf="@id/exomedia_controls_play_pause_btn"
+    app:layout_constraintStart_toEndOf="@id/exomedia_controls_play_pause_btn"
+    app:layout_constraintTop_toTopOf="@id/exomedia_controls_play_pause_btn"
+    app:tint="@color/exomedia_controls_button_foreground"
+    tools:ignore="RtlHardcoded"
+    tools:visibility="visible" />
+
+  <ImageButton
+    android:id="@+id/exomedia_controls_next_btn"
+    android:layout_width="48dp"
+    android:layout_height="48dp"
+    android:padding="8dp"
+    android:background="@color/exomedia_controls_button_background"
+    android:scaleType="fitCenter"
+    android:src="@drawable/exomedia_ic_skip_next_white"
+    android:visibility="gone"
+    android:contentDescription="@string/exomedia_controls_accessibility_next"
+    app:layout_constraintBottom_toBottomOf="@id/exomedia_controls_previous_btn"
+    app:layout_constraintStart_toEndOf="@id/exomedia_controls_previous_btn"
+    app:layout_constraintTop_toTopOf="@id/exomedia_controls_previous_btn"
+    app:tint="@color/exomedia_controls_button_foreground"
+    tools:ignore="RtlHardcoded"
+    tools:visibility="visible" />
+
+  <LinearLayout
+    android:id="@+id/exomedia_controls_extra_container"
+    android:layout_width="wrap_content"
+    android:layout_height="48dp"
+    android:orientation="horizontal"
+    android:focusable="false"
+    app:layout_constraintBottom_toTopOf="@id/exomedia_controls_overscan_bottom"
+    app:layout_constraintEnd_toStartOf="@id/exomedia_controls_overscan_end"
+    tools:ignore="RtlHardcoded,UselessLeaf" />
+
+  <ProgressBar
+    android:id="@+id/exomedia_controls_video_loading"
+    style="?android:attr/progressBarStyleLarge"
+    android:layout_width="56dp"
+    android:layout_height="56dp"
+    android:indeterminateTint="@android:color/white"
+    android:visibility="gone"
+    android:focusable="false"
+    app:layout_constraintBottom_toBottomOf="parent"
+    app:layout_constraintEnd_toEndOf="parent"
+    app:layout_constraintStart_toStartOf="parent"
+    app:layout_constraintTop_toTopOf="parent"
+    tools:visibility="visible" />
+
+  <com.devbrackets.android.exomedia.util.view.TvSeekBar
+    android:id="@+id/exomedia_controls_video_seek"
+    style="?android:attr/seekBarStyle"
+    android:layout_width="0dp"
+    android:layout_height="wrap_content"
+    app:layout_constraintWidth_percent="0.90"
+    android:layout_marginBottom="43dp"
+    android:nextFocusDown="@id/exomedia_controls_play_pause_btn"
+    android:paddingHorizontal="16dp"
+    android:progressTint="@android:color/white"
+    android:secondaryProgressTint="@android:color/white"
+    android:thumbTint="@android:color/white"
+    app:layout_constraintBottom_toTopOf="@id/exomedia_controls_overscan_bottom"
+    app:layout_constraintEnd_toStartOf="@id/exomedia_controls_overscan_end"
+    app:layout_constraintStart_toEndOf="@id/exomedia_controls_overscan_start"
+    tools:max="12349"
+    tools:progress="10629"
+    tools:secondaryProgress="12000" />
+
+  <TextView
+    android:id="@+id/exomedia_controls_title"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_marginStart="16dp"
+    android:ellipsize="end"
+    android:textAppearance="?android:attr/textAppearanceLarge"
+    android:textColor="@android:color/white"
+    app:layout_constraintEnd_toStartOf="@id/exomedia_controls_overscan_end"
+    app:layout_constraintHorizontal_bias="0"
+    app:layout_constraintStart_toEndOf="@id/exomedia_controls_overscan_start"
+    app:layout_constraintTop_toBottomOf="@id/exomedia_controls_overscan_top"
+    tools:text="Big Buck Bunny" />
+
+  <TextView
+    android:id="@+id/exomedia_controls_sub_title"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="2dp"
+    android:layout_marginStart="16dp"
+    android:ellipsize="end"
+    android:textAppearance="?android:attr/textAppearanceMedium"
+    android:textColor="@android:color/white"
+    app:layout_constraintEnd_toStartOf="@id/exomedia_controls_overscan_end"
+    app:layout_constraintHorizontal_bias="0"
+    app:layout_constraintStart_toEndOf="@id/exomedia_controls_overscan_start"
+    app:layout_constraintTop_toBottomOf="@id/exomedia_controls_title"
+    tools:text="Blender.org" />
+
+  <TextView
+    android:id="@+id/exomedia_controls_end_time"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="4dp"
+    android:layout_marginEnd="16dp"
+    android:textColor="@android:color/white"
+    android:typeface="monospace"
+    android:textAppearance="?android:attr/textAppearanceSmall"
+    app:layout_constraintBottom_toTopOf="@id/exomedia_controls_video_seek"
+    app:layout_constraintEnd_toStartOf="@id/exomedia_controls_overscan_end"
+    tools:text="1:23:49" />
+
+  <TextView
+    android:id="@+id/exomedia_controls_time_separator"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="4dp"
+    android:layout_marginEnd="4dp"
+    android:text="/"
+    android:textColor="@android:color/white"
+    android:typeface="monospace"
+    android:textAppearance="?android:attr/textAppearanceSmall"
+    app:layout_constraintBottom_toTopOf="@id/exomedia_controls_video_seek"
+    app:layout_constraintEnd_toStartOf="@id/exomedia_controls_end_time"
+    tools:ignore="HardcodedText" />
+
+  <TextView
+    android:id="@+id/exomedia_controls_current_time"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="4dp"
+    android:layout_marginEnd="4dp"
+    android:textColor="@android:color/white"
+    android:typeface="monospace"
+    android:textAppearance="?android:attr/textAppearanceSmall"
+    app:layout_constraintBottom_toTopOf="@id/exomedia_controls_video_seek"
+    app:layout_constraintEnd_toStartOf="@id/exomedia_controls_time_separator"
+    tools:text="1:06:29" />
+
+  <!--
+    For TV layouts we need to handle Overscan (traditionally seen on older screen technology like CRT) so we apply a 5% border
+    on all content. See https://developer.android.com/training/tv/start/layouts#overscan for more information
+  -->
+  <androidx.constraintlayout.widget.Guideline
+    android:id="@+id/exomedia_controls_overscan_top"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    app:layout_constraintGuide_percent="0.05" />
+
+  <androidx.constraintlayout.widget.Guideline
+    android:id="@+id/exomedia_controls_overscan_bottom"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    app:layout_constraintGuide_percent="0.95" />
+
+  <androidx.constraintlayout.widget.Guideline
+    android:id="@+id/exomedia_controls_overscan_start"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    app:layout_constraintGuide_percent="0.05" />
+
+  <androidx.constraintlayout.widget.Guideline
+    android:id="@+id/exomedia_controls_overscan_end"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    app:layout_constraintGuide_percent="0.95" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

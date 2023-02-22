@@ -28,7 +28,7 @@ enum class PlaybackState {
   SEEKING,
 
   /**
-   * The media is ready for playback. This can occur after [.BUFFERING]
+   * The media is ready for playback. This can occur after [BUFFERING]
    * if playback wasn't requested
    */
   READY,

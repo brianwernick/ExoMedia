@@ -39,7 +39,7 @@ dependencies {
   implementation 'com.devbrackets.android:playlistcore:2.1.0'
 
   // Memory Leak diagnostics
-  debugImplementation 'com.squareup.leakcanary:leakcanary-android:2.7'
+//  debugImplementation 'com.squareup.leakcanary:leakcanary-android:2.7'
 }
 
 android {
@@ -78,5 +78,6 @@ android {
   lint {
     abortOnError false
   }
+  namespace 'com.devbrackets.android.exomediademo'
 
 }

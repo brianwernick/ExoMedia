@@ -8,7 +8,7 @@ import androidx.media3.exoplayer.source.MediaSource
 class DashMediaSourceBuilder : MediaSourceBuilder() {
   override fun build(attributes: MediaSourceAttributes): MediaSource {
     val factoryAttributes = attributes.copy(
-        transferListener = null
+      transferListener = null
     )
 
     val dataSourceFactory = buildDataSourceFactory(factoryAttributes)
@@ -16,7 +16,7 @@ class DashMediaSourceBuilder : MediaSourceBuilder() {
     val mediaItem = MediaItem.Builder().setUri(attributes.uri).build()
 
     return DashMediaSource.Factory(DefaultDashChunkSource.Factory(meteredDataSourceFactory), dataSourceFactory)
-        .setDrmSessionManagerProvider(attributes.drmSessionManagerProvider)
-        .createMediaSource(mediaItem)
+      .setDrmSessionManagerProvider(attributes.drmSessionManagerProvider)
+      .createMediaSource(mediaItem)
   }
 }

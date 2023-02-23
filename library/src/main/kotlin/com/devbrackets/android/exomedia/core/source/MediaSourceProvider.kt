@@ -1,9 +1,9 @@
 package com.devbrackets.android.exomedia.core.source
 
 import android.net.Uri
+import androidx.media3.exoplayer.source.MediaSource
 import com.devbrackets.android.exomedia.core.source.builder.*
 import com.devbrackets.android.exomedia.util.getExtension
-import androidx.media3.exoplayer.source.MediaSource
 
 /**
  * Provides the functionality to determine which [MediaSource] should be used
@@ -11,16 +11,16 @@ import androidx.media3.exoplayer.source.MediaSource
  */
 open class MediaSourceProvider {
   data class SourceTypeBuilder(
-      val builder: MediaSourceBuilder,
-      val uriScheme: String?,
-      val extension: String?,
-      val looseComparisonRegex: String?
+    val builder: MediaSourceBuilder,
+    val uriScheme: String?,
+    val extension: String?,
+    val looseComparisonRegex: String?
   )
 
   private val builders = listOf(
-      SourceTypeBuilder(HlsMediaSourceBuilder(), null, ".m3u8", ".*\\.m3u8.*"),
-      SourceTypeBuilder(DashMediaSourceBuilder(), null, ".mpd", ".*\\.mpd.*"),
-      SourceTypeBuilder(SsMediaSourceBuilder(), null, ".ism", ".*\\.ism.*")
+    SourceTypeBuilder(HlsMediaSourceBuilder(), null, ".m3u8", ".*\\.m3u8.*"),
+    SourceTypeBuilder(DashMediaSourceBuilder(), null, ".mpd", ".*\\.mpd.*"),
+    SourceTypeBuilder(SsMediaSourceBuilder(), null, ".ism", ".*\\.ism.*")
   )
 
   open fun builders(): List<SourceTypeBuilder> {
@@ -40,8 +40,8 @@ open class MediaSourceProvider {
 
   protected fun findByProviders(uri: Uri): SourceTypeBuilder? {
     return findByScheme(uri)
-        ?: findByExtension(uri)
-        ?: findByLooseComparison(uri)
+      ?: findByExtension(uri)
+      ?: findByLooseComparison(uri)
   }
 
   /* Uri Scheme (e.g. rtsp) */

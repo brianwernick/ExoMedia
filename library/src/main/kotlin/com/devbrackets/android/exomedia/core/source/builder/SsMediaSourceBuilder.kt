@@ -8,7 +8,7 @@ import androidx.media3.exoplayer.source.MediaSource
 class SsMediaSourceBuilder : MediaSourceBuilder() {
   override fun build(attributes: MediaSourceAttributes): MediaSource {
     val factoryAttributes = attributes.copy(
-        transferListener = null
+      transferListener = null
     )
 
     val dataSourceFactory = buildDataSourceFactory(factoryAttributes)
@@ -16,7 +16,7 @@ class SsMediaSourceBuilder : MediaSourceBuilder() {
     val mediaItem = MediaItem.Builder().setUri(attributes.uri).build()
 
     return SsMediaSource.Factory(DefaultSsChunkSource.Factory(meteredDataSourceFactory), dataSourceFactory)
-        .setDrmSessionManagerProvider(attributes.drmSessionManagerProvider)
-        .createMediaSource(mediaItem)
+      .setDrmSessionManagerProvider(attributes.drmSessionManagerProvider)
+      .createMediaSource(mediaItem)
   }
 }

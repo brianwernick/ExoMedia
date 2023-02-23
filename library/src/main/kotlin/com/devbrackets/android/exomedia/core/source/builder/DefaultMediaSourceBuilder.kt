@@ -11,7 +11,7 @@ class DefaultMediaSourceBuilder : MediaSourceBuilder() {
     val mediaItem = MediaItem.Builder().setUri(attributes.uri).build()
 
     return ProgressiveMediaSource.Factory(dataSourceFactory, DefaultExtractorsFactory())
-        .setDrmSessionManagerProvider(attributes.drmSessionManagerProvider)
-        .createMediaSource(mediaItem)
+      .setDrmSessionManagerProvider(attributes.drmSessionManagerProvider)
+      .createMediaSource(mediaItem)
   }
 }

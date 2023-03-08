@@ -1,12 +1,12 @@
 package com.devbrackets.android.exomedia.util
 
-import android.content.Context
 import android.os.Build
 import com.devbrackets.android.exomedia.core.audio.AudioPlayerApi
 import com.devbrackets.android.exomedia.core.video.VideoPlayerApi
 import com.devbrackets.android.exomedia.core.video.surface.SurfaceEnvelope
 import com.devbrackets.android.exomedia.fallback.audio.NativeAudioPlayer
 import com.devbrackets.android.exomedia.fallback.video.NativeVideoPlayer
+import com.devbrackets.android.exomedia.nmp.config.PlayerConfig
 
 /**
  * Determines if, and provides the fallback media player implementations on
@@ -31,16 +31,16 @@ open class FallbackManager {
    * Retrieves an [AudioPlayerApi] implementation to use in situations where the
    * ExoPlayer isn't supported.
    */
-  open fun getFallbackAudioPlayer(context: Context): AudioPlayerApi {
-    return NativeAudioPlayer(context)
+  open fun getFallbackAudioPlayer(config: PlayerConfig): AudioPlayerApi {
+    return NativeAudioPlayer(config)
   }
 
   /**
    * Retrieves a [VideoPlayerApi] implementation to use in situations where the
    * ExoPlayer isn't supported
    */
-  open fun getFallbackVideoPlayer(context: Context, surface: SurfaceEnvelope): VideoPlayerApi {
-    return NativeVideoPlayer(context, surface)
+  open fun getFallbackVideoPlayer(config: PlayerConfig, surface: SurfaceEnvelope): VideoPlayerApi {
+    return NativeVideoPlayer(config, surface)
   }
 
   data class DeviceModels(

@@ -1,13 +1,11 @@
 package com.devbrackets.android.exomedia.fallback.audio
 
-import android.content.Context
-import android.net.Uri
 import androidx.annotation.IntRange
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
 import androidx.media3.common.Player
+import androidx.media3.common.TrackSelectionParameters
 import androidx.media3.exoplayer.drm.DrmSessionManagerProvider
-import androidx.media3.exoplayer.source.MediaSource
 import androidx.media3.exoplayer.source.TrackGroupArray
 import com.devbrackets.android.exomedia.core.ListenerMux
 import com.devbrackets.android.exomedia.core.audio.AudioPlayerApi
@@ -15,15 +13,16 @@ import com.devbrackets.android.exomedia.core.audio.MediaItem
 import com.devbrackets.android.exomedia.core.renderer.RendererType
 import com.devbrackets.android.exomedia.fallback.FallbackMediaPlayer
 import com.devbrackets.android.exomedia.fallback.FallbackMediaPlayerImpl
+import com.devbrackets.android.exomedia.nmp.config.PlayerConfig
 import com.devbrackets.android.exomedia.nmp.manager.window.WindowInfo
 
 /**
  * A simple [AudioPlayerApi] implementation that uses the fallback (system) MediaPlayer
  * to add integration with the [ListenerMux] and to mitigate state errors.
  */
-class NativeAudioPlayer(context: Context) : AudioPlayerApi {
+class NativeAudioPlayer(private val config: PlayerConfig) : AudioPlayerApi {
   private val mediaPlayer: FallbackMediaPlayer by lazy {
-    FallbackMediaPlayerImpl(context).apply {
+    FallbackMediaPlayerImpl(config.context).apply {
       setAudioAttributes(getAudioAttributes(C.USAGE_MEDIA, C.AUDIO_CONTENT_TYPE_MUSIC))
     }
   }
@@ -37,6 +36,9 @@ class NativeAudioPlayer(context: Context) : AudioPlayerApi {
     set(value) {
       mediaPlayer.volume = value
     }
+
+  override val playerConfig: PlayerConfig
+    get() = config
 
   override val isPlaying: Boolean
     get() = mediaPlayer.playing
@@ -55,6 +57,9 @@ class NativeAudioPlayer(context: Context) : AudioPlayerApi {
 
   override val playbackSpeed: Float
     get() = mediaPlayer.playbackSpeed
+
+  override val playbackPitch: Float
+    get() = mediaPlayer.playbackPitch
 
   override val availableTracks: Map<RendererType, TrackGroupArray>?
     get() = null
@@ -113,6 +118,11 @@ class NativeAudioPlayer(context: Context) : AudioPlayerApi {
     return true
   }
 
+  override fun setPlaybackPitch(pitch: Float): Boolean {
+    mediaPlayer.playbackPitch = pitch
+    return true
+  }
+
   override fun setAudioAttributes(attributes: AudioAttributes) {
     mediaPlayer.setAudioAttributes(attributes)
   }
@@ -123,6 +133,10 @@ class NativeAudioPlayer(context: Context) : AudioPlayerApi {
 
   override fun trackSelectionAvailable(): Boolean {
     return false
+  }
+
+  override fun setTrackSelectionParameters(parameters: TrackSelectionParameters) {
+    // Not supported
   }
 
   override fun setSelectedTrack(type: RendererType, groupIndex: Int, trackIndex: Int) {

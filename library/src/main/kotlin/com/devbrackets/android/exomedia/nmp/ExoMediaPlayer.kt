@@ -7,6 +7,7 @@ import androidx.annotation.IntRange
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
 import androidx.media3.common.Player
+import androidx.media3.common.TrackSelectionParameters
 import androidx.media3.exoplayer.analytics.AnalyticsListener
 import androidx.media3.exoplayer.drm.DrmSessionManagerProvider
 import androidx.media3.exoplayer.source.MediaSource
@@ -195,6 +196,14 @@ interface ExoMediaPlayer {
    * @param trackIndex The index within the `groupIndex` to select
    */
   fun setSelectedTrack(type: RendererType, groupIndex: Int, trackIndex: Int)
+
+  /**
+   * Sets the [TrackSelectionParameters] for controlling the track selection. This can be
+   * used for defaults like audio language, picture quality, etc.
+   *
+   * @param parameters The [TrackSelectionParameters] to use for track selection
+   */
+  fun setTrackSelectionParameters(parameters: TrackSelectionParameters)
 
   /**
    * Retrieves the active/selected track index for the specified [RendererType] and

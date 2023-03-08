@@ -22,11 +22,13 @@ import com.devbrackets.android.exomedia.nmp.config.PlayerConfigBuilder
  * fallback to using the OS MediaPlayer.
  */
 @Suppress("MemberVisibilityCanBePrivate", "unused")
-open class AudioPlayer(protected val audioPlayerImpl: AudioPlayerApi) : AudioPlayerApi by audioPlayerImpl {
+open class AudioPlayer(
+  protected val audioPlayerImpl: AudioPlayerApi
+) : AudioPlayerApi by audioPlayerImpl {
   companion object {
     fun getPlayerImplementation(config: PlayerConfig): AudioPlayerApi {
       return if(config.fallbackManager.useFallback()) {
-        config.fallbackManager.getFallbackAudioPlayer(config.context)
+        config.fallbackManager.getFallbackAudioPlayer(config)
       } else {
         ExoAudioPlayer(config)
       }

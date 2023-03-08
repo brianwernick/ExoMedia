@@ -19,6 +19,7 @@ import android.widget.RelativeLayout
 import androidx.annotation.DrawableRes
 import androidx.annotation.IntRange
 import androidx.media3.common.Player
+import androidx.media3.common.TrackSelectionParameters
 import androidx.media3.exoplayer.analytics.AnalyticsListener
 import androidx.media3.exoplayer.drm.DrmSessionManager
 import androidx.media3.exoplayer.drm.DrmSessionManagerProvider
@@ -70,7 +71,7 @@ open class VideoView : RelativeLayout, PlaybackStateListener {
     constructEnvelope(surface)
   }
 
-  protected val videoPlayer: VideoPlayerApi by lazy { getApiImplementation() }
+  val videoPlayer: VideoPlayerApi by lazy { getApiImplementation() }
 
   /**
    * Gets the [MediaItem] currently used. This is specified by calling [setMedia]
@@ -212,6 +213,12 @@ open class VideoView : RelativeLayout, PlaybackStateListener {
    */
   val playbackSpeed: Float
     get() = videoPlayer.playbackSpeed
+
+  /**
+   * Retrieves the correction applied to the audio pitch.
+   */
+  val playbackPitch: Float
+    get() = videoPlayer.playbackPitch
 
   /**
    * Retrieves a list of available tracks to select from. Typically [.trackSelectionAvailable]
@@ -528,7 +535,8 @@ open class VideoView : RelativeLayout, PlaybackStateListener {
   }
 
   /**
-   * Sets the playback speed for this MediaPlayer.
+   * Sets the playback speed for this MediaPlayer. It is recommended that when
+   * you update the playback speed you also apply a pitch correction with [setPlaybackPitch]
    *
    * @param speed The speed to play the media back at
    * @return True if the speed was set
@@ -540,6 +548,17 @@ open class VideoView : RelativeLayout, PlaybackStateListener {
     }
 
     return wasSet
+  }
+
+  /**
+   * Sets the correction to use for the audio pitch. It's recommended to set the pitch
+   * correction to the same amount as the [playbackSpeed] (see [setPlaybackSpeed])
+   *
+   * @param pitch The correction for the audio pitch
+   * @return True if the pitch was set
+   */
+  fun setPlaybackPitch(pitch: Float): Boolean {
+    return videoPlayer.setPlaybackPitch(pitch)
   }
 
   /**
@@ -560,6 +579,16 @@ open class VideoView : RelativeLayout, PlaybackStateListener {
    */
   fun trackSelectionAvailable(): Boolean {
     return videoPlayer.trackSelectionAvailable()
+  }
+
+  /**
+   * Sets the [TrackSelectionParameters] for controlling the track selection. This can be
+   * used for defaults like audio language, picture quality, etc.
+   *
+   * @param parameters The [TrackSelectionParameters] to use for track selection
+   */
+  fun setTrackSelectionParameters(parameters: TrackSelectionParameters) {
+    videoPlayer.setTrackSelectionParameters(parameters)
   }
 
   /**
@@ -802,7 +831,7 @@ open class VideoView : RelativeLayout, PlaybackStateListener {
    */
   fun getApiImplementation(): VideoPlayerApi {
     if (playerConfig.fallbackManager.useFallback()) {
-      return playerConfig.fallbackManager.getFallbackVideoPlayer(context, surfaceEnvelope)
+      return playerConfig.fallbackManager.getFallbackVideoPlayer(playerConfig, surfaceEnvelope)
     }
 
     return ExoVideoPlayer(playerConfig, surfaceEnvelope)

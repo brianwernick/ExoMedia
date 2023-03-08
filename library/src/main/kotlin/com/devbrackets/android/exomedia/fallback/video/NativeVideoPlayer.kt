@@ -1,8 +1,8 @@
 package com.devbrackets.android.exomedia.fallback.video
 
-import android.content.Context
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
+import androidx.media3.common.TrackSelectionParameters
 import androidx.media3.exoplayer.drm.DrmSessionManagerProvider
 import androidx.media3.exoplayer.source.TrackGroupArray
 import com.devbrackets.android.exomedia.core.ListenerMux
@@ -13,15 +13,16 @@ import com.devbrackets.android.exomedia.core.video.VideoPlayerApi
 import com.devbrackets.android.exomedia.core.video.surface.SurfaceEnvelope
 import com.devbrackets.android.exomedia.fallback.FallbackMediaPlayer
 import com.devbrackets.android.exomedia.fallback.FallbackMediaPlayerImpl
+import com.devbrackets.android.exomedia.nmp.config.PlayerConfig
 import com.devbrackets.android.exomedia.nmp.manager.window.WindowInfo
 
 class NativeVideoPlayer(
-  private var context: Context,
+  private val config: PlayerConfig,
   private val surface: SurfaceEnvelope
 ) : VideoPlayerApi {
 
   private val mediaPlayer: FallbackMediaPlayer by lazy {
-    FallbackMediaPlayerImpl(context).apply {
+    FallbackMediaPlayerImpl(config.context).apply {
       setAudioAttributes(getAudioAttributes(C.USAGE_MEDIA, C.AUDIO_CONTENT_TYPE_MOVIE))
     }
   }
@@ -41,6 +42,9 @@ class NativeVideoPlayer(
 
   override val currentPosition: Long
     get() = mediaPlayer.currentPosition
+
+  override val playerConfig: PlayerConfig
+    get() = config
 
   override val isPlaying: Boolean
     get() = mediaPlayer.playing
@@ -63,6 +67,9 @@ class NativeVideoPlayer(
 
   override val playbackSpeed: Float
     get() = mediaPlayer.playbackSpeed
+
+  override val playbackPitch: Float
+    get() = mediaPlayer.playbackPitch
 
   init {
     surface.addCallback(surfaceCallback)
@@ -88,6 +95,11 @@ class NativeVideoPlayer(
 
   override fun setPlaybackSpeed(speed: Float): Boolean {
     mediaPlayer.playbackSpeed = speed
+    return true
+  }
+
+  override fun setPlaybackPitch(pitch: Float): Boolean {
+    mediaPlayer.playbackPitch = pitch
     return true
   }
 
@@ -133,6 +145,10 @@ class NativeVideoPlayer(
 
   override fun trackSelectionAvailable(): Boolean {
     return false
+  }
+
+  override fun setTrackSelectionParameters(parameters: TrackSelectionParameters) {
+    // Not supported
   }
 
   override fun setSelectedTrack(type: RendererType, groupIndex: Int, trackIndex: Int) {

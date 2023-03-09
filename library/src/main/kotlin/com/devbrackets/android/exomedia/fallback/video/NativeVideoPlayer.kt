@@ -2,6 +2,7 @@ package com.devbrackets.android.exomedia.fallback.video
 
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
+import androidx.media3.common.Timeline
 import androidx.media3.common.TrackSelectionParameters
 import androidx.media3.exoplayer.drm.DrmSessionManagerProvider
 import androidx.media3.exoplayer.source.TrackGroupArray
@@ -64,6 +65,9 @@ class NativeVideoPlayer(
 
   override val windowInfo: WindowInfo?
     get() = null
+
+  override val timeline: Timeline
+    get() = mediaPlayer.timeline
 
   override val playbackSpeed: Float
     get() = mediaPlayer.playbackSpeed

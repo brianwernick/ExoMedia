@@ -2,10 +2,7 @@ package com.devbrackets.android.exomedia.core.video
 
 import android.view.Surface
 import androidx.annotation.IntRange
-import androidx.media3.common.AudioAttributes
-import androidx.media3.common.Metadata
-import androidx.media3.common.TrackSelectionParameters
-import androidx.media3.common.VideoSize
+import androidx.media3.common.*
 import androidx.media3.exoplayer.drm.DrmSessionManagerProvider
 import androidx.media3.exoplayer.source.TrackGroupArray
 import com.devbrackets.android.exomedia.core.ListenerMux
@@ -66,6 +63,9 @@ class ExoVideoPlayer(
 
   override val windowInfo: WindowInfo?
     get() = corePlayer.windowInfo
+
+  override val timeline: Timeline
+    get() = corePlayer.timeline
 
   override val audioSessionId: Int
     get() = corePlayer.audioSessionId

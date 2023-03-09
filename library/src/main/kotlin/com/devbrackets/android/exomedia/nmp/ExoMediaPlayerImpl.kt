@@ -141,6 +141,9 @@ class ExoMediaPlayerImpl(
       )
     }
 
+  override val timeline: Timeline
+    get() = exoPlayer.currentTimeline
+
   override val audioSessionId: Int
     get() = exoPlayer.audioSessionId
 

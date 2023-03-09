@@ -9,9 +9,13 @@ import android.util.Log
 import android.view.Surface
 import androidx.annotation.FloatRange
 import androidx.annotation.IntRange
+import androidx.annotation.OptIn
 import androidx.media3.common.AudioAttributes
+import androidx.media3.common.Timeline
+import androidx.media3.common.util.UnstableApi
 import com.devbrackets.android.exomedia.core.state.PlaybackState
 import java.io.IOException
+import java.util.*
 
 class FallbackMediaPlayerImpl(
   private val context: Context
@@ -38,7 +42,6 @@ class FallbackMediaPlayerImpl(
     )
   }
 
-
   private val mediaPlayer: MediaPlayer by lazy {
     MediaPlayer().apply {
       setOnInfoListener(this@FallbackMediaPlayerImpl)
@@ -53,6 +56,7 @@ class FallbackMediaPlayerImpl(
 
   override var playWhenReady = false
 
+  private var mediaUri: Uri? = null
   private var prepared: Boolean = false
   private var requestedSeek: Long = 0
   private var currentBufferPercent: Int = 0
@@ -70,6 +74,9 @@ class FallbackMediaPlayerImpl(
       requestedVolume = value
       mediaPlayer.setVolume(value, value)
     }
+
+  override val timeline: Timeline
+    get() = buildTimeline()
 
   override val duration: Long
     get() = if (!prepared || !mediaAccessible) {
@@ -153,6 +160,7 @@ class FallbackMediaPlayerImpl(
     }
 
     prepared = false
+    mediaUri = null
     playWhenReady = false
     reportPlaybackState(PlaybackState.STOPPED)
   }
@@ -172,6 +180,7 @@ class FallbackMediaPlayerImpl(
     mediaPlayer.reset()
 
     prepared = false
+    mediaUri = null
     playWhenReady = false
     reportPlaybackState(PlaybackState.IDLE)
   }
@@ -196,7 +205,9 @@ class FallbackMediaPlayerImpl(
   }
 
   override fun setMedia(uri: Uri?) {
+    mediaUri = uri
     prepared = false
+
     if (uri == null) {
       return
     }
@@ -269,6 +280,16 @@ class FallbackMediaPlayerImpl(
 
   override fun onVideoSizeChanged(mp: MediaPlayer, width: Int, height: Int) {
     listener?.onVideoSizeChanged(this, mp.videoWidth, mp.videoHeight)
+  }
+
+  @OptIn(UnstableApi::class)
+  private fun buildTimeline(): Timeline {
+    val uri = mediaUri
+    if (prepared && uri != null) {
+      return FallbackTimeline(uri, duration * 1_000L)
+    }
+
+    return Timeline.EMPTY
   }
 
   private fun reportPlaybackState(state: PlaybackState) {

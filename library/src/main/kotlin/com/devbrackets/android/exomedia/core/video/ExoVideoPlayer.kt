@@ -4,6 +4,7 @@ import android.view.Surface
 import androidx.annotation.IntRange
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.Metadata
+import androidx.media3.common.TrackSelectionParameters
 import androidx.media3.common.VideoSize
 import androidx.media3.exoplayer.drm.DrmSessionManagerProvider
 import androidx.media3.exoplayer.source.TrackGroupArray
@@ -20,11 +21,11 @@ import com.devbrackets.android.exomedia.nmp.config.PlayerConfig
 import com.devbrackets.android.exomedia.nmp.manager.window.WindowInfo
 
 class ExoVideoPlayer(
-  private val playerConfig: PlayerConfig,
+  private val config: PlayerConfig,
   private val surface: SurfaceEnvelope
 ) : VideoPlayerApi {
   val corePlayer: ExoMediaPlayerImpl by lazy {
-    ExoMediaPlayerImpl(playerConfig).apply {
+    ExoMediaPlayerImpl(config).apply {
       setMetadataListener(internalListeners)
       setBufferUpdateListener(internalListeners)
       setVideoSizeListener(internalListeners)
@@ -43,6 +44,9 @@ class ExoVideoPlayer(
     set(value) {
       corePlayer.volume = value
     }
+
+  override val playerConfig: PlayerConfig
+    get() = config
 
   override val isPlaying: Boolean
     get() = corePlayer.playWhenReady
@@ -71,6 +75,9 @@ class ExoVideoPlayer(
 
   override val playbackSpeed: Float
     get() = corePlayer.playbackSpeed
+
+  override val playbackPitch: Float
+    get() = corePlayer.playbackPitch
 
   override var drmSessionManagerProvider: DrmSessionManagerProvider?
     get() = corePlayer.drmSessionManagerProvider
@@ -163,6 +170,10 @@ class ExoVideoPlayer(
     return true
   }
 
+  override fun setTrackSelectionParameters(parameters: TrackSelectionParameters) {
+    corePlayer.setTrackSelectionParameters(parameters)
+  }
+
   override fun setCaptionListener(listener: CaptionListener?) {
     corePlayer.setCaptionListener(listener)
   }
@@ -198,6 +209,11 @@ class ExoVideoPlayer(
 
   override fun setPlaybackSpeed(speed: Float): Boolean {
     corePlayer.playbackSpeed = speed
+    return true
+  }
+
+  override fun setPlaybackPitch(pitch: Float): Boolean {
+    corePlayer.playbackPitch = pitch
     return true
   }
 

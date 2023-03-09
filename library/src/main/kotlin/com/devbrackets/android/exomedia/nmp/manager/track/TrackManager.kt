@@ -2,22 +2,24 @@ package com.devbrackets.android.exomedia.nmp.manager.track
 
 import android.content.Context
 import android.util.ArrayMap
+import androidx.annotation.OptIn
 import androidx.media3.common.C
 import androidx.media3.common.TrackGroup
-import com.devbrackets.android.exomedia.core.renderer.RendererType
+import androidx.media3.common.TrackSelectionParameters
+import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.source.TrackGroupArray
 import androidx.media3.exoplayer.trackselection.AdaptiveTrackSelection
 import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
 import androidx.media3.exoplayer.trackselection.MappingTrackSelector
-import java.util.ArrayList
+import com.devbrackets.android.exomedia.core.renderer.RendererType
 
 /**
- * Handles managing the tracks for the [CorePlayer]
+ * Handles managing the tracks for the [com.devbrackets.android.exomedia.nmp.ExoMediaPlayerImpl]
  */
+@OptIn(UnstableApi::class)
 class TrackManager(context: Context) {
   private val selectionFactory: AdaptiveTrackSelection.Factory = AdaptiveTrackSelection.Factory()
   val selector: DefaultTrackSelector = DefaultTrackSelector(context, selectionFactory)
-
 
   /**
    * Retrieves a list of available tracks
@@ -84,6 +86,10 @@ class TrackManager(context: Context) {
     }
 
     return RendererTrackInfo(rendererTrackIndexes, rendererTrackIndex, rendererTrackGroupIndex)
+  }
+
+  fun setTrackSelectionParameters(parameters: TrackSelectionParameters) {
+    selector.setParameters(parameters)
   }
 
   @JvmOverloads

@@ -4,7 +4,9 @@ import android.net.Uri
 import android.util.Log
 import android.view.Surface
 import androidx.annotation.FloatRange
+import androidx.annotation.OptIn
 import androidx.media3.common.*
+import androidx.media3.common.util.UnstableApi
 import androidx.media3.common.util.Util
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.analytics.AnalyticsListener
@@ -28,6 +30,7 @@ import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.math.min
 
+@OptIn(UnstableApi::class)
 class ExoMediaPlayerImpl(
   private val config: PlayerConfig
 ) : Player.Listener, ExoMediaPlayer {
@@ -394,6 +397,10 @@ class ExoMediaPlayerImpl(
 
   override fun setRepeatMode(@Player.RepeatMode repeatMode: Int) {
     exoPlayer.repeatMode = repeatMode
+  }
+
+  override fun setTrackSelectionParameters(parameters: TrackSelectionParameters) {
+    config.trackManager.setTrackSelectionParameters(parameters)
   }
 
   override fun setSelectedTrack(type: RendererType, groupIndex: Int, trackIndex: Int) {

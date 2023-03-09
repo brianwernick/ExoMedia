@@ -4,10 +4,12 @@ import androidx.annotation.FloatRange
 import androidx.annotation.IntRange
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.Player
+import androidx.media3.common.TrackSelectionParameters
 import androidx.media3.exoplayer.drm.DrmSessionManagerProvider
 import androidx.media3.exoplayer.source.TrackGroupArray
 import com.devbrackets.android.exomedia.core.ListenerMux
 import com.devbrackets.android.exomedia.core.renderer.RendererType
+import com.devbrackets.android.exomedia.nmp.config.PlayerConfig
 import com.devbrackets.android.exomedia.nmp.manager.window.WindowInfo
 
 /**
@@ -17,6 +19,12 @@ import com.devbrackets.android.exomedia.nmp.manager.window.WindowInfo
  * using the ExoPlayer.
  */
 interface AudioPlayerApi {
+
+  /**
+   * Player configuration information for consistent media construction and
+   * playback.
+   */
+  val playerConfig: PlayerConfig
 
   /**
    * Returns if a media item is currently in playback
@@ -72,6 +80,11 @@ interface AudioPlayerApi {
    * @return The current playback speed
    */
   val playbackSpeed: Float
+
+  /**
+   * Retrieves the correction applied to the audio pitch.
+   */
+  val playbackPitch: Float
 
   /**
    * Retrieves a list of available tracks to select from.  Typically [.trackSelectionAvailable]
@@ -142,6 +155,15 @@ interface AudioPlayerApi {
   fun setPlaybackSpeed(speed: Float): Boolean
 
   /**
+   * Sets the correction to use for the audio pitch. It's recommended to set the pitch
+   * correction to the same amount as the [playbackSpeed] (see [setPlaybackSpeed])
+   *
+   * @param pitch The correction for the audio pitch
+   * @return True if the pitch was set
+   */
+  fun setPlaybackPitch(pitch: Float): Boolean
+
+  /**
    * Sets the audio attributes for this [AudioPlayerApi].
    * You must call this method before loading media with [setMedia] in order
    * for the audio attributes to become effective.
@@ -149,6 +171,14 @@ interface AudioPlayerApi {
    * @param attributes The [AudioAttributes] to apply
    */
   fun setAudioAttributes(attributes: AudioAttributes)
+
+  /**
+   * Sets the [TrackSelectionParameters] for controlling the track selection. This can be
+   * used for defaults like audio language, picture quality, etc.
+   *
+   * @param parameters The [TrackSelectionParameters] to use for track selection
+   */
+  fun setTrackSelectionParameters(parameters: TrackSelectionParameters)
 
   /**
    * Determines if the current video player implementation supports

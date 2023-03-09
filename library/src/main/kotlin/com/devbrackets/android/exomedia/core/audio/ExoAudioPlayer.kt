@@ -4,6 +4,7 @@ import androidx.annotation.IntRange
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.Metadata
 import androidx.media3.common.Player
+import androidx.media3.common.TrackSelectionParameters
 import androidx.media3.exoplayer.drm.DrmSessionManagerProvider
 import androidx.media3.exoplayer.source.TrackGroupArray
 import com.devbrackets.android.exomedia.core.ListenerMux
@@ -33,6 +34,9 @@ open class ExoAudioPlayer(protected val config: PlayerConfig) : AudioPlayerApi {
       corePlayer.volume = value
     }
 
+  override val playerConfig: PlayerConfig
+    get() = config
+
   override val isPlaying: Boolean
     get() = corePlayer.playWhenReady
 
@@ -57,6 +61,9 @@ open class ExoAudioPlayer(protected val config: PlayerConfig) : AudioPlayerApi {
 
   override val playbackSpeed: Float
     get() = corePlayer.playbackSpeed
+
+  override val playbackPitch: Float
+    get() = corePlayer.playbackPitch
 
   override val availableTracks: Map<RendererType, TrackGroupArray>?
     get() = corePlayer.availableTracks
@@ -141,6 +148,11 @@ open class ExoAudioPlayer(protected val config: PlayerConfig) : AudioPlayerApi {
     return true
   }
 
+  override fun setPlaybackPitch(pitch: Float): Boolean {
+    corePlayer.playbackPitch = pitch
+    return true
+  }
+
   override fun setAudioAttributes(attributes: AudioAttributes) {
     corePlayer.setAudioAttributes(attributes)
   }
@@ -151,6 +163,10 @@ open class ExoAudioPlayer(protected val config: PlayerConfig) : AudioPlayerApi {
 
   override fun trackSelectionAvailable(): Boolean {
     return true
+  }
+
+  override fun setTrackSelectionParameters(parameters: TrackSelectionParameters) {
+    corePlayer.setTrackSelectionParameters(parameters)
   }
 
   override fun setSelectedTrack(type: RendererType, groupIndex: Int, trackIndex: Int) {

@@ -5,6 +5,7 @@ import android.os.PowerManager
 import android.view.Surface
 import androidx.annotation.IntRange
 import androidx.media3.common.AudioAttributes
+import androidx.media3.common.Timeline
 import com.devbrackets.android.exomedia.core.state.PlaybackState
 import com.devbrackets.android.exomedia.core.state.PlaybackStateListener
 
@@ -31,6 +32,12 @@ interface FallbackMediaPlayer {
    * start playing when the content is ready (buffered)
    */
   var playWhenReady: Boolean
+
+  /**
+   * Retrieves the [Timeline] representing the media that is currently loaded.
+   * If no media is specified then an empty [Timeline] will be returned.
+   */
+  val timeline: Timeline
 
   /**
    * Returns the duration of the loaded media in milliseconds, if no media is loaded then

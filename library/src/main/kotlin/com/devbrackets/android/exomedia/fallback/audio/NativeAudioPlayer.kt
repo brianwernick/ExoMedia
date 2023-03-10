@@ -1,10 +1,7 @@
 package com.devbrackets.android.exomedia.fallback.audio
 
 import androidx.annotation.IntRange
-import androidx.media3.common.AudioAttributes
-import androidx.media3.common.C
-import androidx.media3.common.Player
-import androidx.media3.common.TrackSelectionParameters
+import androidx.media3.common.*
 import androidx.media3.exoplayer.drm.DrmSessionManagerProvider
 import androidx.media3.exoplayer.source.TrackGroupArray
 import com.devbrackets.android.exomedia.core.ListenerMux
@@ -51,6 +48,9 @@ class NativeAudioPlayer(private val config: PlayerConfig) : AudioPlayerApi {
 
   override val windowInfo: WindowInfo?
     get() = null
+
+  override val timeline: Timeline
+    get() = mediaPlayer.timeline
 
   override val audioSessionId: Int
     get() = mediaPlayer.audioSessionId

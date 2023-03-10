@@ -19,6 +19,7 @@ import android.widget.RelativeLayout
 import androidx.annotation.DrawableRes
 import androidx.annotation.IntRange
 import androidx.media3.common.Player
+import androidx.media3.common.Timeline
 import androidx.media3.common.TrackSelectionParameters
 import androidx.media3.exoplayer.analytics.AnalyticsListener
 import androidx.media3.exoplayer.drm.DrmSessionManager
@@ -205,6 +206,13 @@ open class VideoView : RelativeLayout, PlaybackStateListener {
    */
   val windowInfo: WindowInfo?
     get() = videoPlayer.windowInfo
+
+  /**
+   * Retrieves the [Timeline] representing the media that is currently loaded.
+   * If no media is specified then an empty [Timeline] will be returned.
+   */
+  val timeline: Timeline
+    get() = videoPlayer.timeline
 
   /**
    * Retrieves the current speed the media is playing at.

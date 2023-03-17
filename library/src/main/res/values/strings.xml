@@ -3,4 +3,5 @@
   <string name="exomedia_controls_accessibility_play_pause">Play or Pause</string>
   <string name="exomedia_controls_accessibility_previous">Previous Media</string>
   <string name="exomedia_controls_accessibility_next">Next Media</string>
+  <string name="exomedia_controls_live">Live</string>
 </resources>

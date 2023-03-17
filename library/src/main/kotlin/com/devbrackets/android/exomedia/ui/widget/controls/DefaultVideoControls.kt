@@ -7,15 +7,14 @@ import android.os.Looper
 import android.util.AttributeSet
 import android.util.SparseBooleanArray
 import android.view.View
-import android.widget.ImageButton
-import android.widget.ProgressBar
-import android.widget.RelativeLayout
-import android.widget.TextView
+import android.widget.*
 import androidx.annotation.ColorRes
 import androidx.annotation.IntRange
 import androidx.annotation.LayoutRes
+import androidx.media3.common.Timeline
 import com.devbrackets.android.exomedia.R
 import com.devbrackets.android.exomedia.core.state.PlaybackState
+import com.devbrackets.android.exomedia.listener.OnTimelineChangedListener
 import com.devbrackets.android.exomedia.ui.listener.VideoControlsButtonListener
 import com.devbrackets.android.exomedia.ui.listener.VideoControlsSeekListener
 import com.devbrackets.android.exomedia.ui.listener.VideoControlsVisibilityListener
@@ -31,7 +30,7 @@ import kotlin.math.abs
  * or remove for the Default Video Controls.
  */
 @Suppress("MemberVisibilityCanBePrivate")
-abstract class DefaultVideoControls : RelativeLayout, VideoControls {
+abstract class DefaultVideoControls : RelativeLayout, VideoControls, OnTimelineChangedListener {
   companion object {
     @JvmStatic
     val DEFAULT_CONTROL_HIDE_DELAY = 2_500L
@@ -47,6 +46,7 @@ abstract class DefaultVideoControls : RelativeLayout, VideoControls {
   protected lateinit var previousButton: ImageButton
   protected lateinit var nextButton: ImageButton
   protected lateinit var loadingProgressBar: ProgressBar
+  protected lateinit var seekBar: SeekBar
 
   protected lateinit var playDrawable: Drawable
   protected lateinit var pauseDrawable: Drawable
@@ -76,7 +76,9 @@ abstract class DefaultVideoControls : RelativeLayout, VideoControls {
    * properly report the [LoadState] when calling [onLoadEnded]
    */
   protected var currentLoadState: LoadState? = null
+  protected var currentTimelineStyle: TimelineStyle = TimelineStyle.UNKNOWN
   protected var isVisible = true
+  protected var userInteracting = false
 
   private var lastUpdatedPosition: Long = 0
   private var knownDuration: Long? = null
@@ -91,28 +93,6 @@ abstract class DefaultVideoControls : RelativeLayout, VideoControls {
 
   open val extraViews: List<View>
     get() = LinkedList()
-
-  /**
-   * Sets the current video position, updating the seek bar
-   * and the current time field
-   *
-   * @param position The position in milliseconds
-   */
-  abstract fun setPosition(@IntRange(from = 0) position: Long)
-
-  /**
-   * Performs the progress update on the current time field,
-   * and the seek bar
-   *
-   * @param position The position in milliseconds
-   * @param duration The duration of the video in milliseconds
-   * @param bufferPercent The integer percent that is buffered [0, 100] inclusive
-   */
-  abstract fun updateProgress(
-    @IntRange(from = 0) position: Long,
-    @IntRange(from = 0) duration: Long,
-    @IntRange(from = 0, to = 100) bufferPercent: Int
-  )
 
   /**
    * Performs the control visibility animation for showing or hiding
@@ -148,11 +128,13 @@ abstract class DefaultVideoControls : RelativeLayout, VideoControls {
 
   override fun onAttachedToView(videoView: VideoView) {
     videoView.addView(this)
+    videoView.setOnTimelineChangedListener(this)
     this.videoView = videoView
   }
 
   override fun onDetachedFromView(videoView: VideoView) {
     videoView.removeView(this)
+    videoView.setOnTimelineChangedListener(null)
     this.videoView = null
   }
 
@@ -179,6 +161,51 @@ abstract class DefaultVideoControls : RelativeLayout, VideoControls {
       PlaybackState.RELEASED -> updatePlaybackState(false)
       PlaybackState.ERROR -> updatePlaybackState(false)
     }
+  }
+
+  override fun onTimelineChanged(timeline: Timeline) {
+    // An empty timeline can occur when loading or an error occurred
+    if (timeline.isEmpty) {
+      return onTimelineStyleUpdated(TimelineStyle.UNKNOWN)
+    }
+
+
+    // Check if the end is live/dynamic
+    val window = Timeline.Window()
+    timeline.getWindow(timeline.windowCount -1, window)
+    if (window.isPlaceholder) {
+      return onTimelineStyleUpdated(TimelineStyle.UNKNOWN)
+    } else if (!window.isLive()) {
+      return onTimelineStyleUpdated(TimelineStyle.ON_DEMAND)
+    }
+
+
+    // Determine if this is an EVENT or LIVE stream by checking the first window
+    timeline.getWindow(0, window)
+    if (window.isPlaceholder) {
+      return onTimelineStyleUpdated(TimelineStyle.UNKNOWN)
+    }
+
+    val rollingStart = window.isDynamic || window.isLive()
+    val style = when {
+      rollingStart -> TimelineStyle.LIVE
+      else -> TimelineStyle.EVENT
+    }
+
+    onTimelineStyleUpdated(style)
+  }
+
+  protected fun onTimelineStyleUpdated(style: TimelineStyle) {
+    if (style == currentTimelineStyle) {
+      return
+    }
+
+    videoView?.let {
+      updatePositionText(it.currentPosition, style)
+      updateDurationText(it.duration, style)
+    }
+
+    currentTimelineStyle = style
   }
 
   /**
@@ -262,19 +289,15 @@ abstract class DefaultVideoControls : RelativeLayout, VideoControls {
     // Purposefully left blank
   }
 
-  /***
-   * Updates the display of the current timestamp by formatting the [position] in to
-   * a human readable (hh:)mm:ss format
+  /**
+   * Sets the current video position, updating the seek bar
+   * and the current time field
    *
    * @param position The position in milliseconds
    */
-  protected fun updateCurrentTime(position: Long) {
-    if (abs(position - lastUpdatedPosition) < 1_000 && lastUpdatedPosition != 0L) {
-      return
-    }
-
-    lastUpdatedPosition = position
-    currentTimeTextView.text = position.millisToFormattedDuration()
+  open fun setPosition(@IntRange(from = 0) position: Long) {
+    seekBar.progress = position.toInt()
+    updatePositionText(position)
   }
 
   /**
@@ -284,7 +307,85 @@ abstract class DefaultVideoControls : RelativeLayout, VideoControls {
    * @param duration The duration of the video in milliseconds
    */
   open fun setDuration(@IntRange(from = 0) duration: Long) {
+    if (duration != seekBar.max.toLong()) {
+      seekBar.max = duration.toInt()
+      updateDurationText(duration)
+    }
+  }
+
+  /***
+   * Updates the display of the current timestamp by formatting the [position] in to
+   * a human readable (hh:)mm:ss format
+   *
+   * @param position The position in milliseconds
+   */
+  protected fun updatePositionText(position: Long) {
+    updatePositionText(position, currentTimelineStyle)
+  }
+
+  /***
+   * Updates the display of the current timestamp by formatting the [position] in to
+   * a human readable (hh:)mm:ss format. If the [style] is Live or an Event then
+   * the position text will represent that
+   *
+   * @param position The position in milliseconds
+   * @param style The [TimelineStyle] to use for presenting the position text
+   */
+  protected fun updatePositionText(position: Long, style: TimelineStyle) {
+    if (style == currentTimelineStyle && abs(position - lastUpdatedPosition) < 1_000 && lastUpdatedPosition != 0L) {
+      return
+    }
+
+    lastUpdatedPosition = position
+
+    when (style) {
+      TimelineStyle.UNKNOWN,
+      TimelineStyle.ON_DEMAND,
+      TimelineStyle.EVENT -> {
+        currentTimeTextView.text = position.millisToFormattedDuration()
+      }
+      TimelineStyle.LIVE -> {
+        // TODO: for live should we show how delayed we are instead?
+        currentTimeTextView.text = position.millisToFormattedDuration()
+      }
+    }
+  }
+
+  /***
+   * Updates the display of the duration by formatting the [duration] in to
+   * a human readable (hh:)mm:ss format
+   *
+   * @param duration The duration in milliseconds
+   */
+  protected fun updateDurationText(duration: Long) {
+    updateDurationText(duration, currentTimelineStyle)
+  }
+
+  /***
+   * Updates the display of the duration by formatting the [duration] in to
+   * a human readable (hh:)mm:ss format. If the [style] is Live or an Event
+   * then the duration text will represent that the duration is changing
+   *
+   * @param duration The duration in milliseconds
+   * @param style The [TimelineStyle] to use for presenting the duration text
+   */
+  protected fun updateDurationText(duration: Long, style: TimelineStyle) {
+    if (style == currentTimelineStyle && knownDuration == duration) {
+      return
+    }
+
     knownDuration = duration
+
+    when (style) {
+      TimelineStyle.UNKNOWN,
+      TimelineStyle.ON_DEMAND,
+      TimelineStyle.EVENT -> {
+        endTimeTextView.text = duration.millisToFormattedDuration()
+      }
+      TimelineStyle.LIVE -> {
+        endTimeTextView.text = context.getString(R.string.exomedia_controls_live)
+      }
+    }
   }
 
   /**
@@ -584,6 +685,7 @@ abstract class DefaultVideoControls : RelativeLayout, VideoControls {
     previousButton = findViewById(R.id.exomedia_controls_previous_btn)
     nextButton = findViewById(R.id.exomedia_controls_next_btn)
     loadingProgressBar = findViewById(R.id.exomedia_controls_video_loading)
+    seekBar = findViewById(R.id.exomedia_controls_video_seek)
   }
 
   /**
@@ -612,6 +714,27 @@ abstract class DefaultVideoControls : RelativeLayout, VideoControls {
     }
   }
 
+  /**
+   * Performs the progress update on the current time field,
+   * and the seek bar
+   *
+   * @param position The position in milliseconds
+   * @param duration The duration of the video in milliseconds
+   * @param bufferPercent The integer percent that is buffered [0, 100] inclusive
+   */
+  protected open fun updateProgress(
+    @IntRange(from = 0) position: Long,
+    @IntRange(from = 0) duration: Long,
+    @IntRange(from = 0, to = 100) bufferPercent: Int
+  ) {
+    if (!userInteracting) {
+      seekBar.secondaryProgress = (seekBar.max * (bufferPercent.toFloat() / 100)).toInt()
+      seekBar.progress = position.toInt()
+
+      updatePositionText(position)
+    }
+  }
+
   enum class LoadState {
     /**
      * Occurs when the media content is being prepared for playback. This
@@ -629,6 +752,43 @@ abstract class DefaultVideoControls : RelativeLayout, VideoControls {
      * Occurs when the user performs a seek to a different timestamp in the media.
      */
     SEEKING
+  }
+
+  /**
+   * Indicates the presentation style to use for the progress bar and current/end
+   * position indicators in the UI.
+   */
+  protected enum class TimelineStyle {
+    /**
+     * Represents that we haven't received enough information to determine the
+     * style for the timeline. This is likely due to the media being loaded/prepared
+     * or an error occurring during the preparation/playback.
+     */
+    UNKNOWN,
+
+    /**
+     * The loaded media represents live data, meaning that the playable content is
+     * constantly rolling forwards. i.e. the start and end media is constantly changing.
+     *
+     * An example of a live stream would be a security camera feed (w/backup).
+     */
+    LIVE,
+
+    /**
+     * The loaded media represents an ongoing event; meaning that new content is constantly
+     * being appended to the media. i.e. the media at the end is constantly changing (growing)
+     * while the media at the start is static.
+     *
+     * An example of an event would be an ongoing video presentation
+     */
+    EVENT,
+
+    /**
+     * The loaded media represents content that is unchanging.
+     *
+     * An example of OnDemand media would be a movie or episode
+     */
+    ON_DEMAND
   }
 
   /**

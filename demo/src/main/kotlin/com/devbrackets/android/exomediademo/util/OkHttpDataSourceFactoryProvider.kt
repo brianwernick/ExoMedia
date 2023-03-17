@@ -1,8 +1,11 @@
 package com.devbrackets.android.exomediademo.util
 
 import android.content.Context
+import androidx.annotation.OptIn
+import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.DataSource
 import androidx.media3.datasource.TransferListener
+import androidx.media3.datasource.cache.Cache
 import androidx.media3.datasource.cache.CacheDataSource
 import androidx.media3.datasource.cache.LeastRecentlyUsedCacheEvictor
 import androidx.media3.datasource.cache.SimpleCache
@@ -18,11 +21,16 @@ import java.io.File
  *  **NOTE:**
  *  The OkHttpDataSource.Factory can be found in the ExoPlayer extension library `extension-okhttp`
  */
-class OkHttpDataSourceFactoryProvider(context: Context): DataSourceFactoryProvider {
-  private val cacheDir = context.cacheDir
+@OptIn(UnstableApi::class)
+class OkHttpDataSourceFactoryProvider(
+  private val context: Context
+): DataSourceFactoryProvider {
   private var instance: CacheDataSource.Factory? = null
 
-  override fun provide(userAgent: String, listener: TransferListener?): DataSource.Factory {
+  override fun provide(
+    userAgent: String,
+    listener: TransferListener?
+  ): DataSource.Factory {
     instance?.let {
       return it
     }
@@ -33,16 +41,27 @@ class OkHttpDataSourceFactoryProvider(context: Context): DataSourceFactoryProvid
       setTransferListener(listener)
     }
 
-    // Adds a cache around the upstreamFactory
-    val cache = SimpleCache(File(cacheDir, "ExoMediaCache"), LeastRecentlyUsedCacheEvictor((50 * 1024 * 1024).toLong()))
-
+    // Wraps the DataSource in a cache
     instance = CacheDataSource.Factory().apply {
-      setCache(cache)
+      setCache(getCache(context.cacheDir))
       setUpstreamDataSourceFactory(upstreamFactory)
-      setFlags(CacheDataSource.FLAG_IGNORE_CACHE_ON_ERROR)
+      setFlags(CacheDataSource.FLAG_IGNORE_CACHE_ON_ERROR or CacheDataSource.FLAG_IGNORE_CACHE_FOR_UNSET_LENGTH_REQUESTS)
     }
 
     return instance!!
   }
 
+  private fun getCache(directory: File): Cache {
+    val cacheFile = File(directory, "ExoMediaCache")
+    val evictor = LeastRecentlyUsedCacheEvictor((50 * 1024 * 1024).toLong())
+
+    return SimpleCache(
+      cacheFile,
+      evictor,
+      null,
+      null,
+      false,
+      false
+    )
+  }
 }

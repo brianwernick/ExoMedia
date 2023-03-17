@@ -20,12 +20,12 @@ internal class FallbackTimeline(
   private val window by lazy {
     Window().apply {
       set(
-          Window.SINGLE_WINDOW_UID,
+        Window.SINGLE_WINDOW_UID,
         MediaItem.fromUri(mediaUri),
         null,
-          C.TIME_UNSET,
-          C.TIME_UNSET,
-          C.TIME_UNSET,
+        C.TIME_UNSET,
+        C.TIME_UNSET,
+        C.TIME_UNSET,
         true,
         false,
         null,

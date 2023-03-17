@@ -10,7 +10,7 @@ class HlsMediaSourceBuilder : MediaSourceBuilder() {
     val mediaItem = MediaItem.Builder().setUri(attributes.uri).build()
 
     return HlsMediaSource.Factory(dataSourceFactory)
-        .setDrmSessionManagerProvider(attributes.drmSessionManagerProvider)
-        .createMediaSource(mediaItem)
+      .setDrmSessionManagerProvider(attributes.drmSessionManagerProvider)
+      .createMediaSource(mediaItem)
   }
 }

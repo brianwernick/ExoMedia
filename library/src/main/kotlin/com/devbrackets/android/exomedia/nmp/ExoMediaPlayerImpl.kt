@@ -173,6 +173,15 @@ class ExoMediaPlayerImpl(
     }
   }
 
+  override fun onTimelineChanged(timeline: Timeline, reason: Int) {
+    listeners.forEach {
+      it.onTimelineChanged(timeline)
+    }
+
+    // TODO: see the comment in #getCurrentPosition(Boolean) (also will impact seekTo),
+    //  when the timeline changes we should be able to cache information to improve accuracy and performance
+  }
+
   override fun setMediaUri(uri: Uri?) {
     val mediaSource = uri?.let {
       val attributes = MediaSourceBuilder.MediaSourceAttributes(

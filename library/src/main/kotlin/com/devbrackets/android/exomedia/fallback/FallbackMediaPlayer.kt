@@ -8,6 +8,7 @@ import androidx.media3.common.AudioAttributes
 import androidx.media3.common.Timeline
 import com.devbrackets.android.exomedia.core.state.PlaybackState
 import com.devbrackets.android.exomedia.core.state.PlaybackStateListener
+import com.devbrackets.android.exomedia.listener.OnTimelineChangedListener
 
 interface FallbackMediaPlayer {
 
@@ -143,7 +144,7 @@ interface FallbackMediaPlayer {
 
   fun setListener(listener: Listener?)
 
-  interface Listener: PlaybackStateListener {
+  interface Listener: PlaybackStateListener, OnTimelineChangedListener {
     fun onBufferUpdate(mediaPlayer: FallbackMediaPlayer, percent: Int)
 
     fun onSeekComplete(mediaPlayer: FallbackMediaPlayer)

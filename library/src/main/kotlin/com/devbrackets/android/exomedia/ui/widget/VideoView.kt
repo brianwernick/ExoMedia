@@ -678,45 +678,54 @@ open class VideoView : RelativeLayout, PlaybackStateListener {
   }
 
   /**
-   * Sets the listener to inform of VideoPlayer prepared events
+   * Sets the listener to inform of prepared events
    *
-   * @param listener The listener
+   * @param listener The [OnPreparedListener] to inform when the media is prepared
    */
   fun setOnPreparedListener(listener: OnPreparedListener?) {
     listenerMux.setOnPreparedListener(listener)
   }
 
   /**
-   * Sets the listener to inform of VideoPlayer completion events
+   * Sets the listener to inform of completion events
    *
-   * @param listener The listener
+   * @param listener The [OnCompletionListener] to inform when the media has completed
    */
   fun setOnCompletionListener(listener: OnCompletionListener?) {
     listenerMux.setOnCompletionListener(listener)
   }
 
   /**
-   * Sets the listener to inform of VideoPlayer buffer update events
+   * Sets the listener to inform of buffer update events
    *
-   * @param listener The listener
+   * @param listener The [OnBufferUpdateListener] to inform of buffer updates
    */
   fun setOnBufferUpdateListener(listener: OnBufferUpdateListener?) {
     listenerMux.setOnBufferUpdateListener(listener)
   }
 
   /**
-   * Sets the listener to inform of VideoPlayer seek completion events
+   * Sets the listener to inform of seek completion events
    *
-   * @param listener The listener
+   * @param listener The [OnSeekCompletionListener] to inform when seeking completes
    */
   fun setOnSeekCompletionListener(listener: OnSeekCompletionListener?) {
     listenerMux.setOnSeekCompletionListener(listener)
   }
 
   /**
+   * Sets the listener to inform of [Timeline] changes
+   *
+   * @param listener The [OnTimelineChangedListener] to inform when the [Timeline] changes
+   */
+  fun setOnTimelineChangedListener(listener: OnTimelineChangedListener?) {
+    listenerMux.setOnTimelineChangedListener(listener)
+  }
+
+  /**
    * Sets the listener to inform of playback errors
    *
-   * @param listener The listener
+   * @param listener The [OnErrorListener] to inform of playback errors
    */
   fun setOnErrorListener(listener: OnErrorListener?) {
     listenerMux.setOnErrorListener(listener)
@@ -725,7 +734,7 @@ open class VideoView : RelativeLayout, PlaybackStateListener {
   /**
    * Sets the listener to inform of ID3 metadata updates
    *
-   * @param listener The listener
+   * @param listener The [MetadataListener] to inform when the metadata updates
    */
   fun setId3MetadataListener(listener: MetadataListener?) {
     listenerMux.setMetadataListener(listener)

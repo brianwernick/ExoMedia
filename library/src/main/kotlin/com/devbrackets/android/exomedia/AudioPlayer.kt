@@ -2,6 +2,7 @@ package com.devbrackets.android.exomedia
 
 import android.content.Context
 import android.net.Uri
+import androidx.media3.common.Timeline
 import androidx.media3.exoplayer.analytics.AnalyticsListener
 import androidx.media3.exoplayer.source.MediaSource
 import com.devbrackets.android.exomedia.core.ListenerMux
@@ -130,45 +131,54 @@ open class AudioPlayer(
   }
 
   /**
-   * Sets the listener to inform of VideoPlayer prepared events
+   * Sets the listener to inform of prepared events
    *
-   * @param listener The listener
+   * @param listener The [OnPreparedListener] to inform when the media is prepared
    */
   fun setOnPreparedListener(listener: OnPreparedListener?) {
     listenerMux.setOnPreparedListener(listener)
   }
 
   /**
-   * Sets the listener to inform of VideoPlayer completion events
+   * Sets the listener to inform of completion events
    *
-   * @param listener The listener
+   * @param listener The [OnCompletionListener] to inform when the media has completed
    */
   fun setOnCompletionListener(listener: OnCompletionListener?) {
     listenerMux.setOnCompletionListener(listener)
   }
 
   /**
-   * Sets the listener to inform of VideoPlayer buffer update events
+   * Sets the listener to inform of buffer update events
    *
-   * @param listener The listener
+   * @param listener The [OnBufferUpdateListener] to inform when buffer updates occur
    */
   fun setOnBufferUpdateListener(listener: OnBufferUpdateListener?) {
     listenerMux.setOnBufferUpdateListener(listener)
   }
 
   /**
-   * Sets the listener to inform of VideoPlayer seek completion events
+   * Sets the listener to inform of seek completion events
    *
-   * @param listener The listener
+   * @param listener The [OnSeekCompletionListener] to inform when seeking is complete
    */
   fun setOnSeekCompletionListener(listener: OnSeekCompletionListener?) {
     listenerMux.setOnSeekCompletionListener(listener)
   }
 
   /**
-   * Sets the listener to inform of playback errors
+   * Sets the listener to inform of [Timeline] changes
    *
-   * @param listener The listener
+   * @param listener The [OnTimelineChangedListener] to inform when the [Timeline] changes
+   */
+  fun setOnTimelineChangedListener(listener: OnTimelineChangedListener?) {
+    listenerMux.setOnTimelineChangedListener(listener)
+  }
+
+  /**
+   * Sets the listener to inform when errors in playback occur
+   *
+   * @param listener The [OnErrorListener] to inform of errors
    */
   fun setOnErrorListener(listener: OnErrorListener?) {
     listenerMux.setOnErrorListener(listener)

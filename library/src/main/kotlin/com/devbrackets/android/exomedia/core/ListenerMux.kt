@@ -4,6 +4,7 @@ import android.os.Handler
 import android.os.Looper
 import androidx.annotation.IntRange
 import androidx.media3.common.Metadata
+import androidx.media3.common.Timeline
 import androidx.media3.exoplayer.analytics.AnalyticsListener
 import com.devbrackets.android.exomedia.core.listener.ExoPlayerListener
 import com.devbrackets.android.exomedia.core.listener.MetadataListener
@@ -39,6 +40,7 @@ class ListenerMux(
   private var completionListener: OnCompletionListener? = null
   private var bufferUpdateListener: OnBufferUpdateListener? = null
   private var seekCompletionListener: OnSeekCompletionListener? = null
+  private var timelineChangedListener: OnTimelineChangedListener? = null
   private var errorListener: OnErrorListener? = null
   private var metadataListener: MetadataListener? = null
 
@@ -109,6 +111,10 @@ class ListenerMux(
     seekCompletionListener?.onSeekComplete()
   }
 
+  override fun onTimelineChanged(timeline: Timeline) {
+    timelineChangedListener?.onTimelineChanged(timeline)
+  }
+
   override fun onVideoSizeChanged(width: Int, height: Int, unAppliedRotationDegrees: Int, pixelWidthHeightRatio: Float) {
     muxNotifier.onVideoSizeChanged(width, height, unAppliedRotationDegrees, pixelWidthHeightRatio)
   }
@@ -133,18 +139,18 @@ class ListenerMux(
   }
 
   /**
-   * Sets the listener to inform of VideoPlayer prepared events
+   * Sets the listener to inform of prepared events
    *
-   * @param listener The listener to inform
+   * @param listener The [OnPreparedListener] to inform when the media is prepared
    */
   fun setOnPreparedListener(listener: OnPreparedListener?) {
     preparedListener = listener
   }
 
   /**
-   * Sets the listener to inform of VideoPlayer completion events
+   * Sets the listener to inform of completion events
    *
-   * @param listener The listener to inform
+   * @param listener The [OnCompletionListener] to inform when media playback has completed
    */
   fun setOnCompletionListener(listener: OnCompletionListener?) {
     completionListener = listener
@@ -153,25 +159,34 @@ class ListenerMux(
   /**
    * Sets the listener to inform of buffering updates
    *
-   * @param listener The listener to inform
+   * @param listener The [OnBufferUpdateListener] to inform when the buffer has been updated
    */
   fun setOnBufferUpdateListener(listener: OnBufferUpdateListener?) {
     bufferUpdateListener = listener
   }
 
   /**
-   * Sets the listener to inform of VideoPlayer seek completion events
+   * Sets the listener to inform of seek completion events
    *
-   * @param listener The listener to inform
+   * @param listener The [OnSeekCompletionListener] to inform when seeking is completed
    */
   fun setOnSeekCompletionListener(listener: OnSeekCompletionListener?) {
     seekCompletionListener = listener
   }
 
   /**
-   * Sets the listener to inform of playback errors
+   * Sets the listener to inform of [Timeline] changes
    *
-   * @param listener The listener to inform
+   * @param listener The [OnTimelineChangedListener] to inform when the [Timeline] changes
+   */
+  fun setOnTimelineChangedListener(listener: OnTimelineChangedListener?) {
+    timelineChangedListener = listener
+  }
+
+  /**
+   * Sets the listener to inform when errors in playback occur
+   *
+   * @param listener The [OnErrorListener] to inform when errors occur
    */
   fun setOnErrorListener(listener: OnErrorListener?) {
     errorListener = listener

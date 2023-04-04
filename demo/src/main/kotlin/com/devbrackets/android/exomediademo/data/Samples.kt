@@ -19,7 +19,6 @@ object Samples {
   val video by lazy {
     listOf(
       videoSample("Big Buck Bunny (MP4)", "https://www.devbrackets.com/media/samples/video/big_buck_bunny.mp4"),
-      videoSample("Big Buck Bunny - Live (MPEG Dash)", "https://wowzaec2demo.streamlock.net/live/bigbuckbunny/manifest_mpm4sav_mvtime.mpd"),
       videoSample("Caminandes (FLV)", "https://www.devbrackets.com/media/samples/video/caminandes_01.flv"),
       videoSample("Caminandes (Smooth Stream)", "http://amssamples.streaming.mediaservices.windows.net/634cd01c-6822-4630-8444-8dd6279f94c6/CaminandesLlamaDrama4K.ism/manifest"),
       videoSample("Caminandes 2 (MP4)", "https://www.devbrackets.com/media/samples/video/caminandes_02.mp4"),
@@ -30,7 +29,8 @@ object Samples {
       videoSample("Elephants Dream (HLS)", "https://www.devbrackets.com/media/samples/video/elephants_dream/elephants_dream.m3u8"),
       videoSample("Sintel (WebM)", "https://www.devbrackets.com/media/samples/video/sintel.webm"),
       videoSample("Sintel (MPEG Dash)", "https://bitdash-a.akamaihd.net/content/sintel/sintel.mpd"),
-      videoSample("Tears of Steel (MP4)", "https://www.devbrackets.com/media/samples/video/tears_of_steel.mp4")
+      videoSample("Tears of Steel (MP4)", "https://www.devbrackets.com/media/samples/video/tears_of_steel.mp4"),
+      videoSample("Tears of Steel - Live (HLS)", "https://cph-p2p-msl.akamaized.net/hls/live/2000341/test/master.m3u8")
     )
   }
 

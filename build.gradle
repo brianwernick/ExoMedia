@@ -20,7 +20,7 @@ plugins {
 
 ext {
   moduleTestResults = []
-  media3Version = "1.0.0-rc02"
+  media3Version = "1.0.0"
 }
 
 

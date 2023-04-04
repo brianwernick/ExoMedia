@@ -84,7 +84,7 @@ open class VideoView : RelativeLayout, PlaybackStateListener {
   protected var audioFocusHelper = AudioFocusHelper()
 
   /**
-   * Sets the amount of time to change the return value from [.getCurrentPosition].
+   * Sets the amount of time to change the return value from [currentPosition].
    * This value will be reset when a new audio item is selected.
    */
   var positionOffset: Long = 0
@@ -110,7 +110,7 @@ open class VideoView : RelativeLayout, PlaybackStateListener {
    *
    * Enables or disables the automatic release when the VideoView is detached
    * from the window. Normally this is expected to release all resources used
-   * by calling [.release].  If `releaseOnDetach` is disabled
+   * by calling [release]. If `releaseOnDetach` is disabled
    * then [.release] will need to be manually called.
    */
   var releaseOnDetachFromWindow = true
@@ -164,9 +164,9 @@ open class VideoView : RelativeLayout, PlaybackStateListener {
     get() = videoPlayer.isPlaying
 
   /**
-   * Retrieves the duration of the current audio item.  This should only be called after
-   * the item is prepared (see [.setOnPreparedListener]).
-   * If [.overrideDuration] is set then that value will be returned.
+   * Retrieves the duration of the current audio item. This should only be called after
+   * the item is prepared (see [setOnPreparedListener]).
+   * If [overrideDuration] is set then that value will be returned.
    *
    * @return The millisecond duration of the video
    */
@@ -176,9 +176,9 @@ open class VideoView : RelativeLayout, PlaybackStateListener {
     } else videoPlayer.duration
 
   /**
-   * Retrieves the current position of the audio playback.  If an audio item is not currently
-   * in playback then the value will be 0.  This should only be called after the item is
-   * prepared (see [.setOnPreparedListener])
+   * Retrieves the current position of the audio playback. If an audio item is not currently
+   * in playback then the value will be 0. This should only be called after the item is
+   * prepared (see [setOnPreparedListener])
    *
    * @return The millisecond value for the current position
    */
@@ -188,9 +188,9 @@ open class VideoView : RelativeLayout, PlaybackStateListener {
     } else positionOffset + videoPlayer.currentPosition
 
   /**
-   * Retrieves the current buffer percent of the video.  If a video is not currently
-   * prepared or buffering the value will be 0.  This should only be called after the video is
-   * prepared (see [.setOnPreparedListener])
+   * Retrieves the current buffer percent of the video. If a video is not currently
+   * prepared or buffering the value will be 0. This should only be called after the video is
+   * prepared (see [setOnPreparedListener])
    *
    * @return The integer percent that is buffered [0, 100] inclusive
    */
@@ -229,7 +229,7 @@ open class VideoView : RelativeLayout, PlaybackStateListener {
     get() = videoPlayer.playbackPitch
 
   /**
-   * Retrieves a list of available tracks to select from. Typically [.trackSelectionAvailable]
+   * Retrieves a list of available tracks to select from. Typically [trackSelectionAvailable]
    * should be called before this.
    *
    * @return A list of available tracks associated with each track type

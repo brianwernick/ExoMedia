@@ -6,11 +6,9 @@ import android.view.KeyEvent
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
-import androidx.annotation.IntRange
 import androidx.core.view.forEach
 import com.devbrackets.android.exomedia.BuildConfig
 import com.devbrackets.android.exomedia.R
-import com.devbrackets.android.exomedia.util.millisToFormattedDuration
 import com.devbrackets.android.exomedia.util.view.DelegatedOnKeyListener
 import com.devbrackets.android.exomedia.util.view.UnhandledMediaKeyLogger
 import java.util.*
@@ -25,11 +23,8 @@ class VideoControlsTv : DefaultVideoControls {
     private const val TV_CONTROLS_HIDE_DELAY = 5_000L
   }
 
-  private lateinit var seekBar: SeekBar
   private lateinit var extraViewsContainer: LinearLayout
   private lateinit var container: ViewGroup
-
-  private var userInteracting = false
 
   private var rewindEnabled: Boolean = true
   private var fastForwardEnabled: Boolean = true
@@ -62,41 +57,12 @@ class VideoControlsTv : DefaultVideoControls {
     setDefaultHideDelay(TV_CONTROLS_HIDE_DELAY)
     internalListener = TvInternalListener()
     registerForInput()
-
-    seekBar.keyProgressIncrement
   }
 
   override fun retrieveViews() {
     super.retrieveViews()
-    seekBar = findViewById(R.id.exomedia_controls_video_seek)
     extraViewsContainer = findViewById(R.id.exomedia_controls_extra_container)
     container = findViewById(R.id.exomedia_controls_container)
-  }
-
-  override fun setPosition(@IntRange(from = 0) position: Long) {
-    seekBar.progress = position.toInt()
-    updateCurrentTime(position)
-  }
-
-  override fun setDuration(@IntRange(from = 0) duration: Long) {
-    super.setDuration(duration)
-    if (duration != seekBar.max.toLong()) {
-      endTimeTextView.text = duration.millisToFormattedDuration()
-      seekBar.max = duration.toInt()
-    }
-  }
-
-  override fun updateProgress(
-    @IntRange(from = 0) position: Long,
-    @IntRange(from = 0) duration: Long,
-    @IntRange(from = 0, to = 100) bufferPercent: Int
-  ) {
-    if (!userInteracting) {
-      seekBar.secondaryProgress = (seekBar.max * (bufferPercent.toFloat() / 100)).toInt()
-      seekBar.progress = position.toInt()
-
-      updateCurrentTime(position)
-    }
   }
 
   override fun setRewindButtonEnabled(enabled: Boolean) {

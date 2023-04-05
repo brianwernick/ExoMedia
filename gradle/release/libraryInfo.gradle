@@ -26,7 +26,14 @@ def getLibraryInfo() {
   info.versionMajor = props.get('VERSION_MAJOR') as Integer
   info.versionMinor = props.get('VERSION_MINOR') as Integer
   info.versionPatch = props.get('VERSION_PATCH') as Integer
-  info.versionName = "${info.versionMajor}.${info.versionMinor}.${info.versionPatch}"
+  def versionPreRelease = props.get('VERSION_PRE_RELEASE') as String
+
+  def versionName = "${info.versionMajor}.${info.versionMinor}.${info.versionPatch}"
+  if (versionPreRelease != null && !versionPreRelease.isBlank()) {
+    info.versionName = "${versionName}-${versionPreRelease}"
+  } else {
+    info.versionName = versionName
+  }
 
   return info
 }

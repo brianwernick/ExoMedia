@@ -26,7 +26,7 @@ repositories {
 }
 
 dependencies {
-  implementation 'com.devbrackets.android:exomedia:5.0.0'
+  implementation 'com.devbrackets.android:exomedia:5.0.0-beta01'
 }
 ```
 
@@ -59,13 +59,13 @@ private fun setupVideoView() {
   videoView.setOnPreparedListener(this)
 
   // For now we just picked an arbitrary item to play
-  videoView.setVideoURI(Uri.parse("https://www.devbrackets.com/media/samples/video/big_buck_bunny.mp4"))
+  videoView.setMedia(Uri.parse("https://www.devbrackets.com/media/samples/video/big_buck_bunny.mp4"))
 }
 
 @Override
 fun onPrepared() {
   //Starts the video playback as soon as it is ready
-  videoView.start();
+  videoView.start()
 }
 ```
 

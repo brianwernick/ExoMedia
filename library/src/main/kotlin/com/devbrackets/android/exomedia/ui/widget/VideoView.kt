@@ -388,9 +388,9 @@ open class VideoView : RelativeLayout, PlaybackStateListener {
   }
 
   /**
-   * Starts the playback for the video specified in [.setVideoURI]
-   * or [.setVideoPath].  This should be called after the VideoView is correctly
-   * prepared (see [.setOnPreparedListener])
+   * Starts the playback for the video specified in [setMedia].
+   * This should be called after the VideoView is correctly
+   * prepared (see [setOnPreparedListener])
    */
   fun start() {
     if (!audioFocusHelper.requestFocus()) {

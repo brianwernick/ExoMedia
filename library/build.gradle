@@ -18,7 +18,7 @@ dependencies {
   api "androidx.media3:media3-exoplayer-smoothstreaming:$rootProject.ext.media3Version"
 
   testImplementation 'junit:junit:4.13.2'
-  testImplementation "org.robolectric:robolectric:4.9.2"
+  testImplementation "org.robolectric:robolectric:4.10"
 }
 
 android {
@@ -41,8 +41,8 @@ android {
   }
 
   compileOptions {
-    sourceCompatibility JavaVersion.VERSION_1_8
-    targetCompatibility JavaVersion.VERSION_1_8
+    sourceCompatibility JavaVersion.VERSION_17
+    targetCompatibility JavaVersion.VERSION_17
   }
 
   testOptions {

@@ -1,15 +1,12 @@
-import org.gradle.internal.logging.text.StyledTextOutputFactory
-import static org.gradle.internal.logging.text.StyledTextOutput.Style
-
 buildscript {
-  ext.kotlinVersion = '1.8.10'
+  ext.kotlinVersion = '1.8.21'
   repositories {
     mavenCentral()
     google()
   }
 
   dependencies {
-    classpath 'com.android.tools.build:gradle:7.4.2'
+    classpath 'com.android.tools.build:gradle:8.0.1'
     classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
   }
 }
@@ -18,80 +15,18 @@ plugins {
   id "io.github.gradle-nexus.publish-plugin" version "1.1.0"
 }
 
-ext {
-  moduleTestResults = []
-  media3Version = "1.0.0"
-}
+apply from: './gradle/util/testOutput.gradle'
 
+ext {
+  media3Version = "1.0.1"
+}
 
 allprojects {
   repositories {
     mavenCentral()
     google()
   }
-
-  tasks.withType(Test) {
-    testLogging {
-      outputs.upToDateWhen { false }
-      events "failed", "skipped", "standardOut"
-      exceptionFormat "full"
-
-      afterSuite { desc, result ->
-        if (!desc.parent) {
-          rootProject.moduleTestResults.add([name: project.name, result: result])
-        }
-      }
-    }
-  }
 }
-
-gradle.buildFinished {
-  def testResults = rootProject.ext.moduleTestResults
-  def totals = [success: 0, failed: 0, skipped: 0, total: 0]
-
-  testResults.forEach { result ->
-    totals.success += result.result.successfulTestCount
-    totals.failed += result.result.failedTestCount
-    totals.skipped += result.result.skippedTestCount
-    totals.total += result.result.testCount
-
-    printTestResults(
-        result.name,
-        result.result.successfulTestCount,
-        result.result.failedTestCount,
-        result.result.skippedTestCount,
-        result.result.testCount
-    )
-  }
-
-  if (!testResults.isEmpty()) {
-    printTestResults(
-        "Project Total",
-        totals.success,
-        totals.failed,
-        totals.skipped,
-        totals.total
-    )
-  }
-}
-
-private printTestResults(title, passed, failed, skipped, total) {
-  def style = Style.Success
-  if (failed > 0) {
-    style = Style.Failure
-  } else if (skipped > 0) {
-    style = Style.Info
-  }
-
-  def summary = " ${passed} / ${total} passed, ${failed} failed, ${skipped} skipped "
-  def summaryTitle = " ${title.capitalize()} "
-  def styledOut = services.get(StyledTextOutputFactory).create("elements-out")
-
-  styledOut.withStyle(style).println('╔═' + summaryTitle + '═' * (summary.length() - summaryTitle.length() -1) + '╗')
-  styledOut.withStyle(style).println('║' + summary + '║')
-  styledOut.withStyle(style).println('╚' + '═' * summary.length() + '╝')
-}
-
 
 /*
  * Below is the functionality to publish the `library` module to Maven Central (Sonatype) using the

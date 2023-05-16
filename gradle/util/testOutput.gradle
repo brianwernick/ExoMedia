@@ -1,0 +1,80 @@
+import org.gradle.internal.logging.text.StyledTextOutputFactory
+import static org.gradle.internal.logging.text.StyledTextOutput.Style
+
+/**
+ * Handles watching the test output for each gradle module, storing the results until the
+ * test suite has completed, then prints out the results in a condensed manner.
+ *
+ * To include this functionality in the project, you just need to apply this script in
+ * the root `build.gradle` file. e.g. `apply from: './gradle/testOutput.gradle'`
+ */
+
+ext {
+  moduleTestResults = []
+}
+
+allprojects {
+  // Collects test results which are then printed in buildFinished below
+  tasks.withType(Test).configureEach {
+    maxParallelForks = Runtime.runtime.availableProcessors().intdiv(2) ?: 1
+
+    testLogging {
+      outputs.upToDateWhen { false }
+      events "failed", "skipped", "standardOut"
+      exceptionFormat "full"
+
+      afterSuite { desc, result ->
+        if (!desc.parent) {
+          moduleTestResults.add([name: project.name, result: result])
+        }
+      }
+    }
+  }
+}
+
+gradle.buildFinished {
+  def testResults = ext.moduleTestResults
+  def totals = [success: 0, failed: 0, skipped: 0, total: 0]
+
+  testResults.forEach { result ->
+    totals.success += result.result.successfulTestCount
+    totals.failed += result.result.failedTestCount
+    totals.skipped += result.result.skippedTestCount
+    totals.total += result.result.testCount
+
+    printTestResults(
+        result.name,
+        result.result.successfulTestCount,
+        result.result.failedTestCount,
+        result.result.skippedTestCount,
+        result.result.testCount
+    )
+  }
+
+  if (!testResults.isEmpty()) {
+    printTestResults(
+        "Project Total",
+        totals.success,
+        totals.failed,
+        totals.skipped,
+        totals.total
+    )
+  }
+}
+
+private printTestResults(title, passed, failed, skipped, total) {
+  def style = Style.Success
+  if (failed > 0) {
+    style = Style.Failure
+  } else if (skipped > 0) {
+    style = Style.Info
+  }
+
+  def summary = " ${passed} / ${total} passed, ${failed} failed, ${skipped} skipped "
+  def summaryTitle = " ${title.capitalize()} "
+  def styledOut = services.get(StyledTextOutputFactory).create("styledTests-out")
+
+  styledOut.withStyle(style).println('╔═' + summaryTitle + '═' * (summary.length() - summaryTitle.length() - 1) + '╗')
+  styledOut.withStyle(style).println('║' + summary + '║')
+  styledOut.withStyle(style).println('╚' + '═' * summary.length() + '╝')
+}

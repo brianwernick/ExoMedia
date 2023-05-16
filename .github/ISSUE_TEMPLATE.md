@@ -2,7 +2,7 @@
  - ExoMedia version: `5.0.0`
  - Device OS version: `12.0`
  - Device Manufacturer: `Google`
- - Device Name: `Pixel 6 Pro`
+ - Device Name: `Pixel 7 Pro`
  
 ### Reproduction Steps
  0.  

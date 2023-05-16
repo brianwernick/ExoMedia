@@ -2,8 +2,8 @@ apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 
 ext {
-  composeVersion = "1.3.1"
-  composeUiVersion = "1.3.3"
+  composeVersion = "1.4.3"
+  composeCompilerVersion = "1.4.7"
 }
 
 dependencies {
@@ -14,21 +14,21 @@ dependencies {
   implementation "androidx.media3:media3-datasource-okhttp:$rootProject.ext.media3Version" // Custom HTTP
 
   // Misc
-  implementation 'androidx.core:core-ktx:1.9.0'
+  implementation 'androidx.core:core-ktx:1.10.1'
   implementation 'androidx.appcompat:appcompat:1.6.1'
   implementation 'androidx.media:media:1.6.0'
   implementation 'com.android.support.constraint:constraint-layout:2.0.4'
 
   // Jetpack Compose UI
-  implementation "androidx.compose.ui:ui:$composeUiVersion"
-  implementation "androidx.compose.ui:ui-tooling:$composeUiVersion"
-  implementation "androidx.compose.ui:ui-tooling-preview:$composeUiVersion"
+  implementation "androidx.compose.ui:ui:$composeVersion"
+  implementation "androidx.compose.ui:ui-tooling:$composeVersion"
+  implementation "androidx.compose.ui:ui-tooling-preview:$composeVersion"
   implementation "androidx.compose.material:material:$composeVersion"
   implementation "androidx.compose.material:material-icons-core:$composeVersion"
   implementation "androidx.compose.material:material-icons-extended:$composeVersion"
-  implementation 'androidx.activity:activity-compose:1.6.1'
+  implementation 'androidx.activity:activity-compose:1.7.1'
   implementation "androidx.navigation:navigation-compose:2.5.3"
-  implementation "com.google.accompanist:accompanist-navigation-animation:0.28.0"
+  implementation "com.google.accompanist:accompanist-navigation-animation:0.30.1"
 
 
   // Image Loading
@@ -58,7 +58,7 @@ android {
   }
 
   kotlinOptions {
-    jvmTarget = JavaVersion.VERSION_1_8
+    jvmTarget = JavaVersion.VERSION_17
   }
 
   buildFeatures {
@@ -67,12 +67,12 @@ android {
   }
 
   compileOptions {
-    sourceCompatibility JavaVersion.VERSION_1_8
-    targetCompatibility JavaVersion.VERSION_1_8
+    sourceCompatibility JavaVersion.VERSION_17
+    targetCompatibility JavaVersion.VERSION_17
   }
 
   composeOptions {
-    kotlinCompilerExtensionVersion "1.4.3"
+    kotlinCompilerExtensionVersion composeCompilerVersion
   }
 
   lint {

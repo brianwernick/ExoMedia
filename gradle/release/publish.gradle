@@ -43,6 +43,9 @@ static def addPomDependency(groovy.util.Node dependenciesNode, Dependency depend
  * Deploy to Maven Central (Sonatype)
  * `$ ./gradlew clean library:assembleRelease androidJavaDocJar androidSourcesJar generatePomFileForNexusPublication publishNexusPublicationToSonatypeRepository closeSonatypeStagingRepository`
  *
+ * For publishing locally you can use:
+ *  `./gradlew clean library:assembleRelease androidJavaDocJar androidSourcesJar generatePomFileForNexusPublication publishToMavenLocal -PskipSigning=true`
+ *
  * ** NOTE: **
  * This expects the following environment variables to be present
  *  - `SONATYPE_TOKEN_USERNAME` : The username for the user token in Sonatype
@@ -112,6 +115,10 @@ signing {
       System.getenv("SIGNING_KEY"),
       System.getenv("SIGNING_KEY_PASSWORD"),
   )
+
+  required {
+    !(findProperty("skipSigning")?.toBoolean() ?: false)
+  }
 
   sign publishing.publications.nexus
 }

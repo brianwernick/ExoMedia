@@ -6,7 +6,7 @@ buildscript {
   }
 
   dependencies {
-    classpath 'com.android.tools.build:gradle:8.0.1'
+    classpath 'com.android.tools.build:gradle:8.0.2'
     classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
   }
 }
@@ -18,7 +18,7 @@ plugins {
 apply from: './gradle/util/testOutput.gradle'
 
 ext {
-  media3Version = "1.0.1"
+  media3Version = "1.0.2"
 }
 
 allprojects {

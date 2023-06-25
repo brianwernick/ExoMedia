@@ -16,8 +16,6 @@ fun VideoView.asMedia3Player(): VideoViewWrapper {
   return VideoViewWrapper(this)
 }
 
-
-
 /**
  * Wraps the [AudioPlayer] in a Media3 [androidx.media3.common.Player] to
  * support integrating with the rest of the Media3 framework for playlists,

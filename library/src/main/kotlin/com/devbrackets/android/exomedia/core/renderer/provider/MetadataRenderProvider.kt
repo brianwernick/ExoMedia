@@ -1,12 +1,15 @@
 package com.devbrackets.android.exomedia.core.renderer.provider
 
 import android.os.Handler
-import com.devbrackets.android.exomedia.core.renderer.RendererType
+import androidx.annotation.OptIn
+import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.Renderer
 import androidx.media3.exoplayer.metadata.MetadataDecoderFactory
 import androidx.media3.exoplayer.metadata.MetadataOutput
 import androidx.media3.exoplayer.metadata.MetadataRenderer
+import com.devbrackets.android.exomedia.core.renderer.RendererType
 
+@OptIn(UnstableApi::class)
 class MetadataRenderProvider: RenderProvider {
   private var latestRenderers: List<Renderer> = emptyList()
 

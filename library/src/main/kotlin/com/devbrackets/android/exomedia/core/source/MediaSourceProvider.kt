@@ -2,7 +2,11 @@ package com.devbrackets.android.exomedia.core.source
 
 import android.net.Uri
 import androidx.media3.exoplayer.source.MediaSource
-import com.devbrackets.android.exomedia.core.source.builder.*
+import com.devbrackets.android.exomedia.core.source.builder.DashMediaSourceBuilder
+import com.devbrackets.android.exomedia.core.source.builder.DefaultMediaSourceBuilder
+import com.devbrackets.android.exomedia.core.source.builder.HlsMediaSourceBuilder
+import com.devbrackets.android.exomedia.core.source.builder.MediaSourceBuilder
+import com.devbrackets.android.exomedia.core.source.builder.SsMediaSourceBuilder
 import com.devbrackets.android.exomedia.util.getExtension
 
 /**
@@ -17,7 +21,7 @@ open class MediaSourceProvider {
     val looseComparisonRegex: String?
   )
 
-  private val builders = listOf(
+  protected val builders = listOf(
     SourceTypeBuilder(HlsMediaSourceBuilder(), null, ".m3u8", ".*\\.m3u8.*"),
     SourceTypeBuilder(DashMediaSourceBuilder(), null, ".mpd", ".*\\.mpd.*"),
     SourceTypeBuilder(SsMediaSourceBuilder(), null, ".ism", ".*\\.ism.*")

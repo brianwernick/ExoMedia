@@ -3,7 +3,18 @@ package com.devbrackets.android.exomedia.nmp.config
 import android.content.Context
 import android.os.Handler
 import android.os.Looper
+import androidx.annotation.OptIn
 import androidx.media3.common.util.Clock
+import androidx.media3.common.util.UnstableApi
+import androidx.media3.exoplayer.DefaultLoadControl
+import androidx.media3.exoplayer.LoadControl
+import androidx.media3.exoplayer.RenderersFactory
+import androidx.media3.exoplayer.analytics.AnalyticsCollector
+import androidx.media3.exoplayer.analytics.DefaultAnalyticsCollector
+import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
+import androidx.media3.exoplayer.source.MediaSource
+import androidx.media3.exoplayer.upstream.BandwidthMeter
+import androidx.media3.exoplayer.upstream.DefaultBandwidthMeter
 import com.devbrackets.android.exomedia.AudioPlayer
 import com.devbrackets.android.exomedia.core.renderer.PlayerRendererFactory
 import com.devbrackets.android.exomedia.core.source.MediaSourceProvider
@@ -13,16 +24,9 @@ import com.devbrackets.android.exomedia.nmp.manager.UserAgentProvider
 import com.devbrackets.android.exomedia.nmp.manager.WakeManager
 import com.devbrackets.android.exomedia.nmp.manager.track.TrackManager
 import com.devbrackets.android.exomedia.util.FallbackManager
-import androidx.media3.exoplayer.DefaultLoadControl
-import androidx.media3.exoplayer.LoadControl
-import androidx.media3.exoplayer.RenderersFactory
-import androidx.media3.exoplayer.analytics.AnalyticsCollector
-import androidx.media3.exoplayer.analytics.DefaultAnalyticsCollector
-import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
-import androidx.media3.exoplayer.source.MediaSourceFactory
-import androidx.media3.exoplayer.upstream.BandwidthMeter
-import androidx.media3.exoplayer.upstream.DefaultBandwidthMeter
 
+@OptIn(UnstableApi::class)
+@Suppress("unused")
 class PlayerConfigBuilder(private val context: Context) {
   private var analyticsCollector: AnalyticsCollector? = null
   private var bandwidthMeter: BandwidthMeter? = null
@@ -33,7 +37,7 @@ class PlayerConfigBuilder(private val context: Context) {
   private var loadControl: LoadControl? = null
   private var userAgentProvider: UserAgentProvider? = null
   private var mediaSourceProvider: MediaSourceProvider? = null
-  private var mediaSourceFactory: MediaSourceFactory? = null
+  private var mediaSourceFactory: MediaSource.Factory? = null
   private var dataSourceFactoryProvider: DataSourceFactoryProvider? = null
   private var fallbackManager: FallbackManager? = null
 
@@ -92,13 +96,13 @@ class PlayerConfigBuilder(private val context: Context) {
     return this
   }
 
-  fun setMediaSourceFactory(factory: MediaSourceFactory): PlayerConfigBuilder {
+  fun setMediaSourceFactory(factory: MediaSource.Factory): PlayerConfigBuilder {
     this.mediaSourceFactory = factory
     return this
   }
 
   /**
-   * Specifies the provider to use when building [androidx.media3.exoplayer.upstream.DataSource.Factory]
+   * Specifies the provider to use when building [androidx.media3.datasource.DataSource.Factory]
    * instances for use with the [com.devbrackets.android.exomedia.core.source.builder.MediaSourceBuilder]s. This will
    * only be used for builders that haven't customized the [com.devbrackets.android.exomedia.core.source.builder.MediaSourceBuilder.buildDataSourceFactory]
    * method.

@@ -2,7 +2,7 @@ package com.devbrackets.android.exomedia.ui.listener
 
 /**
  * Interface definition for a callback to be invoked when the visibility
- * of the [com.devbrackets.android.exomedia.ui.widget.DefaultVideoControls] changes
+ * of the [com.devbrackets.android.exomedia.ui.widget.controls.VideoControls] changes
  */
 interface VideoControlsVisibilityListener {
   /**

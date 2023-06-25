@@ -1,6 +1,8 @@
 package com.devbrackets.android.exomedia.core
 
+import androidx.annotation.OptIn
 import androidx.media3.common.*
+import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.DecoderCounters
 import androidx.media3.exoplayer.analytics.AnalyticsListener
 import androidx.media3.exoplayer.source.LoadEventInfo
@@ -11,6 +13,7 @@ import java.io.IOException
  * A simple analytics delegate that handles a nullable listener delegate which allows us to use
  * class delegation in the [ListenerMux]
  */
+@OptIn(UnstableApi::class)
 class AnalyticsDelegate(
   var listener: AnalyticsListener? = null
 ): AnalyticsListener {
@@ -18,7 +21,15 @@ class AnalyticsDelegate(
     listener?.onMetadata(eventTime, metadata)
   }
 
-  @Deprecated("Deprecated in Java")
+  @Deprecated(
+    "Replace with onVideoSizeChanged(EventTime, VideoSize)",
+    replaceWith = ReplaceWith(
+      expression = "onVideoSizeChanged(eventTime, VideoSize(width, height, unappliedRotationDegrees, pixelWidthHeightRatio))",
+      imports = [
+        "androidx.media3.common.VideoSize"
+      ]
+    )
+  )
   override fun onVideoSizeChanged(
     eventTime: AnalyticsListener.EventTime,
     width: Int,
@@ -26,11 +37,18 @@ class AnalyticsDelegate(
     unappliedRotationDegrees: Int,
     pixelWidthHeightRatio: Float
   ) {
+    @Suppress("DEPRECATION")
     listener?.onVideoSizeChanged(eventTime, width, height, unappliedRotationDegrees, pixelWidthHeightRatio)
   }
 
-  @Deprecated("Deprecated in Java")
+  override fun onVideoSizeChanged(eventTime: AnalyticsListener.EventTime, videoSize: VideoSize) {
+    listener?.onVideoSizeChanged(eventTime, videoSize)
+  }
+
+  @Suppress("DeprecatedCallableAddReplaceWith")
+  @Deprecated("Replace with onPlaybackStateChanged(EventTime, Int) or onPlayWhenReadyChanged(EventTime, Boolean, Int)")
   override fun onPlayerStateChanged(eventTime: AnalyticsListener.EventTime, playWhenReady: Boolean, playbackState: Int) {
+    @Suppress("DEPRECATION")
     listener?.onPlayerStateChanged(eventTime, playWhenReady, playbackState)
   }
 
@@ -38,18 +56,24 @@ class AnalyticsDelegate(
     listener?.onTimelineChanged(eventTime, reason)
   }
 
-  @Deprecated("Deprecated in Java")
+  @Suppress("DeprecatedCallableAddReplaceWith")
+  @Deprecated("Replace with onPositionDiscontinuity(EventTime, PositionInfo, PositionInfo, Int)")
   override fun onPositionDiscontinuity(eventTime: AnalyticsListener.EventTime, reason: Int) {
+    @Suppress("DEPRECATION")
     listener?.onPositionDiscontinuity(eventTime, reason)
   }
 
-  @Deprecated("Deprecated in Java")
+  @Suppress("DeprecatedCallableAddReplaceWith")
+  @Deprecated("Replace with onPositionDiscontinuity(EventTime, PositionInfo, PositionInfo, Int)")
   override fun onSeekStarted(eventTime: AnalyticsListener.EventTime) {
+    @Suppress("DEPRECATION")
     listener?.onSeekStarted(eventTime)
   }
 
-  @Deprecated("Deprecated in Java")
+  @Suppress("DeprecatedCallableAddReplaceWith")
+  @Deprecated("Replace with onPositionDiscontinuity(EventTime, PositionInfo, PositionInfo, Int)")
   override fun onSeekProcessed(eventTime: AnalyticsListener.EventTime) {
+    @Suppress("DEPRECATION")
     listener?.onSeekProcessed(eventTime)
   }
 
@@ -65,8 +89,14 @@ class AnalyticsDelegate(
     listener?.onShuffleModeChanged(eventTime, shuffleModeEnabled)
   }
 
-  @Deprecated("Deprecated in Java")
+  @Deprecated(
+    "Replace with onIsLoadingChanged(EventTime, Boolean)",
+    ReplaceWith(
+      expression = "onIsLoadingChanged(eventTime, isLoading)"
+    )
+  )
   override fun onLoadingChanged(eventTime: AnalyticsListener.EventTime, isLoading: Boolean) {
+    @Suppress("DEPRECATION")
     listener?.onLoadingChanged(eventTime, isLoading)
   }
 
@@ -120,8 +150,10 @@ class AnalyticsDelegate(
     listener?.onVolumeChanged(eventTime, volume)
   }
 
-  @Deprecated("Deprecated in Java")
+  @Suppress("DeprecatedCallableAddReplaceWith")
+  @Deprecated("Replace with onDrmSessionAcquired(EventTime, Int)")
   override fun onDrmSessionAcquired(eventTime: AnalyticsListener.EventTime) {
+    @Suppress("DEPRECATION")
     listener?.onDrmSessionAcquired(eventTime)
   }
 
@@ -133,23 +165,31 @@ class AnalyticsDelegate(
     listener?.onAudioAttributesChanged(eventTime, audioAttributes)
   }
 
-  @Deprecated("Deprecated in Java")
+  @Suppress("DeprecatedCallableAddReplaceWith")
+  @Deprecated("Replace with onAudioEnabled(EventTime, DecoderCounters) and onVideoEnabled(EventTime, DecoderCounters)")
   override fun onDecoderEnabled(eventTime: AnalyticsListener.EventTime, trackType: Int, decoderCounters: DecoderCounters) {
+    @Suppress("DEPRECATION")
     listener?.onDecoderEnabled(eventTime, trackType, decoderCounters)
   }
 
-  @Deprecated("Deprecated in Java")
+  @Suppress("DeprecatedCallableAddReplaceWith")
+  @Deprecated("Replace with onAudioDecoderInitialized(EventTime, String, Long, Long) and onVideoDecoderInitialized(EventTime, String, Long, Long)")
   override fun onDecoderInitialized(eventTime: AnalyticsListener.EventTime, trackType: Int, decoderName: String, initializationDurationMs: Long) {
+    @Suppress("DEPRECATION")
     listener?.onDecoderInitialized(eventTime, trackType, decoderName, initializationDurationMs)
   }
 
-  @Deprecated("Deprecated in Java")
+  @Suppress("DeprecatedCallableAddReplaceWith")
+  @Deprecated("Replace with onAudioInputFormatChanged(EventTime, Format, DecoderReuseEvaluation) and onVideoInputFormatChanged(EventTime, Format, DecoderReuseEvaluation)")
   override fun onDecoderInputFormatChanged(eventTime: AnalyticsListener.EventTime, trackType: Int, format: Format) {
+    @Suppress("DEPRECATION")
     listener?.onDecoderInputFormatChanged(eventTime, trackType, format)
   }
 
-  @Deprecated("Deprecated in Java")
+  @Suppress("DeprecatedCallableAddReplaceWith")
+  @Deprecated("Replace with onAudioDisabled(EventTime, DecoderCounters) and onVideoDisabled(EventTime, DecoderCounters)")
   override fun onDecoderDisabled(eventTime: AnalyticsListener.EventTime, trackType: Int, decoderCounters: DecoderCounters) {
+    @Suppress("DEPRECATION")
     listener?.onDecoderDisabled(eventTime, trackType, decoderCounters)
   }
 
@@ -213,13 +253,17 @@ class AnalyticsDelegate(
     listener?.onAudioEnabled(eventTime, counters)
   }
 
-  @Deprecated("Deprecated in Java")
+  @Suppress("DeprecatedCallableAddReplaceWith")
+  @Deprecated("Replace with onAudioDecoderInitialized(EventTime, String, Long, Long)")
   override fun onAudioDecoderInitialized(eventTime: AnalyticsListener.EventTime, decoderName: String, initializationDurationMs: Long) {
+    @Suppress("DEPRECATION")
     listener?.onAudioDecoderInitialized(eventTime, decoderName, initializationDurationMs)
   }
 
-  @Deprecated("Deprecated in Java")
+  @Suppress("DeprecatedCallableAddReplaceWith")
+  @Deprecated("Replace with onAudioInputFormatChanged(EventTime, Format, DecoderReuseEvaluation)")
   override fun onAudioInputFormatChanged(eventTime: AnalyticsListener.EventTime, format: Format) {
+    @Suppress("DEPRECATION")
     listener?.onAudioInputFormatChanged(eventTime, format)
   }
 
@@ -239,13 +283,17 @@ class AnalyticsDelegate(
     listener?.onVideoEnabled(eventTime, counters)
   }
 
-  @Deprecated("Deprecated in Java")
+  @Suppress("DeprecatedCallableAddReplaceWith")
+  @Deprecated("Replace with onVideoDecoderInitialized(EventTime, String, Long, Long)")
   override fun onVideoDecoderInitialized(eventTime: AnalyticsListener.EventTime, decoderName: String, initializationDurationMs: Long) {
+    @Suppress("DEPRECATION")
     listener?.onVideoDecoderInitialized(eventTime, decoderName, initializationDurationMs)
   }
 
-  @Deprecated("Deprecated in Java")
+  @Suppress("DeprecatedCallableAddReplaceWith")
+  @Deprecated("Replace with onVideoInputFormatChanged(EventTime, Format, DecoderReuseEvaluation)")
   override fun onVideoInputFormatChanged(eventTime: AnalyticsListener.EventTime, format: Format) {
+    @Suppress("DEPRECATION")
     listener?.onVideoInputFormatChanged(eventTime, format)
   }
 

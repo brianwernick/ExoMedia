@@ -2,6 +2,8 @@ package com.devbrackets.android.exomedia.core.renderer
 
 import android.content.Context
 import android.os.Handler
+import androidx.annotation.OptIn
+import androidx.media3.common.util.UnstableApi
 import com.devbrackets.android.exomedia.core.renderer.provider.AudioRenderProvider
 import com.devbrackets.android.exomedia.core.renderer.provider.CaptionRenderProvider
 import com.devbrackets.android.exomedia.core.renderer.provider.MetadataRenderProvider
@@ -13,6 +15,7 @@ import androidx.media3.exoplayer.metadata.MetadataOutput
 import androidx.media3.exoplayer.text.TextOutput
 import androidx.media3.exoplayer.video.VideoRendererEventListener
 
+@OptIn(UnstableApi::class)
 class PlayerRendererFactory(
   private val context: Context
 ): RenderersFactory {

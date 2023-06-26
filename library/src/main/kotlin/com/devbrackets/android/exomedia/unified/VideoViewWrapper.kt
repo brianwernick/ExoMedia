@@ -19,7 +19,7 @@ import com.google.common.util.concurrent.ListenableFuture
 @OptIn(UnstableApi::class)
 open class VideoViewWrapper(
   val videoView: VideoView,
-  private val playerConfig: PlayerConfig = videoView.videoPlayer.playerConfig
+  protected val playerConfig: PlayerConfig = videoView.videoPlayer.playerConfig
 ): SimpleBasePlayer(playerConfig.handler.looper) {
   companion object {
     @JvmStatic
@@ -29,7 +29,7 @@ open class VideoViewWrapper(
     )
   }
 
-  private var playWhenReady: Boolean = false
+  protected var latestPlayWhenReady: Boolean = false
 
   override fun getState(): State {
     val allowedCommands = Player.Commands.Builder().apply {
@@ -44,12 +44,12 @@ open class VideoViewWrapper(
 
     return State.Builder()
       .setAvailableCommands(allowedCommands)
-      .setPlayWhenReady(playWhenReady, PLAY_WHEN_READY_CHANGE_REASON_USER_REQUEST)
+      .setPlayWhenReady(latestPlayWhenReady, PLAY_WHEN_READY_CHANGE_REASON_USER_REQUEST)
       .build()
   }
 
   override fun handleSetPlayWhenReady(playWhenReady: Boolean): ListenableFuture<*> {
-    this.playWhenReady = playWhenReady
+    this.latestPlayWhenReady = playWhenReady
 
     when (playWhenReady) {
       true -> videoView.start()
@@ -65,7 +65,7 @@ open class VideoViewWrapper(
   }
 
   override fun handleStop(): ListenableFuture<*> {
-    this.playWhenReady = false
+    this.latestPlayWhenReady = false
     videoView.stop()
 
     return Futures.immediateVoidFuture()

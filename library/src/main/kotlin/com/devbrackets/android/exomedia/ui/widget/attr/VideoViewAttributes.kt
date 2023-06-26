@@ -8,21 +8,21 @@ import com.devbrackets.android.exomedia.ui.widget.controls.VideoControlsProvider
 data class VideoViewAttributes(
 
   /**
-   * Specifies if the [VideoViewApi] implementations should use the [android.view.TextureView]
+   * Specifies if the VideoView implementations should use the [android.view.TextureView]
    * implementations.  If this is false then the implementations will be based on
    * the [android.view.SurfaceView]
    */
   val useTextureViewBacking: Boolean = false,
 
   /**
-   * Specifies the scale that the [VideoView] should use. If this is `null`
+   * Specifies the scale that the VideoView should use. If this is `null`
    * then the default value from the [com.devbrackets.android.exomedia.core.video.scale.MatrixManager]
    * will be used.
    */
   val scaleType: ScaleType? = null,
 
   /**
-   * Specifies if the [VideoView] should be measured based on the aspect ratio.
+   * Specifies if the VideoView should be measured based on the aspect ratio.
    */
   val measureBasedOnAspectRatio: Boolean = false,
 

@@ -21,7 +21,6 @@ class NativeVideoPlayer(
   private val config: PlayerConfig,
   private val surface: SurfaceEnvelope
 ) : VideoPlayerApi {
-
   private val mediaPlayer: FallbackMediaPlayer by lazy {
     FallbackMediaPlayerImpl(config.context).apply {
       setAudioAttributes(getAudioAttributes(C.USAGE_MEDIA, C.AUDIO_CONTENT_TYPE_MOVIE))

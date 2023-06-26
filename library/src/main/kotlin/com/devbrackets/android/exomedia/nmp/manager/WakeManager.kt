@@ -7,7 +7,7 @@ import android.os.PowerManager
 import android.util.Log
 
 class WakeManager(
-    private val context: Context
+  private val context: Context
 ) {
   companion object {
     private const val TAG = "ExoMediaPlayer"

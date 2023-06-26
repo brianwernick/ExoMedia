@@ -33,12 +33,13 @@ internal fun Context.tintListCompat(@DrawableRes drawableRes: Int, @ColorRes tin
  * @param tintListRes The resource id for the ColorStateList to use for tinting
  * @return The tinted drawable
  */
-internal fun Context.tintListCompat(drawable: Drawable, @ColorRes tintListRes: Int): Drawable =
-    DrawableCompat
-        .wrap(drawable)
-        .also {
-          DrawableCompat.setTintList(it, getColorStateListCompat(tintListRes))
-        }
+internal fun Context.tintListCompat(drawable: Drawable, @ColorRes tintListRes: Int): Drawable {
+  return DrawableCompat
+    .wrap(drawable)
+    .also {
+      DrawableCompat.setTintList(it, getColorStateListCompat(tintListRes))
+    }
+}
 
 /**
  * Retrieves the ColorStateList specified with the `colorRes`.  This

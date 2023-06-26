@@ -80,8 +80,8 @@ abstract class DefaultVideoControls : RelativeLayout, VideoControls, OnTimelineC
   protected var isVisible = true
   protected var userInteracting = false
 
-  private var lastUpdatedPosition: Long = 0
-  private var knownDuration: Long? = null
+  protected var lastUpdatedPosition: Long = 0
+  protected var knownDuration: Long? = null
 
   /**
    * Used to retrieve the layout resource identifier to inflate

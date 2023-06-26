@@ -22,20 +22,24 @@ import android.util.AttributeSet
 import android.util.TypedValue
 import android.view.View
 import android.view.accessibility.CaptioningManager
+import androidx.annotation.OptIn
 import androidx.media3.common.text.Cue
-import com.devbrackets.android.exomedia.core.listener.CaptionListener
+import androidx.media3.common.text.CueGroup
+import androidx.media3.common.util.UnstableApi
 import androidx.media3.ui.CaptionStyleCompat
+import com.devbrackets.android.exomedia.core.listener.CaptionListener
 
-@Suppress("MemberVisibilityCanBePrivate", "unused")
 /**
  * A view for displaying subtitle [Cue]s.
  */
+@OptIn(UnstableApi::class)
+@Suppress("MemberVisibilityCanBePrivate", "unused")
 class SubtitleView
 @JvmOverloads constructor(context: Context, attrs: AttributeSet? = null) : View(context, attrs), CaptionListener {
 
     private val painters = mutableListOf<SubtitlePainter>()
 
-    private var cues: List<Cue>? = null
+    private var cueGroup: CueGroup? = null
     @Cue.TextSizeType
     private var textSizeType = Cue.TEXT_SIZE_TYPE_FRACTIONAL
     private var textSize = DEFAULT_TEXT_SIZE_FRACTION
@@ -56,8 +60,8 @@ class SubtitleView
             return CaptionStyleCompat.createFromCaptionStyle(captioningManager.userStyle)
         }
 
-    override fun onCues(cues: List<Cue>) {
-        setCues(cues)
+    override fun onCues(cueGroup: CueGroup) {
+        setCues(cueGroup)
     }
 
     /**
@@ -65,13 +69,13 @@ class SubtitleView
      *
      * @param cues The cues to display, or null to clear the cues.
      */
-    fun setCues(cues: List<Cue>?) {
-        if (this.cues === cues) {
+    fun setCues(cueGroup: CueGroup?) {
+        if (this.cueGroup === cueGroup) {
             return
         }
-        this.cues = cues
+        this.cueGroup = cueGroup
         // Ensure we have sufficient painters.
-        val cueCount = cues?.size ?: 0
+        val cueCount = cueGroup?.cues?.size ?: 0
         while (painters.size < cueCount) {
             painters.add(SubtitlePainter(context))
         }
@@ -219,7 +223,7 @@ class SubtitleView
     }
 
     public override fun dispatchDraw(canvas: Canvas) {
-        val cueCount = if (cues == null) 0 else cues!!.size
+        val cueCount = cueGroup?.cues?.size ?: 0
         val rawTop = top
         val rawBottom = bottom
 
@@ -242,7 +246,7 @@ class SubtitleView
         }
 
         for (i in 0 until cueCount) {
-            val cue = cues?.get(i) ?: break
+            val cue = cueGroup?.cues?.get(i) ?: break
             val cueTextSizePx = resolveCueTextSize(cue, rawViewHeight, viewHeightMinusPadding)
             val painter = painters[i]
             painter.draw(
@@ -304,12 +308,3 @@ class SubtitleView
     }
 
 }
-/**
- * Sets the text size to be a fraction of the view's remaining height after its top and bottom
- * padding have been subtracted.
- *
- *
- * Equivalent to `#setFractionalTextSize(fractionOfHeight, false)`.
- *
- * @param fractionOfHeight A fraction between 0 and 1.
- */

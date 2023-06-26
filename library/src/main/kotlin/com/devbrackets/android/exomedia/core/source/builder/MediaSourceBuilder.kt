@@ -3,6 +3,8 @@ package com.devbrackets.android.exomedia.core.source.builder
 import android.content.Context
 import android.net.Uri
 import android.os.Handler
+import androidx.annotation.OptIn
+import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.DataSource
 import androidx.media3.datasource.DefaultDataSource
 import androidx.media3.datasource.TransferListener
@@ -12,6 +14,7 @@ import com.devbrackets.android.exomedia.core.source.data.DefaultDataSourceFactor
 import androidx.media3.exoplayer.drm.DrmSessionManagerProvider
 import androidx.media3.exoplayer.source.MediaSource
 
+@OptIn(UnstableApi::class)
 abstract class MediaSourceBuilder {
   data class MediaSourceAttributes(
     val context: Context,

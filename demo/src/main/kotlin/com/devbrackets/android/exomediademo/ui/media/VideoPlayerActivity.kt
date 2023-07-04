@@ -107,7 +107,7 @@ open class VideoPlayerActivity : BindingActivity<VideoPlayerActivityBinding>(), 
 
   private fun setupClosedCaptions() {
     captionsButton = AppCompatImageButton(this).apply {
-      setBackgroundResource(R.color.exomedia_controls_button_background)
+      setBackgroundResource(R.drawable.exomedia_controls_button_background)
       setImageResource(R.drawable.ic_closed_caption_white_24dp)
       setOnClickListener { showCaptionsMenu() }
     }

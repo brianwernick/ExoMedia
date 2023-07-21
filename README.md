@@ -26,7 +26,7 @@ repositories {
 }
 
 dependencies {
-  implementation 'com.devbrackets.android:exomedia:5.0.0-beta01'
+  implementation 'com.devbrackets.android:exomedia:5.0.0'
 }
 ```
 

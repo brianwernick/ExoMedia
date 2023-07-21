@@ -70,13 +70,6 @@ class AnalyticsDelegate(
     listener?.onSeekStarted(eventTime)
   }
 
-  @Suppress("DeprecatedCallableAddReplaceWith")
-  @Deprecated("Replace with onPositionDiscontinuity(EventTime, PositionInfo, PositionInfo, Int)")
-  override fun onSeekProcessed(eventTime: AnalyticsListener.EventTime) {
-    @Suppress("DEPRECATION")
-    listener?.onSeekProcessed(eventTime)
-  }
-
   override fun onPlaybackParametersChanged(eventTime: AnalyticsListener.EventTime, playbackParameters: PlaybackParameters) {
     listener?.onPlaybackParametersChanged(eventTime, playbackParameters)
   }
@@ -163,34 +156,6 @@ class AnalyticsDelegate(
 
   override fun onAudioAttributesChanged(eventTime: AnalyticsListener.EventTime, audioAttributes: AudioAttributes) {
     listener?.onAudioAttributesChanged(eventTime, audioAttributes)
-  }
-
-  @Suppress("DeprecatedCallableAddReplaceWith")
-  @Deprecated("Replace with onAudioEnabled(EventTime, DecoderCounters) and onVideoEnabled(EventTime, DecoderCounters)")
-  override fun onDecoderEnabled(eventTime: AnalyticsListener.EventTime, trackType: Int, decoderCounters: DecoderCounters) {
-    @Suppress("DEPRECATION")
-    listener?.onDecoderEnabled(eventTime, trackType, decoderCounters)
-  }
-
-  @Suppress("DeprecatedCallableAddReplaceWith")
-  @Deprecated("Replace with onAudioDecoderInitialized(EventTime, String, Long, Long) and onVideoDecoderInitialized(EventTime, String, Long, Long)")
-  override fun onDecoderInitialized(eventTime: AnalyticsListener.EventTime, trackType: Int, decoderName: String, initializationDurationMs: Long) {
-    @Suppress("DEPRECATION")
-    listener?.onDecoderInitialized(eventTime, trackType, decoderName, initializationDurationMs)
-  }
-
-  @Suppress("DeprecatedCallableAddReplaceWith")
-  @Deprecated("Replace with onAudioInputFormatChanged(EventTime, Format, DecoderReuseEvaluation) and onVideoInputFormatChanged(EventTime, Format, DecoderReuseEvaluation)")
-  override fun onDecoderInputFormatChanged(eventTime: AnalyticsListener.EventTime, trackType: Int, format: Format) {
-    @Suppress("DEPRECATION")
-    listener?.onDecoderInputFormatChanged(eventTime, trackType, format)
-  }
-
-  @Suppress("DeprecatedCallableAddReplaceWith")
-  @Deprecated("Replace with onAudioDisabled(EventTime, DecoderCounters) and onVideoDisabled(EventTime, DecoderCounters)")
-  override fun onDecoderDisabled(eventTime: AnalyticsListener.EventTime, trackType: Int, decoderCounters: DecoderCounters) {
-    @Suppress("DEPRECATION")
-    listener?.onDecoderDisabled(eventTime, trackType, decoderCounters)
   }
 
   override fun onAudioSessionIdChanged(eventTime: AnalyticsListener.EventTime, audioSessionId: Int) {

@@ -1,8 +1,10 @@
 package com.devbrackets.android.exomedia.core.renderer.provider
 
 import android.content.Context
+import java.lang.reflect.Array
 import android.os.Handler
 import androidx.annotation.OptIn
+import androidx.media3.common.audio.AudioProcessor
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.Renderer
 import androidx.media3.exoplayer.audio.AudioCapabilities

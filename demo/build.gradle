@@ -2,8 +2,8 @@ apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 
 ext {
-  composeVersion = "1.4.3"
-  composeCompilerVersion = "1.4.7"
+  composeVersion = "1.5.4"
+  composeCompilerVersion = "1.5.4"
 }
 
 dependencies {
@@ -14,7 +14,7 @@ dependencies {
   implementation "androidx.media3:media3-datasource-okhttp:$rootProject.ext.media3Version" // Custom HTTP
 
   // Misc
-  implementation 'androidx.core:core-ktx:1.10.1'
+  implementation 'androidx.core:core-ktx:1.12.0'
   implementation 'androidx.appcompat:appcompat:1.6.1'
   implementation 'androidx.media:media:1.6.0'
   implementation "androidx.constraintlayout:constraintlayout:2.1.4"
@@ -26,9 +26,9 @@ dependencies {
   implementation "androidx.compose.material:material:$composeVersion"
   implementation "androidx.compose.material:material-icons-core:$composeVersion"
   implementation "androidx.compose.material:material-icons-extended:$composeVersion"
-  implementation 'androidx.activity:activity-compose:1.7.2'
-  implementation "androidx.navigation:navigation-compose:2.6.0"
-  implementation "com.google.accompanist:accompanist-navigation-animation:0.30.1"
+  implementation 'androidx.activity:activity-compose:1.8.1'
+  implementation "androidx.navigation:navigation-compose:2.7.5"
+  implementation "com.google.accompanist:accompanist-navigation-animation:0.32.0"
 
 
   // Image Loading
@@ -43,12 +43,13 @@ dependencies {
 }
 
 android {
-  compileSdkVersion 33
+  namespace 'com.devbrackets.android.exomediademo'
+  compileSdk 34
 
   defaultConfig {
     applicationId "com.devbrackets.android.exomediademo"
     minSdkVersion 21
-    targetSdkVersion 33
+    targetSdkVersion 34
     versionCode 1
     versionName "1.0.0"
   }
@@ -78,6 +79,4 @@ android {
   lint {
     abortOnError false
   }
-  namespace 'com.devbrackets.android.exomediademo'
-
 }

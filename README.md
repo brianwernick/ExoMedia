@@ -1,3 +1,5 @@
+![Maven Central](https://img.shields.io/maven-central/v/com.devbrackets.android/exomedia)
+
 ExoMedia
 ============
 ExoMedia is an audio/video playback library for Android built on top of the ExoPlayer
@@ -99,4 +101,4 @@ Attribution
  [CTS]: https://source.android.com/compatibility/cts/index.html
  [Design Icons]: https://github.com/google/material-design-icons
  [ExoPlayer]: https://github.com/androidx/media
- [MavenCentral]: https://s01.oss.sonatype.org/#nexus-search;quick~com.devbrackets.android.exomedia
+ [MavenCentral]: https://search.maven.org/artifact/com.devbrackets.android/exomedia

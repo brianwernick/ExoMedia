@@ -1,8 +1,10 @@
 package com.devbrackets.android.exomedia.core.renderer.provider
 
 import android.content.Context
+import java.lang.reflect.Array
 import android.os.Handler
 import androidx.annotation.OptIn
+import androidx.media3.common.audio.AudioProcessor
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.Renderer
 import androidx.media3.exoplayer.audio.AudioCapabilities
@@ -19,9 +21,9 @@ open class AudioRenderProvider : RenderProvider {
 
   override fun rendererClasses(): List<String> {
     return listOf(
-      "androidx.media3.exoplayer.ext.opus.LibopusAudioRenderer",
-      "androidx.media3.exoplayer.ext.flac.LibflacAudioRenderer",
-      "androidx.media3.exoplayer.ext.ffmpeg.FfmpegAudioRenderer",
+      "androidx.media3.decoder.opus.LibopusAudioRenderer",
+      "androidx.media3.decoder.flac.LibflacAudioRenderer",
+      "androidx.media3.decoder.ffmpeg.FfmpegAudioRenderer",
     )
   }
 
@@ -57,11 +59,14 @@ open class AudioRenderProvider : RenderProvider {
   ): Renderer {
     val rendererClass = Class.forName(className)
 
+    val audioProcessorVarArg = Array.newInstance(AudioProcessor::class.java, 0)
+    
     val constructor = rendererClass.getConstructor(
-      Long::class.javaPrimitiveType,
-      AudioRendererEventListener::class.java
+      Handler::class.java,
+      AudioRendererEventListener::class.java,
+      audioProcessorVarArg::class.java
     )
 
-    return constructor.newInstance(handler, listener) as Renderer
+    return constructor.newInstance(handler, listener, audioProcessorVarArg) as Renderer
   }
 }

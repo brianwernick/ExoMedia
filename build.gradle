@@ -1,12 +1,12 @@
 buildscript {
-  ext.kotlinVersion = '1.8.21'
+  ext.kotlinVersion = '1.9.20'
   repositories {
     mavenCentral()
     google()
   }
 
   dependencies {
-    classpath 'com.android.tools.build:gradle:8.1.0'
+    classpath 'com.android.tools.build:gradle:8.1.4'
     classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
   }
 }
@@ -18,7 +18,7 @@ plugins {
 apply from: './gradle/util/testOutput.gradle'
 
 ext {
-  media3Version = "1.1.0"
+  media3Version = "1.2.0"
 }
 
 allprojects {

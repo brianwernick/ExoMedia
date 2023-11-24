@@ -22,13 +22,12 @@ dependencies {
 }
 
 android {
-  compileSdkVersion 33
-
   namespace 'com.devbrackets.android.exomedia'
+  compileSdk 34
 
   defaultConfig {
     minSdkVersion 21
-    targetSdkVersion 33
+    targetSdkVersion 34
 
     vectorDrawables.useSupportLibrary = true
 

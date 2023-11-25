@@ -1,11 +1,14 @@
 package com.devbrackets.android.exomedia.core.renderer.provider
 
-import com.devbrackets.android.exomedia.core.renderer.RendererType
+import androidx.annotation.OptIn
+import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.Renderer
+import com.devbrackets.android.exomedia.core.renderer.RendererType
 
 /**
  * Provides the capabilities for building renderers
  */
+@OptIn(UnstableApi::class)
 interface RenderProvider {
 
   /**

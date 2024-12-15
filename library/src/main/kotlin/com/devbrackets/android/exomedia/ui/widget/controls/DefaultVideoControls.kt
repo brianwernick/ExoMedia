@@ -7,7 +7,11 @@ import android.os.Looper
 import android.util.AttributeSet
 import android.util.SparseBooleanArray
 import android.view.View
-import android.widget.*
+import android.widget.ImageButton
+import android.widget.ProgressBar
+import android.widget.RelativeLayout
+import android.widget.SeekBar
+import android.widget.TextView
 import androidx.annotation.ColorRes
 import androidx.annotation.IntRange
 import androidx.annotation.LayoutRes
@@ -22,7 +26,7 @@ import com.devbrackets.android.exomedia.ui.widget.VideoView
 import com.devbrackets.android.exomedia.util.Repeater
 import com.devbrackets.android.exomedia.util.millisToFormattedDuration
 import com.devbrackets.android.exomedia.util.tintListCompat
-import java.util.*
+import java.util.LinkedList
 import kotlin.math.abs
 
 /**
@@ -409,7 +413,7 @@ abstract class DefaultVideoControls : RelativeLayout, VideoControls, OnTimelineC
 
   /**
    * Sets the button state for the Previous button. This method will NOT re-add
-   * buttons that have previously been removed with [setNextButtonRemoved].
+   * buttons that have previously been removed with [setPreviousButtonRemoved].
    *
    * @param enabled If the Previous button is enabled [default: false]
    */
@@ -420,7 +424,7 @@ abstract class DefaultVideoControls : RelativeLayout, VideoControls, OnTimelineC
 
   /**
    * Sets the button state for the Next button. This method will NOT re-add
-   * buttons that have previously been removed with [setPreviousButtonRemoved].
+   * buttons that have previously been removed with [setNextButtonRemoved].
    *
    * @param enabled If the Next button is enabled [default: false]
    */

@@ -1,9 +1,17 @@
 package com.devbrackets.android.exomedia.core
 
 import androidx.annotation.OptIn
-import androidx.media3.common.*
+import androidx.media3.common.AudioAttributes
+import androidx.media3.common.Format
+import androidx.media3.common.MediaItem
+import androidx.media3.common.Metadata
+import androidx.media3.common.PlaybackException
+import androidx.media3.common.PlaybackParameters
+import androidx.media3.common.Tracks
+import androidx.media3.common.VideoSize
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.DecoderCounters
+import androidx.media3.exoplayer.DecoderReuseEvaluation
 import androidx.media3.exoplayer.analytics.AnalyticsListener
 import androidx.media3.exoplayer.source.LoadEventInfo
 import androidx.media3.exoplayer.source.MediaLoadData
@@ -225,11 +233,8 @@ class AnalyticsDelegate(
     listener?.onAudioDecoderInitialized(eventTime, decoderName, initializationDurationMs)
   }
 
-  @Suppress("DeprecatedCallableAddReplaceWith")
-  @Deprecated("Replace with onAudioInputFormatChanged(EventTime, Format, DecoderReuseEvaluation)")
-  override fun onAudioInputFormatChanged(eventTime: AnalyticsListener.EventTime, format: Format) {
-    @Suppress("DEPRECATION")
-    listener?.onAudioInputFormatChanged(eventTime, format)
+  override fun onAudioInputFormatChanged(eventTime: AnalyticsListener.EventTime, format: Format, decoderReuseEvaluation: DecoderReuseEvaluation?) {
+    listener?.onAudioInputFormatChanged(eventTime, format, decoderReuseEvaluation)
   }
 
   override fun onAudioPositionAdvancing(eventTime: AnalyticsListener.EventTime, playoutStartSystemTimeMs: Long) {
@@ -255,11 +260,8 @@ class AnalyticsDelegate(
     listener?.onVideoDecoderInitialized(eventTime, decoderName, initializationDurationMs)
   }
 
-  @Suppress("DeprecatedCallableAddReplaceWith")
-  @Deprecated("Replace with onVideoInputFormatChanged(EventTime, Format, DecoderReuseEvaluation)")
-  override fun onVideoInputFormatChanged(eventTime: AnalyticsListener.EventTime, format: Format) {
-    @Suppress("DEPRECATION")
-    listener?.onVideoInputFormatChanged(eventTime, format)
+  override fun onVideoInputFormatChanged(eventTime: AnalyticsListener.EventTime, format: Format, decoderReuseEvaluation: DecoderReuseEvaluation?) {
+    listener?.onVideoInputFormatChanged(eventTime, format, decoderReuseEvaluation)
   }
 
   override fun onVideoDisabled(eventTime: AnalyticsListener.EventTime, counters: DecoderCounters) {

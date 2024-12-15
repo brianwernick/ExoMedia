@@ -1,55 +1,54 @@
-apply plugin: 'com.android.application'
-apply plugin: 'kotlin-android'
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
-ext {
-  composeVersion = "1.5.4"
-  composeCompilerVersion = "1.5.4"
+plugins {
+  alias libs.plugins.android.application
+  alias libs.plugins.kotlin.android
+  alias libs.plugins.compose.compiler
 }
 
 dependencies {
   implementation project(':library')
 
   // ExoPlayer
-  implementation "androidx.media3:media3-ui:$rootProject.ext.media3Version" // Subtitles
-  implementation "androidx.media3:media3-datasource-okhttp:$rootProject.ext.media3Version" // Custom HTTP
+  implementation libs.media3.ui // Subtitles
+  implementation libs.media3.datasource.okhttp // Custom HTTP
 
   // Misc
-  implementation 'androidx.core:core-ktx:1.12.0'
-  implementation 'androidx.appcompat:appcompat:1.6.1'
-  implementation 'androidx.media:media:1.7.0'
-  implementation "androidx.constraintlayout:constraintlayout:2.1.4"
+  implementation libs.core.ktx
+  implementation libs.appcompat
+  implementation libs.media
+  implementation libs.constraintlayout
 
   // Jetpack Compose UI
-  implementation "androidx.compose.ui:ui:$composeVersion"
-  implementation "androidx.compose.ui:ui-tooling:$composeVersion"
-  implementation "androidx.compose.ui:ui-tooling-preview:$composeVersion"
-  implementation "androidx.compose.material:material:$composeVersion"
-  implementation "androidx.compose.material:material-icons-core:$composeVersion"
-  implementation "androidx.compose.material:material-icons-extended:$composeVersion"
-  implementation 'androidx.activity:activity-compose:1.8.1'
-  implementation "androidx.navigation:navigation-compose:2.7.5"
-  implementation "com.google.accompanist:accompanist-navigation-animation:0.32.0"
+  implementation libs.ui
+  implementation libs.ui.tooling
+  implementation libs.ui.tooling.preview
+  implementation libs.material
+  implementation libs.material.icons.core
+  implementation libs.material.icons.extended
+  implementation libs.activity.compose
+  implementation libs.navigation.compose
 
 
   // Image Loading
-  implementation 'com.github.bumptech.glide:glide:4.16.0'
-  annotationProcessor 'com.github.bumptech.glide:compiler:4.12.0'
+  implementation libs.glide
+  annotationProcessor libs.compiler
 
   // Playlist support
-  implementation 'com.devbrackets.android:playlistcore:2.1.0'
+  implementation libs.playlistcore
 
   // Memory Leak diagnostics
-//  debugImplementation 'com.squareup.leakcanary:leakcanary-android:2.7'
+//  debugImplementation libs.leakcanary.android
 }
 
 android {
   namespace 'com.devbrackets.android.exomediademo'
-  compileSdk 34
+  compileSdk 35
 
   defaultConfig {
     applicationId "com.devbrackets.android.exomediademo"
     minSdkVersion 21
-    targetSdkVersion 34
+    targetSdkVersion 35
     versionCode 1
     versionName "1.0.0"
   }
@@ -58,25 +57,27 @@ android {
     main.java.srcDirs += "src/main/kotlin"
   }
 
-  kotlinOptions {
-    jvmTarget = JavaVersion.VERSION_1_8
-  }
-
   buildFeatures {
     compose true
     viewBinding true
   }
 
   compileOptions {
-    sourceCompatibility JavaVersion.VERSION_1_8
-    targetCompatibility JavaVersion.VERSION_1_8
+    sourceCompatibility JavaVersion.VERSION_11
+    targetCompatibility JavaVersion.VERSION_11
   }
 
-  composeOptions {
-    kotlinCompilerExtensionVersion composeCompilerVersion
+  kotlinOptions {
+    jvmTarget = JavaVersion.VERSION_11
   }
 
   lint {
     abortOnError false
+  }
+}
+
+kotlin {
+  compilerOptions {
+    jvmTarget.set(JvmTarget.JVM_11)
   }
 }

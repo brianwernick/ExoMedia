@@ -1,33 +1,37 @@
-apply plugin: 'com.android.library'
-apply plugin: 'kotlin-android'
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
+plugins {
+  alias libs.plugins.android.library
+  alias libs.plugins.kotlin.android
+}
 
 afterEvaluate {
   apply from: '../gradle/release/publish.gradle'
 }
 
 dependencies {
-  api "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlinVersion"
+  api libs.kotlin.stdlib.jdk7
 
-  implementation 'androidx.appcompat:appcompat:1.6.1'
-  implementation "androidx.constraintlayout:constraintlayout:2.1.4"
+  implementation libs.appcompat
+  implementation libs.constraintlayout
 
   // ExoPlayer
-  api "androidx.media3:media3-exoplayer:$rootProject.ext.media3Version"
-  api "androidx.media3:media3-exoplayer-dash:$rootProject.ext.media3Version"
-  api "androidx.media3:media3-exoplayer-hls:$rootProject.ext.media3Version"
-  api "androidx.media3:media3-exoplayer-smoothstreaming:$rootProject.ext.media3Version"
+  api libs.media3.exoplayer
+  api libs.media3.exoplayer.dash
+  api libs.media3.exoplayer.hls
+  api libs.media3.exoplayer.smoothstreaming
 
-  testImplementation 'junit:junit:4.13.2'
-  testImplementation "org.robolectric:robolectric:4.10.3"
+  testImplementation libs.junit
+  testImplementation libs.robolectric
 }
 
 android {
   namespace 'com.devbrackets.android.exomedia'
-  compileSdk 34
+  compileSdk 35
 
   defaultConfig {
     minSdkVersion 21
-    targetSdkVersion 34
+    targetSdkVersion 35
 
     vectorDrawables.useSupportLibrary = true
 
@@ -39,13 +43,17 @@ android {
     test.java.srcDirs += "src/test/kotlin"
   }
 
-  kotlinOptions {
-    jvmTarget = JavaVersion.VERSION_1_8
+  buildFeatures {
+    buildConfig true
   }
 
   compileOptions {
-    sourceCompatibility JavaVersion.VERSION_1_8
-    targetCompatibility JavaVersion.VERSION_1_8
+    sourceCompatibility JavaVersion.VERSION_11
+    targetCompatibility JavaVersion.VERSION_11
+  }
+
+  kotlinOptions {
+    jvmTarget = JavaVersion.VERSION_11
   }
 
   testOptions {
@@ -56,5 +64,11 @@ android {
 
   lint {
     abortOnError false
+  }
+}
+
+kotlin {
+  compilerOptions {
+    jvmTarget.set(JvmTarget.JVM_11)
   }
 }

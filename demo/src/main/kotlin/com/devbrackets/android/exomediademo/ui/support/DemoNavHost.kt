@@ -1,6 +1,5 @@
 package com.devbrackets.android.exomediademo.ui.support
 
-import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.slideInHorizontally
@@ -9,7 +8,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
-import com.google.accompanist.navigation.animation.AnimatedNavHost
+import androidx.navigation.compose.NavHost
 
 private const val ANIMATION_DURATION = 300
 
@@ -46,7 +45,6 @@ private val popExitTransition = slideOutHorizontally(
 )
 
 @Composable
-@OptIn(ExperimentalAnimationApi::class)
 fun DemoNavHost(
   navController: NavHostController,
   startDestination: String,
@@ -54,7 +52,7 @@ fun DemoNavHost(
   route: String? = null,
   builder: NavGraphBuilder.() -> Unit
 ) {
-  AnimatedNavHost(
+  NavHost(
     navController = navController,
     startDestination = startDestination,
     modifier = modifier,

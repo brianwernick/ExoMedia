@@ -10,6 +10,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavType
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.devbrackets.android.exomediademo.R
 import com.devbrackets.android.exomediademo.data.Samples
@@ -18,8 +20,6 @@ import com.devbrackets.android.exomediademo.ui.media.AudioPlayerActivity
 import com.devbrackets.android.exomediademo.ui.media.VideoPlayerActivity
 import com.devbrackets.android.exomediademo.ui.support.DemoNavHost
 import com.devbrackets.android.exomediademo.util.getEnumArg
-import com.google.accompanist.navigation.animation.composable
-import com.google.accompanist.navigation.animation.rememberAnimatedNavController
 
 @ExperimentalAnimationApi
 class SelectionActivity : AppCompatActivity() {
@@ -32,7 +32,7 @@ class SelectionActivity : AppCompatActivity() {
 
   @Composable
   fun Content() {
-    val navController = rememberAnimatedNavController()
+    val navController = rememberNavController()
 
     DemoNavHost(
       navController = navController,

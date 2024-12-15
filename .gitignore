@@ -12,6 +12,7 @@
 bin/
 gen/
 .idea/
+.kotlin/
 *.iml
 *.ipr
 *.iws

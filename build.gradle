@@ -1,25 +1,24 @@
 buildscript {
-  ext.kotlinVersion = '1.9.20'
   repositories {
     mavenCentral()
     google()
   }
 
   dependencies {
-    classpath 'com.android.tools.build:gradle:8.1.4'
-    classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
+    classpath libs.android.gradle
+    classpath libs.kotlin.gradle
   }
 }
 
 plugins {
-  id "io.github.gradle-nexus.publish-plugin" version "1.1.0"
+  alias libs.plugins.android.application apply false
+  alias libs.plugins.android.library apply false
+  alias libs.plugins.compose.compiler apply false
+  alias libs.plugins.kotlin.android apply false
+  alias libs.plugins.nexus.publish
 }
 
 apply from: './gradle/util/testOutput.gradle'
-
-ext {
-  media3Version = "1.2.0"
-}
 
 allprojects {
   repositories {

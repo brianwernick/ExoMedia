@@ -5,7 +5,6 @@ import android.graphics.drawable.Drawable
 import android.os.Handler
 import android.os.Looper
 import android.util.AttributeSet
-import android.util.SparseBooleanArray
 import android.view.View
 import android.widget.ImageButton
 import android.widget.ProgressBar
@@ -13,6 +12,7 @@ import android.widget.RelativeLayout
 import android.widget.SeekBar
 import android.widget.TextView
 import androidx.annotation.ColorRes
+import androidx.annotation.IdRes
 import androidx.annotation.IntRange
 import androidx.annotation.LayoutRes
 import androidx.media3.common.Timeline
@@ -67,8 +67,7 @@ abstract class DefaultVideoControls : RelativeLayout, VideoControls, OnTimelineC
   var visibilityListener: VideoControlsVisibilityListener? = null
 
   protected var internalListener = InternalListener()
-
-  protected var enabledViews = SparseBooleanArray()
+  protected val configuration = Configuration()
 
   /**
    * The delay in milliseconds to wait to start the hide animation
@@ -179,7 +178,7 @@ abstract class DefaultVideoControls : RelativeLayout, VideoControls, OnTimelineC
     timeline.getWindow(timeline.windowCount -1, window)
     if (window.isPlaceholder) {
       return onTimelineStyleUpdated(TimelineStyle.UNKNOWN)
-    } else if (!window.isLive()) {
+    } else if (!window.isLive) {
       return onTimelineStyleUpdated(TimelineStyle.ON_DEMAND)
     }
 
@@ -190,7 +189,7 @@ abstract class DefaultVideoControls : RelativeLayout, VideoControls, OnTimelineC
       return onTimelineStyleUpdated(TimelineStyle.UNKNOWN)
     }
 
-    val rollingStart = window.isDynamic || window.isLive()
+    val rollingStart = window.isDynamic || window.isLive
     val style = when {
       rollingStart -> TimelineStyle.LIVE
       else -> TimelineStyle.EVENT
@@ -419,7 +418,7 @@ abstract class DefaultVideoControls : RelativeLayout, VideoControls, OnTimelineC
    */
   fun setPreviousButtonEnabled(enabled: Boolean) {
     previousButton.isEnabled = enabled
-    enabledViews.put(R.id.exomedia_controls_previous_btn, enabled)
+    configuration.setEnabled(R.id.exomedia_controls_previous_btn, enabled)
   }
 
   /**
@@ -430,7 +429,7 @@ abstract class DefaultVideoControls : RelativeLayout, VideoControls, OnTimelineC
    */
   fun setNextButtonEnabled(enabled: Boolean) {
     nextButton.isEnabled = enabled
-    enabledViews.put(R.id.exomedia_controls_next_btn, enabled)
+    configuration.setEnabled(R.id.exomedia_controls_next_btn, enabled)
   }
 
   /**
@@ -471,6 +470,7 @@ abstract class DefaultVideoControls : RelativeLayout, VideoControls, OnTimelineC
    */
   fun setPreviousButtonRemoved(removed: Boolean) {
     previousButton.visibility = if (removed) View.GONE else View.VISIBLE
+    configuration.setRemoved(R.id.exomedia_controls_previous_btn, removed)
   }
 
   /**
@@ -481,6 +481,7 @@ abstract class DefaultVideoControls : RelativeLayout, VideoControls, OnTimelineC
    */
   fun setNextButtonRemoved(removed: Boolean) {
     nextButton.visibility = if (removed) View.GONE else View.VISIBLE
+    configuration.setRemoved(R.id.exomedia_controls_next_btn, removed)
   }
 
   /**
@@ -737,6 +738,57 @@ abstract class DefaultVideoControls : RelativeLayout, VideoControls, OnTimelineC
 
       updatePositionText(position)
     }
+  }
+
+  protected class Configuration {
+    private val itemConfigs = mutableMapOf<Int, ItemConfig>()
+
+    fun isEnabled(@IdRes id: Int): Boolean {
+      return getViewConfiguration(id)?.enabled ?: true
+    }
+
+    fun setEnabled(@IdRes id: Int, enabled: Boolean) {
+      updateViewConfiguration(id) {
+        it.copy(enabled = enabled)
+      }
+    }
+
+    fun isRemoved(@IdRes id: Int): Boolean {
+      return getViewConfiguration(id)?.removed ?: false
+    }
+
+    fun setRemoved(@IdRes id: Int, removed: Boolean) {
+      updateViewConfiguration(id) {
+        it.copy(removed = removed)
+      }
+    }
+
+    /**
+     * Helper function to get the Visibility value for the view with [id]
+     */
+    fun visibility(@IdRes id: Int): Int {
+      return if (isRemoved(id)) View.GONE else View.VISIBLE
+    }
+
+    private fun getViewConfiguration(@IdRes id: Int): ItemConfig? {
+      return synchronized(this) {
+        itemConfigs[id]
+      }
+    }
+
+    private fun updateViewConfiguration(@IdRes id: Int, action: (ItemConfig) -> ItemConfig?) {
+      synchronized(this) {
+        when (val newConfig = action(itemConfigs[id] ?: ItemConfig())) {
+          null -> itemConfigs.remove(id)
+          else -> itemConfigs[id] = newConfig
+        }
+      }
+    }
+
+    private data class ItemConfig(
+      val enabled: Boolean = true,
+      val removed: Boolean = false
+    )
   }
 
   enum class LoadState {

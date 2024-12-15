@@ -10,7 +10,7 @@ import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.SeekBar
 import com.devbrackets.android.exomedia.R
-import java.util.*
+import java.util.LinkedList
 
 /**
  * Provides playback controls for the [com.devbrackets.android.exomedia.ui.widget.VideoView]
@@ -130,11 +130,11 @@ class VideoControlsMobile : DefaultVideoControls {
     playPauseButton.visibility = View.VISIBLE
     playPauseButton.isEnabled = true
 
-    previousButton.visibility = View.VISIBLE
-    previousButton.isEnabled = enabledViews.get(R.id.exomedia_controls_previous_btn, true)
+    previousButton.visibility = configuration.visibility(R.id.exomedia_controls_previous_btn)
+    previousButton.isEnabled = configuration.isEnabled(R.id.exomedia_controls_previous_btn)
 
-    nextButton.visibility = View.VISIBLE
-    nextButton.isEnabled = enabledViews.get(R.id.exomedia_controls_next_btn, true)
+    nextButton.visibility = configuration.visibility(R.id.exomedia_controls_next_btn)
+    nextButton.isEnabled = configuration.isEnabled(R.id.exomedia_controls_next_btn)
 
     extraViewsContainer.visibility = View.VISIBLE
 

@@ -5,13 +5,14 @@ import android.util.AttributeSet
 import android.view.KeyEvent
 import android.view.View
 import android.view.ViewGroup
-import android.widget.*
+import android.widget.LinearLayout
+import android.widget.SeekBar
 import androidx.core.view.forEach
 import com.devbrackets.android.exomedia.BuildConfig
 import com.devbrackets.android.exomedia.R
 import com.devbrackets.android.exomedia.util.view.DelegatedOnKeyListener
 import com.devbrackets.android.exomedia.util.view.UnhandledMediaKeyLogger
-import java.util.*
+import java.util.LinkedList
 
 /**
  * Provides playback controls for the [com.devbrackets.android.exomedia.ui.widget.VideoView]
@@ -158,11 +159,11 @@ class VideoControlsTv : DefaultVideoControls {
     playPauseButton.visibility = View.VISIBLE
     playPauseButton.isEnabled = true
 
-    previousButton.visibility = View.VISIBLE
-    previousButton.isEnabled = enabledViews.get(R.id.exomedia_controls_previous_btn, true)
+    previousButton.visibility = configuration.visibility(R.id.exomedia_controls_previous_btn)
+    previousButton.isEnabled = configuration.isEnabled(R.id.exomedia_controls_previous_btn)
 
-    nextButton.visibility = View.VISIBLE
-    nextButton.isEnabled = enabledViews.get(R.id.exomedia_controls_next_btn, true)
+    nextButton.visibility = configuration.visibility(R.id.exomedia_controls_next_btn)
+    nextButton.isEnabled = configuration.isEnabled(R.id.exomedia_controls_next_btn)
 
     extraViewsContainer.visibility = View.VISIBLE
 
@@ -437,7 +438,6 @@ class VideoControlsTv : DefaultVideoControls {
       return seekBy(-FAST_FORWARD_REWIND_AMOUNT)
     }
 
-    @Suppress("FoldInitializerAndIfToElvis")
     private fun seekBy(amountMillis: Long): Boolean {
       val view = videoView
       if (view == null || !view.isAttachedToWindow) {

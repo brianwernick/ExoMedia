@@ -2,6 +2,7 @@
 activityCompose = "1.9.3"
 androidGradlePlugin = "8.7.3"
 appcompat = "1.7.0"
+coil = "3.0.4"
 compiler = "4.12.0"
 constraintlayout = "2.2.0"
 coreKtx = "1.15.0"
@@ -9,7 +10,6 @@ glide = "4.16.0"
 junit = "4.13.2"
 kotlin = "2.0.20"
 leakcanaryAndroid = "2.7"
-material = "1.7.6"
 media = "1.7.0"
 media3Exoplayer = "1.5.1"
 navigationCompose = "2.8.5"
@@ -17,12 +17,18 @@ nexusPublish = "1.1.0"
 playlistcore = "2.1.0"
 robolectric = "4.13"
 composeUi = "1.7.6"
+composeMaterial3 = "1.3.1"
 
 [libraries]
 activity-compose = { module = "androidx.activity:activity-compose", version.ref = "activityCompose" }
 android-gradle = { module = "com.android.tools.build:gradle", version.ref = "androidGradlePlugin" }
 appcompat = { module = "androidx.appcompat:appcompat", version.ref = "appcompat" }
+coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coil" }
+coil-network = { module = "io.coil-kt.coil3:coil-network-okhttp", version.ref = "coil" }
 compiler = { module = "com.github.bumptech.glide:compiler", version.ref = "compiler" }
+compose-material3 = { module = "androidx.compose.material3:material3", version.ref = "composeMaterial3" }
+compose-icons-core = { module = "androidx.compose.material:material-icons-core", version.ref = "composeUi" }
+compose-icons-extended = { module = "androidx.compose.material:material-icons-extended", version.ref = "composeUi" }
 constraintlayout = { module = "androidx.constraintlayout:constraintlayout", version.ref = "constraintlayout" }
 core-ktx = { module = "androidx.core:core-ktx", version.ref = "coreKtx" }
 glide = { module = "com.github.bumptech.glide:glide", version.ref = "glide" }
@@ -30,9 +36,6 @@ junit = { module = "junit:junit", version.ref = "junit" }
 kotlin-gradle = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
 kotlin-stdlib-jdk7 = { module = "org.jetbrains.kotlin:kotlin-stdlib-jdk7", version.ref = "kotlin" }
 leakcanary-android = { module = "com.squareup.leakcanary:leakcanary-android", version.ref = "leakcanaryAndroid" }
-material = { module = "androidx.compose.material:material", version.ref = "material" }
-material-icons-core = { module = "androidx.compose.material:material-icons-core", version.ref = "material" }
-material-icons-extended = { module = "androidx.compose.material:material-icons-extended", version.ref = "material" }
 media = { module = "androidx.media:media", version.ref = "media" }
 media3-datasource-okhttp = { module = "androidx.media3:media3-datasource-okhttp", version.ref = "media3Exoplayer" }
 media3-exoplayer = { module = "androidx.media3:media3-exoplayer", version.ref = "media3Exoplayer" }

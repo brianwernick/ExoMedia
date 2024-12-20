@@ -7,7 +7,6 @@ import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.background
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavType
 import androidx.navigation.compose.composable
@@ -18,7 +17,8 @@ import com.devbrackets.android.exomediademo.data.Samples
 import com.devbrackets.android.exomediademo.data.Samples.Sample.Category
 import com.devbrackets.android.exomediademo.ui.media.AudioPlayerActivity
 import com.devbrackets.android.exomediademo.ui.media.VideoPlayerActivity
-import com.devbrackets.android.exomediademo.ui.support.DemoNavHost
+import com.devbrackets.android.exomediademo.ui.support.compose.DemoNavHost
+import com.devbrackets.android.exomediademo.ui.support.compose.theme.DemoTheme
 import com.devbrackets.android.exomediademo.util.getEnumArg
 
 @ExperimentalAnimationApi
@@ -37,7 +37,7 @@ class SelectionActivity : AppCompatActivity() {
     DemoNavHost(
       navController = navController,
       startDestination = "home",
-      modifier = Modifier.background(Color(235, 235, 245)),
+      modifier = Modifier.background(DemoTheme.colors.background),
     ) {
       composable(
         route = "home"
@@ -58,7 +58,12 @@ class SelectionActivity : AppCompatActivity() {
           }
         )
       ) { entry ->
-        SelectMedia(entry.getEnumArg("category"))
+        SelectMedia(
+          category = entry.getEnumArg("category"),
+          onBackClicked = {
+            navController.popBackStack()
+          }
+        )
       }
     }
 
@@ -79,7 +84,10 @@ class SelectionActivity : AppCompatActivity() {
   }
 
   @Composable
-  private fun SelectMedia(category: Category) {
+  private fun SelectMedia(
+    category: Category,
+    onBackClicked: () -> Unit,
+  ) {
     val title = when(category) {
       Category.AUDIO -> stringResource(R.string.title_audio_selection_activity)
       Category.VIDEO -> stringResource(R.string.title_video_selection_activity)
@@ -93,6 +101,7 @@ class SelectionActivity : AppCompatActivity() {
     SelectionScreen(
       title = title,
       samples = samples,
+      onBackClicked = onBackClicked,
       onSampleSelected = this::playMedia
     )
   }

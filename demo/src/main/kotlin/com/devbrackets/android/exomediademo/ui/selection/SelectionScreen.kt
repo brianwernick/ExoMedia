@@ -1,12 +1,23 @@
 package com.devbrackets.android.exomediademo.ui.selection
 
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.*
+import androidx.compose.material.Card
+import androidx.compose.material.Icon
+import androidx.compose.material.MaterialTheme
+import androidx.compose.material.Scaffold
+import androidx.compose.material.Text
+import androidx.compose.material.TopAppBar
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Audiotrack
 import androidx.compose.material.icons.rounded.Videocam
@@ -23,16 +34,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.devbrackets.android.exomediademo.R
 import com.devbrackets.android.exomediademo.data.Samples
-
-@Preview(showBackground = true)
-@Composable
-private fun PreviewSelectionScreen() {
-  SelectionScreen(
-    title = "Select a video",
-    samples = Samples.video,
-    onSampleSelected = {}
-  )
-}
 
 @Composable
 fun SelectionScreenFrame(
@@ -130,9 +131,7 @@ private fun MediaItem(
       .defaultMinSize(minHeight = 48.dp)
       .padding(horizontal = 8.dp)
       .clip(MaterialTheme.shapes.medium)
-      .clickable {
-        onClick()
-      }
+      .clickable(onClick = onClick)
       .padding(horizontal = 8.dp, vertical = 16.dp)
   ) {
     Text(text = title)
@@ -178,4 +177,14 @@ fun MediaCategoryCard(
       }
     }
   }
+}
+
+@Composable
+@Preview(showBackground = true)
+private fun PreviewSelectionScreen() {
+  SelectionScreen(
+    title = "Select a video",
+    samples = Samples.video,
+    onSampleSelected = {}
+  )
 }

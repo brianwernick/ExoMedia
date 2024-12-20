@@ -39,7 +39,7 @@ class AudioApi(context: Context) : BaseMediaApi() {
 
     audioPlayer.setWakeLevel(PowerManager.PARTIAL_WAKE_LOCK)
     audioPlayer.setAudioAttributes(getAudioAttributes(C.USAGE_MEDIA, C.AUDIO_CONTENT_TYPE_MUSIC))
-    audioPlayer.setAnalyticsListener(EventLogger(null))
+    audioPlayer.setAnalyticsListener(EventLogger(TAG))
   }
 
   override fun play() {
@@ -89,5 +89,9 @@ class AudioApi(context: Context) : BaseMediaApi() {
       .setUsage(usage)
       .setContentType(contentType)
       .build()
+  }
+
+  companion object {
+    private const val TAG = "AudioApi"
   }
 }

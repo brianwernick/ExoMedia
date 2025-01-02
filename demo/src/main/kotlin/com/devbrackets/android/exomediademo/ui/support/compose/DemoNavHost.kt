@@ -1,4 +1,4 @@
-package com.devbrackets.android.exomediademo.ui.support
+package com.devbrackets.android.exomediademo.ui.support.compose
 
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
@@ -9,6 +9,7 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
+import com.devbrackets.android.exomediademo.ui.support.compose.theme.DemoTheme
 
 private const val ANIMATION_DURATION = 300
 
@@ -52,15 +53,17 @@ fun DemoNavHost(
   route: String? = null,
   builder: NavGraphBuilder.() -> Unit
 ) {
-  NavHost(
-    navController = navController,
-    startDestination = startDestination,
-    modifier = modifier,
-    route = route,
-    enterTransition = { enterTransition },
-    exitTransition = { exitTransition },
-    popEnterTransition = { popEnterTransition },
-    popExitTransition = { popExitTransition },
-    builder = builder
-  )
+  DemoTheme {
+    NavHost(
+      navController = navController,
+      startDestination = startDestination,
+      modifier = modifier,
+      route = route,
+      enterTransition = { enterTransition },
+      exitTransition = { exitTransition },
+      popEnterTransition = { popEnterTransition },
+      popExitTransition = { popExitTransition },
+      builder = builder
+    )
+  }
 }

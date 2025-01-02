@@ -23,9 +23,9 @@ dependencies {
   implementation libs.ui
   implementation libs.ui.tooling
   implementation libs.ui.tooling.preview
-  implementation libs.material
-  implementation libs.material.icons.core
-  implementation libs.material.icons.extended
+  implementation libs.compose.material3
+  implementation libs.compose.icons.core
+  implementation libs.compose.icons.extended
   implementation libs.activity.compose
   implementation libs.navigation.compose
 
@@ -33,6 +33,9 @@ dependencies {
   // Image Loading
   implementation libs.glide
   annotationProcessor libs.compiler
+  implementation libs.coil.compose
+  implementation libs.coil.network
+
 
   // Playlist support
   implementation libs.playlistcore

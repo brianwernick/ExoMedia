@@ -1,77 +1,55 @@
 package com.devbrackets.android.exomediademo.ui.selection
 
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Audiotrack
 import androidx.compose.material.icons.rounded.Videocam
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.devbrackets.android.exomediademo.R
 import com.devbrackets.android.exomediademo.data.Samples
-
-@Preview(showBackground = true)
-@Composable
-private fun PreviewSelectionScreen() {
-  SelectionScreen(
-    title = "Select a video",
-    samples = Samples.video,
-    onSampleSelected = {}
-  )
-}
-
-@Composable
-fun SelectionScreenFrame(
-  title: String,
-  content: @Composable (PaddingValues) -> Unit
-) {
-  MaterialTheme(
-    colors = MaterialTheme.colors.copy(
-      primary = Color(66, 165, 245),
-      primaryVariant = Color(96, 125, 139),
-      secondary = Color(96, 125, 139),
-      background = Color(235, 235, 245)
-    )
-  ) {
-    Scaffold(
-      topBar = {
-        TopAppBar(
-          title = {
-            Text(title)
-          },
-          backgroundColor = MaterialTheme.colors.primaryVariant
-        )
-      },
-      content = content
-    )
-  }
-}
+import com.devbrackets.android.exomediademo.ui.support.compose.ScreenScaffold
+import com.devbrackets.android.exomediademo.ui.support.compose.theme.DemoTheme
 
 @Composable
 fun CategorySelectionScreen(
   onAudioSelected: () -> Unit,
   onVideoSelected: () -> Unit
 ) {
-  SelectionScreenFrame(
+  ScreenScaffold(
     title = stringResource(R.string.app_name)
-  ) {
+  ) { padding ->
     LazyVerticalGrid(
       columns = GridCells.Fixed(2),
-      contentPadding = PaddingValues(16.dp)
+      modifier = Modifier.padding(padding),
+      contentPadding = PaddingValues(16.dp),
+      verticalArrangement = Arrangement.spacedBy(24.dp),
+      horizontalArrangement = Arrangement.spacedBy(24.dp, alignment = Alignment.CenterHorizontally)
     ) {
       item {
         MediaCategoryCard(
@@ -96,12 +74,15 @@ fun CategorySelectionScreen(
 fun SelectionScreen(
   title: String,
   samples: List<Samples.Sample>,
+  onBackClicked: () -> Unit,
   onSampleSelected: (Samples.Sample) -> Unit
 ) {
-  SelectionScreenFrame(
-    title = title
-  ) {
+  ScreenScaffold(
+    title = title,
+    onBackClick = onBackClicked
+  ) { padding ->
     LazyColumn(
+      modifier = Modifier.padding(padding),
       contentPadding = PaddingValues(
         top = 8.dp,
         bottom = 56.dp
@@ -130,9 +111,7 @@ private fun MediaItem(
       .defaultMinSize(minHeight = 48.dp)
       .padding(horizontal = 8.dp)
       .clip(MaterialTheme.shapes.medium)
-      .clickable {
-        onClick()
-      }
+      .clickable(onClick = onClick)
       .padding(horizontal = 8.dp, vertical = 16.dp)
   ) {
     Text(text = title)
@@ -145,37 +124,45 @@ fun MediaCategoryCard(
   image: ImageVector,
   onClick: () -> Unit
 ) {
-  Box {
-    Card(
+  Card(
+    onClick = onClick,
+    modifier = Modifier.size(124.dp),
+    elevation = CardDefaults.elevatedCardElevation()
+  ) {
+    Box(
       modifier = Modifier
-        .size(136.dp, 136.dp)
-        .clip(MaterialTheme.shapes.medium)
-        .clickable(onClick = onClick)
-        .align(Alignment.Center),
-      elevation = 2.dp
+        .fillMaxSize()
+        .padding(16.dp)
     ) {
-      Box(
+      Icon(
+        imageVector = image,
+        contentDescription = null,
         modifier = Modifier
-          .fillMaxSize()
-          .padding(16.dp)
-      ) {
-        Icon(
-          imageVector = image,
-          contentDescription = null,
-          modifier = Modifier
-            .padding(bottom = 24.dp)
-            .size(48.dp)
-            .align(Alignment.Center),
-          tint = Color(235, 235, 245)
-        )
+          .padding(bottom = 24.dp)
+          .size(48.dp)
+          .align(Alignment.Center),
+        tint = LocalContentColor.current.copy(alpha = 0.4f)
+      )
 
-        Text(
-          text = title,
-          modifier = Modifier.align(Alignment.BottomStart),
-          fontSize = 24.sp,
-          fontWeight = FontWeight.Medium
-        )
-      }
+      Text(
+        text = title,
+        modifier = Modifier
+          .align(Alignment.BottomCenter)
+          .fillMaxWidth(),
+        textAlign = TextAlign.Center,
+        style = DemoTheme.typography.titleLarge
+      )
     }
   }
+}
+
+@Composable
+@Preview(showBackground = true)
+private fun PreviewSelectionScreen() {
+  SelectionScreen(
+    title = "Select a video",
+    samples = Samples.video,
+    onBackClicked = {},
+    onSampleSelected = {}
+  )
 }

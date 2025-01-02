@@ -36,7 +36,7 @@ class MediaItem(private val sample: Samples.Sample, internal var isAudio: Boolea
         get() = sample.title
 
     override val album: String?
-        get() = "PlaylistCore Demo"
+        get() = "The Count of Monte Cristo"
 
     override val artist: String?
         get() = "Unknown Artist"

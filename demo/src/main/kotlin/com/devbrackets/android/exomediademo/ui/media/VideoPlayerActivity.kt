@@ -29,7 +29,7 @@ import com.devbrackets.android.exomediademo.ui.support.FullscreenManager
 open class VideoPlayerActivity : BindingActivity<VideoPlayerActivityBinding>(), VideoControlsSeekListener {
   companion object {
     const val EXTRA_INDEX = "EXTRA_INDEX"
-    const val PLAYLIST_ID = 6 //Arbitrary, for the example (different from audio)
+    const val PLAYLIST_ID = 6 // Arbitrary, for the example (different from audio)
 
     fun intent(context: Context, sample: Samples.Sample): Intent {
       // NOTE:

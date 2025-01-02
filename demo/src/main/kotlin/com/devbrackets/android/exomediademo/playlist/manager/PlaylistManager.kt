@@ -15,9 +15,9 @@ import com.devbrackets.android.playlistcore.manager.ListPlaylistManager
 class PlaylistManager(application: Application) : ListPlaylistManager<MediaItem>(application, MediaService::class.java) {
 
   /**
-   * Note: You can call [.getMediaPlayers] and add it manually in the activity,
-   * however we have this helper method to allow registration of the media controls
-   * listener provided by ExoMedia's [com.devbrackets.android.exomedia.ui.widget.DefaultVideoControls]
+   * Note: You can call [mediaPlayers] and add it manually in the activity,
+   * however we have this helper to allow registration of the media controls
+   * listener provided by ExoMedia's [com.devbrackets.android.exomedia.ui.widget.controls.DefaultVideoControls]
    */
   fun addVideoApi(videoApi: VideoApi) {
     mediaPlayers.add(videoApi)
@@ -26,8 +26,8 @@ class PlaylistManager(application: Application) : ListPlaylistManager<MediaItem>
   }
 
   /**
-   * Note: You can call [.getMediaPlayers] and remove it manually in the activity,
-   * however we have this helper method to remove the registered listener from [.addVideoApi]
+   * Note: You can call [mediaPlayers] and remove it manually in the activity,
+   * however we have this helper to remove the registered listener from [addVideoApi]
    */
   fun removeVideoApi(videoApi: VideoApi) {
     (videoApi.videoView.videoControls as? DefaultVideoControls)?.setButtonListener(null)

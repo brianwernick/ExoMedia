@@ -28,7 +28,8 @@ repositories {
 }
 
 dependencies {
-  implementation 'com.devbrackets.android:exomedia:5.2.0'
+  // See MavenCentral or the tag at the beginning of the Readme for the latest version
+  implementation 'com.devbrackets.android:exomedia:x.x.x'
 }
 ```
 
@@ -74,7 +75,7 @@ fun onPrepared() {
 
 License
 -------
-    Copyright 2015-2024 ExoMedia Contributors
+    Copyright 2015-2025 ExoMedia Contributors
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.

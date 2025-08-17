@@ -46,12 +46,12 @@ dependencies {
 
 android {
   namespace 'com.devbrackets.android.exomediademo'
-  compileSdk 35
+  compileSdk = 36
 
   defaultConfig {
     applicationId "com.devbrackets.android.exomediademo"
     minSdkVersion 21
-    targetSdkVersion 35
+    targetSdkVersion 36
     versionCode 1
     versionName "1.0.0"
   }

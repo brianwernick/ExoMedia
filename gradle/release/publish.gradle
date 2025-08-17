@@ -1,8 +1,5 @@
 
-apply plugin: "maven-publish"
-apply plugin: "signing"
-
-task androidJavaDoc(type: Javadoc) {
+tasks.register('androidJavaDoc', Javadoc) {
   source = android.sourceSets.main.java.srcDirs
   classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
   options.encoding "UTF-8"
@@ -12,12 +9,13 @@ task androidJavaDoc(type: Javadoc) {
   failOnError false
 }
 
-task androidJavaDocJar(type: Jar, dependsOn: androidJavaDoc) {
+tasks.register('androidJavaDocJar', Jar) {
+  dependsOn androidJavaDoc
   archiveClassifier.set('javadoc')
   from androidJavaDoc.destinationDir
 }
 
-task androidSourcesJar(type: Jar) {
+tasks.register('androidSourcesJar', Jar) {
   archiveClassifier.set('sources')
   from android.sourceSets.main.java.srcDirs
 }
@@ -26,6 +24,7 @@ task androidSourcesJar(type: Jar) {
  * Helper to add dependencies to the POM node. This is needed during manual construction
  * of the dependencies block
  */
+@SuppressWarnings('UnnecessaryQualifiedReference')
 static def addPomDependency(groovy.util.Node dependenciesNode, Dependency dependency, String dependencyScope) {
   // Ignore incomplete dependencies
   if (dependency.name == null || dependency.name == 'unspecified' || dependency.group == null || dependency.version == null) {

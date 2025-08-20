@@ -3,6 +3,8 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 plugins {
   alias libs.plugins.android.library
   alias libs.plugins.kotlin.android
+  alias libs.plugins.maven.publish
+  alias libs.plugins.signing
 }
 
 afterEvaluate {
@@ -27,11 +29,11 @@ dependencies {
 
 android {
   namespace 'com.devbrackets.android.exomedia'
-  compileSdk 35
+  compileSdk =36
 
   defaultConfig {
     minSdkVersion 21
-    targetSdkVersion 35
+    targetSdkVersion 36
 
     vectorDrawables.useSupportLibrary = true
 

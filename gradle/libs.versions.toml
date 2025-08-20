@@ -1,23 +1,24 @@
 [versions]
-activityCompose = "1.9.3"
-androidGradlePlugin = "8.7.3"
-appcompat = "1.7.0"
-coil = "3.0.4"
-compiler = "4.12.0"
-constraintlayout = "2.2.0"
-coreKtx = "1.15.0"
+activityCompose = "1.10.1"
+androidGradlePlugin = "8.12.0"
+appcompat = "1.7.1"
+coil = "3.3.0"
+compiler = "4.16.0"
+constraintlayout = "2.2.1"
+coreKtx = "1.17.0"
 glide = "4.16.0"
 junit = "4.13.2"
-kotlin = "2.0.20"
-leakcanaryAndroid = "2.7"
-media = "1.7.0"
-media3Exoplayer = "1.5.1"
-navigationCompose = "2.8.5"
-nexusPublish = "1.1.0"
-playlistcore = "2.1.0"
-robolectric = "4.13"
-composeUi = "1.7.6"
-composeMaterial3 = "1.3.1"
+kotlin = "2.2.10"
+leakcanaryAndroid = "2.14"
+media = "1.7.1"
+media3Exoplayer = "1.8.0"
+navigationCompose = "2.9.3"
+nexusPublish = "2.0.0"
+playlistcore = "2.2.0"
+robolectric = "4.15.1"
+composeUi = "1.9.0"
+composeIcons = "1.7.8"
+composeMaterial3 = "1.3.2"
 
 [libraries]
 activity-compose = { module = "androidx.activity:activity-compose", version.ref = "activityCompose" }
@@ -27,8 +28,8 @@ coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coil" 
 coil-network = { module = "io.coil-kt.coil3:coil-network-okhttp", version.ref = "coil" }
 compiler = { module = "com.github.bumptech.glide:compiler", version.ref = "compiler" }
 compose-material3 = { module = "androidx.compose.material3:material3", version.ref = "composeMaterial3" }
-compose-icons-core = { module = "androidx.compose.material:material-icons-core", version.ref = "composeUi" }
-compose-icons-extended = { module = "androidx.compose.material:material-icons-extended", version.ref = "composeUi" }
+compose-icons-core = { module = "androidx.compose.material:material-icons-core", version.ref = "composeIcons" }
+compose-icons-extended = { module = "androidx.compose.material:material-icons-extended", version.ref = "composeIcons" }
 constraintlayout = { module = "androidx.constraintlayout:constraintlayout", version.ref = "constraintlayout" }
 core-ktx = { module = "androidx.core:core-ktx", version.ref = "coreKtx" }
 glide = { module = "com.github.bumptech.glide:glide", version.ref = "glide" }
@@ -56,4 +57,5 @@ android-library = { id = "com.android.library", version.ref = "androidGradlePlug
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 nexus-publish = { id = "io.github.gradle-nexus.publish-plugin", version.ref = "nexusPublish" }
-
+maven-publish = { id = "maven-publish" }
+signing = { id = "signing" }

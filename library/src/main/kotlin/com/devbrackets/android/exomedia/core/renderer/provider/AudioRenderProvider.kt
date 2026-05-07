@@ -47,16 +47,16 @@ open class AudioRenderProvider : AbstractRenderProvider(RendererType.AUDIO) {
     handler: Handler,
     listener: AudioRendererEventListener
   ): Renderer? {
-    return when (val rendererClass = Class.forName(className)) {
-      DecoderAudioRenderer::class.java -> rendererClass.newInstance(
+    val rendererClass = Class.forName(className)
+    return if (DecoderAudioRenderer::class.java.isAssignableFrom(rendererClass)) {
+      rendererClass.newInstance(
         Handler::class to handler,
         AudioRendererEventListener::class to listener,
         arrayOf<AudioProcessor>()::class to arrayOf<AudioProcessor>()
       )
-      else -> {
-        Log.w("AudioRenderProvider", "Unsupported audio Renderer class $rendererClass")
-        null
-      }
+    } else {
+      Log.w("AudioRenderProvider", "Unsupported audio Renderer class $rendererClass")
+      null
     }
   }
 }

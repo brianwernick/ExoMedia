@@ -53,7 +53,7 @@ ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview", versio
 android-application = { id = "com.android.application", version.ref = "androidGradlePlugin" }
 android-library = { id = "com.android.library", version.ref = "androidGradlePlugin" }
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
-kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+dokka = { id = "org.jetbrains.dokka-javadoc", version = "2.2.0" }
 nexus-publish = { id = "io.github.gradle-nexus.publish-plugin", version.ref = "nexusPublish" }
 maven-publish = { id = "maven-publish" }
 signing = { id = "signing" }

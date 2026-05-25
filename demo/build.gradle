@@ -1,82 +1,74 @@
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import util.ProjectConfig
 
 plugins {
-  alias libs.plugins.android.application
-  alias libs.plugins.kotlin.android
-  alias libs.plugins.compose.compiler
+    alias(libs.plugins.android.application)
+    alias(libs.plugins.compose.compiler)
 }
 
 dependencies {
-  implementation project(':library')
+    implementation project(':library')
 
-  // ExoPlayer
-  implementation libs.media3.ui // Subtitles
-  implementation libs.media3.datasource.okhttp // Custom HTTP
+    // ExoPlayer
+    implementation(libs.media3.ui) // Subtitles
+    implementation(libs.media3.datasource.okhttp) // Custom HTTP
 
-  // Misc
-  implementation libs.core.ktx
-  implementation libs.appcompat
-  implementation libs.media
-  implementation libs.constraintlayout
+    // Misc
+    implementation(libs.core.ktx)
+    implementation(libs.appcompat)
+    implementation(libs.media)
+    implementation(libs.constraintlayout)
 
-  // Jetpack Compose UI
-  implementation libs.ui
-  implementation libs.ui.tooling
-  implementation libs.ui.tooling.preview
-  implementation libs.compose.material3
-  implementation libs.compose.icons.core
-  implementation libs.compose.icons.extended
-  implementation libs.activity.compose
-  implementation libs.navigation.compose
-
-
-  // Image Loading
-  implementation libs.glide
-  annotationProcessor libs.compiler
-  implementation libs.coil.compose
-  implementation libs.coil.network
+    // Jetpack Compose UI
+    implementation(libs.ui)
+    implementation(libs.ui.tooling)
+    implementation(libs.ui.tooling.preview)
+    implementation(libs.compose.material3)
+    implementation(libs.compose.icons.core)
+    implementation(libs.compose.icons.extended)
+    implementation(libs.activity.compose)
+    implementation(libs.navigation.compose)
 
 
-  // Playlist support
-  implementation libs.playlistcore
+    // Image Loading
+    implementation(libs.glide)
+    annotationProcessor(libs.compiler)
+    implementation(libs.coil.compose)
+    implementation(libs.coil.network)
 
-  // Memory Leak diagnostics
-//  debugImplementation libs.leakcanary.android
+
+    // Playlist support
+    implementation(libs.playlistcore)
 }
 
 android {
-  namespace 'com.devbrackets.android.exomediademo'
-  compileSdk = 37
+    namespace = "com.devbrackets.android.exomediademo"
+    compileSdk = ProjectConfig.compileSdk
 
-  defaultConfig {
-    applicationId "com.devbrackets.android.exomediademo"
-    minSdkVersion 23
-    targetSdkVersion 37
-    versionCode 1
-    versionName "1.0.0"
-  }
+    defaultConfig {
+        applicationId = "com.devbrackets.android.exomediademo"
+        minSdk = ProjectConfig.minSdk
+        targetSdk = ProjectConfig.targetSdk
+        versionCode = 1
+        versionName = "1.0.0-demo"
+    }
 
-  sourceSets {
-    main.java.srcDirs += "src/main/kotlin"
-  }
+    sourceSets {
+        getByName("main") {
+            kotlin.directories.add("src/main/kotlin")
+        }
+    }
 
-  buildFeatures {
-    compose true
-    viewBinding true
-  }
+    buildFeatures {
+        compose = true
+        viewBinding = true
+    }
 
-  compileOptions {
-    sourceCompatibility JavaVersion.VERSION_11
-    targetCompatibility JavaVersion.VERSION_11
-  }
+    compileOptions {
+        sourceCompatibility = ProjectConfig.javaVersion
+        targetCompatibility = ProjectConfig.javaVersion
+    }
 
-  lint {
-    abortOnError false
-  }
-}
-
-kotlin {
-  compilerOptions {
-    jvmTarget.set(JvmTarget.JVM_11)
-  }
+    lint {
+        abortOnError = false
+    }
 }

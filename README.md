@@ -75,7 +75,7 @@ fun onPrepared() {
 
 License
 -------
-    Copyright 2015-2025 ExoMedia Contributors
+    Copyright 2015-2026 ExoMedia Contributors
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.

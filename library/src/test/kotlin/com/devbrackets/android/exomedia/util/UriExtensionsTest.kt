@@ -8,7 +8,7 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 
 @RunWith(RobolectricTestRunner::class)
-@Config(manifest = Config.NONE, sdk = [21])
+@Config(manifest = Config.NONE, sdk = [23])
 class UriExtensionsTest {
 
   @Test

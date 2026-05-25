@@ -12,7 +12,7 @@ afterEvaluate {
 }
 
 dependencies {
-  api libs.kotlin.stdlib.jdk7
+  api libs.kotlin.stdlib
 
   implementation libs.appcompat
   implementation libs.constraintlayout
@@ -29,11 +29,10 @@ dependencies {
 
 android {
   namespace 'com.devbrackets.android.exomedia'
-  compileSdk =36
+  compileSdk = 37
 
   defaultConfig {
-    minSdkVersion 21
-    targetSdkVersion 36
+    minSdkVersion 23
 
     vectorDrawables.useSupportLibrary = true
 
@@ -52,10 +51,6 @@ android {
   compileOptions {
     sourceCompatibility JavaVersion.VERSION_11
     targetCompatibility JavaVersion.VERSION_11
-  }
-
-  kotlinOptions {
-    jvmTarget = JavaVersion.VERSION_11
   }
 
   testOptions {

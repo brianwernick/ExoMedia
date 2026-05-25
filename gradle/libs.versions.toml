@@ -1,24 +1,23 @@
 [versions]
-activityCompose = "1.10.1"
-androidGradlePlugin = "8.12.0"
+activityCompose = "1.13.0"
+androidGradlePlugin = "9.2.1"
 appcompat = "1.7.1"
-coil = "3.3.0"
-compiler = "4.16.0"
+coil = "3.4.0"
+compiler = "5.0.7"
 constraintlayout = "2.2.1"
-coreKtx = "1.17.0"
-glide = "4.16.0"
+coreKtx = "1.18.0"
+glide = "5.0.7"
 junit = "4.13.2"
-kotlin = "2.2.10"
-leakcanaryAndroid = "2.14"
-media = "1.7.1"
-media3Exoplayer = "1.8.0"
-navigationCompose = "2.9.3"
+kotlin = "2.3.21"
+media = "1.8.0"
+media3Exoplayer = "1.10.1"
+navigationCompose = "2.9.8"
 nexusPublish = "2.0.0"
 playlistcore = "2.2.0"
-robolectric = "4.15.1"
-composeUi = "1.9.0"
+robolectric = "4.16.1"
+composeUi = "1.11.2"
 composeIcons = "1.7.8"
-composeMaterial3 = "1.3.2"
+composeMaterial3 = "1.4.0"
 
 [libraries]
 activity-compose = { module = "androidx.activity:activity-compose", version.ref = "activityCompose" }
@@ -35,8 +34,7 @@ core-ktx = { module = "androidx.core:core-ktx", version.ref = "coreKtx" }
 glide = { module = "com.github.bumptech.glide:glide", version.ref = "glide" }
 junit = { module = "junit:junit", version.ref = "junit" }
 kotlin-gradle = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
-kotlin-stdlib-jdk7 = { module = "org.jetbrains.kotlin:kotlin-stdlib-jdk7", version.ref = "kotlin" }
-leakcanary-android = { module = "com.squareup.leakcanary:leakcanary-android", version.ref = "leakcanaryAndroid" }
+kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlin" }
 media = { module = "androidx.media:media", version.ref = "media" }
 media3-datasource-okhttp = { module = "androidx.media3:media3-datasource-okhttp", version.ref = "media3Exoplayer" }
 media3-exoplayer = { module = "androidx.media3:media3-exoplayer", version.ref = "media3Exoplayer" }

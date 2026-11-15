@@ -48,17 +48,17 @@ class VideoRenderProvider(
     handler: Handler,
     listener: VideoRendererEventListener
   ): Renderer? {
-    return when (val rendererClass = Class.forName(className)) {
-      DecoderVideoRenderer::class.java -> rendererClass.newInstance(
+    val rendererClass = Class.forName(className)
+    return if (DecoderVideoRenderer::class.java.isAssignableFrom(rendererClass)) {
+      rendererClass.newInstance(
         Long::class to videoJoiningTimeMs,
         Handler::class to handler,
         VideoRendererEventListener::class to listener,
         Int::class to droppedFrameNotificationAmount
       )
-      else -> {
-        Log.w("VideoRenderProvider", "Unsupported video Renderer class $rendererClass")
-        null
-      }
+    } else {
+      Log.w("VideoRenderProvider", "Unsupported video Renderer class $rendererClass")
+      null
     }
   }
 }
